@@ -242,7 +242,7 @@ function next(rf::R_{PartitionBy}, result, input)
             push!(iinput, input)
         else
             iresult = next(rf.inner, iresult, iinput)
-            iinput = InType(rf)[]
+            empty!(iinput)
             isreduced(iresult) || push!(iinput, input)
         end
         return (iinput, val), iresult

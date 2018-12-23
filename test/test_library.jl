@@ -9,7 +9,7 @@ end
 
 @testset "PartitionBy" begin
     # https://clojuredocs.org/clojure.core/partition-by#example-542692c7c026201cdc3269da
-    xf = PartitionBy(isequal(3))
+    xf = PartitionBy(isequal(3)) |> Map(copy)
     @test collect(xf, 1:5) == [[1, 2], [3], [4, 5]]
 end
 
