@@ -2,7 +2,7 @@ using BenchmarkTools
 using Transducers
 
 function manual_filter_map_map!(ys, xs)
-    for i in eachindex(xs, ys)
+    @inbounds for i in eachindex(xs, ys)
         x = xs[i]
         if -0.5 < x < 0.5
             ys[i] = 2x
