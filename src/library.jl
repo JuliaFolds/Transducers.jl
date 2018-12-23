@@ -402,3 +402,38 @@ complete(rf::R_{TeeZip}, result) = complete(rejoin(rf), result)
 
 # add joint
 Base.adjoint(xf::Transducer) = TeeZip(xf)
+
+
+struct GetIndex{inbounds, A} <: Transducer
+    array::A
+end
+
+GetIndex{inbounds}(array::A) where {inbounds, A} = GetIndex{inbounds, A}(array)
+GetIndex(array) = GetIndex{false}(array)
+
+outtype(xf::GetIndex, ::Type{<:Integer}) = eltype(xf.array)
+outtype(::GetIndex, T) =
+    error("Unexpected non-integer input type for GetIndex:\n", T)
+
+next(rf::R_{GetIndex{true}}, result, input) =
+    next(rf.inner, result, @inbounds rf.xform.array[input])
+next(rf::R_{GetIndex{false}}, result, input) =
+    next(rf.inner, result, rf.xform.array[input])
+
+struct SetIndex{inbounds, A} <: Transducer
+    array::A
+end
+
+SetIndex{inbounds}(array::A) where {inbounds, A} = SetIndex{inbounds, A}(array)
+SetIndex(array) = SetIndex{false}(array)
+
+outtype(xf::SetIndex, ::Type{<:Integer}) = eltype(xf.array)
+outtype(::SetIndex, T) =
+    error("Unexpected non-integer input type for SetIndex:\n", T)
+
+next(rf::R_{SetIndex{true}}, result, input::NTuple{2, Any}) =
+    next(rf.inner, result, (@inbounds rf.xform.array[input[1]] = input[2];))
+next(rf::R_{SetIndex{false}}, result, input::NTuple{2, Any}) =
+    next(rf.inner, result, (rf.xform.array[input[1]] = input[2];))
+# Index is `input[1]` due to `TeeZip`'s definition.  Is it better to
+# flip, to be compatible with `Base.setindex!`?

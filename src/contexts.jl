@@ -159,10 +159,10 @@ function Base.map!(xf::Transducer, dest::AbstractArray, src::AbstractArray)
     # TODO: support Dict
     indices = eachindex(dest, src)
     rf = Reduction(
-        TeeZip(Map(i -> src[i]) |> xf),
-        Completing((dest, (i, x)) -> (dest[i] = x; dest)),
+        TeeZip(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
+        (x, _...) -> x,  # :: Nothing
         eltype(indices))
-    transduce(rf, dest, indices)
+    transduce(rf, nothing, indices)
     return dest
 end
 
