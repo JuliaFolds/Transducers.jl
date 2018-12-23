@@ -3,6 +3,7 @@
 Base.foldl(rf::Reduction, init, coll) = unreduced(foldld(rf, init, coll))
 foldld(rf::Reduction, init, coll) = __foldl__(rf, start(rf, init), coll)
 
+#=
 function __foldl__(rf, init, coll)
     ret = iterate(coll)
     ret === nothing && return init
@@ -23,11 +24,20 @@ function __foldl__(rf, init, coll)
     end
     return val
 end
+=#
+
+function __foldl__(rf, val, coll)
+    for x in coll
+        val = next(rf, val, x)
+        isreduced(val) && return val
+    end
+    return val
+end
 
 # function simple_foldl(rf, val, coll)
 #     for x in coll
 #         val = next(rf, val, x)
-#         isreduced(val) && return val[]
+#         isreduced(val) && return val
 #     end
 #     return val
 # end
