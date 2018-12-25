@@ -98,7 +98,7 @@ wrap(rf::T, state, iresult) where {T} = PrivateState(rf, state, iresult)
 wrap(rf, state, iresult::Reduced) =
     Reduced(PrivateState(rf, state, unreduced(iresult)))
 
-function wrapping(f, rf, result)
+@inline function wrapping(f, rf, result)
     state0, iresult0 = unwrap(rf, result)
     state1, iresult1 = f(state0, iresult0)
     return wrap(rf, state1, iresult1)

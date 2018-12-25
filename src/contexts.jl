@@ -1,12 +1,14 @@
 # --- Transducing contexts
 
-Base.foldl(rf::Reduction, init, coll) = unreduced(foldld(rf, init, coll))
-foldld(rf::Reduction, init, coll) = __foldl__(rf, start(rf, init), coll)
+Base.foldl(rf::Reduction, init, coll) =
+    unreduced(__foldl__(rf, start(rf, init), coll))
+# TODO: maybe call complete?
 
-#=
-function __foldl__(rf, init, coll)
+nocomplete(_, result) = result
+
+function __foldl__(rf, init, coll, _complete = nocomplete)
     ret = iterate(coll)
-    ret === nothing && return init
+    ret === nothing && return _complete(rf, init)
 
     # TODO: benchmark this with simple_foldl.
 
@@ -17,22 +19,24 @@ function __foldl__(rf, init, coll)
     # optimization to cover a good amount of cases anyway.
     x, state = ret
     val = next(rf, init, x)
+    val isa Reduced && return Reduced(_complete(rf, unreduced(val)))
     while (ret = iterate(coll, state)) !== nothing
         x, state = ret
         val = next(rf, val, x)
-        isreduced(val) && return val
+        val isa Reduced && return Reduced(_complete(rf, unreduced(val)))
     end
-    return val
+    return _complete(rf, val)
 end
-=#
 
-function __foldl__(rf, val, coll)
+#=
+function __foldl__(rf, val, coll, _complete = nocomplete)
     for x in coll
         val = next(rf, val, x)
-        isreduced(val) && return val
+        val isa Reduced && return Reduced(_complete(rf, unreduced(val)))
     end
-    return val
+    return _complete(rf, val)
 end
+=#
 
 # function simple_foldl(rf, val, coll)
 #     for x in coll
@@ -66,7 +70,8 @@ function transduce(xform::Transducer, f, init, coll)
 end
 
 # TODO: should it be an internal?
-transduce(rf::Reduction, init, coll) = complete(rf, foldl(rf, init, coll))
+transduce(rf::Reduction, init, coll) =
+    unreduced(__foldl__(rf, start(rf, init), coll, complete))
 
 struct Eduction{F, C}
     rf::F

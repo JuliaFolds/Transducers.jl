@@ -235,7 +235,7 @@ function start(rf::R_{PartitionBy}, result)
     return wrap(rf, (iinput, Unseen()), start(rf.inner, result))
 end
 
-function next(rf::R_{PartitionBy}, result, input)
+@inline function next(rf::R_{PartitionBy}, result, input)
     wrapping(rf, result) do (iinput, pval), iresult
         val = rf.xform.f(input)
         if pval isa Unseen || val == pval
