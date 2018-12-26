@@ -34,13 +34,25 @@ end
     return complete(rf, val)
 end
 
-# function __foldl__(rf, val, arr::AbstractArray)
-#     for x in arr
-#         val = next(rf, val, x)
-#         isreduced(val) && return val
-#     end
-#     return complete(rf, val)
-# end
+function __simple_foldl__(rf, val, itr)
+    for x in itr
+        val = next(rf, val, x)
+        isreduced(val) && return val
+    end
+    return complete(rf, val)
+end
+
+"""
+    simple_transduce(xform, f, init, coll)
+
+Simplified version of [`transduce`](@ref).  For simple transducers Julia
+may be able to emit a good code.  This function exists only for
+performance tuning.
+"""
+function simple_transduce(xform, f, init, coll)
+    rf = Reduction(xform, f, eltype(coll))
+    return __simple_foldl__(rf, start(rf, init), coll)
+end
 
 """
     mapfoldl(xf, f, init, itr) :: T

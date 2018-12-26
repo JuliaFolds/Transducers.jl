@@ -59,4 +59,15 @@ end
     @test copy!(Filter(isodd) |> Scan(+), dest, src) == [1, 4, 9]
 end
 
+@testset "simple_transduce" begin
+    xf = PartitionBy(x -> x > 0) |>
+        Filter(xs -> mean(abs, xs) < 1.0) |>
+        Map(prod)
+
+    for _ in 1:100
+        xs = randn(100)
+        @test transduce(xf, +, 0.0, xs) == simple_transduce(xf, +, 0.0, xs)
+    end
+end
+
 end  # module
