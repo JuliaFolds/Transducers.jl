@@ -61,8 +61,7 @@ end
 Compose transducer `xf` with reducing step function `f` and
 reduce `iter` using it.
 
-This API is modeled after [`transduce` in Clojure](
-https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/transduce).
+This API is modeled after $(_cljref("transduce")).
 
 # Arguments
 - `xf::Transducer`: A transducer.
@@ -152,8 +151,7 @@ Create a iterable and reducible object.
 * [Iterable](https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-iteration-1).
 * Reducible (TODO); i.e., it can be handled by [`transduce`](@ref) efficiently.
 
-This API is modeled after [`eduction` in Clojure](
-https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/eduction).
+This API is modeled after $(_cljref("eduction")).
 """
 eduction(xform, coll) = Eduction(xform, coll)
 # Exporting `Eduction` could also work.  But `Base` has, e.g.,
@@ -162,8 +160,7 @@ eduction(xform, coll) = Eduction(xform, coll)
 """
     append!(xf::Transducer, dest, src)
 
-This API is modeled after [`into` in Clojure](
-https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/into).
+This API is modeled after $(_cljref("into")).
 """
 Base.append!(xf::Transducer, to, from) = transduce(xf, push!, to, from)
 

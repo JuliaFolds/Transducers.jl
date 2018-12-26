@@ -17,3 +17,8 @@ identityof(::typeof(min), e) = typemax(e)
 identityof(::typeof(max), e) = typemin(e)
 identityof(::typeof(append!), e) = empty(e)
 ridentityof(::typeof(append!), e) = ()
+
+_cljapiurl(name) =
+    "https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/$name"
+_cljref(name) =
+    "[`$name` in Clojure]($(_cljapiurl(name)))"
