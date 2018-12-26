@@ -57,13 +57,6 @@ end
         dest = zero(src)
         @test map!(Filter(isodd) |> Scan(+), dest, src) == [1, 0, 4, 0, 9]
     end
-
-    xs0 = [0, -1, 3, -2, 1]
-    @testset for xs in [xs0, collect(xs0)]
-    # @testset for xs in iterator_variants([0, -1, 3, -2, 1])  # TODO: fix
-        @test collect(Scan(max), xs) == [0, 0, 3, 3, 3]
-        @test collect(Scan(min), xs) == [0, -1, -1, -2, -2]
-    end
 end
 
 @testset "copy!" begin
