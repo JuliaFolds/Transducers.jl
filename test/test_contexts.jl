@@ -11,18 +11,23 @@ include("preamble.jl")
 
     # https://clojuredocs.org/clojure.core/transduce
     xf = Filter(isodd) |> Take(10)
-    @testset for xs in iterator_variants(0:1000)
+    @testset "$(typeof(xs))" for xs in iterator_variants(0:1000)
         @test mapfoldl(xf, push!, Int[], xs) == 1:2:19
         @test mapfoldl(xf, +, 0, xs) == 100
         @test mapfoldl(xf, +, 17, xs) == 117
         @test mapfoldl(xf, string, "", xs) == "135791113151719"
+
+        @test transduce(push!, xf, Int[], xs) == Reduced(1:2:19)
+        @test transduce(+, xf, 0, xs) == Reduced(100)
+        @test transduce(+, xf, 17, xs) == Reduced(117)
+        @test transduce(string, xf, "", xs) == Reduced("135791113151719")
     end
 end
 
 @testset "eduction" begin
     # https://clojuredocs.org/clojure.core/eduction
     xf = Filter(isodd) |> Take(5)
-    @testset for xs in iterator_variants(0:1000)
+    @testset "$(typeof(xs))" for xs in iterator_variants(0:1000)
         @test collect(xf, xs) == 1:2:9
         @test collect(eduction(xf, xs)) == 1:2:9
     end

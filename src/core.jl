@@ -4,6 +4,9 @@ struct Reduced{T}
     value::T
 end
 
+Base.:(==)(x::Reduced, y::Reduced) = x.value == y.value
+Base.:(==)(x::Reduced, ::Any) = false
+
 isreduced(::Reduced) = true
 isreduced(::Any) = false
 
