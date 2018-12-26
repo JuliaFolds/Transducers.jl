@@ -2,7 +2,7 @@ module Transducers
 
 export Map, Filter, MapCat, Take, PartitionBy, Scan, TeeZip,
     Replace, TakeWhile, TakeNth, Drop, DropLast, DropWhile, Keep, Distinct,
-    Interpose, Dedupe, Window,
+    Interpose, Dedupe, Window, GetIndex, SetIndex,
     transduce, eduction
 
 include("basics.jl")
