@@ -22,22 +22,24 @@ function __foldl__(rf, init, coll)
     return complete(rf, val)
 end
 
-#=
-function __foldl__(rf, val, coll)
-    for x in coll
-        val = next(rf, val, x)
+# TODO: use IndexStyle
+@inline function __foldl__(rf, init, arr::AbstractArray)
+    isempty(arr) && return complete(rf, init)
+    val = next(rf, init, @inbounds arr[firstindex(arr)])
+    val isa Reduced && return Reduced(complete(rf, unreduced(val)))
+    for i in firstindex(arr) + 1:lastindex(arr)
+        val = next(rf, val, @inbounds arr[i])
         val isa Reduced && return Reduced(complete(rf, unreduced(val)))
     end
     return complete(rf, val)
 end
-=#
 
-# function simple_foldl(rf, val, coll)
-#     for x in coll
+# function __foldl__(rf, val, arr::AbstractArray)
+#     for x in arr
 #         val = next(rf, val, x)
 #         isreduced(val) && return val
 #     end
-#     return val
+#     return complete(rf, val)
 # end
 
 """
@@ -67,7 +69,11 @@ function transduce(xform::Transducer, f, init, coll)
 end
 
 # TODO: should it be an internal?
-transduce(rf::Reduction, init, coll) = __foldl__(rf, start(rf, init), coll)
+@inline transduce(rf::Reduction, init, coll) =
+    __foldl__(rf, start(rf, init), coll)
+# Inlining `transduce` and `__foldl__` were essential for the
+# performance for `map!` to be comparable with the native loop.
+# See: ../benchmark/bench_filter_map_map!.jl
 
 Base.mapfoldl(xform::Transducer, f, init, itr) =
     unreduced(transduce(xform, f, init, itr))
