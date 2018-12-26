@@ -1,9 +1,5 @@
 # --- Transducing contexts
 
-Base.foldl(rf::Reduction, init, coll) =
-    unreduced(__foldl__(rf, start(rf, init), coll))
-# TODO: maybe call complete?
-
 nocomplete(_, result) = result
 
 function __foldl__(rf, init, coll, _complete = nocomplete)
@@ -47,7 +43,8 @@ end
 # end
 
 """
-    transduce(xf, f, init, iter)
+    mapfoldl(xf, f, init, itr) :: T
+    transduce(xf, f, init, itr) :: Union{T, Reduced{T}}
 
 Compose transducer `xf` with reducing step function `f` and
 reduce `iter` using it.
@@ -62,8 +59,10 @@ https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/transduce).
   [`complete`](@ref) protocol.
 - `init`: An initial value fed to the first argument to reducing step
   function `f`.
-- `iter`: An iterable.
+- `itr`: An iterable.
 """
+(transduce, mapfoldl)
+
 function transduce(xform::Transducer, f, init, coll)
     rf = Reduction(xform, f, eltype(coll))
     return transduce(rf, init, coll)
@@ -71,7 +70,10 @@ end
 
 # TODO: should it be an internal?
 transduce(rf::Reduction, init, coll) =
-    unreduced(__foldl__(rf, start(rf, init), coll, complete))
+    __foldl__(rf, start(rf, init), coll, complete)
+
+Base.mapfoldl(xform::Transducer, f, init, itr) =
+    unreduced(transduce(xform, f, init, itr))
 
 struct Eduction{F, C}
     rf::F
@@ -153,7 +155,7 @@ Base.append!(xf::Transducer, to, from) = transduce(xf, push!, to, from)
 function Base.collect(xf::Transducer, coll)
     rf = Reduction(xf, push!, eltype(coll))
     to = finaltype(rf)[]
-    return transduce(rf, to, coll)
+    return unreduced(transduce(rf, to, coll))
 end
 # Base.collect(xf, coll) = append!([], xf, coll)
 

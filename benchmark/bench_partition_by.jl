@@ -35,11 +35,11 @@ let suite = BenchmarkGroup()
     n = 10^5
 
     let xs = randn(100)
-        @assert manual_partition_by(xs) == transduce(xf, +, 0.0, xs)
+        @assert manual_partition_by(xs) == mapfoldl(xf, +, 0.0, xs)
     end
 
     suite["xf"] = @benchmarkable(
-        transduce($xf, +, 0.0, xs),
+        mapfoldl($xf, +, 0.0, xs),
         setup=(xs = randn($n)))
     suite["man"] = @benchmarkable(
         manual_partition_by(xs),

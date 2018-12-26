@@ -1,18 +1,18 @@
 module TestContexts
 include("preamble.jl")
 
-@testset "transduce" begin
+@testset "mapfoldl" begin
     # https://clojure.org/reference/transducers#_transduce
     xf = Filter(isodd) |> Map(inc)
-    @test transduce(xf, +, 0, 0:4) == 6
-    @test transduce(xf, +, 100, 0:4) == 106
+    @test mapfoldl(xf, +, 0, 0:4) == 6
+    @test mapfoldl(xf, +, 100, 0:4) == 106
 
     # https://clojuredocs.org/clojure.core/transduce
     xf = Filter(isodd) |> Take(10)
-    @test transduce(xf, push!, Int[], 0:1000) == 1:2:19
-    @test transduce(xf, +, 0, 0:1000) == 100
-    @test transduce(xf, +, 17, 0:1000) == 117
-    @test transduce(xf, string, "", 0:1000) == "135791113151719"
+    @test mapfoldl(xf, push!, Int[], 0:1000) == 1:2:19
+    @test mapfoldl(xf, +, 0, 0:1000) == 100
+    @test mapfoldl(xf, +, 17, 0:1000) == 117
+    @test mapfoldl(xf, string, "", 0:1000) == "135791113151719"
 end
 
 @testset "eduction" begin
