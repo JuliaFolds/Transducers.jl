@@ -43,38 +43,56 @@ function __simple_foldl__(rf, val, itr)
 end
 
 """
-    simple_transduce(xform, f, init, coll)
+    simple_transduce(step, xform, init, coll)
 
 Simplified version of [`transduce`](@ref).  For simple transducers Julia
 may be able to emit a good code.  This function exists only for
 performance tuning.
 """
-function simple_transduce(xform, f, init, coll)
+function simple_transduce(f, xform, init, coll)
     rf = Reduction(xform, f, eltype(coll))
     return __simple_foldl__(rf, start(rf, init), coll)
 end
 
 """
-    mapfoldl(xf, f, init, itr) :: T
-    transduce(xf, f, init, itr) :: Union{T, Reduced{T}}
+    mapfoldl(xf, step, init, itr) :: T
+    transduce(step, xf, init, itr) :: Union{T, Reduced{T}}
 
-Compose transducer `xf` with reducing step function `f` and
+Compose transducer `xf` with reducing step function `step` and
 reduce `iter` using it.
 
-This API is modeled after $(_cljref("transduce")).
+!!! warning
+    The order of the first two arguments are different in `mapfoldl`
+    and `transduce`.  The order of argument for `mapfoldl` is chosen
+    so that it is compatible with standard `mapfoldl`.  On the other
+    hand, `transduce` takes `step` function as the first argument to
+    allow using it with a `do` block:
+
+    ```
+    transduce(xf, init, itr) do state, input
+        # computation for combining `state` and `input`
+    end
+    ```
+
+    Note also that `transduce` differs from `mapfoldl` as `Reduced{T}`
+    is returned if the transducer `xf` or `step` aborts the reduction.
+
+The name `transduce` is taken from $(_cljref("transduce")) although
+the order of arguments is different.  Actually, `mapfoldl` is closer
+to the Clojure's version.
 
 # Arguments
 - `xf::Transducer`: A transducer.
-- `f`: A callable which accepts 1 and 2 arguments.  If it only
+- `step`: A callable which accepts 1 and 2 arguments.  If it only
   accepts 2 arguments, wrap it by [`Completing`](@ref) to add
   [`complete`](@ref) protocol.
 - `init`: An initial value fed to the first argument to reducing step
-  function `f`.
+  function `step`.
 - `itr`: An iterable.
 """
 (transduce, mapfoldl)
 
-function transduce(xform::Transducer, f, init, coll)
+function transduce(f, xform::Transducer, init, coll)
     rf = Reduction(xform, f, eltype(coll))
     return transduce(rf, init, coll)
 end
@@ -87,7 +105,7 @@ end
 # See: ../benchmark/bench_filter_map_map!.jl
 
 Base.mapfoldl(xform::Transducer, f, init, itr) =
-    unreduced(transduce(xform, f, init, itr))
+    unreduced(transduce(f, xform, init, itr))
 
 struct Eduction{F, C}
     rf::F
@@ -162,7 +180,7 @@ eduction(xform, coll) = Eduction(xform, coll)
 
 This API is modeled after $(_cljref("into")).
 """
-Base.append!(xf::Transducer, to, from) = transduce(xf, push!, to, from)
+Base.append!(xf::Transducer, to, from) = transduce(push!, xf, to, from)
 
 function Base.collect(xf::Transducer, coll)
     rf = Reduction(xf, push!, eltype(coll))

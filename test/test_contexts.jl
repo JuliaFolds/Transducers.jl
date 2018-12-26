@@ -66,7 +66,7 @@ end
 
     for _ in 1:100
         xs = randn(100)
-        @test transduce(xf, +, 0.0, xs) == simple_transduce(xf, +, 0.0, xs)
+        @test transduce(+, xf, 0.0, xs) == simple_transduce(+, xf, 0.0, xs)
     end
 end
 
