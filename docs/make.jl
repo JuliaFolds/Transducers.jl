@@ -2,7 +2,6 @@ using Documenter, Transducers
 
 makedocs(;
     modules=[Transducers],
-    format=:html,
     pages=[
         "Home" => "index.md",
     ],
@@ -14,8 +13,4 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/tkf/Transducers.jl",
-    target="build",
-    julia="1.0",
-    deps=nothing,
-    make=nothing,
 )
