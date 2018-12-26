@@ -1,10 +1,8 @@
 # --- Transducing contexts
 
-nocomplete(_, result) = result
-
-function __foldl__(rf, init, coll, _complete = nocomplete)
+function __foldl__(rf, init, coll)
     ret = iterate(coll)
-    ret === nothing && return _complete(rf, init)
+    ret === nothing && return complete(rf, init)
 
     # TODO: benchmark this with simple_foldl.
 
@@ -15,22 +13,22 @@ function __foldl__(rf, init, coll, _complete = nocomplete)
     # optimization to cover a good amount of cases anyway.
     x, state = ret
     val = next(rf, init, x)
-    val isa Reduced && return Reduced(_complete(rf, unreduced(val)))
+    val isa Reduced && return Reduced(complete(rf, unreduced(val)))
     while (ret = iterate(coll, state)) !== nothing
         x, state = ret
         val = next(rf, val, x)
-        val isa Reduced && return Reduced(_complete(rf, unreduced(val)))
+        val isa Reduced && return Reduced(complete(rf, unreduced(val)))
     end
-    return _complete(rf, val)
+    return complete(rf, val)
 end
 
 #=
-function __foldl__(rf, val, coll, _complete = nocomplete)
+function __foldl__(rf, val, coll)
     for x in coll
         val = next(rf, val, x)
-        val isa Reduced && return Reduced(_complete(rf, unreduced(val)))
+        val isa Reduced && return Reduced(complete(rf, unreduced(val)))
     end
-    return _complete(rf, val)
+    return complete(rf, val)
 end
 =#
 
@@ -69,8 +67,7 @@ function transduce(xform::Transducer, f, init, coll)
 end
 
 # TODO: should it be an internal?
-transduce(rf::Reduction, init, coll) =
-    __foldl__(rf, start(rf, init), coll, complete)
+transduce(rf::Reduction, init, coll) = __foldl__(rf, start(rf, init), coll)
 
 Base.mapfoldl(xform::Transducer, f, init, itr) =
     unreduced(transduce(xform, f, init, itr))
