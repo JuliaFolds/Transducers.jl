@@ -4,25 +4,33 @@ include("preamble.jl")
 @testset "mapfoldl" begin
     # https://clojure.org/reference/transducers#_transduce
     xf = Filter(isodd) |> Map(inc)
-    @test mapfoldl(xf, +, 0, 0:4) == 6
-    @test mapfoldl(xf, +, 100, 0:4) == 106
+    @testset for xs in iterator_variants(0:4)
+        @test mapfoldl(xf, +, 0, xs) == 6
+        @test mapfoldl(xf, +, 100, xs) == 106
+    end
 
     # https://clojuredocs.org/clojure.core/transduce
     xf = Filter(isodd) |> Take(10)
-    @test mapfoldl(xf, push!, Int[], 0:1000) == 1:2:19
-    @test mapfoldl(xf, +, 0, 0:1000) == 100
-    @test mapfoldl(xf, +, 17, 0:1000) == 117
-    @test mapfoldl(xf, string, "", 0:1000) == "135791113151719"
+    @testset for xs in iterator_variants(0:1000)
+        @test mapfoldl(xf, push!, Int[], xs) == 1:2:19
+        @test mapfoldl(xf, +, 0, xs) == 100
+        @test mapfoldl(xf, +, 17, xs) == 117
+        @test mapfoldl(xf, string, "", xs) == "135791113151719"
+    end
 end
 
 @testset "eduction" begin
     # https://clojuredocs.org/clojure.core/eduction
     xf = Filter(isodd) |> Take(5)
-    @test collect(xf, 1:1000) == 1:2:9
-    @test collect(eduction(xf, 1:1000)) == 1:2:9
+    @testset for xs in iterator_variants(0:1000)
+        @test collect(xf, xs) == 1:2:9
+        @test collect(eduction(xf, xs)) == 1:2:9
+    end
 
-    @test collect(xf, 1:5) == 1:2:5
-    @test collect(eduction(xf, 1:5)) == 1:2:5
+    @testset for xs in iterator_variants(1:5)
+        @test collect(xf, xs) == 1:2:5
+        @test collect(eduction(xf, xs)) == 1:2:5
+    end
 
     ed = eduction(xf, 1:5)
     @test finaltype(ed.rf) === Int
@@ -31,32 +39,48 @@ end
 @testset "append!" begin
     # https://clojuredocs.org/clojure.core/into#example-57294b20e4b050526f331420
     xf = Map(x -> x + 2) |> Filter(isodd)
-    @test append!(xf, [-1, -2], 0:9) == [-1, -2, 3, 5, 7, 9, 11]
+    @testset for xs in iterator_variants(0:9)
+        @test append!(xf, [-1, -2], xs) == [-1, -2, 3, 5, 7, 9, 11]
+    end
 end
 
 @testset "map!" begin
-    src = 1:10
-    dest = similar(src)
-    @test map!(Scan(+), dest, src) === dest
-    @test dest == cumsum(src)
+    xs0 = 1:10
+    @testset for src in [xs0, collect(xs0)]
+        dest = similar(xs0)
+        @test map!(Scan(+), dest, src) === dest
+        @test dest == cumsum(xs0)
+    end
 
-    src = 1:5
-    dest = zero(src)
-    @test map!(Filter(isodd) |> Scan(+), dest, src) == [1, 0, 4, 0, 9]
+    xs0 = 1:5
+    @testset for src in [xs0, collect(xs0)]
+        dest = zero(src)
+        @test map!(Filter(isodd) |> Scan(+), dest, src) == [1, 0, 4, 0, 9]
+    end
 
-    @test collect(Scan(max), [0, -1, 3, -2, 1]) == [0, 0, 3, 3, 3]
-    @test collect(Scan(min), [0, -1, 3, -2, 1]) == [0, -1, -1, -2, -2]
+    xs0 = [0, -1, 3, -2, 1]
+    @testset for xs in [xs0, collect(xs0)]
+    # @testset for xs in iterator_variants([0, -1, 3, -2, 1])  # TODO: fix
+        @test collect(Scan(max), xs) == [0, 0, 3, 3, 3]
+        @test collect(Scan(min), xs) == [0, -1, -1, -2, -2]
+    end
 end
 
 @testset "copy!" begin
-    src = 1:10
-    dest = similar(src)
-    @test copy!(Scan(+), dest, src) === dest
-    @test dest == cumsum(src)
+    xs0 = 1:10
+    @testset for src in [xs0, collect(xs0)]
+    # @testset for src in iterator_variants(xs0)  # TODO: fix
+        dest = similar(xs0)
+        @test copy!(Scan(+), dest, src) === dest
+        @test dest == cumsum(src)
+    end
 
-    src = 1:5
-    dest = zero(src)
-    @test copy!(Filter(isodd) |> Scan(+), dest, src) == [1, 4, 9]
+    xs0 = 1:5
+    @testset for src in [xs0, collect(xs0)]
+    # @testset for src in iterator_variants(xs0)  # TODO: fix
+        dest = zero(xs0)
+        @test copy!(Filter(isodd) |> Scan(+), dest, src) == [1, 4, 9]
+    end
 end
 
 @testset "simple_transduce" begin
