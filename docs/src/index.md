@@ -6,6 +6,7 @@
 ## Transducer contexts
 
 ```@docs
+mapfoldl
 transduce
 loop
 eduction
@@ -19,7 +20,7 @@ collect
 
 ```@autodocs
 Modules = [Transducers]
-Public = true
+Private = false
 Filter = t -> t isa Type && t <: Transducers.Transducer
 ```
 
@@ -27,6 +28,6 @@ Filter = t -> t isa Type && t <: Transducers.Transducer
 
 ```@autodocs
 Modules = [Transducers]
-Public = true
+Private = false
 Filter = t -> t isa Type && !(t <: Transducers.Transducer)
 ```

@@ -97,7 +97,15 @@ Finishing with state = 4.0
 4.0
 ```
 """
-(transduce, mapfoldl)
+mapfoldl
+
+"""
+    mapfoldl(xf, step, init, itr) :: T
+    transduce(xf, step, init, itr) :: Union{T, Reduced{T}}
+
+See [`mapfoldl`](@ref).
+"""
+transduce
 
 function transduce(xform::Transducer, f, init, coll)
     rf = Reduction(xform, f, eltype(coll))
