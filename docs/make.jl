@@ -16,6 +16,7 @@ makedocs(;
     modules=[Transducers],
     pages=[
         "Home" => "index.md",
+        "Interface" => "interface.md",
     ],
     repo="https://github.com/tkf/Transducers.jl/blob/{commit}{path}#L{line}",
     sitename="Transducers.jl",

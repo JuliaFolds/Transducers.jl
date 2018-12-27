@@ -33,6 +33,18 @@ InType(::T) where T = InType(T)
 InType(::Type{Reduction{X, I, intype}}) where {X, I, intype} = intype
 InType(T::Type) = throw(MethodError(InType, (T,)))
 
+"""
+    Transducers.R_{X}
+
+When defining a transducer type `X`, it is often required to dispatch
+on type `rf::R_{X}` (Reducing Function) which bundles the current
+transducer `rf.xform::X` and the inner reducing function
+`rf.inner::R_`.
+
+```julia
+const R_{X} = Reduction{<:X}
+```
+"""
 const R_{X, InType} = Reduction{<:X}
 
 @inline Reduction(xf::X, inner::I, ::Type{InType}) where {X, I, InType} =
@@ -58,14 +70,65 @@ end
 # Base.∘(f::Transducer, g::Transducer) = Composition(f, g)
 # Base.∘(f::Composition, g::Transducer) = f.outer ∘ (f.inner ∘ g)
 
+"""
+    Transducers.start(rf::R_{X}, state)
+
+This is an optional interface for a transducer.  Default
+implementation just calls `start` of the inner reducing function; i.e.,
+
+```julia
+start(rf::Reduction, result) = start(rf.inner, result)
+```
+
+If the transducer `X` is stateful, it can "bundle" its private state
+with `state` (so that `next` function can be "pure").
+
+```julia
+start(rf::R_{X}, result) = wrap(rf, PRIVATE_STATE, start(rf.inner, result))
+```
+
+See [`Take`](@ref), [`PartitionBy`](@ref), etc. for real-world examples.
+
+Side notes: There is no related API in Clojure's Transducers.
+Transducers.jl uses it to implement stateful transducers using "pure"
+functions.  The idea is based on a slightly different approach taken
+in C++ Transducer library [atria](https://github.com/AbletonAG/atria).
+"""
 start(::Any, result) = result
 start(rf::Reduction, result) = start(rf.inner, result)
 start(rf::R_{AbstractFilter}, result) = start(rf.inner, result)
 
+"""
+    Transducers.next(rf::R_{X}, state, input)
+
+This is the only required interface.  It takes the following form
+(if `start` is not defined):
+
+```julia
+next(rf::R_{X}, result, input) =
+    # code calling next(rf.inner, result, possibly_modified_input)
+```
+
+See [`Map`](@ref), [`Filter`](@ref), [`Cat`](@ref), etc. for
+real-world examples.
+"""
 next(f, result, input) = f(result, input)
 
 # done(rf, result)
 
+"""
+    Transducers.complete(rf::R_{X}, state)
+
+This is an optional interface for a transducer.  If transducer `X` has
+some internal state, this is the last chance to "flush" the result.
+
+See [`PartitionBy`](@ref), etc. for real-world examples.
+
+If **both** `complete(rf::R_{X}, state)` **and** `start(rf::R_{X}, state)`
+are defined, `complete(rf::R_{X}, state)` **must** unwarp `state` before
+returning `state` to the outer reducing function.  If `complete` is not
+defined for `R_{X}`, this happens automatically.
+"""
 complete(f, result) = f(result)
 complete(rf::Reduction, result) =
     # Not using dispatch to avoid ambiguity
@@ -120,6 +183,13 @@ outtype(::AbstractFilter, intype) = intype
 finaltype(rf::Reduction{<:Transducer, <:Reduction}) = finaltype(rf.inner)
 finaltype(rf::Reduction) = outtype(rf.xform, InType(rf))
 
+"""
+    Completing(function)
+
+Wrap a `function` to add a no-op [`complete`](@ref) protocol.  Use it
+when passing a `function` without 1-argument arity to
+[`transduce`](@ref) etc.
+"""
 struct Completing{F}  # Note: not a Transducer
     f::F
 end
