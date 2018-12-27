@@ -3,6 +3,7 @@ Manifest.toml
 *.jl.cov
 *.jl.*.cov
 *.jl.*mem
+/docs/Manifest.toml
 /docs/build/
 /docs/site/
 /Manifest.toml
