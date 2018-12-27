@@ -19,7 +19,7 @@ and output (collections, streams, channels, etc.) and therefore
 achieves a full reusability.  Transducers are introduced by Rich
 Hickey, the creator of the Clojure language.
 [His Strange Look talk](https://www.youtube.com/watch?v=6mTbuzafcII)
-is a great introduction to the idea of Transducers.
+is a great introduction to the idea of transducers.
 
 Transducers.jl is an implementation of the transducer framework in
 Julia.  Aiming to satisfy high-performance needs of Julia users,
@@ -39,19 +39,19 @@ it would look very familiar to you:
 ```jldoctest
 julia> using Transducers
 
-julia> collect(Map(x -> 2x), 1:3)
+julia> collect(Map(x -> 2x), 1:3)  # double each element
 3-element Array{Int64,1}:
  2
  4
  6
 
-julia> collect(Filter(iseven), 1:6)
+julia> collect(Filter(iseven), 1:6)  # collect only evens
 3-element Array{Int64,1}:
  2
  4
  6
 
-julia> collect(MapCat(x -> 1:x), 1:3)
+julia> collect(MapCat(x -> 1:x), 1:3)  # concatenate mapped results
 6-element Array{Int64,1}:
  1
  1
@@ -63,7 +63,7 @@ julia> collect(MapCat(x -> 1:x), 1:3)
 ```
 
 Transducers can be composed (without, unlike iterators, referring to
-the input iterators):
+the input):
 
 ```jldoctest filter-map
 julia> xf = Filter(iseven) |> Map(x -> 2x)
