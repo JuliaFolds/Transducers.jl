@@ -1,4 +1,4 @@
-# Transducers.jl
+# Transducers and Transducer contexts
 
 ```@index
 ```

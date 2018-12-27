@@ -16,6 +16,7 @@ makedocs(;
     modules=[Transducers],
     pages=[
         "Home" => "index.md",
+        "Manual" => "manual.md",
         "Interface" => "interface.md",
         hide("Internals" => "internals.md"),
     ],
