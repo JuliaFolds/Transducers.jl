@@ -54,6 +54,7 @@ function simple_transduce(f, xform, init, coll)
     return __simple_foldl__(rf, start(rf, init), coll)
 end
 
+# TODO: flip transduce's first two arguments
 """
     mapfoldl(xf, step, init, itr) :: T
     transduce(step, xf, init, itr) :: Union{T, Reduced{T}}
@@ -62,24 +63,10 @@ Compose transducer `xf` with reducing step function `step` and
 reduce `iter` using it.
 
 !!! warning
-    The order of the first two arguments are different in `mapfoldl`
-    and `transduce`.  The order of argument for `mapfoldl` is chosen
-    so that it is compatible with standard `mapfoldl`.  On the other
-    hand, `transduce` takes `step` function as the first argument to
-    allow using it with a `do` block:
+    `transduce` differs from `mapfoldl` as `Reduced{T}` is returned if
+    the transducer `xf` or `step` aborts the reduction.
 
-    ```
-    transduce(xf, init, itr) do state, input
-        # computation for combining `state` and `input`
-    end
-    ```
-
-    Note also that `transduce` differs from `mapfoldl` as `Reduced{T}`
-    is returned if the transducer `xf` or `step` aborts the reduction.
-
-The name `transduce` is taken from $(_cljref("transduce")) although
-the order of arguments is different.  Actually, `mapfoldl` is closer
-to the Clojure's version.
+This API is modeled after $(_cljref("transduce")).
 
 # Arguments
 - `xf::Transducer`: A transducer.
@@ -89,6 +76,27 @@ to the Clojure's version.
 - `init`: An initial value fed to the first argument to reducing step
   function `step`.
 - `itr`: An iterable.
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> function step_demo(state, input)
+           @show state, input
+           state + input
+       end;
+
+julia> function step_demo(state)
+           println("Finishing with state = ", state)
+           state
+       end;
+
+julia> mapfoldl(Filter(isodd), step_demo, 0.0, 1:4)
+(state, input) = (0.0, 1)
+(state, input) = (1.0, 3)
+Finishing with state = 4.0
+4.0
+```
 """
 (transduce, mapfoldl)
 
@@ -170,6 +178,18 @@ Create a iterable and reducible object.
 * Reducible (TODO); i.e., it can be handled by [`transduce`](@ref) efficiently.
 
 This API is modeled after $(_cljref("eduction")).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> for x in eduction(Filter(isodd) |> Take(3), 1:1000)
+           @show x
+       end
+x = 1
+x = 3
+x = 5
+```
 """
 eduction(xform, coll) = Eduction(xform, coll)
 # Exporting `Eduction` could also work.  But `Base` has, e.g.,
@@ -179,6 +199,19 @@ eduction(xform, coll) = Eduction(xform, coll)
     append!(xf::Transducer, dest, src)
 
 This API is modeled after $(_cljref("into")).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> append!(Drop(2), [-1, -2], 1:5)
+5-element Array{Int64,1}:
+ -1
+ -2
+  3
+  4
+  5
+```
 """
 Base.append!(xf::Transducer, to, from) = transduce(push!, xf, to, from)
 
@@ -187,6 +220,19 @@ Base.append!(xf::Transducer, to, from) = transduce(push!, xf, to, from)
 
 Process an iterable `itr` using a transducer `xf` and collect the result
 into a `Vector`.
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Interpose(missing), 1:3)
+5-element Array{Union{Missing, Int64},1}:
+ 1
+  missing
+ 2
+  missing
+ 3
+```
 """
 function Base.collect(xf::Transducer, coll)
     rf = Reduction(xf, push!, eltype(coll))
@@ -206,6 +252,24 @@ Transducer `xf` must not contain any expansive transducers such as
 [`MapCat`](@ref).
 
 See also [`copy!`](@ref).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> xs = collect(1:5)
+       ys = zero(xs)
+       map!(Filter(isodd), ys, xs)
+5-element Array{Int64,1}:
+ 1
+ 0
+ 3
+ 0
+ 5
+
+julia> ans === ys
+true
+```
 """
 function Base.map!(xf::Transducer, dest::AbstractArray, src::AbstractArray)
     # TODO: check that `xf` is non-expansive
@@ -228,5 +292,36 @@ must be iterable.  Destination `dest` must implement `empty!` and
 `push!`.
 
 See also [`map!`](@ref).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> copy!(PartitionBy(x -> x ÷ 3) |> Map(sum), Int[], 1:10)
+4-element Array{Int64,1}:
+  3
+ 12
+ 21
+ 19
+```
 """
 Base.copy!(xf::Transducer, dest, src) = append!(xf, empty!(dest), src)
+
+"""
+    loop(step, xf, init, coll)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> loop(Filter(isodd), 0.0, 1:4) do state, input
+           @show state, input
+           state + input
+       end
+(state, input) = (0.0, 1)
+(state, input) = (1.0, 3)
+4.0
+```
+"""
+loop(step, xform::Transducer, init, coll) =
+    transduce(Completing(step), xform, init, coll)

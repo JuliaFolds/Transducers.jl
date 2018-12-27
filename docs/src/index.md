@@ -6,7 +6,8 @@
 ## Transducer contexts
 
 ```@docs
-mapfoldl
+transduce
+loop
 eduction
 map!
 copy!
