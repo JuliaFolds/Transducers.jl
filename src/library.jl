@@ -654,6 +654,17 @@ xf0      xf1                       xf2
        `-------------'
     "Tee"          "Zip"
 ```
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(TeeZip(Filter(isodd) |> Map(x -> x + 1)), 1:5)
+3-element Array{Tuple{Int64,Int64},1}:
+ (1, 2)
+ (3, 4)
+ (5, 6)
+```
 """
 struct TeeZip{T} <: Transducer
     xform::T

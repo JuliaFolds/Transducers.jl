@@ -41,6 +41,9 @@ end
             collect(zip(1:2:5, 2:2:6))
     end
 
+    ed = eduction(TeeZip(Filter(isodd) |> Map(x -> x + 1)), 1:5)
+    @test finaltype(ed.rf) === Tuple{Int,Int}
+
     xf = Map(inc) |> TeeZip(Filter(isodd)) |> Map(first)
     @testset for xs in iterator_variants(1:6)
         @test collect(xf, xs) == 3:2:7

@@ -63,7 +63,8 @@ end
 @inline _normalize(xf::Composition{<:Composition}) =
     _normalize(xf.outer.outer |> _normalize(xf.outer.inner |> xf.inner))
 
-# outtype(xf::Composition, intype) = outtype(xf.inner, outtype(xf.outer, intype))
+outtype(xf::Composition, intype) = outtype(xf.inner, outtype(xf.outer, intype))
+# TeeZip needs it
 
 # Not sure if this a good idea... (But it's easier to type)
 @inline Base.:|>(f::Transducer, g::Transducer) = _normalize(Composition(f, g))

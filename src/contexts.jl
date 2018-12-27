@@ -274,10 +274,31 @@ function Base.map!(xf::Transducer, dest::AbstractArray, src::AbstractArray)
     # TODO: check that `xf` is non-expansive
     # TODO: support Dict
     indices = eachindex(dest, src)
+
+    #=
     rf = Reduction(
         TeeZip(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
         (x, _...) -> x,  # :: Nothing
         eltype(indices))
+    =#
+
+    # Following code is (almost) equivalent to the one commented out
+    # above.  However, it turned out this is much friendlier to
+    # Julia's type system.  The only difference is that I manually set
+    # the output type of `TeeZip` to `Tuple{eltype(indices),Any}`.
+    # Actual `outtype` may do a better job but the second argument is
+    # not used by `SetIndex`.  By not using `TeeZip`'s `outtype`,
+    # this avoids type instability.
+    rf = Reduction(
+        TeeZip(GetIndex{true}(src) |> xf),
+        Reduction(SetIndex{true}(dest),
+                  (x, _...) -> x,  # :: Nothing
+                  Tuple{eltype(indices),Any}),
+        eltype(indices))
+    # Run `outtype` just in case there is some error check in `xf`
+    # (like `GetIndex` does).
+    outtype(rf.xform, eltype(indices))
+
     transduce(rf, nothing, indices)
     return dest
 end
