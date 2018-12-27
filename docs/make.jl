@@ -22,6 +22,7 @@ makedocs(;
     sitename="Transducers.jl",
     authors="Takafumi Arakaki",
     assets=[],
+    strict=true,
 )
 
 deploydocs(;
