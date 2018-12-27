@@ -43,23 +43,22 @@ function __simple_foldl__(rf, val, itr)
 end
 
 """
-    simple_transduce(step, xform, init, coll)
+    simple_transduce(xform, step, init, coll)
 
 Simplified version of [`transduce`](@ref).  For simple transducers Julia
 may be able to emit a good code.  This function exists only for
 performance tuning.
 """
-function simple_transduce(f, xform, init, coll)
+function simple_transduce(xform, f, init, coll)
     rf = Reduction(xform, f, eltype(coll))
     return __simple_foldl__(rf, start(rf, init), coll)
 end
 
-# TODO: flip transduce's first two arguments
 """
     mapfoldl(xf, step, init, itr) :: T
-    transduce(step, xf, init, itr) :: Union{T, Reduced{T}}
+    transduce(xf, step, init, itr) :: Union{T, Reduced{T}}
 
-Compose transducer `xf` with reducing step function `step` and
+Compose transducer `xf` with reducing step function `f` and
 reduce `iter` using it.
 
 !!! warning
@@ -100,7 +99,7 @@ Finishing with state = 4.0
 """
 (transduce, mapfoldl)
 
-function transduce(f, xform::Transducer, init, coll)
+function transduce(xform::Transducer, f, init, coll)
     rf = Reduction(xform, f, eltype(coll))
     return transduce(rf, init, coll)
 end
@@ -113,7 +112,7 @@ end
 # See: ../benchmark/bench_filter_map_map!.jl
 
 Base.mapfoldl(xform::Transducer, f, init, itr) =
-    unreduced(transduce(f, xform, init, itr))
+    unreduced(transduce(xform, f, init, itr))
 
 struct Eduction{F, C}
     rf::F
@@ -213,7 +212,7 @@ julia> append!(Drop(2), [-1, -2], 1:5)
   5
 ```
 """
-Base.append!(xf::Transducer, to, from) = transduce(push!, xf, to, from)
+Base.append!(xf::Transducer, to, from) = transduce(xf, push!, to, from)
 
 """
     collect(xf::Transducer, itr)

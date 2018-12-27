@@ -17,10 +17,10 @@ include("preamble.jl")
         @test mapfoldl(xf, +, 17, xs) == 117
         @test mapfoldl(xf, string, "", xs) == "135791113151719"
 
-        @test transduce(push!, xf, Int[], xs) == Reduced(1:2:19)
-        @test transduce(+, xf, 0, xs) == Reduced(100)
-        @test transduce(+, xf, 17, xs) == Reduced(117)
-        @test transduce(string, xf, "", xs) == Reduced("135791113151719")
+        @test transduce(xf, push!, Int[], xs) == Reduced(1:2:19)
+        @test transduce(xf, +, 0, xs) == Reduced(100)
+        @test transduce(xf, +, 17, xs) == Reduced(117)
+        @test transduce(xf, string, "", xs) == Reduced("135791113151719")
     end
 end
 
@@ -88,7 +88,7 @@ end
 
     for _ in 1:100
         xs = randn(100)
-        @test transduce(+, xf, 0.0, xs) == simple_transduce(+, xf, 0.0, xs)
+        @test transduce(xf, +, 0.0, xs) == simple_transduce(xf, +, 0.0, xs)
     end
 end
 
