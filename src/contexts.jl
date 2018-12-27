@@ -295,9 +295,6 @@ function Base.map!(xf::Transducer, dest::AbstractArray, src::AbstractArray)
                   (x, _...) -> x,  # :: Nothing
                   Tuple{eltype(indices),Any}),
         eltype(indices))
-    # Run `outtype` just in case there is some error check in `xf`
-    # (like `GetIndex` does).
-    outtype(rf.xform, eltype(indices))
 
     transduce(rf, nothing, indices)
     return dest
