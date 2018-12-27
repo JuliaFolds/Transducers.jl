@@ -344,4 +344,4 @@ julia> loop(Filter(isodd), 0.0, 1:4) do state, input
 ```
 """
 loop(step, xform::Transducer, init, coll) =
-    transduce(Completing(step), xform, init, coll)
+    transduce(xform, Completing(step), init, coll)
