@@ -1,3 +1,17 @@
+"""
+    Map(f)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Map(x -> 2x), 1:3)
+3-element Array{Int64,1}:
+ 2
+ 4
+ 6
+```
+"""
 struct Map{F} <: Transducer
     f::F
 end
@@ -5,6 +19,20 @@ end
 outtype(xf::Map, intype) = Union{Base.return_types(xf.f, (intype,))...}
 next(rf::R_{Map}, result, input) = next(rf.inner, result, rf.xform.f(input))
 
+"""
+    Replace(dict)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Replace(Dict('a' => 'A')), "abc")
+3-element Array{Char,1}:
+ 'A'
+ 'b'
+ 'c'
+```
+"""
 struct Replace{D} <: Transducer
     d::D  # dictionary-like object
 end
@@ -13,16 +41,56 @@ outtype(xf::Replace, intype) = Union{intype, valtype(xf.d)}
 next(rf::R_{Replace}, result, input) =
     next(rf.inner, result, get(rf.xform.d, input, input))
 
+"""
+    Cat()
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Cat(), [[1, 2], [3], [4, 5]]) == 1:5
+true
+```
+"""
 struct Cat <: Transducer
 end
 
 outtype(::Cat, intype) = ieltype(intype)
 next(rf::R_{Cat}, result, input) = __foldl__(rf.inner, result, input)
 
+"""
+    MapCat(f)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(MapCat(x -> 1:x), 1:3)
+6-element Array{Int64,1}:
+ 1
+ 1
+ 2
+ 1
+ 2
+ 3
+```
+"""
 const MapCat = Composition{<:Map, <:Cat}
 
 MapCat(f) = Map(f) |> Cat()
 
+"""
+    Filter(pred)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Filter(iseven), 1:3)
+1-element Array{Int64,1}:
+ 2
+```
+"""
 struct Filter{P} <: AbstractFilter
     pred::P
 end
@@ -30,6 +98,19 @@ end
 next(rf::R_{Filter}, result, input) =
     rf.xform.pred(input) ? next(rf.inner, result, input) : result
 
+"""
+    Take(n)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Take(2), 1:10)
+2-element Array{Int64,1}:
+ 1
+ 2
+```
+"""
 struct Take <: AbstractFilter
     n::Int
 end
@@ -48,6 +129,19 @@ next(rf::R_{Take}, result, input) =
         return n, iresult
     end
 
+"""
+    TakeWhile(pred)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(TakeWhile(x -> x < 3), 1:10)
+2-element Array{Int64,1}:
+ 1
+ 2
+```
+"""
 struct TakeWhile{P} <: AbstractFilter
     pred::P
 end
@@ -55,6 +149,20 @@ end
 next(rf::R_{TakeWhile}, result, input) =
     rf.xform.pred(input) ? next(rf.inner, result, input) : ensure_reduced(result)
 
+"""
+    TakeNth(n)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(TakeNth(3), 1:9)
+3-element Array{Int64,1}:
+ 1
+ 4
+ 7
+```
+"""
 struct TakeNth <: AbstractFilter
     n::Int
 end
@@ -72,6 +180,19 @@ next(rf::R_{TakeNth}, result, input) =
         return c, iresult
     end
 
+"""
+    Drop(n)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Drop(3), 1:5)
+2-element Array{Int64,1}:
+ 4
+ 5
+```
+"""
 struct Drop <: AbstractFilter
     n::Int
 end
@@ -88,6 +209,20 @@ next(rf::R_{Drop}, result, input) =
         end
     end
 
+"""
+    DropLast(n)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(DropLast(2), 1:5)
+3-element Array{Int64,1}:
+ 1
+ 2
+ 3
+```
+"""
 struct DropLast <: AbstractFilter
     n::Int
 
@@ -122,6 +257,20 @@ next(rf::R_{DropLast}, result, input) =
         end
     end
 
+"""
+    DropWhile(pred)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(DropWhile(x -> x < 3), 1:5)
+3-element Array{Int64,1}:
+ 3
+ 4
+ 5
+```
+"""
 struct DropWhile{F} <: AbstractFilter
     pred::F
 end
@@ -137,6 +286,35 @@ next(rf::R_{DropWhile}, result, input) =
         dropping, next(rf.inner, iresult, input)
     end
 
+"""
+    Window(size, step = size, flush = false)
+    Window(size; step = size, flush = false)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Window(3) |> Map(copy), 1:8)
+2-element Array{Array{Int64,1},1}:
+ [1, 2, 3]
+ [4, 5, 6]
+
+julia> collect(Window(3; flush=true) |> Map(copy), 1:8)
+3-element Array{Array{Int64,1},1}:
+ [1, 2, 3]
+ [4, 5, 6]
+ [7, 8]
+
+julia> collect(Window(3; step=1) |> Map(copy), 1:8)
+6-element Array{Array{Int64,1},1}:
+ [1, 2, 3]
+ [2, 3, 4]
+ [3, 4, 5]
+ [4, 5, 6]
+ [5, 6, 7]
+ [6, 7, 8]
+```
+"""
 struct Window <: Transducer
     size::Int
     step::Int
@@ -222,6 +400,21 @@ end
 
 # TODO: implement SVector version of Window
 
+"""
+    PartitionBy(f)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(PartitionBy(x -> (x + 1) ÷ 3) |> Map(copy), 1:9)
+4-element Array{Array{Int64,1},1}:
+ [1]
+ [2, 3, 4]
+ [5, 6, 7]
+ [8, 9]
+```
+"""
 struct PartitionBy{F} <: Transducer
     f::F
 end
@@ -257,6 +450,25 @@ function complete(rf::R_{PartitionBy}, ps)
     return complete(rf.inner, iresult)
 end
 
+"""
+    Keep(f)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> xf = Keep() do x
+           if x < 3
+               x + 1
+           end
+       end;
+
+julia> collect(xf, 1:5)
+2-element Array{Int64,1}:
+ 2
+ 3
+```
+"""
 struct Keep{F} <: Transducer
     f::F
 end
@@ -270,6 +482,20 @@ function next(rf::R_{Keep}, result, input)
     return iinput === nothing ? result : next(rf.inner, result, iinput)
 end
 
+"""
+    Distinct()
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Distinct(), [1, 1, 2, 1, 3, 3, 2])
+3-element Array{Int64,1}:
+ 1
+ 2
+ 3
+```
+"""
 struct Distinct <: AbstractFilter
 end
 
@@ -289,6 +515,22 @@ function next(rf::R_{Distinct}, result, input)
     end
 end
 
+"""
+    Interpose(sep)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Interpose(missing), 1:3)
+5-element Array{Union{Missing, Int64},1}:
+ 1
+  missing
+ 2
+  missing
+ 3
+```
+"""
 struct Interpose{T} <: Transducer
     sep::T
 end
@@ -305,6 +547,22 @@ next(rf::R_{Interpose}, result, input) =
         return Val(false), next(rf.inner, iresult, input)
     end
 
+"""
+    Dedupe()
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Dedupe(), [1, 1, 2, 1, 3, 3, 2])
+5-element Array{Int64,1}:
+ 1
+ 2
+ 1
+ 3
+ 2
+```
+"""
 struct Dedupe <: AbstractFilter
 end
 
@@ -319,6 +577,32 @@ next(rf::R_{Dedupe}, result, input) =
         end
     end
 
+"""
+    Scan(f, [init])
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Scan(*), 1:3)
+3-element Array{Int64,1}:
+ 1
+ 2
+ 6
+
+julia> collect(Map(x -> x + im) |> Scan(*), 1:3)
+3-element Array{Complex{Int64},1}:
+ 1 + 1im
+ 1 + 3im
+ 0 + 10im
+
+julia> collect(Scan(*, 10), 1:3)
+3-element Array{Int64,1}:
+ 10
+ 20
+ 60
+```
+"""
 struct Scan{F, T} <: Transducer
     f::F
     init::T
@@ -404,6 +688,27 @@ complete(rf::R_{TeeZip}, result) = complete(rejoin(rf), result)
 Base.adjoint(xf::Transducer) = TeeZip(xf)
 
 
+"""
+    GetIndex(array)
+    GetIndex{inbounds}(array)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(GetIndex(1:10), [2, 3, 4])
+3-element Array{Int64,1}:
+ 2
+ 3
+ 4
+
+julia> collect(GetIndex{true}(1:10), [2, 3, 4])
+3-element Array{Int64,1}:
+ 2
+ 3
+ 4
+```
+"""
 struct GetIndex{inbounds, A} <: Transducer
     array::A
 end
@@ -420,6 +725,25 @@ next(rf::R_{GetIndex{true}}, result, input) =
 next(rf::R_{GetIndex{false}}, result, input) =
     next(rf.inner, result, rf.xform.array[input])
 
+"""
+    SetIndex(array)
+    SetIndex{inbounds}(array)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> ys = zeros(3);
+
+julia> mapfoldl(SetIndex(ys), first ∘ tuple, nothing, [(1, 11.1), (3, 33.3)])
+
+julia> ys
+3-element Array{Float64,1}:
+ 11.1
+  0.0
+ 33.3
+```
+"""
 struct SetIndex{inbounds, A} <: Transducer
     array::A
 end
