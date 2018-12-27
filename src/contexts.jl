@@ -58,8 +58,8 @@ end
     mapfoldl(xf, step, init, itr) :: T
     transduce(xf, step, init, itr) :: Union{T, Reduced{T}}
 
-Compose transducer `xf` with reducing step function `f` and
-reduce `iter` using it.
+Compose transducer `xf` with reducing step function `step` and reduce
+`itr` using it.
 
 !!! warning
     `transduce` differs from `mapfoldl` as `Reduced{T}` is returned if
@@ -308,6 +308,9 @@ Base.copy!(xf::Transducer, dest, src) = append!(xf, empty!(dest), src)
 
 """
     loop(step, xf, init, coll)
+
+This is a shorthand for `transduce(Completing(step), xf, init, coll)`.
+It is intended to be used with `do` block.
 
 # Examples
 ```jldoctest
