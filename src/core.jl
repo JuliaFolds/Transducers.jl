@@ -45,7 +45,7 @@ transducer `rf.xform::X` and the inner reducing function
 const R_{X} = Reduction{<:X}
 ```
 """
-const R_{X, InType} = Reduction{<:X}
+const R_{X} = Reduction{<:X}
 
 @inline Reduction(xf::X, inner::I, ::Type{InType}) where {X, I, InType} =
     Reduction{X, I, InType}(xf, inner)
