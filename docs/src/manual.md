@@ -1,6 +1,8 @@
 # Transducers and Transducer contexts
 
 ```@index
+Pages = ["manual.md"]
+Order = [:function, :type]
 ```
 
 ## Transducer contexts
