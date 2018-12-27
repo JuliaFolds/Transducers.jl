@@ -182,6 +182,12 @@ This API is modeled after $(_cljref("into")).
 """
 Base.append!(xf::Transducer, to, from) = transduce(push!, xf, to, from)
 
+"""
+    collect(xf::Transducer, itr)
+
+Process an iterable `itr` using a transducer `xf` and collect the result
+into a `Vector`.
+"""
 function Base.collect(xf::Transducer, coll)
     rf = Reduction(xf, push!, eltype(coll))
     to = finaltype(rf)[]
