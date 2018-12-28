@@ -35,7 +35,7 @@ hasdoc(m::Module, b::Docs.Binding) = haskey(Docs.meta(m), b)
 function Base.show(io::IO, ::MIME"text/markdown", tl::TransducerLister)
     println(io, "| **Transducer** | **Summary** |")
     println(io, "|:-- |:-- |")
-    loop(tl()) do binding
+    foreach(tl()) do binding
         hasdoc(tl.m, binding) || return
         d = Docs.doc(binding)
         h = header_code(d)

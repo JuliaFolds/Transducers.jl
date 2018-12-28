@@ -11,6 +11,7 @@ Order = [:function, :type]
 mapfoldl
 transduce
 loop
+foreach
 eduction
 map!
 copy!

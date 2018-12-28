@@ -337,20 +337,39 @@ Base.copy!(xf::Transducer, dest, src) = append!(xf, empty!(dest), src)
 """
     loop(step, xf::Transducer, init, coll)
     loop(step, ed::Eduction, init)
-    loop(eff, xf::Transducer, coll)
-    loop(eff, ed::Eduction)
 
 The first form is a shorthand for `transduce(Completing(step), xf,
 init, coll)`.  It is intended to be used with `do` block.  It is also
 equivalent to `loop(step, eduction(xf, coll), init)`.
 
-The third form is similar to the first, but the function `eff` takes
-only one argument and returned result is not used.  Thus, this form is
-used only for side-effects.  It is equivalent to the last from
-`loop(eff, eduction(xf, coll))`.  Note that
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> loop(Filter(isodd), 0.0, 1:4) do state, input
+           @show state, input
+           state + input
+       end
+(state, input) = (0.0, 1)
+(state, input) = (1.0, 3)
+4.0
+```
+"""
+loop(step, xform::Transducer, init, coll) =
+    transduce(xform, Completing(step), init, coll)
+
+loop(step, ed::Eduction, init) = loop(step, Transducer(ed), init, ed.coll)
+
+"""
+    foreach(eff, xf::Transducer, itr)
+    foreach(eff, ed::Eduction)
+
+Feed the results of `xf` processing items in `itr` into a unary
+function `eff` which is used primary for a side-effect.  It is
+equivalent to `foreach(eff, eduction(xf, coll))`.  Note that
 
 ```julia
-loop(eduction(xf, coll)) do x
+foreach(eduction(xf, coll)) do x
     ...
 end
 ```
@@ -370,29 +389,16 @@ the iterator protocol.
 ```jldoctest
 julia> using Transducers
 
-julia> loop(Filter(isodd), 0.0, 1:4) do state, input
-           @show state, input
-           state + input
-       end
-(state, input) = (0.0, 1)
-(state, input) = (1.0, 3)
-4.0
-
-julia> loop(eduction(Filter(isodd), 1:4)) do input
+julia> foreach(eduction(Filter(isodd), 1:4)) do input
            @show input
        end
 input = 1
 input = 3
 ```
 """
-loop(step, xform::Transducer, init, coll) =
-    transduce(xform, Completing(step), init, coll)
-
-loop(eff, xform::Transducer, coll) =
+Base.foreach(eff, xform::Transducer, coll) =
     transduce(xform, SideEffect(eff), nothing, coll)
-
-loop(step, ed::Eduction, init) = loop(step, Transducer(ed), init, ed.coll)
-loop(eff, ed::Eduction) = loop(eff, Transducer(ed), ed.coll)
+Base.foreach(eff, ed::Eduction) = foreach(eff, Transducer(ed), ed.coll)
 
 
 """
@@ -421,7 +427,7 @@ julia> ch3 = Channel(Cat(), ed);
 julia> typeof(ch1) === typeof(ch2) === typeof(ch3) === Channel{Int}
 true
 
-julia> loop(PartitionBy(isequal(1)), ch3) do input
+julia> foreach(PartitionBy(isequal(1)), ch3) do input
            @show input
        end
 input = [1, 1]
@@ -434,7 +440,7 @@ Base.Channel(xform::Transducer, itr;
              ctype = outtype(xform, ieltype(itr)),
              kwargs...) =
     Channel(; ctype = ctype, kwargs...) do chan
-        loop(x -> put!(chan, x), xform, itr)
+        foreach(x -> put!(chan, x), xform, itr)
         return
     end
 
