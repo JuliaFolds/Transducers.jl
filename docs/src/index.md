@@ -205,9 +205,9 @@ end
 
 ```
 
-It is not straightforward to implement an iterator like `Cat` which
-can output more than one items at a time.  Such an iterator has to
-track the state of the inner (`y1` in above) and outer (`xs` in above)
+It is not straightforward to implement an iterator like `Cat` that can
+output more than one items at a time.  Such an iterator has to track
+the state of the inner (`y1` in above) and outer (`xs` in above)
 iterators and conditionally invoke the outer iterator once the inner
 iterator terminates.  This generates a complicated code and the
 compiler would have hard time optimizing it.
