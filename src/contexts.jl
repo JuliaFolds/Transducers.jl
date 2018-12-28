@@ -1,8 +1,10 @@
 # --- Transducing contexts
 
-function __foldl__(rf, init, coll)
+nocomplete(_, result) = result
+
+function __foldl__(rf, init, coll, _complete = complete)
     ret = iterate(coll)
-    ret === nothing && return complete(rf, init)
+    ret === nothing && return _complete(rf, init)
 
     # TODO: benchmark this with simple_foldl.
 
@@ -13,25 +15,25 @@ function __foldl__(rf, init, coll)
     # optimization to cover a good amount of cases anyway.
     x, state = ret
     val = next(rf, init, x)
-    val isa Reduced && return Reduced(complete(rf, unreduced(val)))
+    val isa Reduced && return Reduced(_complete(rf, unreduced(val)))
     while (ret = iterate(coll, state)) !== nothing
         x, state = ret
         val = next(rf, val, x)
-        val isa Reduced && return Reduced(complete(rf, unreduced(val)))
+        val isa Reduced && return Reduced(_complete(rf, unreduced(val)))
     end
-    return complete(rf, val)
+    return _complete(rf, val)
 end
 
 # TODO: use IndexStyle
-@inline function __foldl__(rf, init, arr::AbstractArray)
-    isempty(arr) && return complete(rf, init)
+@inline function __foldl__(rf, init, arr::AbstractArray, _complete = complete)
+    isempty(arr) && return _complete(rf, init)
     val = next(rf, init, @inbounds arr[firstindex(arr)])
-    val isa Reduced && return Reduced(complete(rf, unreduced(val)))
+    val isa Reduced && return Reduced(_complete(rf, unreduced(val)))
     for i in firstindex(arr) + 1:lastindex(arr)
         val = next(rf, val, @inbounds arr[i])
-        val isa Reduced && return Reduced(complete(rf, unreduced(val)))
+        val isa Reduced && return Reduced(_complete(rf, unreduced(val)))
     end
-    return complete(rf, val)
+    return _complete(rf, val)
 end
 
 function __simple_foldl__(rf, val, itr)
