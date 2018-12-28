@@ -338,18 +338,18 @@ julia> copy!(PartitionBy(x -> x ÷ 3) |> Map(sum), Int[], 1:10)
 Base.copy!(xf::Transducer, dest, src) = append!(xf, empty!(dest), src)
 
 """
-    loop(step, xf::Transducer, init, coll)
-    loop(step, ed::Eduction, init)
+    foldl(step, xf::Transducer, init, itr)
+    foldl(step, ed::Eduction, init)
 
-The first form is a shorthand for `transduce(Completing(step), xf,
-init, coll)`.  It is intended to be used with `do` block.  It is also
-equivalent to `loop(step, eduction(xf, coll), init)`.
+The first form is a shorthand for `mapfoldl(xf, Completing(step),
+init, itr)`.  It is intended to be used with `do` block.  It is also
+equivalent to `foldl(step, eduction(xf, itr), init)`.
 
 # Examples
 ```jldoctest
 julia> using Transducers
 
-julia> loop(Filter(isodd), 0.0, 1:4) do state, input
+julia> foldl(Filter(isodd), 0.0, 1:4) do state, input
            @show state, input
            state + input
        end
@@ -358,10 +358,11 @@ julia> loop(Filter(isodd), 0.0, 1:4) do state, input
 4.0
 ```
 """
-loop(step, xform::Transducer, init, coll) =
-    transduce(xform, Completing(step), init, coll)
+Base.foldl(step, xform::Transducer, init, itr) =
+    mapfoldl(xform, Completing(step), init, itr)
 
-loop(step, ed::Eduction, init) = loop(step, Transducer(ed), init, ed.coll)
+Base.foldl(step, ed::Eduction, init) =
+    foldl(step, Transducer(ed), init, ed.coll)
 
 """
     foreach(eff, xf::Transducer, itr)

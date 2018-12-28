@@ -10,7 +10,7 @@ Order = [:function, :type]
 ```@docs
 mapfoldl
 transduce
-loop
+foldl
 foreach
 eduction
 map!
