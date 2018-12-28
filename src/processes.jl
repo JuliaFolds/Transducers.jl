@@ -393,3 +393,53 @@ loop(eff, xform::Transducer, coll) =
 
 loop(step, ed::Eduction, init) = loop(step, Transducer(ed), init, ed.coll)
 loop(eff, ed::Eduction) = loop(eff, Transducer(ed), ed.coll)
+
+
+"""
+    Channel(xf::Transducer, itr; kwargs...)
+    Channel(ed::Eduction; kwargs...)
+
+Pipe items from an iterable `itr` processed by the transducer `xf`
+through a channel.  `Channel(xf, itr)` and `Channel(eduction(xf,
+itr))` are equivalent.  Note that `itr` itself can be a `Channel`.
+
+Keyword arguments are passed to `Channel(function; kwargs...)`.
+`ctype` is inferred from `xf` if not specified.
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> ch1 = Channel(Filter(isodd), 1:5);
+
+julia> ch2 = Channel(Map(x -> 2x - 1), ch1);
+
+julia> ed = eduction(Map(x -> 1:x), ch2);
+
+julia> ch3 = Channel(Cat(), ed);
+
+julia> typeof(ch1) === typeof(ch2) === typeof(ch3) === Channel{Int}
+true
+
+julia> loop(PartitionBy(isequal(1)), ch3) do input
+           @show input
+       end
+input = [1, 1]
+input = [2, 3, 4, 5]
+input = [1]
+input = [2, 3, 4, 5, 6, 7, 8, 9]
+```
+"""
+Base.Channel(xform::Transducer, itr;
+             ctype = outtype(xform, ieltype(itr)),
+             kwargs...) =
+    Channel(; ctype = ctype, kwargs...) do chan
+        loop(x -> put!(chan, x), xform, itr)
+        return
+    end
+
+Base.Channel(xform::Transducer, ed::Eduction; kwargs...) =
+    Channel(Transducer(ed) |> xform, ed.coll; kwargs...)
+
+Base.Channel(ed::Eduction; kwargs...) =
+    Channel(Transducer(ed), ed.coll; kwargs...)

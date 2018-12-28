@@ -16,6 +16,7 @@ map!
 copy!
 append!
 collect
+Channel
 ```
 
 ## Transducers
