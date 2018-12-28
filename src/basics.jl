@@ -22,3 +22,5 @@ _cljapiurl(name) =
     "https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/$name"
 _cljref(name) =
     "[`$name` in Clojure]($(_cljapiurl(name)))"
+_thx_clj(name) =
+    "This API is modeled after $(_cljref(name))."

@@ -1,5 +1,19 @@
+_shared_vector_warning = """
+!!! warning
+    The vector passed to the inner reducing function is valid only
+    during its _immediate_ reduction step.  It must be reduced
+    immediately _or_ copied.
+"""
+
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/map
+# https://clojuredocs.org/clojure.core/map
 """
     Map(f)
+
+Apply unary function `f` to each input and pass the result to the
+inner reducing step.
+
+$(_thx_clj("map"))
 
 # Examples
 ```jldoctest
@@ -19,8 +33,15 @@ end
 outtype(xf::Map, intype) = Union{Base.return_types(xf.f, (intype,))...}
 next(rf::R_{Map}, result, input) = next(rf.inner, result, rf.xform.f(input))
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/replace
+# https://clojuredocs.org/clojure.core/replace
 """
     Replace(dict)
+
+Replace each input with the value in the dictionary `dict` if it
+matches with a key.  Otherwise output the input as-is.
+
+$(_thx_clj("replace"))
 
 # Examples
 ```jldoctest
@@ -41,8 +62,14 @@ outtype(xf::Replace, intype) = Union{intype, valtype(xf.d)}
 next(rf::R_{Replace}, result, input) =
     next(rf.inner, result, get(rf.xform.d, input, input))
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/cat
+# https://clojuredocs.org/clojure.core/cat
 """
     Cat()
+
+Concatenate/flatten nested iterators.
+
+$(_thx_clj("cat"))
 
 # Examples
 ```jldoctest
@@ -58,8 +85,14 @@ end
 outtype(::Cat, intype) = ieltype(intype)
 next(rf::R_{Cat}, result, input) = __foldl__(rf.inner, result, input)
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/mapcat
+# https://clojuredocs.org/clojure.core/mapcat
 """
     MapCat(f)
+
+Concatenate output of `f` which is expected to return an iterable.
+
+$(_thx_clj("mapcat"))
 
 # Examples
 ```jldoctest
@@ -79,8 +112,14 @@ const MapCat = Composition{<:Map, <:Cat}
 
 MapCat(f) = Map(f) |> Cat()
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/filter
+# https://clojuredocs.org/clojure.core/filter
 """
     Filter(pred)
+
+Skip items for which `pred` is evaluated to `false`.
+
+$(_thx_clj("filter"))
 
 # Examples
 ```jldoctest
@@ -98,8 +137,14 @@ end
 next(rf::R_{Filter}, result, input) =
     rf.xform.pred(input) ? next(rf.inner, result, input) : result
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/take
+# https://clojuredocs.org/clojure.core/take
 """
     Take(n)
+
+Take `n` items from the input sequence.
+
+$(_thx_clj("take"))
 
 # Examples
 ```jldoctest
@@ -129,8 +174,15 @@ next(rf::R_{Take}, result, input) =
         return n, iresult
     end
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/take-while
+# https://clojuredocs.org/clojure.core/take-while
 """
     TakeWhile(pred)
+
+Take items while `pred` returns `true`.  Abort the transducible
+process when `pred` returns `false` for the first time.
+
+$(_thx_clj("take-while"))
 
 # Examples
 ```jldoctest
@@ -149,8 +201,14 @@ end
 next(rf::R_{TakeWhile}, result, input) =
     rf.xform.pred(input) ? next(rf.inner, result, input) : ensure_reduced(result)
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/take-nth
+# https://clojuredocs.org/clojure.core/take-nth
 """
     TakeNth(n)
+
+Output every `n` item to the inner reducing step.
+
+$(_thx_clj("take-nth"))
 
 # Examples
 ```jldoctest
@@ -180,8 +238,14 @@ next(rf::R_{TakeNth}, result, input) =
         return c, iresult
     end
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/drop
+# https://clojuredocs.org/clojure.core/drop
 """
     Drop(n)
+
+Drop first `n` items.
+
+$(_thx_clj("drop"))
 
 # Examples
 ```jldoctest
@@ -209,8 +273,14 @@ next(rf::R_{Drop}, result, input) =
         end
     end
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/drop-last
+# https://clojuredocs.org/clojure.core/drop-last
 """
     DropLast(n)
+
+Drop last `n` items.
+
+$(_thx_clj("drop-last"))
 
 # Examples
 ```jldoctest
@@ -257,18 +327,27 @@ next(rf::R_{DropLast}, result, input) =
         end
     end
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/drop-while
+# https://clojuredocs.org/clojure.core/drop-while
 """
     DropWhile(pred)
+
+Drop items while `pred` returns `true` consecutively.  It becomes a
+no-op after `pred` returns a `false`.
+
+$(_thx_clj("drop-while"))
 
 # Examples
 ```jldoctest
 julia> using Transducers
 
-julia> collect(DropWhile(x -> x < 3), 1:5)
-3-element Array{Int64,1}:
+julia> collect(DropWhile(x -> x < 3), [1:5; 1:2])
+5-element Array{Int64,1}:
  3
  4
  5
+ 1
+ 2
 ```
 """
 struct DropWhile{F} <: AbstractFilter
@@ -286,9 +365,17 @@ next(rf::R_{DropWhile}, result, input) =
         dropping, next(rf.inner, iresult, input)
     end
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/partition-all
+# https://clojuredocs.org/clojure.core/partition-all
 """
     Window(size, step = size, flush = false)
     Window(size; step = size, flush = false)
+
+Sliding window of width `size` and interval `step`.
+
+$_shared_vector_warning
+
+$(_thx_clj("partition-all"))
 
 # Examples
 ```jldoctest
@@ -400,8 +487,17 @@ end
 
 # TODO: implement SVector version of Window
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/partition-by
+# https://clojuredocs.org/clojure.core/partition-by
 """
     PartitionBy(f)
+
+Group input sequence into chunks in which `f` returns a same value
+consecutively.
+
+$_shared_vector_warning
+
+$(_thx_clj("partition-by"))
 
 # Examples
 ```jldoctest
@@ -450,8 +546,14 @@ function complete(rf::R_{PartitionBy}, ps)
     return complete(rf.inner, iresult)
 end
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/keep
+# https://clojuredocs.org/clojure.core/keep
 """
     Keep(f)
+
+Pass non-`nothing` output of `f` to the inner reducing step.
+
+$(_thx_clj("keep"))
 
 # Examples
 ```jldoctest
@@ -482,8 +584,14 @@ function next(rf::R_{Keep}, result, input)
     return iinput === nothing ? result : next(rf.inner, result, iinput)
 end
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/distinct
+# https://clojuredocs.org/clojure.core/distinct
 """
     Distinct()
+
+Pass only unseen item to the inner reducing step.
+
+$(_thx_clj("distinct"))
 
 # Examples
 ```jldoctest
@@ -515,8 +623,14 @@ function next(rf::R_{Distinct}, result, input)
     end
 end
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/interpose
+# https://clojuredocs.org/clojure.core/interpose
 """
     Interpose(sep)
+
+Interleave input items with a `sep`.
+
+$(_thx_clj("interpose"))
 
 # Examples
 ```jldoctest
@@ -547,8 +661,14 @@ next(rf::R_{Interpose}, result, input) =
         return Val(false), next(rf.inner, iresult, input)
     end
 
+# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/dedupe
+# https://clojuredocs.org/clojure.core/dedupe
 """
     Dedupe()
+
+De-duplicate _consecutive_ items.
+
+$(_thx_clj("dedupe"))
 
 # Examples
 ```jldoctest
@@ -579,6 +699,29 @@ next(rf::R_{Dedupe}, result, input) =
 
 """
     Scan(f, [init])
+
+Accumulate input with binary function `f` and pass the accumulated
+result so far to the inner reduction step.
+
+The inner reducing step receives the sequence `y₁, y₂, y₃, ..., yₙ, ...`
+when the sequence `x₁, x₂, x₃, ..., xₙ, ...` is fed to `Scan(f)`.
+
+    y₁ = f(x₁, init)
+    y₂ = f(x₂, y₁)
+    y₃ = f(x₃, y₂)
+    ...
+    yₙ = f(xₙ, yₙ₋₁)
+
+This is a generalized version of the
+[_prefix sum_](https://en.wikipedia.org/wiki/Prefix_sum) also known as
+_cumulative sum_, _inclusive scan_, or _scan_.
+
+Note that the associativity of `f` is not required when the transducer
+is used in a process that gurantee an order, such as [`mapfoldl`](@ref).
+
+Unless `f` is a function with known identity element such as `+`, `*`,
+`min`, `max`, and `append!`, the initial state `init` must be
+provided.
 
 # Examples
 ```jldoctest
@@ -703,6 +846,8 @@ Base.adjoint(xf::Transducer) = TeeZip(xf)
     GetIndex(array)
     GetIndex{inbounds}(array)
 
+Transform an integer input `i` to `array[i]`.
+
 # Examples
 ```jldoctest
 julia> using Transducers
@@ -739,6 +884,8 @@ next(rf::R_{GetIndex{false}}, result, input) =
 """
     SetIndex(array)
     SetIndex{inbounds}(array)
+
+Perform `array[i] = v` for each input pair `(i, v)`.
 
 # Examples
 ```jldoctest
