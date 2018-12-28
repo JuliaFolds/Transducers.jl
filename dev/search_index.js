@@ -57,9 +57,9 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "manual/#Transducers-and-Transducer-contexts-1",
+    "location": "manual/#Transducers-and-Transducible-processes-1",
     "page": "Manual",
-    "title": "Transducers and Transducer contexts",
+    "title": "Transducers and Transducible processes",
     "category": "section",
     "text": "Pages = [\"manual.md\"]\nOrder = [:function, :type]"
 },
@@ -85,7 +85,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.loop",
     "category": "function",
-    "text": "loop(step, xf, init, coll)\n\nThis is a shorthand for transduce(Completing(step), xf, init, coll). It is intended to be used with do block.\n\nExamples\n\njulia> using Transducers\n\njulia> loop(Filter(isodd), 0.0, 1:4) do state, input\n           @show state, input\n           state + input\n       end\n(state, input) = (0.0, 1)\n(state, input) = (1.0, 3)\n4.0\n\n\n\n\n\n"
+    "text": "loop(step, xf::Transducer, init, coll)\nloop(step, ed::Eduction, init)\n\nThe first form is a shorthand for transduce(Completing(step), xf, init, coll).  It is intended to be used with do block.  It is also equivalent to loop(step, eduction(xf, coll), init).\n\nExamples\n\njulia> using Transducers\n\njulia> loop(Filter(isodd), 0.0, 1:4) do state, input\n           @show state, input\n           state + input\n       end\n(state, input) = (0.0, 1)\n(state, input) = (1.0, 3)\n4.0\n\n\n\n\n\n"
+},
+
+{
+    "location": "manual/#Base.foreach",
+    "page": "Manual",
+    "title": "Base.foreach",
+    "category": "function",
+    "text": "foreach(eff, xf::Transducer, itr)\nforeach(eff, ed::Eduction)\n\nFeed the results of xf processing items in itr into a unary function eff which is used primary for a side-effect.  It is equivalent to foreach(eff, eduction(xf, coll)).  Note that\n\nforeach(eduction(xf, coll)) do x\n    ...\nend\n\ncan be more efficient than\n\nfor x in eduction(xf, coll)\n    ...\nend\n\nas the former does not have to translate the transducer protocol to the iterator protocol.\n\nExamples\n\njulia> using Transducers\n\njulia> foreach(eduction(Filter(isodd), 1:4)) do input\n           @show input\n       end\ninput = 1\ninput = 3\n\n\n\n\n\n"
 },
 
 {
@@ -93,7 +101,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.eduction",
     "category": "function",
-    "text": "eduction(xf::Transducer, coll)\n\nCreate a iterable and reducible object.\n\nIterable.\nReducible (TODO); i.e., it can be handled by transduce efficiently.\n\nThis API is modeled after eduction in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> for x in eduction(Filter(isodd) |> Take(3), 1:1000)\n           @show x\n       end\nx = 1\nx = 3\nx = 5\n\n\n\n\n\n"
+    "text": "eduction(xf::Transducer, coll)\n\nCreate a iterable and reducible object.\n\nIterable.\nReducible; i.e., it can be handled by transduce efficiently.\n\nThis API is modeled after eduction in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> for x in eduction(Filter(isodd) |> Take(3), 1:1000)\n           @show x\n       end\nx = 1\nx = 3\nx = 5\n\n\n\n\n\n"
 },
 
 {
@@ -129,11 +137,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "manual/#Transducer-contexts-1",
+    "location": "manual/#Base.Channel",
     "page": "Manual",
-    "title": "Transducer contexts",
+    "title": "Base.Channel",
+    "category": "type",
+    "text": "Channel(xf::Transducer, itr; kwargs...)\nChannel(ed::Eduction; kwargs...)\n\nPipe items from an iterable itr processed by the transducer xf through a channel.  Channel(xf, itr) and Channel(eduction(xf, itr)) are equivalent.  Note that itr itself can be a Channel.\n\nKeyword arguments are passed to Channel(function; kwargs...). ctype is inferred from xf if not specified.\n\nExamples\n\njulia> using Transducers\n\njulia> ch1 = Channel(Filter(isodd), 1:5);\n\njulia> ch2 = Channel(Map(x -> 2x - 1), ch1);\n\njulia> ed = eduction(Map(x -> 1:x), ch2);\n\njulia> ch3 = Channel(Cat(), ed);\n\njulia> typeof(ch1) === typeof(ch2) === typeof(ch3) === Channel{Int}\ntrue\n\njulia> foreach(PartitionBy(isequal(1)), ch3) do input\n           @show input\n       end\ninput = [1, 1]\ninput = [2, 3, 4, 5]\ninput = [1]\ninput = [2, 3, 4, 5, 6, 7, 8, 9]\n\n\n\n\n\n"
+},
+
+{
+    "location": "manual/#Transducible-processes-1",
+    "page": "Manual",
+    "title": "Transducible processes",
     "category": "section",
-    "text": "mapfoldl\ntransduce\nloop\neduction\nmap!\ncopy!\nappend!\ncollect"
+    "text": "mapfoldl\ntransduce\nloop\nforeach\neduction\nmap!\ncopy!\nappend!\ncollect\nChannel"
 },
 
 {
@@ -142,6 +158,14 @@ var documenterSearchIndex = {"docs": [
     "title": "Transducers.Cat",
     "category": "type",
     "text": "Cat()\n\nConcatenate/flatten nested iterators.\n\nThis API is modeled after cat in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Cat(), [[1, 2], [3], [4, 5]]) == 1:5\ntrue\n\n\n\n\n\n"
+},
+
+{
+    "location": "manual/#Transducers.Count",
+    "page": "Manual",
+    "title": "Transducers.Count",
+    "category": "type",
+    "text": "Count(start = 1, step)\n\nGenerate a sequence start, start + step, start + step + step, and so on.\n\nNote that input is ignored.  To use the input in the downstream reduction steps, use TeeZip or Zip.\n\nstart defaults 1 and step defaults to oneunit(start).\n\nSee also: Iterators.countfrom.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(TeeZip(Count()), -3:-1)\n3-element Array{Tuple{Int64,Int64},1}:\n (-3, 1)\n (-2, 2)\n (-1, 3)\n\n\n\n\n\n"
 },
 
 {
@@ -209,6 +233,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "manual/#Transducers.Iterated",
+    "page": "Manual",
+    "title": "Transducers.Iterated",
+    "category": "type",
+    "text": "Iterated(f, init[, T::Type])\n\nGenerate a sequence init, f(init), f(f(init)), f(f(f(init))), and so on.\n\nNote that input is ignored.  To use the input in the downstream reduction steps, use TeeZip or Zip.\n\nUse the third argument T to specify the output type of f.\n\nSee also: IterTools.iterated\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Iterated(x -> 2x, 1), 1:5)\n5-element Array{Int64,1}:\n  1\n  2\n  4\n  8\n 16\n\njulia> collect(TeeZip(Iterated(x -> 2x, 1)), 1:5)\n5-element Array{Tuple{Int64,Int64},1}:\n (1, 1)\n (2, 2)\n (3, 4)\n (4, 8)\n (5, 16)\n\n\n\n\n\n"
+},
+
+{
     "location": "manual/#Transducers.Keep",
     "page": "Manual",
     "title": "Transducers.Keep",
@@ -230,6 +262,14 @@ var documenterSearchIndex = {"docs": [
     "title": "Transducers.MapCat",
     "category": "type",
     "text": "MapCat(f)\n\nConcatenate output of f which is expected to return an iterable.\n\nThis API is modeled after mapcat in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(MapCat(x -> 1:x), 1:3)\n6-element Array{Int64,1}:\n 1\n 1\n 2\n 1\n 2\n 3\n\n\n\n\n\n"
+},
+
+{
+    "location": "manual/#Transducers.Merge",
+    "page": "Manual",
+    "title": "Transducers.Merge",
+    "category": "type",
+    "text": "Merge(iterator)\n\nMerge the output from iterator to the stream processed by the inner reduction step.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Merge(Iterators.cycle(\"hello\")), 1:8)\n8-element Array{Tuple{Int64,Char},1}:\n (1, \'h\')\n (2, \'e\')\n (3, \'l\')\n (4, \'l\')\n (5, \'o\')\n (6, \'h\')\n (7, \'e\')\n (8, \'l\')\n\n\n\n\n\n"
 },
 
 {
@@ -305,11 +345,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "manual/#Transducers.Zip-Tuple",
+    "page": "Manual",
+    "title": "Transducers.Zip",
+    "category": "method",
+    "text": "Zip(xforms...)\n\nZip outputs of transducers xforms in a tuple and pass it to the inner reduction step.\n\nwarning: Warning\nHead transducers drive tail transducers.  Be careful when using it with transducers other than Map, especially the contractive ones like PartitionBy and the expansive ones like MapCat.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Zip(Map(identity), Map(x -> 10x), Map(x -> 100x)), 1:3)\n3-element Array{Tuple{Int64,Int64,Int64},1}:\n (1, 10, 100)\n (2, 20, 200)\n (3, 30, 300)\n\n\n\n\n\n"
+},
+
+{
     "location": "manual/#Transducers-1",
     "page": "Manual",
     "title": "Transducers",
     "category": "section",
-    "text": "Modules = [Transducers]\nPrivate = false\nFilter = t -> t isa Type && t <: Transducers.Transducer"
+    "text": "Modules = [Transducers]\nPrivate = false\nFilter = Transducers.is_transducer_type"
 },
 
 {
@@ -317,7 +365,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Completing",
     "category": "type",
-    "text": "Completing(function)\n\nWrap a function to add a no-op complete protocol.  Use it when passing a function without 1-argument arity to transduce etc.\n\n\n\n\n\n"
+    "text": "Completing(function)\n\nWrap a function to add a no-op complete protocol.  Use it when passing a function without 1-argument arity to transduce etc.\n\nThis API is modeled after completing in Clojure.\n\n\n\n\n\n"
 },
 
 {
@@ -334,6 +382,30 @@ var documenterSearchIndex = {"docs": [
     "title": "Interface",
     "category": "page",
     "text": ""
+},
+
+{
+    "location": "interface/#Transducer-interface-1",
+    "page": "Interface",
+    "title": "Transducer interface",
+    "category": "section",
+    "text": ""
+},
+
+{
+    "location": "interface/#Transducers.Transducer",
+    "page": "Interface",
+    "title": "Transducers.Transducer",
+    "category": "type",
+    "text": "Transducer\n\nThe abstract type for transducers.\n\n\n\n\n\n"
+},
+
+{
+    "location": "interface/#Transducers.AbstractFilter",
+    "page": "Interface",
+    "title": "Transducers.AbstractFilter",
+    "category": "type",
+    "text": "AbstractFilter <: Transducer\n\nThe abstract type for filter-like transducers.  outtype is appropriately defined for child types.\n\n\n\n\n\n"
 },
 
 {
@@ -365,15 +437,55 @@ var documenterSearchIndex = {"docs": [
     "page": "Interface",
     "title": "Transducers.complete",
     "category": "function",
-    "text": "Transducers.complete(rf::R_{X}, state)\n\nThis is an optional interface for a transducer.  If transducer X has some internal state, this is the last chance to \"flush\" the result.\n\nSee PartitionBy, etc. for real-world examples.\n\nIf both complete(rf::R_{X}, state) and start(rf::R_{X}, state) are defined, complete(rf::R_{X}, state) must unwarp state before returning state to the outer reducing function.  If complete is not defined for R_{X}, this happens automatically.\n\n\n\n\n\n"
+    "text": "Transducers.complete(rf::R_{X}, state)\n\nThis is an optional interface for a transducer.  If transducer X has some internal state, this is the last chance to \"flush\" the result.\n\nSee PartitionBy, etc. for real-world examples.\n\nIf both complete(rf::R_{X}, state) and start(rf::R_{X}, state) are defined, complete must unwarp state before returning state to the outer reducing function.  If complete is not defined for R_{X}, this happens automatically.\n\n\n\n\n\n"
 },
 
 {
-    "location": "interface/#Transducer-interface-1",
+    "location": "interface/#Transducers.outtype",
     "page": "Interface",
-    "title": "Transducer interface",
+    "title": "Transducers.outtype",
+    "category": "function",
+    "text": "outtype(xf::Transducer, intype)\n\nOutput item type for the transducer xf when the input type is intype.\n\n\n\n\n\n"
+},
+
+{
+    "location": "interface/#Core-interface-1",
+    "page": "Interface",
+    "title": "Core interface",
     "category": "section",
-    "text": "Transducers.R_\nTransducers.start\nTransducers.next\nTransducers.complete"
+    "text": "Transducers.Transducer\nTransducers.AbstractFilter\nTransducers.R_\nTransducers.start\nTransducers.next\nTransducers.complete\nTransducers.outtype"
+},
+
+{
+    "location": "interface/#Transducers.wrap",
+    "page": "Interface",
+    "title": "Transducers.wrap",
+    "category": "function",
+    "text": "wrap(rf::R_{X}, state, iresult)\n\nPack private state for reducing function rf (or rather the transducer X) with the result iresult returned from the inner reducing function rf.inner.  This packed result is typically passed to the outer reducing function.\n\nThis is intended to be used only in start.  Inside next, use wrapping.\n\nConsider a reducing step constructed as\n\nrf = Reduction(xf₁ |> xf₂ |> xf₃, f, intype)\n\nwhere each xfₙ is a stateful transducer and hence needs a private state stateₙ.  Then, calling start(rf, result)) is equivalent to\n\nwrap(rf,\n     state₁,                     # private state for xf₁\n     wrap(rf.inner,\n          state₂,                # private state for xf₂\n          wrap(rf.inner.inner,\n               state₃,           # private state for xf₃\n               result)))\n\nor equivalently\n\nresult₃ = result\nresult₂ = wrap(rf.inner.inner, state₃, result₃)\nresult₁ = wrap(rf.inner,       state₂, result₂)\nresult₀ = wrap(rf,             state₁, result₁)\n\nThe inner most step function receives the original result as the first argument while transducible processes such as mapfoldl only sees the outer-most \"tree\" result₀ during the reduction.  The whole tree is unwraped during the complete phase.\n\nSee wrapping, unwrap, and start.\n\n\n\n\n\n"
+},
+
+{
+    "location": "interface/#Transducers.unwrap",
+    "page": "Interface",
+    "title": "Transducers.unwrap",
+    "category": "function",
+    "text": "unwrap(rf, result)\n\nUnwrap wraped result to a private state and inner result. Following identity holds:\n\nunwrap(rf, wrap(rf, state, iresult)) == (state, iresult)\n\nThis is intended to be used only in complete.  Inside next, use wrapping.\n\n\n\n\n\n"
+},
+
+{
+    "location": "interface/#Transducers.wrapping",
+    "page": "Interface",
+    "title": "Transducers.wrapping",
+    "category": "function",
+    "text": "wrapping(f, rf, result)\n\nFunction f must take two argument state and iresult, and return a tuple (state, iresult).  This is intended to be used only in next, possibly with a do block.\n\nnext(rf::R_{MyTransducer}, result, input) =\n    wrapping(rf, result) do my_state, iresult\n        # code calling `next(rf.inner, iresult, possibly_modified_input)`\n        return my_state, iresult  # possibly modified\n    end\n\nSee wrap, unwrap, and next.\n\n\n\n\n\n"
+},
+
+{
+    "location": "interface/#Helpers-for-stateful-transducers-1",
+    "page": "Interface",
+    "title": "Helpers for stateful transducers",
+    "category": "section",
+    "text": "Transducers.wrap\nTransducers.unwrap\nTransducers.wrapping"
 },
 
 {
