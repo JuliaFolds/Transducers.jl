@@ -10,23 +10,8 @@ ${JULIA} -e 'using Pkg; Pkg.instantiate();
 exec ${JULIA} "${BASH_SOURCE[0]}" "$@"
 =#
 
-using Documenter, Transducers
-
-makedocs(;
-    modules=[Transducers],
-    pages=[
-        "Home" => "index.md",
-        "Manual" => "manual.md",
-        "Interface" => "interface.md",
-        hide("Internals" => "internals.md"),
-    ],
-    repo="https://github.com/tkf/Transducers.jl/blob/{commit}{path}#L{line}",
-    sitename="Transducers.jl",
-    authors="Takafumi Arakaki",
-    assets=[],
-    strict=true,
-)
-
+include("utils.jl")
+transducers_makedocs()
 deploydocs(;
     repo="github.com/tkf/Transducers.jl",
 )

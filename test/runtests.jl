@@ -10,3 +10,10 @@ using Test
 end
 
 end  # module
+
+using Test
+@testset "doctest" begin
+    include("../docs/utils.jl")
+    transducers_makedocs()
+    @test true
+end
