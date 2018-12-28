@@ -13,7 +13,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Transducers for Julia",
     "category": "section",
-    "text": "warning: Warning\nThis is a work in progress!DocTestSetup = quote\n    using Transducers\nendTransducers are composable transformations which can be implemented very efficiently and useful in both compute- and I/O-bound contexts.  The interface used by transducers can naturally describe a wide range of processes that can be formalized as a succession of steps.  Furthermore, transducers can be defined without specifying the details of the input and output (collections, streams, channels, etc.) and therefore achieves a full reusability.  Transducers are introduced by Rich Hickey, the creator of the Clojure language. His Strange Look talk is a great introduction to the idea of transducers.Transducers.jl is an implementation of the transducer framework in Julia.  Aiming to satisfy high-performance needs of Julia users, Transducers.jl uses a formulation that is pure [pure] and aiding type-stability.[pure]: ...although not pure in the strong sense as Base.@pure."
+    "text": "warning: Warning\nThis is a work in progress!DocTestSetup = quote\n    using Transducers\nendTransducers are composable transformations which can be implemented very efficiently and useful in both compute- and I/O-bound contexts.  The interface used by transducers can naturally describe a wide range of processes that can be expressed as a succession of steps.  Furthermore, transducers can be defined without specifying the details of the input and output (collections, streams, channels, etc.) and therefore achieves a full reusability.  Transducers are introduced by Rich Hickey, the creator of the Clojure language. His Strange Look talk is a great introduction to the idea of transducers.Transducers.jl is an implementation of the transducer framework in Julia.  Aiming to satisfy high-performance needs of Julia users, Transducers.jl uses a formulation that is pure [pure] and aiding type-stability.[pure]: ...although not pure in the strong sense as Base.@pure."
 },
 
 {
@@ -21,7 +21,23 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Examples",
     "category": "section",
-    "text": "If you are familiar with iterators (see also Base.Iterators and IterTools.jl) it would look very familiar to you:julia> using Transducers\n\njulia> collect(Map(x -> 2x), 1:3)  # double each element\n3-element Array{Int64,1}:\n 2\n 4\n 6\n\njulia> collect(Filter(iseven), 1:6)  # collect only evens\n3-element Array{Int64,1}:\n 2\n 4\n 6\n\njulia> collect(MapCat(x -> 1:x), 1:3)  # concatenate mapped results\n6-element Array{Int64,1}:\n 1\n 1\n 2\n 1\n 2\n 3\nTransducers can be composed (without, unlike iterators, referring to the input):julia> xf = Filter(iseven) |> Map(x -> 2x)\n       collect(xf, 1:6)\n3-element Array{Int64,1}:\n  4\n  8\n 12An efficient way to use transducers is combination with mapfoldl.  This computation is done without creating any intermediate lazy object and compiles to a single loop:julia> mapfoldl(xf, +, 0, 1:6)\n24mapfoldl (or foldl) illustrates the difference between iterators and transducers.  Implementation of the same computation in iterator would be:f(x) = 2x\nmapfoldl(f, +, 0, filter(iseven, input))\nfoldl(+, map(f, filter(iseven, input)))  # equivalent\n         _____________________________\n         composition at inputCompare it to:mapfoldl(Filter(iseven) |> Map(f), +, 0, input)\n         ________________________\n         composition at computation"
+    "text": "If you are familiar with iterators (see also Base.Iterators and IterTools.jl) it would look very familiar to you:julia> using Transducers\n\njulia> collect(Map(x -> 2x), 1:3)  # double each element\n3-element Array{Int64,1}:\n 2\n 4\n 6\n\njulia> collect(Filter(iseven), 1:6)  # collect only evens\n3-element Array{Int64,1}:\n 2\n 4\n 6\n\njulia> collect(MapCat(x -> 1:x), 1:3)  # concatenate mapped results\n6-element Array{Int64,1}:\n 1\n 1\n 2\n 1\n 2\n 3\nTransducers can be composed (without, unlike iterators, referring to the input):julia> xf = Filter(iseven) |> Map(x -> 2x)\n       collect(xf, 1:6)\n3-element Array{Int64,1}:\n  4\n  8\n 12An efficient way to use transducers is combination with mapfoldl.  This computation is done without creating any intermediate lazy object and compiles to a single loop:julia> mapfoldl(xf, +, 0, 1:6)\n24"
+},
+
+{
+    "location": "#Difference-to-iterators-1",
+    "page": "Home",
+    "title": "Difference to iterators",
+    "category": "section",
+    "text": "Usages of mapfoldl (or foldl) illustrate the difference between iterators and transducers.  Implementation of the above computation in iterator would be:f(x) = 2x\nimap = Base.Iterators.Generator  # like `map`, but returns an iterator\nmapfoldl(f, +, 0, filter(iseven, input))\nfoldl(+, imap(f, filter(iseven, input)))  # equivalent\n#        ______________________________\n#        composition occurs at input partCompare it to how transducers are used:mapfoldl(Filter(iseven) |> Map(f), +, 0, input)\n#        ________________________\n#        composition occurs at computation partAlthough these are just a syntactic difference, it is reflected in the actual code generated by those two frameworks.  The code for iterator would be lowered to:function map_filter_iterators(xs, init)\n    ret = iterate(xs)\n    ret === nothing && return\n    acc = init\n    @goto filter\n    local state, x\n    while true\n        while true                                    # input\n            ret = iterate(xs, state)                  #\n            ret === nothing && return acc             #\n            @label filter                             #\n            state, x = ret                            #\n            iseven(x) && break             # filter   :\n        end                                #          :\n        y = 2x              # imap         :          :\n        acc += y    # +     :              :          :\n    end             # :     :              :          :\n    #                 + <-- imap <-------- filter <-- input\n    return acc\nendNotice that the iteration of input is the inner most block, followed by filter, imap, and then finally +.  Iterators are described as pull-based; an outer iterator (say imap) has to \"pull\" an item from the inner iterator (filter in above example). It is reflected in the lowered code above.On the other hand, the code using transducers is lowered to:function map_filter_transducers(xs, init)\n    acc = init\n    #              input -> Filter --> Map --> +\n    for x in xs  # input    :          :       :\n        if iseven(x)  #     Filter     :       :\n            y = 2x    #                Map     :\n            acc += y  #                        +\n        end\n    end\n    return acc\nend\n\n@assert map_filter_iterators(1:10, 0) == map_filter_transducers(1:10, 0)Notice that the input is the outer most block while + is in the inner most block.  Transducers passed to mapfoldl appears in the block between them in the order they are composed.  An outer transducer (say Filter) \"pushes\" arbitrary number of items to the inner transducer (Map in above example).  Note that Filter can choose to not push an item (i.e., push zero item) when the predicate returns false.  This push-based nature of the transducers allows the generation of very natural and efficient code.  In other words, the transducers and transducible processes own the loop.As a consequence, computations requiring to expand an item into a sequence can be processed efficiently.  Consider the following example:xf = Map(x -> 1:x) |> Filter(iseven ∘ sum) |> Cat()\nnothingThis is lowered to a nested for loops:function map_filter_cat_transducers(xs, init)\n    acc = init\n    for x in xs\n        y1 = 1:x                # Map\n        if iseven(sum(y1))      # Filter\n            for y2 in y1        # Cat\n                acc += y2       # +\n            end\n        end\n    end\n    return acc\nend\n\n@assert mapfoldl(xf, +, 0, 1:10) == map_filter_cat_transducers(1:10, 0)It is not straightforward to implement an iterator like Cat that can output more than one items at a time.  Such an iterator has to track the state of the inner (y1 in above) and outer (xs in above) iterators and conditionally invoke the outer iterator once the inner iterator terminates.  This generates a complicated code and the compiler would have hard time optimizing it."
+},
+
+{
+    "location": "#List-of-transducers-1",
+    "page": "Home",
+    "title": "List of transducers",
+    "category": "section",
+    "text": "Here is the list of pre-defined transducers:import Markdown\nimport Transducers\nMarkdown.MD(Transducers.TransducerLister())"
 },
 
 {
@@ -125,7 +141,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Cat",
     "category": "type",
-    "text": "Cat()\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Cat(), [[1, 2], [3], [4, 5]]) == 1:5\ntrue\n\n\n\n\n\n"
+    "text": "Cat()\n\nConcatenate/flatten nested iterators.\n\nThis API is modeled after cat in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Cat(), [[1, 2], [3], [4, 5]]) == 1:5\ntrue\n\n\n\n\n\n"
 },
 
 {
@@ -133,7 +149,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Dedupe",
     "category": "type",
-    "text": "Dedupe()\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Dedupe(), [1, 1, 2, 1, 3, 3, 2])\n5-element Array{Int64,1}:\n 1\n 2\n 1\n 3\n 2\n\n\n\n\n\n"
+    "text": "Dedupe()\n\nDe-duplicate consecutive items.\n\nThis API is modeled after dedupe in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Dedupe(), [1, 1, 2, 1, 3, 3, 2])\n5-element Array{Int64,1}:\n 1\n 2\n 1\n 3\n 2\n\n\n\n\n\n"
 },
 
 {
@@ -141,7 +157,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Distinct",
     "category": "type",
-    "text": "Distinct()\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Distinct(), [1, 1, 2, 1, 3, 3, 2])\n3-element Array{Int64,1}:\n 1\n 2\n 3\n\n\n\n\n\n"
+    "text": "Distinct()\n\nPass only unseen item to the inner reducing step.\n\nThis API is modeled after distinct in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Distinct(), [1, 1, 2, 1, 3, 3, 2])\n3-element Array{Int64,1}:\n 1\n 2\n 3\n\n\n\n\n\n"
 },
 
 {
@@ -149,7 +165,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Drop",
     "category": "type",
-    "text": "Drop(n)\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Drop(3), 1:5)\n2-element Array{Int64,1}:\n 4\n 5\n\n\n\n\n\n"
+    "text": "Drop(n)\n\nDrop first n items.\n\nThis API is modeled after drop in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Drop(3), 1:5)\n2-element Array{Int64,1}:\n 4\n 5\n\n\n\n\n\n"
 },
 
 {
@@ -157,7 +173,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.DropLast",
     "category": "type",
-    "text": "DropLast(n)\n\nExamples\n\njulia> using Transducers\n\njulia> collect(DropLast(2), 1:5)\n3-element Array{Int64,1}:\n 1\n 2\n 3\n\n\n\n\n\n"
+    "text": "DropLast(n)\n\nDrop last n items.\n\nThis API is modeled after drop-last in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(DropLast(2), 1:5)\n3-element Array{Int64,1}:\n 1\n 2\n 3\n\n\n\n\n\n"
 },
 
 {
@@ -165,7 +181,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.DropWhile",
     "category": "type",
-    "text": "DropWhile(pred)\n\nExamples\n\njulia> using Transducers\n\njulia> collect(DropWhile(x -> x < 3), 1:5)\n3-element Array{Int64,1}:\n 3\n 4\n 5\n\n\n\n\n\n"
+    "text": "DropWhile(pred)\n\nDrop items while pred returns true consecutively.  It becomes a no-op after pred returns a false.\n\nThis API is modeled after drop-while in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(DropWhile(x -> x < 3), [1:5; 1:2])\n5-element Array{Int64,1}:\n 3\n 4\n 5\n 1\n 2\n\n\n\n\n\n"
 },
 
 {
@@ -173,7 +189,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Filter",
     "category": "type",
-    "text": "Filter(pred)\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Filter(iseven), 1:3)\n1-element Array{Int64,1}:\n 2\n\n\n\n\n\n"
+    "text": "Filter(pred)\n\nSkip items for which pred is evaluated to false.\n\nThis API is modeled after filter in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Filter(iseven), 1:3)\n1-element Array{Int64,1}:\n 2\n\n\n\n\n\n"
 },
 
 {
@@ -181,7 +197,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.GetIndex",
     "category": "type",
-    "text": "GetIndex(array)\nGetIndex{inbounds}(array)\n\nExamples\n\njulia> using Transducers\n\njulia> collect(GetIndex(1:10), [2, 3, 4])\n3-element Array{Int64,1}:\n 2\n 3\n 4\n\njulia> collect(GetIndex{true}(1:10), [2, 3, 4])\n3-element Array{Int64,1}:\n 2\n 3\n 4\n\n\n\n\n\n"
+    "text": "GetIndex(array)\nGetIndex{inbounds}(array)\n\nTransform an integer input i to array[i].\n\nExamples\n\njulia> using Transducers\n\njulia> collect(GetIndex(1:10), [2, 3, 4])\n3-element Array{Int64,1}:\n 2\n 3\n 4\n\njulia> collect(GetIndex{true}(1:10), [2, 3, 4])\n3-element Array{Int64,1}:\n 2\n 3\n 4\n\n\n\n\n\n"
 },
 
 {
@@ -189,7 +205,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Interpose",
     "category": "type",
-    "text": "Interpose(sep)\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Interpose(missing), 1:3)\n5-element Array{Union{Missing, Int64},1}:\n 1\n  missing\n 2\n  missing\n 3\n\n\n\n\n\n"
+    "text": "Interpose(sep)\n\nInterleave input items with a sep.\n\nThis API is modeled after interpose in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Interpose(missing), 1:3)\n5-element Array{Union{Missing, Int64},1}:\n 1\n  missing\n 2\n  missing\n 3\n\n\n\n\n\n"
 },
 
 {
@@ -197,7 +213,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Keep",
     "category": "type",
-    "text": "Keep(f)\n\nExamples\n\njulia> using Transducers\n\njulia> xf = Keep() do x\n           if x < 3\n               x + 1\n           end\n       end;\n\njulia> collect(xf, 1:5)\n2-element Array{Int64,1}:\n 2\n 3\n\n\n\n\n\n"
+    "text": "Keep(f)\n\nPass non-nothing output of f to the inner reducing step.\n\nThis API is modeled after keep in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> xf = Keep() do x\n           if x < 3\n               x + 1\n           end\n       end;\n\njulia> collect(xf, 1:5)\n2-element Array{Int64,1}:\n 2\n 3\n\n\n\n\n\n"
 },
 
 {
@@ -205,7 +221,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Map",
     "category": "type",
-    "text": "Map(f)\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Map(x -> 2x), 1:3)\n3-element Array{Int64,1}:\n 2\n 4\n 6\n\n\n\n\n\n"
+    "text": "Map(f)\n\nApply unary function f to each input and pass the result to the inner reducing step.\n\nThis API is modeled after map in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Map(x -> 2x), 1:3)\n3-element Array{Int64,1}:\n 2\n 4\n 6\n\n\n\n\n\n"
 },
 
 {
@@ -213,7 +229,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.MapCat",
     "category": "type",
-    "text": "MapCat(f)\n\nExamples\n\njulia> using Transducers\n\njulia> collect(MapCat(x -> 1:x), 1:3)\n6-element Array{Int64,1}:\n 1\n 1\n 2\n 1\n 2\n 3\n\n\n\n\n\n"
+    "text": "MapCat(f)\n\nConcatenate output of f which is expected to return an iterable.\n\nThis API is modeled after mapcat in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(MapCat(x -> 1:x), 1:3)\n6-element Array{Int64,1}:\n 1\n 1\n 2\n 1\n 2\n 3\n\n\n\n\n\n"
 },
 
 {
@@ -221,7 +237,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.PartitionBy",
     "category": "type",
-    "text": "PartitionBy(f)\n\nExamples\n\njulia> using Transducers\n\njulia> collect(PartitionBy(x -> (x + 1) ÷ 3) |> Map(copy), 1:9)\n4-element Array{Array{Int64,1},1}:\n [1]\n [2, 3, 4]\n [5, 6, 7]\n [8, 9]\n\n\n\n\n\n"
+    "text": "PartitionBy(f)\n\nGroup input sequence into chunks in which f returns a same value consecutively.\n\nwarning: Warning\nThe vector passed to the inner reducing function is valid only during its immediate reduction step.  It must be reduced immediately or copied.\n\nThis API is modeled after partition-by in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(PartitionBy(x -> (x + 1) ÷ 3) |> Map(copy), 1:9)\n4-element Array{Array{Int64,1},1}:\n [1]\n [2, 3, 4]\n [5, 6, 7]\n [8, 9]\n\n\n\n\n\n"
 },
 
 {
@@ -229,7 +245,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Replace",
     "category": "type",
-    "text": "Replace(dict)\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Replace(Dict(\'a\' => \'A\')), \"abc\")\n3-element Array{Char,1}:\n \'A\'\n \'b\'\n \'c\'\n\n\n\n\n\n"
+    "text": "Replace(dict)\n\nReplace each input with the value in the dictionary dict if it matches with a key.  Otherwise output the input as-is.\n\nThis API is modeled after replace in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Replace(Dict(\'a\' => \'A\')), \"abc\")\n3-element Array{Char,1}:\n \'A\'\n \'b\'\n \'c\'\n\n\n\n\n\n"
 },
 
 {
@@ -237,7 +253,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Scan",
     "category": "type",
-    "text": "Scan(f, [init])\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Scan(*), 1:3)\n3-element Array{Int64,1}:\n 1\n 2\n 6\n\njulia> collect(Map(x -> x + im) |> Scan(*), 1:3)\n3-element Array{Complex{Int64},1}:\n 1 + 1im\n 1 + 3im\n 0 + 10im\n\njulia> collect(Scan(*, 10), 1:3)\n3-element Array{Int64,1}:\n 10\n 20\n 60\n\n\n\n\n\n"
+    "text": "Scan(f, [init])\n\nAccumulate input with binary function f and pass the accumulated result so far to the inner reduction step.\n\nThe inner reducing step receives the sequence y₁, y₂, y₃, ..., yₙ, ... when the sequence x₁, x₂, x₃, ..., xₙ, ... is fed to Scan(f).\n\ny₁ = f(x₁, init)\ny₂ = f(x₂, y₁)\ny₃ = f(x₃, y₂)\n...\nyₙ = f(xₙ, yₙ₋₁)\n\nThis is a generalized version of the prefix sum also known as cumulative sum, inclusive scan, or scan.\n\nNote that the associativity of f is not required when the transducer is used in a process that gurantee an order, such as mapfoldl.\n\nUnless f is a function with known identity element such as +, *, min, max, and append!, the initial state init must be provided.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Scan(*), 1:3)\n3-element Array{Int64,1}:\n 1\n 2\n 6\n\njulia> collect(Map(x -> x + im) |> Scan(*), 1:3)\n3-element Array{Complex{Int64},1}:\n 1 + 1im\n 1 + 3im\n 0 + 10im\n\njulia> collect(Scan(*, 10), 1:3)\n3-element Array{Int64,1}:\n 10\n 20\n 60\n\n\n\n\n\n"
 },
 
 {
@@ -245,7 +261,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.SetIndex",
     "category": "type",
-    "text": "SetIndex(array)\nSetIndex{inbounds}(array)\n\nExamples\n\njulia> using Transducers\n\njulia> ys = zeros(3);\n\njulia> mapfoldl(SetIndex(ys), first ∘ tuple, nothing, [(1, 11.1), (3, 33.3)])\n\njulia> ys\n3-element Array{Float64,1}:\n 11.1\n  0.0\n 33.3\n\n\n\n\n\n"
+    "text": "SetIndex(array)\nSetIndex{inbounds}(array)\n\nPerform array[i] = v for each input pair (i, v).\n\nExamples\n\njulia> using Transducers\n\njulia> ys = zeros(3);\n\njulia> mapfoldl(SetIndex(ys), first ∘ tuple, nothing, [(1, 11.1), (3, 33.3)])\n\njulia> ys\n3-element Array{Float64,1}:\n 11.1\n  0.0\n 33.3\n\n\n\n\n\n"
 },
 
 {
@@ -253,7 +269,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Take",
     "category": "type",
-    "text": "Take(n)\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Take(2), 1:10)\n2-element Array{Int64,1}:\n 1\n 2\n\n\n\n\n\n"
+    "text": "Take(n)\n\nTake n items from the input sequence.\n\nThis API is modeled after take in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Take(2), 1:10)\n2-element Array{Int64,1}:\n 1\n 2\n\n\n\n\n\n"
 },
 
 {
@@ -261,7 +277,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.TakeNth",
     "category": "type",
-    "text": "TakeNth(n)\n\nExamples\n\njulia> using Transducers\n\njulia> collect(TakeNth(3), 1:9)\n3-element Array{Int64,1}:\n 1\n 4\n 7\n\n\n\n\n\n"
+    "text": "TakeNth(n)\n\nOutput every n item to the inner reducing step.\n\nThis API is modeled after take-nth in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(TakeNth(3), 1:9)\n3-element Array{Int64,1}:\n 1\n 4\n 7\n\n\n\n\n\n"
 },
 
 {
@@ -269,7 +285,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.TakeWhile",
     "category": "type",
-    "text": "TakeWhile(pred)\n\nExamples\n\njulia> using Transducers\n\njulia> collect(TakeWhile(x -> x < 3), 1:10)\n2-element Array{Int64,1}:\n 1\n 2\n\n\n\n\n\n"
+    "text": "TakeWhile(pred)\n\nTake items while pred returns true.  Abort the transducible process when pred returns false for the first time.\n\nThis API is modeled after take-while in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(TakeWhile(x -> x < 3), 1:10)\n2-element Array{Int64,1}:\n 1\n 2\n\n\n\n\n\n"
 },
 
 {
@@ -285,7 +301,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Window",
     "category": "type",
-    "text": "Window(size, step = size, flush = false)\nWindow(size; step = size, flush = false)\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Window(3) |> Map(copy), 1:8)\n2-element Array{Array{Int64,1},1}:\n [1, 2, 3]\n [4, 5, 6]\n\njulia> collect(Window(3; flush=true) |> Map(copy), 1:8)\n3-element Array{Array{Int64,1},1}:\n [1, 2, 3]\n [4, 5, 6]\n [7, 8]\n\njulia> collect(Window(3; step=1) |> Map(copy), 1:8)\n6-element Array{Array{Int64,1},1}:\n [1, 2, 3]\n [2, 3, 4]\n [3, 4, 5]\n [4, 5, 6]\n [5, 6, 7]\n [6, 7, 8]\n\n\n\n\n\n"
+    "text": "Window(size, step = size, flush = false)\nWindow(size; step = size, flush = false)\n\nSliding window of width size and interval step.\n\nwarning: Warning\nThe vector passed to the inner reducing function is valid only during its immediate reduction step.  It must be reduced immediately or copied.\n\nThis API is modeled after partition-all in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Window(3) |> Map(copy), 1:8)\n2-element Array{Array{Int64,1},1}:\n [1, 2, 3]\n [4, 5, 6]\n\njulia> collect(Window(3; flush=true) |> Map(copy), 1:8)\n3-element Array{Array{Int64,1},1}:\n [1, 2, 3]\n [4, 5, 6]\n [7, 8]\n\njulia> collect(Window(3; step=1) |> Map(copy), 1:8)\n6-element Array{Array{Int64,1},1}:\n [1, 2, 3]\n [2, 3, 4]\n [3, 4, 5]\n [4, 5, 6]\n [5, 6, 7]\n [6, 7, 8]\n\n\n\n\n\n"
 },
 
 {
