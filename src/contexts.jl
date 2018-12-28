@@ -132,6 +132,8 @@ end
 Eduction(xform::Transducer, coll) =
     Eduction(Reduction(xform, push!, ieltype(coll)), coll)
 
+Transducer(ed::Eduction) = Transducer(ed.rf)
+
 Base.IteratorSize(::Type{<:Eduction}) = Base.SizeUnknown()
 Base.IteratorEltype(::Type{<:Eduction}) = Base.EltypeUnknown()
 
@@ -335,10 +337,36 @@ julia> copy!(PartitionBy(x -> x ÷ 3) |> Map(sum), Int[], 1:10)
 Base.copy!(xf::Transducer, dest, src) = append!(xf, empty!(dest), src)
 
 """
-    loop(step, xf, init, coll)
+    loop(step, xf::Transducer, init, coll)
+    loop(step, ed::Eduction, init)
+    loop(eff, xf::Transducer, coll)
+    loop(eff, ed::Eduction)
 
-This is a shorthand for `transduce(Completing(step), xf, init, coll)`.
-It is intended to be used with `do` block.
+The first form is a shorthand for `transduce(Completing(step), xf,
+init, coll)`.  It is intended to be used with `do` block.  It is also
+equivalent to `loop(step, eduction(xf, coll), init)`.
+
+The third form is similar to the first, but the function `eff` takes
+only one argument and returned result is not used.  Thus, this form is
+used only for side-effects.  It is equivalent to the last from
+`loop(eff, eduction(xf, coll))`.  Note that
+
+```julia
+loop(eduction(xf, coll)) do x
+    ...
+end
+```
+
+can be more efficient than
+
+```julia
+for x in eduction(xf, coll)
+    ...
+end
+```
+
+as the former does not have to translate the transducer protocol to
+the iterator protocol.
 
 # Examples
 ```jldoctest
@@ -351,10 +379,19 @@ julia> loop(Filter(isodd), 0.0, 1:4) do state, input
 (state, input) = (0.0, 1)
 (state, input) = (1.0, 3)
 4.0
+
+julia> loop(eduction(Filter(isodd), 1:4)) do input
+           @show input
+       end
+input = 1
+input = 3
 ```
 """
 loop(step, xform::Transducer, init, coll) =
     transduce(xform, Completing(step), init, coll)
 
-loop(step, ed::Eduction, init) =
-    transduce(xform, Completing(step), init, coll)
+loop(eff, xform::Transducer, coll) =
+    transduce(xform, SideEffect(eff), nothing, coll)
+
+loop(step, ed::Eduction, init) = loop(step, Transducer(ed), init, ed.coll)
+loop(eff, ed::Eduction) = loop(eff, Transducer(ed), ed.coll)

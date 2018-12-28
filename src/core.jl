@@ -48,6 +48,10 @@ InType(::T) where T = InType(T)
 InType(::Type{Reduction{X, I, intype}}) where {X, I, intype} = intype
 InType(T::Type) = throw(MethodError(InType, (T,)))
 
+Transducer(rf::Reduction{<:Transducer, <:Reduction}) =
+    Composition(rf.xform, Transducer(rf.inner))
+Transducer(rf::Reduction) = rf.xform
+
 """
     Transducers.R_{X}
 
@@ -294,3 +298,16 @@ end
 start(rf::Completing, result) = start(rf.f, result)
 next(rf::Completing, result, input)  = next(rf.f, result, input)
 complete(::Completing, result) = result
+
+struct SideEffect{F}  # Note: not a Transducer
+    f::F
+end
+
+# Completing(rf::SideEffect) = rf
+
+start(rf::SideEffect, result) = start(rf.f, result)
+complete(::SideEffect, result) = result
+function next(rf::SideEffect, result, input)
+    rf.f(input)
+    return result
+end
