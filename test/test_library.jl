@@ -1,6 +1,12 @@
 module TestLibrary
 include("preamble.jl")
 
+@testset "Cat" begin
+    # Inner transducer is stateful:
+    @test collect(Cat() |> DropWhile(x -> x < 3), [1:5, 1:2]) ==
+        collect(DropWhile(x -> x < 3), [1:5; 1:2])
+end
+
 @testset "MapCat" begin
     # https://clojuredocs.org/clojure.core/mapcat
     # (transduce (mapcat reverse) conj [[3 2 1 0] [6 5 4] [9 8 7]])

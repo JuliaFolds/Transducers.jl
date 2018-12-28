@@ -83,7 +83,22 @@ struct Cat <: Transducer
 end
 
 outtype(::Cat, intype) = ieltype(intype)
-next(rf::R_{Cat}, result, input) = __foldl__(rf.inner, result, input)
+
+# Inner transducer has to be started once the input is known.  That's
+# why `start` for `Cat` has to bail out immediately; i.e., it's not a
+# bug that `start(rf.inner, iresult)` is not called here:
+start(rf::R_{Cat}, result) = wrap(rf, Unseen(), result)
+
+next(rf::R_{Cat}, result, input) =
+    wrapping(rf, result) do istate0, iresult
+        if istate0 isa Unseen
+            istate1 = start(rf.inner, iresult)
+        else
+            istate1 = istate0
+        end
+        istate2 = __foldl__(rf.inner, istate1, input, nocomplete)
+        istate2, istate2
+    end
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/mapcat
 # https://clojuredocs.org/clojure.core/mapcat
