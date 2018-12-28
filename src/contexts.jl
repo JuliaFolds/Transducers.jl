@@ -6,8 +6,6 @@ function __foldl__(rf, init, coll, _complete = complete)
     ret = iterate(coll)
     ret === nothing && return _complete(rf, init)
 
-    # TODO: benchmark this with simple_foldl.
-
     # Some Transducers like PartitionBy does a special type-unstable
     # thing in the first iteration.  Let's try to make the main loop
     # type-stable by hoisting it out.  It won't work when they are
