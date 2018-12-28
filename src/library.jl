@@ -5,6 +5,11 @@ _shared_vector_warning = """
     immediately _or_ copied.
 """
 
+_shared_notes_unfold = """
+Note that input is ignored.  To use the input in the downstream
+reduction steps, use [`TeeZip`](@ref) or [`Zip`](@ref).
+"""
+
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/map
 # https://clojuredocs.org/clojure.core/map
 """
@@ -791,6 +796,103 @@ function next(rf::R_{Scan}, result, input)
 end
 
 """
+    Iterated(f, init[, T::Type])
+
+Generate a sequence `init`, `f(init)`, `f(f(init))`, `f(f(f(init)))`,
+and so on.
+
+$(_shared_notes_unfold)
+
+Use the third argument `T` to specify the output type of `f`.
+
+See also:
+[`IterTools.iterated`](https://juliacollections.github.io/IterTools.jl/latest/#IterTools.iterated)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Iterated(x -> 2x, 1), 1:5)
+5-element Array{Int64,1}:
+  1
+  2
+  4
+  8
+ 16
+
+julia> collect(TeeZip(Iterated(x -> 2x, 1)), 1:5)
+5-element Array{Tuple{Int64,Int64},1}:
+ (1, 1)
+ (2, 2)
+ (3, 4)
+ (4, 8)
+ (5, 16)
+```
+"""
+struct Iterated{F, T} <: Transducer
+    f::F
+    init::T
+
+    Iterated(f::F, init, T::Type) where F = new{F, T}(f, init)
+end
+
+Iterated(f, init::T) where T = Iterated(f, init, _type_fixedpoint(f, T))
+
+function _type_fixedpoint(f, X, limit = 10)
+    for _ in 1:limit
+        Y = Union{Base.return_types(f, (X,))...}
+        X === Y && return Y
+        X = Y
+    end
+    return Any
+end
+
+outtype(xf::Iterated{<:Any, T}, ::Any) where T = T
+start(rf::R_{Iterated}, result) = wrap(rf, rf.xform.init, result)
+next(rf::R_{Iterated}, result, ::Any) =
+    wrapping(rf, result) do istate, iresult
+        return rf.xform.f(istate), next(rf.inner, iresult, istate)
+    end
+
+"""
+    Count(start = 1, step)
+
+Generate a sequence `start`, `start + step`, `start + step + step`,
+and so on.
+
+$(_shared_notes_unfold)
+
+`start` defaults 1 and `step` defaults to `oneunit(start)`.
+
+See also:
+[`Iterators.countfrom`](https://docs.julialang.org/en/v1/base/iterators/).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(TeeZip(Count()), -3:-1)
+3-element Array{Tuple{Int64,Int64},1}:
+ (-3, 1)
+ (-2, 2)
+ (-1, 3)
+```
+"""
+struct Count{T} <: Transducer
+    start::T
+    step::T
+end
+
+Count(start = 1) = Count(start, oneunit(start))
+
+outtype(xf::Count{T}, ::Any) where T = T
+start(rf::R_{Count}, result) = wrap(rf, rf.xform.start, result)
+next(rf::R_{Count}, result, ::Any) =
+    wrapping(rf, result) do istate, iresult
+        return istate + rf.xform.step, next(rf.inner, iresult, istate)
+    end
+
+"""
     TeeZip(xform::Transducer)
 
 Branch input into two "flows", inject one into `xform` and then merge
@@ -968,3 +1070,40 @@ next(rf::R_{SetIndex{false}}, result, input::NTuple{2, Any}) =
     next(rf.inner, result, (rf.xform.array[input[1]] = input[2];))
 # Index is `input[1]` due to `TeeZip`'s definition.  Is it better to
 # flip, to be compatible with `Base.setindex!`?
+
+
+"""
+    Merge(iterator)
+
+Merge the output from `iterator` to the stream processed by the inner
+reduction step.
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Merge(Iterators.cycle("hello")), 1:8)
+8-element Array{Tuple{Int64,Char},1}:
+ (1, 'h')
+ (2, 'e')
+ (3, 'l')
+ (4, 'l')
+ (5, 'o')
+ (6, 'h')
+ (7, 'e')
+ (8, 'l')
+```
+"""
+struct Merge{T} <: Transducer
+    iterator::T
+end
+
+outtype(xf::Merge, intype) = Tuple{intype, ieltype(xf.iterator)}
+start(rf::R_{Merge}, result) = wrap(rf, iterate(rf.xform.iterator), result)
+next(rf::R_{Merge}, result, input) =
+    wrapping(rf, result) do istate, iresult
+        istate === nothing && return istate, ensure_reduced(iresult)
+        y, s = istate
+        iresult2 = next(rf.inner, iresult, (input, y))
+        return iterate(rf.xform.iterator, s), iresult2
+    end
