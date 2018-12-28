@@ -1,4 +1,4 @@
-module TestContexts
+module TestProcesses
 include("preamble.jl")
 
 @testset "mapfoldl" begin

@@ -1,4 +1,4 @@
-# --- Transducing contexts
+# --- Transducible processes
 
 nocomplete(_, result) = result
 

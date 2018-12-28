@@ -9,7 +9,7 @@ export Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, TeeZip,
 include("basics.jl")
 include("core.jl")
 include("library.jl")
-include("contexts.jl")
+include("processes.jl")
 include("lister.jl")
 
 end # module

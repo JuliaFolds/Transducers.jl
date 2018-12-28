@@ -1,11 +1,11 @@
-# Transducers and Transducer contexts
+# Transducers and Transducible processes
 
 ```@index
 Pages = ["manual.md"]
 Order = [:function, :type]
 ```
 
-## Transducer contexts
+## Transducible processes
 
 ```@docs
 mapfoldl
