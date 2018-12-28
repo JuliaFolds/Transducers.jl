@@ -21,11 +21,20 @@ header_code(m::Markdown.MD) =
 header_code(c::Markdown.Code) = c
 header_code(::Any) = nothing
 
+first_paragraph(m::Markdown.MD) =
+    if length(m.content) == 1
+        first_paragraph(m.content[1])
+    elseif length(m.content) > 1
+        first_paragraph(m.content[2])
+    end
+first_paragraph(p::Markdown.Paragraph) = p
+first_paragraph(::Any) = nothing
+
 hasdoc(m::Module, b::Docs.Binding) = haskey(Docs.meta(m), b)
 
 function Base.show(io::IO, ::MIME"text/markdown", tl::TransducerLister)
-    println(io, "| **Transducer** |")
-    println(io, "|:-- |")
+    println(io, "| **Transducer** | **Summary** |")
+    println(io, "|:-- |:-- |")
     for binding in tl()
         hasdoc(tl.m, binding) || continue
         d = Docs.doc(binding)
@@ -35,7 +44,19 @@ function Base.show(io::IO, ::MIME"text/markdown", tl::TransducerLister)
         else
             shown, = split(h.code, "\n", limit=2)
         end
-        println(io, "| [`", shown, "`](@ref ", binding, ") |")
+
+        p = first_paragraph(d)
+        if p === nothing
+            gist = ""
+        else
+            gist, = split(sprint(show, "text/markdown", Markdown.MD(p)),
+                          "\n", limit=2)
+        end
+
+        println(io,
+                "| [`", shown, "`](@ref ", binding, ")",
+                " | ", gist,
+                " |")
     end
 end
 
