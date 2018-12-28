@@ -30,11 +30,13 @@ end
     @testset "$(typeof(xs))" for xs in iterator_variants(0:1000)
         @test collect(xf, xs) == 1:2:9
         @test collect(eduction(xf, xs)) == 1:2:9
+        @test collect(Map(x -> 2x), eduction(xf, xs)) == 2(1:2:9)
     end
 
     @testset for xs in iterator_variants(1:5)
         @test collect(xf, xs) == 1:2:5
         @test collect(eduction(xf, xs)) == 1:2:5
+        @test collect(Map(x -> 2x), eduction(xf, xs)) == 2(1:2:5)
     end
 
     ed = eduction(xf, 1:5)

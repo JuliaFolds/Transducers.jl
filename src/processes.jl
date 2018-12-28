@@ -132,6 +132,9 @@ Eduction(xform::Transducer, coll) =
 
 Transducer(ed::Eduction) = Transducer(ed.rf)
 
+transduce(xform::Transducer, f, init, ed::Eduction) =
+    transduce(Transducer(ed) |> xform, f, init, ed.coll)
+
 Base.IteratorSize(::Type{<:Eduction}) = Base.SizeUnknown()
 Base.IteratorEltype(::Type{<:Eduction}) = Base.EltypeUnknown()
 
@@ -184,7 +187,7 @@ end
 Create a iterable and reducible object.
 
 * [Iterable](https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-iteration-1).
-* Reducible (TODO); i.e., it can be handled by [`transduce`](@ref) efficiently.
+* Reducible; i.e., it can be handled by [`transduce`](@ref) efficiently.
 
 This API is modeled after $(_cljref("eduction")).
 
