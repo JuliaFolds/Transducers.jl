@@ -25,7 +25,7 @@ Channel
 ```@autodocs
 Modules = [Transducers]
 Private = false
-Filter = t -> t isa Type && t <: Transducers.Transducer
+Filter = Transducers.is_transducer_type
 ```
 
 ## Miscellaneous

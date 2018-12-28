@@ -856,6 +856,40 @@ complete(rf::R_{TeeZip}, result) = complete(rejoin(rf), result)
 # add joint
 Base.adjoint(xf::Transducer) = TeeZip(xf)
 
+"""
+    Zip(xforms...)
+
+Zip outputs of transducers `xforms` in a tuple and pass it to the
+inner reduction step.
+
+!!! warning
+    Head transducers drive tail transducers.  Be careful when using it
+    with transducers other than [`Map`](@ref), especially the
+    contractive ones like [`PartitionBy`](@ref) and the expansive ones
+    like [`MapCat`](@ref).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Zip(Map(identity), Map(x -> 10x), Map(x -> 100x)), 1:3)
+3-element Array{Tuple{Int64,Int64,Int64},1}:
+ (1, 10, 100)
+ (2, 20, 200)
+ (3, 30, 300)
+```
+"""
+Zip(xforms...) =
+    Map(_zip_init) |> _Zip(xforms...) |> Map(last)
+# TODO: add `lower(xf)` mechanism so that constructing Zip does not
+# immidiately create a complex composite transducer.
+
+_Zip() = IdentityTransducer()
+_Zip(xf1, xforms...) =
+    TeeZip(Map(first) |> xf1) |> Map(_zip_between) |> _Zip(xforms...)
+
+_zip_init(y0) = (y0, ())
+_zip_between(((y0, ys), yn)) = (y0, (ys..., yn))
 
 """
     GetIndex(array)

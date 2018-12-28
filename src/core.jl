@@ -24,6 +24,8 @@ struct Composition{XO <: Transducer, XI <: Transducer} <: Transducer
     inner::XI
 end
 
+struct IdentityTransducer <: Transducer end
+
 """
     Transducer
 
@@ -89,6 +91,8 @@ outtype(xf::Composition, intype) = outtype(xf.inner, outtype(xf.outer, intype))
 @inline Base.:|>(f::Transducer, g::Transducer) = _normalize(Composition(f, g))
 # Base.∘(f::Transducer, g::Transducer) = Composition(f, g)
 # Base.∘(f::Composition, g::Transducer) = f.outer ∘ (f.inner ∘ g)
+@inline Base.:|>(::IdentityTransducer, f::Transducer) = f
+@inline Base.:|>(f::Transducer, ::IdentityTransducer) = f
 
 """
     Transducers.start(rf::R_{X}, state)
