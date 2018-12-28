@@ -215,12 +215,12 @@ compiler would have hard time optimizing it.
 
 ## List of transducers
 
-Here is an list of pre-defined transducers:
+Here is the list of pre-defined transducers:
 
-```@index
-Modules = [Transducers]
-Private = false
-Filter = t -> t isa Type && t <: Transducers.Transducer
+```@eval
+import Markdown
+import Transducers
+Markdown.MD(Transducers.TransducerLister())
 ```
 
 ## Links

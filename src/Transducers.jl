@@ -10,5 +10,6 @@ include("basics.jl")
 include("core.jl")
 include("library.jl")
 include("contexts.jl")
+include("lister.jl")
 
 end # module
