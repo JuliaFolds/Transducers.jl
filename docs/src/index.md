@@ -213,6 +213,16 @@ iterator terminates.  This generates a complicated code and the
 compiler would have hard time optimizing it.
 
 
+## List of transducers
+
+Here is an list of pre-defined transducers:
+
+```@index
+Modules = [Transducers]
+Private = false
+Filter = t -> t isa Type && t <: Transducers.Transducer
+```
+
 ## Links
 
 * ["Transducers" by Rich Hickey - YouTube](https://www.youtube.com/watch?v=6mTbuzafcII)
