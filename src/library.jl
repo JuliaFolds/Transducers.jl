@@ -385,11 +385,12 @@ next(rf::R_{DropWhile}, result, input) =
         dropping, next(rf.inner, iresult, input)
     end
 
+# https://docs.julialang.org/en/v1/base/iterators/#Base.Iterators.partition
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/partition-all
 # https://clojuredocs.org/clojure.core/partition-all
 """
-    Window(size, step = size, flush = false)
-    Window(size; step = size, flush = false)
+    Partition(size, step = size, flush = false)
+    Partition(size; step = size, flush = false)
 
 Sliding window of width `size` and interval `step`.
 
@@ -401,18 +402,18 @@ $(_thx_clj("partition-all"))
 ```jldoctest
 julia> using Transducers
 
-julia> collect(Window(3) |> Map(copy), 1:8)
+julia> collect(Partition(3) |> Map(copy), 1:8)
 2-element Array{Array{Int64,1},1}:
  [1, 2, 3]
  [4, 5, 6]
 
-julia> collect(Window(3; flush=true) |> Map(copy), 1:8)
+julia> collect(Partition(3; flush=true) |> Map(copy), 1:8)
 3-element Array{Array{Int64,1},1}:
  [1, 2, 3]
  [4, 5, 6]
  [7, 8]
 
-julia> collect(Window(3; step=1) |> Map(copy), 1:8)
+julia> collect(Partition(3; step=1) |> Map(copy), 1:8)
 6-element Array{Array{Int64,1},1}:
  [1, 2, 3]
  [2, 3, 4]
@@ -422,24 +423,24 @@ julia> collect(Window(3; step=1) |> Map(copy), 1:8)
  [6, 7, 8]
 ```
 """
-struct Window <: Transducer
+struct Partition <: Transducer
     size::Int
     step::Int
     flush::Bool
 end
 
-Window(size, step; flush = false) = Window(size; step = step, flush = flush)
-Window(size; step = size, flush = false) = Window(size, step, flush)
+Partition(size, step; flush = false) = Partition(size; step = step, flush = flush)
+Partition(size; step = size, flush = false) = Partition(size, step, flush)
 
-outtype(::Window, intype) = DenseSubVector{intype}
+outtype(::Partition, intype) = DenseSubVector{intype}
 
-function start(rf::R_{Window}, result)
+function start(rf::R_{Partition}, result)
     buf = Vector{InType(rf)}()
     sizehint!(buf, rf.xform.size)
     return wrap(rf, (0, 0, buf), result)
 end
 
-function next(rf::R_{Window}, result, input)
+function next(rf::R_{Partition}, result, input)
     wrapping(rf, result) do (i, s, buf), iresult
         _window_next(rf, i, s, buf, iresult, input)
     end
@@ -494,7 +495,7 @@ function _window_next(rf, i, s, buf, iresult, input)
     return (i, s, buf), iresult
 end
 
-function complete(rf::R_{Window}, result)
+function complete(rf::R_{Partition}, result)
     (i, s, buf), iresult = unwrap(rf, result)
     if rf.xform.flush && s != rf.xform.step
         iinput = @view buf[i:i + rf.xform.size - 1] # unsafe_view? @inbounds?
@@ -505,7 +506,7 @@ function complete(rf::R_{Window}, result)
     return complete(rf.inner, iresult)
 end
 
-# TODO: implement SVector version of Window
+# TODO: implement SVector version of Partition
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/partition-by
 # https://clojuredocs.org/clojure.core/partition-by

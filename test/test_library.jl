@@ -134,29 +134,29 @@ end
 end
 
 # https://clojuredocs.org/clojure.core/partition-all
-@testset "Window" begin
+@testset "Partition" begin
     @testset for xs in iterator_variants(1:10)
-        @test collect(Window(3) |> Map(copy), xs) == [[1:3;], [4:6;], [7:9;]]
+        @test collect(Partition(3) |> Map(copy), xs) == [[1:3;], [4:6;], [7:9;]]
     end
     @testset for xs in iterator_variants(1:6)
-        @test collect(Window(3, 1) |> Map(copy), xs) ==
+        @test collect(Partition(3, 1) |> Map(copy), xs) ==
             [[1:3;], [2:4;], [3:5;], [4:6;]]
     end
     @testset "w=3, 7:$i" for i in 7:9
         @testset for xs in iterator_variants(1:i)
-            @test collect(Window(3, flush=true) |> Map(copy), xs) ==
+            @test collect(Partition(3, flush=true) |> Map(copy), xs) ==
                 [[1:3;], [4:6;], [7:i;]]
         end
     end
     @testset "w=4, 5:$i" for i in 5:8
         @testset for xs in iterator_variants(1:i)
-            @test collect(Window(4, flush=true) |> Map(copy), xs) ==
+            @test collect(Partition(4, flush=true) |> Map(copy), xs) ==
                 [[1:4;], [5:i;]]
         end
     end
     @testset "w=4, 9:$i" for i in 9:12
         @testset for xs in iterator_variants(1:i)
-            @test collect(Window(4, flush=true) |> Map(copy), xs) ==
+            @test collect(Partition(4, flush=true) |> Map(copy), xs) ==
                 [[1:4;], [5:8;], [9:i;]]
         end
     end
