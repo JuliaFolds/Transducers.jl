@@ -24,6 +24,21 @@ struct Composition{XO <: Transducer, XI <: Transducer} <: Transducer
     inner::XI
 end
 
+"""
+    Transducer
+
+The abstract type for transducers.
+"""
+Transducer
+
+"""
+    AbstractFilter <: Transducer
+
+The abstract type for filter-like transducers.  [`outtype`](@ref) is
+appropriately defined for child types.
+"""
+AbstractFilter
+
 struct Reduction{X <: Transducer, I, InType}
     xform::X
     inner::I  # Transducer or a function with arity-2 and -1 methods
@@ -252,6 +267,11 @@ unwrap_all(ps::PrivateState) = unwrap_all(ps.result)
 unwrap_all(result) = result
 unwrap_all(ps::Reduced) = Reduced(unwrap_all(unreduced(ps)))
 
+"""
+    outtype(xf::Transducer, intype)
+
+Output item type for the transducer `xf` when the input type is `intype`.
+"""
 outtype(::Any, ::Any) = Any
 outtype(::AbstractFilter, intype) = intype
 
