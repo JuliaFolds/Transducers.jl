@@ -3,8 +3,16 @@ include("preamble.jl")
 
 @testset "Cat" begin
     # Inner transducer is stateful:
-    @test collect(Cat() |> DropWhile(x -> x < 3), [1:5, 1:2]) ==
-        collect(DropWhile(x -> x < 3), [1:5; 1:2])
+    @testset for xs in iterator_variants([1:5, 1:2])
+        xf = DropWhile(x -> x < 3)
+        @test collect(Cat() |> xf, xs) == collect(xf, [1:5; 1:2])
+    end
+
+    # Inner transducer is stateful and requires complete:
+    @testset for xs in iterator_variants([1:5, 1:2])
+        xf = PartitionBy(isequal(3)) |> Map(copy)
+        @test collect(Cat() |> xf, xs) == collect(xf, [1:5; 1:2])
+    end
 end
 
 @testset "MapCat" begin
