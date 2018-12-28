@@ -125,10 +125,10 @@ some internal state, this is the last chance to "flush" the result.
 
 See [`PartitionBy`](@ref), etc. for real-world examples.
 
-If **both** `complete(rf::R_{X}, state)` **and** `start(rf::R_{X}, state)`
-are defined, `complete(rf::R_{X}, state)` **must** unwarp `state` before
-returning `state` to the outer reducing function.  If `complete` is not
-defined for `R_{X}`, this happens automatically.
+If **both** `complete(rf::R_{X}, state)` **and** `start(rf::R_{X},
+state)` are defined, `complete` **must** unwarp `state` before
+returning `state` to the outer reducing function.  If `complete` is
+not defined for `R_{X}`, this happens automatically.
 """
 complete(f, result) = f(result)
 complete(rf::Reduction, result) =
@@ -149,6 +149,19 @@ end
 PrivateState(rf::Reduction, state, result) =
     PrivateState{typeof(rf), typeof(state), typeof(result)}(state, result)
 
+"""
+    unwrap(rf, result)
+
+Unwrap [`wrap`](@ref)ed `result` to a private state and inner result.
+Following identity holds:
+
+```julia
+unwrap(rf, wrap(rf, state, iresult)) == (state, iresult)
+```
+
+This is intended to be used only in [`complete`](@ref).  Inside
+[`next`](@ref), use [`wrapping`](@ref).
+"""
 unwrap(::T, ps::PrivateState{T}) where {T} = (ps.state, ps.result)
 
 unwrap(::T1, ::PrivateState{T2}) where {T1, T2} =
@@ -161,10 +174,71 @@ unwrap(::T1, ::PrivateState{T2}) where {T1, T2} =
 
 # TODO: better error message with unmatched `T`
 
+"""
+    wrap(rf::R_{X}, state, iresult)
+
+Pack private `state` for reducing function `rf` (or rather the
+transducer `X`) with the result `iresult` returned from the inner
+reducing function `rf.inner`.  This packed result is typically passed
+to the outer reducing function.
+
+This is intended to be used only in [`start`](@ref).  Inside
+[`next`](@ref), use [`wrapping`](@ref).
+
+Consider a reducing step constructed as
+
+    rf = Reduction(xf₁ |> xf₂ |> xf₃, f, intype)
+
+where each `xfₙ` is a stateful transducer and hence needs a private
+state `stateₙ`.  Then, calling `start(rf, result))` is equivalent to
+
+```julia
+wrap(rf,
+     state₁,                     # private state for xf₁
+     wrap(rf.inner,
+          state₂,                # private state for xf₂
+          wrap(rf.inner.inner,
+               state₃,           # private state for xf₃
+               result)))
+```
+
+or equivalently
+
+```julia
+result₃ = result
+result₂ = wrap(rf.inner.inner, state₃, result₃)
+result₁ = wrap(rf.inner,       state₂, result₂)
+result₀ = wrap(rf,             state₁, result₁)
+```
+
+The inner most step function receives the original `result` as the
+first argument while transducible processes such as [`mapfoldl`](@ref)
+only sees the outer-most "tree" `result₀` during the reduction.  The
+whole tree is [`unwrap`](@ref)ed during the [`complete`](@ref) phase.
+
+See [`wrapping`](@ref), [`unwrap`](@ref), and [`start`](@ref).
+"""
 wrap(rf::T, state, iresult) where {T} = PrivateState(rf, state, iresult)
 wrap(rf, state, iresult::Reduced) =
     Reduced(PrivateState(rf, state, unreduced(iresult)))
 
+"""
+    wrapping(f, rf, result)
+
+Function `f` must take two argument `state` and `iresult`, and return
+a tuple `(state, iresult)`.  This is intended to be used only in
+[`next`](@ref), possibly with a `do` block.
+
+```julia
+next(rf::R_{MyTransducer}, result, input) =
+    wrapping(rf, result) do my_state, iresult
+        # code calling `next(rf.inner, iresult, possibly_modified_input)`
+        return my_state, iresult  # possibly modified
+    end
+```
+
+See [`wrap`](@ref), [`unwrap`](@ref), and [`next`](@ref).
+"""
 @inline function wrapping(f, rf, result)
     state0, iresult0 = unwrap(rf, result)
     state1, iresult1 = f(state0, iresult0)
