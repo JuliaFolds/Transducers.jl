@@ -284,6 +284,8 @@ finaltype(rf::Reduction) = outtype(rf.xform, InType(rf))
 Wrap a `function` to add a no-op [`complete`](@ref) protocol.  Use it
 when passing a `function` without 1-argument arity to
 [`transduce`](@ref) etc.
+
+$(_thx_clj("completing"))
 """
 struct Completing{F}  # Note: not a Transducer
     f::F
