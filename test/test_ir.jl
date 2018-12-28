@@ -15,7 +15,9 @@ if Base.JLOptions().check_bounds == 1
     if Base.JLOptions().color == 1
         cmd = `$cmd --color=yes`
     end
+    @info "Running IR test in a subprocess..." cmd
     @test success(run(pipeline(`$cmd -e $code`; stdout=stdout, stderr=stderr)))
+    @info "Running IR test in a subprocess...DONE"
 else
     include("__test_ir.jl")
 end
