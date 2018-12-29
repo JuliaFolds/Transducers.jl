@@ -38,6 +38,31 @@ end
 outtype(xf::Map, intype) = Union{Base.return_types(xf.f, (intype,))...}
 next(rf::R_{Map}, result, input) = next(rf.inner, result, rf.xform.f(input))
 
+"""
+    MapSplat(f)
+
+Like `Map(f)` but calls `f(input...)` for each `input` and then pass
+the result to the inner reducing step.
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(MapSplat(*), zip(1:3, 10:10:30))
+3-element Array{Int64,1}:
+ 10
+ 40
+ 90
+```
+"""
+struct MapSplat{F} <: Transducer
+    f::F
+end
+
+outtype(xf::MapSplat, intype) = Union{Base.return_types(xf.f, intype)...}
+next(rf::R_{MapSplat}, result, input) =
+    next(rf.inner, result, rf.xform.f(input...))
+
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/replace
 # https://clojuredocs.org/clojure.core/replace
 """
