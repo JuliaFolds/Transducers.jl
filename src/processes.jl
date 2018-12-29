@@ -119,8 +119,15 @@ end
 # performance for `map!` to be comparable with the native loop.
 # See: ../benchmark/bench_filter_map_map!.jl
 
-Base.mapfoldl(xform::Transducer, f, itr; init) =
-    unreduced(transduce(xform, f, init, itr))
+function mapfoldl_init(xform, step, itr)
+    T = outtype(xform, eltype(itr))
+    Base.reduce_empty(step, T)
+end
+
+function Base.mapfoldl(xform::Transducer, step, itr;
+                       init=mapfoldl_init(xform, step, itr))
+    unreduced(transduce(xform, step, init, itr))
+end
 
 struct Eduction{F, C}
     rf::F
@@ -357,11 +364,19 @@ julia> foldl(Filter(isodd), 1:4, init=0.0) do state, input
 4.0
 ```
 """
-Base.foldl(step, xform::Transducer, itr; init) =
+function Base.foldl(step, xform::Transducer, itr;
+                    init=mapfoldl_init(xform, step, itr))
     mapfoldl(xform, Completing(step), itr, init=init)
+end
 
-Base.foldl(step, ed::Eduction; init) =
+function Base.foldl(step, ed::Eduction;
+                    init=let
+                        xf = ed.rf.xform
+                        itr = ed.coll
+                        mapfoldl_init(xf, step, itr)
+                    end)
     foldl(step, Transducer(ed), ed.coll, init=init)
+end
 
 """
     foreach(eff, xf::Transducer, itr)

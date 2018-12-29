@@ -22,7 +22,22 @@ include("preamble.jl")
         @test transduce(xf, +, 17, xs) == Reduced(117)
         @test transduce(xf, string, "", xs) == Reduced("135791113151719")
     end
+
+    @testset "empty" begin
+        xf = Filter(_ -> false)
+        iter = 1:4
+        @test foldl(+,xf, iter) === 0
+        @test foldl(+,xf, iter, init=32.) === 32.
+
+        ed = eduction(xf, iter)
+        @test foldl(+, ed) === 0
+        @test foldl(+, ed, init=32.) === 32.
+
+        @test mapfoldl(xf, +, iter) === 0
+        @test mapfoldl(xf, +, iter, init=32.) === 32.
+    end
 end
+
 
 @testset "eduction" begin
     # https://clojuredocs.org/clojure.core/eduction
