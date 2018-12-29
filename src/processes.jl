@@ -1,5 +1,15 @@
 # --- Transducible processes
 
+"""
+    __foldl__(rf, init, reducible::T, _complete = complete)
+
+Left fold a `reducible` with reducing function `rf` and initial value
+`init`.
+
+See also: [`@return_if_reduced`](@ref).
+"""
+__foldl__
+
 nocomplete(_, result) = result
 
 function __foldl__(rf, init, coll, _complete = complete)
@@ -13,11 +23,11 @@ function __foldl__(rf, init, coll, _complete = complete)
     # optimization to cover a good amount of cases anyway.
     x, state = ret
     val = next(rf, init, x)
-    val isa Reduced && return Reduced(_complete(rf, unreduced(val)))
+    @return_if_reduced _complete(rf, val)
     while (ret = iterate(coll, state)) !== nothing
         x, state = ret
         val = next(rf, val, x)
-        val isa Reduced && return Reduced(_complete(rf, unreduced(val)))
+        @return_if_reduced _complete(rf, val)
     end
     return _complete(rf, val)
 end
@@ -26,10 +36,10 @@ end
 @inline function __foldl__(rf, init, arr::AbstractArray, _complete = complete)
     isempty(arr) && return _complete(rf, init)
     val = next(rf, init, @inbounds arr[firstindex(arr)])
-    val isa Reduced && return Reduced(_complete(rf, unreduced(val)))
+    @return_if_reduced _complete(rf, val)
     for i in firstindex(arr) + 1:lastindex(arr)
         val = next(rf, val, @inbounds arr[i])
-        val isa Reduced && return Reduced(_complete(rf, unreduced(val)))
+        @return_if_reduced _complete(rf, val)
     end
     return _complete(rf, val)
 end
@@ -37,7 +47,7 @@ end
 function __simple_foldl__(rf, val, itr)
     for x in itr
         val = next(rf, val, x)
-        isreduced(val) && return val
+        @return_if_reduced complete(rf, val)
     end
     return complete(rf, val)
 end

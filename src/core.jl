@@ -16,6 +16,39 @@ ensure_reduced(x) = Reduced(x)
 unreduced(x::Reduced) = x.value
 unreduced(x) = x
 
+"""
+    @return_if_reduced _complete(rf, val)
+
+It transforms the given expression to:
+
+```julia
+val isa Reduced && return Reduced(_complete(rf, unreduced(val)))
+```
+
+That is to say, if `val` is `Reduced`, unpack it, call `_complete`,
+re-pack into `Reduced`, and then finally return it.
+
+# Examples
+```jldoctest:
+julia> using Transducers: @return_if_reduced
+
+julia> @macroexpand @return_if_reduced _complete(rf, val)
+:(val isa Transducers.Reduced && return (Transducers.Reduced)(_complete(rf, (Transducers.unreduced)(val))))
+```
+"""
+macro return_if_reduced(ex)
+    if !(ex.head == :call && length(ex.args) == 3)
+        error(
+            "`@return_if_reduced` only accepts an expression of the form",
+            " `_complete(rf, val)`.",
+            " Given:\n",
+            ex,
+        )
+    end
+    _complete, rf, val = esc.(ex.args)
+    :($val isa Reduced && return Reduced($_complete($rf, unreduced($val))))
+end
+
 abstract type Transducer end
 abstract type AbstractFilter <: Transducer end
 

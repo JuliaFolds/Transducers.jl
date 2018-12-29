@@ -1,6 +1,6 @@
 # Transducer interface
 
-## Core interface
+## Core interface for transducers
 
 ```@docs
 Transducers.Transducer
@@ -18,4 +18,11 @@ Transducers.outtype
 Transducers.wrap
 Transducers.unwrap
 Transducers.wrapping
+```
+
+## Interface for transducible processes
+
+```@docs
+Transducers.__foldl__
+Transducers.@return_if_reduced
 ```
