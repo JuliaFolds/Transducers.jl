@@ -26,7 +26,7 @@ include("preamble.jl")
     @testset "empty" begin
         xf = Filter(_ -> false)
         iter = 1:4
-        @test foldl(+,xf, iter) === 0
+        @test foldl(+, xf, iter) === 0
         @test foldl(+,xf, iter, init=32.) === 32.
 
         ed = eduction(xf, iter)
