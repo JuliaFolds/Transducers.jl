@@ -12,5 +12,6 @@ include("core.jl")
 include("library.jl")
 include("processes.jl")
 include("lister.jl")
+include("show.jl")
 
 end # module

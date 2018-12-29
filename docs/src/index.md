@@ -177,11 +177,14 @@ As a consequence, computations requiring to expand an item into a
 sequence can be processed efficiently.  Consider the following
 example:
 
-```jldoctest map-filter-cat; output = false
+```jldoctest map-filter-cat; output = false, filter = r"Map\(.*?\)"
 xf = Map(x -> 1:x) |> Filter(iseven ∘ sum) |> Cat()
-nothing
+
 # output
 
+Map(Main.λ❓) |>
+    Filter(Base.λ❓) |>
+    Cat()
 ```
 
 This is lowered to a nested `for` loops:

@@ -1143,6 +1143,10 @@ next(rf::R_{GetIndex{true}}, result, input) =
 next(rf::R_{GetIndex{false}}, result, input) =
     next(rf.inner, result, rf.xform.array[input])
 
+Base.:(==)(xf1::GetIndex{inbounds,A},
+           xf2::GetIndex{inbounds,A}) where {inbounds,A} =
+    xf1.array == xf2.array
+
 """
     SetIndex(array)
     SetIndex{inbounds}(array)
@@ -1181,6 +1185,10 @@ next(rf::R_{SetIndex{false}}, result, input::NTuple{2, Any}) =
     next(rf.inner, result, (rf.xform.array[input[1]] = input[2];))
 # Index is `input[1]` due to `TeeZip`'s definition.  Is it better to
 # flip, to be compatible with `Base.setindex!`?
+
+Base.:(==)(xf1::SetIndex{inbounds,A},
+           xf2::SetIndex{inbounds,A}) where {inbounds,A} =
+    xf1.array == xf2.array
 
 
 """

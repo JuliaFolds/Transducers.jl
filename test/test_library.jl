@@ -176,4 +176,13 @@ end
     end
 end
 
+@testset "(Get|Set)Index" begin
+    for T in [GetIndex, SetIndex]
+        @test T([0 + 1im]) == T([0 + 1im])
+        @test T{true}([0]) != T([0])
+        @test T([0]) != T{true}([0])
+        @test T([0]) != T([0im])  # should it?
+    end
+end
+
 end  # module
