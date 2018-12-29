@@ -174,6 +174,11 @@ julia> collect(Take(2), 1:10)
 2-element Array{Int64,1}:
  1
  2
+
+julia> collect(Take(5), 1:2)
+2-element Array{Int64,1}:
+ 1
+ 2
 ```
 """
 struct Take <: AbstractFilter
@@ -208,7 +213,7 @@ $(_thx_clj("take-while"))
 ```jldoctest
 julia> using Transducers
 
-julia> collect(TakeWhile(x -> x < 3), 1:10)
+julia> collect(TakeWhile(x -> x < 3), [1, 2, 3, 1, 2])
 2-element Array{Int64,1}:
  1
  2
@@ -311,6 +316,12 @@ julia> collect(DropLast(2), 1:5)
  1
  2
  3
+
+julia> collect(DropLast(2), 1:1)
+0-element Array{Int64,1}
+
+julia> collect(DropLast(2), 1:0)
+0-element Array{Int64,1}
 ```
 """
 struct DropLast <: AbstractFilter
@@ -856,7 +867,7 @@ next(rf::R_{Iterated}, result, ::Any) =
     end
 
 """
-    Count(start = 1, step)
+    Count(start[, step])
 
 Generate a sequence `start`, `start + step`, `start + step + step`,
 and so on.
@@ -877,6 +888,14 @@ julia> collect(TeeZip(Count()), -3:-1)
  (-3, 1)
  (-2, 2)
  (-1, 3)
+
+julia> using Dates
+
+julia> collect(TeeZip(Count(Day(1))) |> Map(xs -> *(xs...)), 1:3)
+3-element Array{Day,1}:
+ 1 day
+ 4 days
+ 9 days
 ```
 """
 struct Count{T} <: Transducer
@@ -1093,6 +1112,22 @@ julia> collect(Merge(Iterators.cycle("hello")), 1:8)
  (6, 'h')
  (7, 'e')
  (8, 'l')
+
+julia> collect(Merge(Iterators.repeated([1 2])), 1:4)
+4-element Array{Tuple{Int64,Array{Int64,2}},1}:
+ (1, [1 2])
+ (2, [1 2])
+ (3, [1 2])
+ (4, [1 2])
+
+julia> collect(Merge(Iterators.product(1:2, 3:5)), 1:100)
+6-element Array{Tuple{Int64,Tuple{Int64,Int64}},1}:
+ (1, (1, 3))
+ (2, (2, 3))
+ (3, (1, 4))
+ (4, (2, 4))
+ (5, (1, 5))
+ (6, (2, 5))
 ```
 """
 struct Merge{T} <: Transducer
