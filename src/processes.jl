@@ -120,7 +120,7 @@ end
 # See: ../benchmark/bench_filter_map_map!.jl
 
 function mapfoldl_init(xform, step, itr)
-    T = outtype(xform, eltype(itr))
+    T = outtype(xform, ieltype(itr))
     Base.reduce_empty(step, T)
 end
 
