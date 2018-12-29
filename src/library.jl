@@ -455,6 +455,38 @@ next(rf::R_{DropWhile}, result, input) =
         dropping, next(rf.inner, iresult, input)
     end
 
+"""
+    FlagFirst()
+
+Output `(isfirst, input)` where `isfirst::Bool` is `true` only for the
+first iteration and `input` is the original input.
+
+See also:
+[`IterTools.flagfirst`](https://juliacollections.github.io/IterTools.jl/latest/#flagfirst(xs)-1)
+
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(FlagFirst(), 1:3)
+3-element Array{Tuple{Bool,Int64},1}:
+ (true, 1)
+ (false, 2)
+ (false, 3)
+```
+"""
+struct FlagFirst <: Transducer end
+
+outtype(::FlagFirst, intype) = Tuple{Bool,intype}
+
+start(rf::R_{FlagFirst}, result) = wrap(rf, true, result)
+
+next(rf::R_{FlagFirst}, result, input) =
+    wrapping(rf, result) do isfirst, iresult
+        false, next(rf.inner, iresult, (isfirst, input))
+    end
+
 # https://docs.julialang.org/en/v1/base/iterators/#Base.Iterators.partition
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/partition-all
 # https://clojuredocs.org/clojure.core/partition-all
