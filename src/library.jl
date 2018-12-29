@@ -1201,7 +1201,7 @@ julia> using Transducers
 
 julia> ys = zeros(3);
 
-julia> mapfoldl(SetIndex(ys), first ∘ tuple, nothing, [(1, 11.1), (3, 33.3)])
+julia> mapfoldl(SetIndex(ys), first ∘ tuple, [(1, 11.1), (3, 33.3)], init=nothing)
 
 julia> ys
 3-element Array{Float64,1}:
