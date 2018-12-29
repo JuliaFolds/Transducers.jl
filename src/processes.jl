@@ -369,13 +369,8 @@ function Base.foldl(step, xform::Transducer, itr;
     mapfoldl(xform, Completing(step), itr, init=init)
 end
 
-function Base.foldl(step, ed::Eduction;
-                    init=let
-                        xf = ed.rf.xform
-                        itr = ed.coll
-                        mapfoldl_init(xf, step, itr)
-                    end)
-    foldl(step, Transducer(ed), ed.coll, init=init)
+function Base.foldl(step, ed::Eduction; kw...)
+    foldl(step, Transducer(ed), ed.coll; kw...)
 end
 
 """
