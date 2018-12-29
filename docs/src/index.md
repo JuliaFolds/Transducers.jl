@@ -18,7 +18,7 @@ transducers can be defined without specifying the details of the input
 and output (collections, streams, channels, etc.) and therefore
 achieves a full reusability.  Transducers are introduced by Rich
 Hickey, the creator of the Clojure language.
-[His Strange Look talk](https://www.youtube.com/watch?v=6mTbuzafcII)
+[His Strange Loop talk](https://www.youtube.com/watch?v=6mTbuzafcII)
 is a great introduction to the idea of transducers.
 
 Transducers.jl is an implementation of the transducer framework in
