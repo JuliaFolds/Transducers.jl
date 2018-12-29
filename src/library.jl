@@ -867,14 +867,14 @@ next(rf::R_{Iterated}, result, ::Any) =
     end
 
 """
-    Count(start[, step])
+    Count([start[, step]])
 
 Generate a sequence `start`, `start + step`, `start + step + step`,
 and so on.
 
 $(_shared_notes_unfold)
 
-`start` defaults 1 and `step` defaults to `oneunit(start)`.
+`start` defaults to 1 and `step` defaults to `oneunit(start)`.
 
 See also:
 [`Iterators.countfrom`](https://docs.julialang.org/en/v1/base/iterators/).

@@ -1,5 +1,6 @@
 module TestLibrary
 include("preamble.jl")
+using Dates
 
 @testset "Cat" begin
     # Inner transducer is stateful:
@@ -159,6 +160,19 @@ end
             @test collect(Partition(4, flush=true) |> Map(copy), xs) ==
                 [[1:4;], [5:8;], [9:i;]]
         end
+    end
+end
+
+@testset "Count" begin
+    @testset for xs in iterator_variants(1:3)
+        @test collect(Count(), xs) == 1:3
+        @test collect(Count(1im), xs) == [0+1im, 1+1im, 2+1im]
+        @test collect(Count(Second(1)), xs) == Second.(xs)
+        @test_broken collect(Count(Second(1), Millisecond(1)), xs) == [
+            Second(1) + Millisecond(0),
+            Second(1) + Millisecond(1),
+            Second(1) + Millisecond(2),
+        ]
     end
 end
 
