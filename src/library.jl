@@ -199,6 +199,65 @@ next(rf::R_{Take}, result, input) =
         return n, iresult
     end
 
+"""
+    TakeLast(n)
+
+Take last `n` items from the input sequence.
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(TakeLast(2), 1:10)
+2-element Array{Int64,1}:
+  9
+ 10
+
+julia> collect(TakeLast(5), 1:2)
+2-element Array{Int64,1}:
+ 1
+ 2
+```
+"""
+struct TakeLast <: AbstractFilter
+    n::Int
+end
+
+function start(rf::R_{TakeLast}, result)
+    n = rf.xform.n
+    return wrap(rf, (-n, Vector{InType(rf)}(undef, n)), result)
+end
+
+next(rf::R_{TakeLast}, result, input) =
+    wrapping(rf, result) do (c, buffer), iresult
+        c += 1
+        n = length(buffer)
+        if c <= 0
+            buffer[c + n] = input
+            (c, buffer), iresult
+        else
+            buffer[c] = input
+            (c < n ? c : 0, buffer), iresult
+        end
+    end
+
+function complete(rf::R_{TakeLast}, result)
+    (c, buffer), iresult = unwrap(rf, result)
+    if c <= 0  # buffer is not full (or c is just wrapping)
+        for i in 1:(c + length(buffer))
+            iresult = next(rf.inner, iresult, @inbounds buffer[i])
+        end
+    else
+        for i in c+1:length(buffer)
+            iresult = next(rf.inner, iresult, @inbounds buffer[i])
+        end
+        for i in 1:c
+            iresult = next(rf.inner, iresult, @inbounds buffer[i])
+        end
+    end
+    return iresult
+end
+
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/take-while
 # https://clojuredocs.org/clojure.core/take-while
 """
