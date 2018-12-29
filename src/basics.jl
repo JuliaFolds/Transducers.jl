@@ -7,6 +7,10 @@ ieltype(T) =
         Any
     end
 
+avaltype(x) = avaltype(typeof(x))
+avaltype(T::Type) = valtype(T)
+avaltype(T::Type{<:Union{AbstractArray,AbstractString}}) = eltype(T)
+
 const DenseSubVector{T} =
     SubArray{T, 1, Vector{T}, Tuple{UnitRange{Int64}}, true}
 

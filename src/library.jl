@@ -66,10 +66,11 @@ next(rf::R_{MapSplat}, result, input) =
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/replace
 # https://clojuredocs.org/clojure.core/replace
 """
-    Replace(dict)
+    Replace(assoc)
 
-Replace each input with the value in the dictionary `dict` if it
-matches with a key.  Otherwise output the input as-is.
+Replace each input with the value in the associative container `assoc`
+(e.g., a dictionary, array, string) if it matches with a key/index.
+Otherwise output the input as-is.
 
 $(_thx_clj("replace"))
 
@@ -82,13 +83,29 @@ julia> collect(Replace(Dict('a' => 'A')), "abc")
  'A'
  'b'
  'c'
+
+julia> collect(Replace([:a, :b, :c]), 0:4)
+5-element Array{Union{Int64, Symbol},1}:
+ 0
+  :a
+  :b
+  :c
+ 4
+
+julia> collect(Replace("abc"), 0:4)
+5-element Array{Union{Char, Int64},1}:
+ 0
+  'a'
+  'b'
+  'c'
+ 4
 ```
 """
 struct Replace{D} <: Transducer
     d::D  # dictionary-like object
 end
 
-outtype(xf::Replace, intype) = Union{intype, valtype(xf.d)}
+outtype(xf::Replace, intype) = Union{intype, avaltype(xf.d)}
 next(rf::R_{Replace}, result, input) =
     next(rf.inner, result, get(rf.xform.d, input, input))
 
