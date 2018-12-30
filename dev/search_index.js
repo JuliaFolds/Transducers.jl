@@ -473,9 +473,9 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "interface/#Core-interface-1",
+    "location": "interface/#Core-interface-for-transducers-1",
     "page": "Interface",
-    "title": "Core interface",
+    "title": "Core interface for transducers",
     "category": "section",
     "text": "Transducers.Transducer\nTransducers.AbstractFilter\nTransducers.R_\nTransducers.start\nTransducers.next\nTransducers.complete\nTransducers.outtype"
 },
@@ -510,6 +510,30 @@ var documenterSearchIndex = {"docs": [
     "title": "Helpers for stateful transducers",
     "category": "section",
     "text": "Transducers.wrap\nTransducers.unwrap\nTransducers.wrapping"
+},
+
+{
+    "location": "interface/#Transducers.__foldl__",
+    "page": "Interface",
+    "title": "Transducers.__foldl__",
+    "category": "function",
+    "text": "__foldl__(rf, init, reducible::T, complete)\n\nLeft fold a reducible with reducing function rf and initial value init.  This is primary an API for overloading when the reducible \"container\" or \"context\" (e.g., I/O stream) of type T can provide a better reduction mechanism than the default iterator-based one.\n\nFor a simple iterable type MyType, a valid implementation is:\n\nfunction __foldl__(rf, val, itr::MyType, complete)\n    for x in itr\n        val = next(rf, val, x)\n        @return_if_reduced complete(rf, val)\n    end\n    return complete(rf, val)\nend\n\nalthough in this case default __foldl__ can handle MyType and thus there is no need for defining it.  In general, defining __foldl__ is useful only when there is a better way to go over items in reducible than Base.iterate.\n\nSome rationale on complete as an argument.  The argument complete almost always is Transducers.complete except inside Cat and alike which require to run __foldl__ without completing the reduction process.  One possible design of the API is to not complete in __foldl__.  However, it results in the output type Union{S, Reduced{S}} where S = typeof(init) can be a complex nested struct when many stateful transducers are composed. Completing the reduction process before returning from __foldl__ avoids this problem as then returned type would be Union{A, Reduced{A}} where A is the resulting/accumulated type by the \"bottom\" reduction step (e.g., step passed to mapfoldl).\n\nSee also: @return_if_reduced.\n\n\n\n\n\n"
+},
+
+{
+    "location": "interface/#Transducers.@return_if_reduced",
+    "page": "Interface",
+    "title": "Transducers.@return_if_reduced",
+    "category": "macro",
+    "text": "@return_if_reduced complete(rf, val)\n\nIt transforms the given expression to:\n\nval isa Reduced && return Reduced(complete(rf, unreduced(val)))\n\nThat is to say, if val is Reduced, unpack it, call complete, re-pack into Reduced, and then finally return it.\n\nExamples\n\njulia> using Transducers: @return_if_reduced\n\njulia> @macroexpand @return_if_reduced complete(rf, val)\n:(val isa Transducers.Reduced && return (Transducers.Reduced)(complete(rf, (Transducers.unreduced)(val))))\n\n\n\n\n\n"
+},
+
+{
+    "location": "interface/#Interface-for-transducible-processes-1",
+    "page": "Interface",
+    "title": "Interface for transducible processes",
+    "category": "section",
+    "text": "Transducers.__foldl__\nTransducers.@return_if_reduced"
 },
 
 {
