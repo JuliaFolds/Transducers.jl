@@ -2,17 +2,17 @@ struct TransducerFolder
     xform::Transducer
 end
 
-function __foldl__(rf, val, xff::TransducerFolder, _complete = complete)
-    @nospecialize rf, val, xf, _complete
+function __foldl__(rf, val, xff::TransducerFolder, complete)
+    @nospecialize rf, val, xf, complete
     xf = _normalize(xff.xform)
     while xf isa Composition
         val = next(rf, val, xf.outer)
-        @return_if_reduced _complete(rf, val)
+        @return_if_reduced complete(rf, val)
         xf = xf.inner
     end
     val = next(rf, val, xf)
-    @return_if_reduced _complete(rf, val)
-    return _complete(rf, val)
+    @return_if_reduced complete(rf, val)
+    return complete(rf, val)
 end
 
 right(l, r) = r

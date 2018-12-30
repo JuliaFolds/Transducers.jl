@@ -1,7 +1,7 @@
 # --- Transducible processes
 
 """
-    __foldl__(rf, init, reducible::T, _complete = complete)
+    __foldl__(rf, init, reducible::T, complete)
 
 Left fold a `reducible` with reducing function `rf` and initial value
 `init`.
@@ -12,9 +12,9 @@ __foldl__
 
 nocomplete(_, result) = result
 
-function __foldl__(rf, init, coll, _complete = complete)
+function __foldl__(rf, init, coll, complete)
     ret = iterate(coll)
-    ret === nothing && return _complete(rf, init)
+    ret === nothing && return complete(rf, init)
 
     # Some Transducers like PartitionBy does a special type-unstable
     # thing in the first iteration.  Let's try to make the main loop
@@ -23,25 +23,25 @@ function __foldl__(rf, init, coll, _complete = complete)
     # optimization to cover a good amount of cases anyway.
     x, state = ret
     val = next(rf, init, x)
-    @return_if_reduced _complete(rf, val)
+    @return_if_reduced complete(rf, val)
     while (ret = iterate(coll, state)) !== nothing
         x, state = ret
         val = next(rf, val, x)
-        @return_if_reduced _complete(rf, val)
+        @return_if_reduced complete(rf, val)
     end
-    return _complete(rf, val)
+    return complete(rf, val)
 end
 
 # TODO: use IndexStyle
-@inline function __foldl__(rf, init, arr::AbstractArray, _complete = complete)
-    isempty(arr) && return _complete(rf, init)
+@inline function __foldl__(rf, init, arr::AbstractArray, complete)
+    isempty(arr) && return complete(rf, init)
     val = next(rf, init, @inbounds arr[firstindex(arr)])
-    @return_if_reduced _complete(rf, val)
+    @return_if_reduced complete(rf, val)
     for i in firstindex(arr) + 1:lastindex(arr)
         val = next(rf, val, @inbounds arr[i])
-        @return_if_reduced _complete(rf, val)
+        @return_if_reduced complete(rf, val)
     end
-    return _complete(rf, val)
+    return complete(rf, val)
 end
 
 function __simple_foldl__(rf, val, itr)
@@ -124,7 +124,7 @@ end
 
 # TODO: should it be an internal?
 @inline transduce(rf::Reduction, init, coll) =
-    __foldl__(rf, start(rf, init), coll)
+    __foldl__(rf, start(rf, init), coll, complete)
 # Inlining `transduce` and `__foldl__` were essential for the
 # performance for `map!` to be comparable with the native loop.
 # See: ../benchmark/bench_filter_map_map!.jl
