@@ -12,6 +12,7 @@ mapfoldl
 transduce
 foldl
 foreach
+mapreduce
 eduction
 map!
 copy!

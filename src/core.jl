@@ -196,6 +196,22 @@ complete(rf::Reduction, result) =
         complete(rf.inner, result)
     end
 
+combine(f, a, b) = f(a, b)
+combine(rf::Reduction, a, b) =
+    # Not using dispatch to avoid ambiguity
+    if a isa PrivateState{typeof(rf)}
+        # TODO: make sure this branch is compiled out
+        error("Stateful transducer ", rf.xform, " does not support `combine`")
+    elseif b isa PrivateState{typeof(rf)}
+        error("""
+        Some thing went wrong in two ways:
+        * `combine(rf, a, b)` is called but type of `a` and `b` are different.
+        * `rf.xform = $(rf.xform)` is stateful and does not support `combine`.
+        """)
+    else
+        combine(rf.inner, a, b)
+    end
+
 struct PrivateState{T, S, R}
     state::S
     result::R
@@ -335,6 +351,7 @@ end
 start(rf::Completing, result) = start(rf.f, result)
 next(rf::Completing, result, input)  = next(rf.f, result, input)
 complete(::Completing, result) = result
+combine(rf::Completing, a, b) = combine(rf.f, a, b)
 
 struct SideEffect{F}  # Note: not a Transducer
     f::F

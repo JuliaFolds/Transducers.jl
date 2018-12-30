@@ -172,6 +172,56 @@ function Base.mapfoldl(xform::Transducer, step, itr;
     unreduced(transduce(xform, step, init, itr))
 end
 
+"""
+    mapreduce(xf, step, itr; init) :: T
+
+Possibly parallel version of [`mapfoldl`](@ref).  The "bottom"
+reduction function `step(::T, ::T) :: T` must be associative and
+`init` must be its identity element.
+
+Transducers composing `xf` must be stateless and non-terminating
+(e.g., [`Map`](@ref), [`Filter`](@ref), [`Cat`](@ref), etc.) except
+for [`ScanEmit`](@ref).  Note that [`Scan`](@ref) is not supported
+(although possible in theory).
+
+See [`mapfoldl`](@ref).
+"""
+Base.mapreduce
+
+function __reduce__(rf, init, arr::AbstractArray;
+                    nthreads = max(1, min(length(arr), Threads.nthreads())))
+    if nthreads == 1
+        return __foldl__(rf, start(rf, init), arr, complete)
+    else
+        w = length(arr) ÷ nthreads
+        results = Vector{Any}(undef, nthreads)
+        Threads.@threads for i in 1:nthreads
+            if i == nthreads
+                chunk = @view arr[(i - 1) * w + 1:end]
+            else
+                chunk = @view arr[(i - 1) * w + 1:i * w]
+            end
+            results[i] = __foldl__(rf, start(rf, init), chunk, nocomplete)
+        end
+        # It can be done in `log2(n)` for loops but it's not clear if
+        # `combine` is compute-intensive enough so that launching
+        # threads is worth enough.  Let's merge the `results`
+        # sequentially for now.
+        c = foldl(results) do a, b
+            combine(rf, a, b)
+        end
+        return complete(rf, c)
+    end
+end
+
+# AbstractArray for disambiguation
+function Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
+                        init=mapfoldl_init(xform, step, itr),
+                        kwargs...)
+    rf = Reduction(xform, step, eltype(itr))
+    return unreduced(__reduce__(rf, init, itr; kwargs...))
+end
+
 struct Eduction{F, C}
     rf::F
     coll::C

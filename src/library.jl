@@ -147,6 +147,19 @@ next(rf::R_{Cat}, result, input) =
         istate2, istate2
     end
 
+function combine(rf::R_{Cat}, a, b)
+    ua, ira = unwrap(rf, a)
+    ub, irb = unwrap(rf, b)
+    if ua isa Unseen
+        return wrap(rf, ub, irb)
+    elseif ub isa Unseen
+        return wrap(rf, ua, ira)
+    else
+        uc = combine(rf.inner, ua, ub)
+        return wrap(rf, uc, uc)
+    end
+end
+
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/mapcat
 # https://clojuredocs.org/clojure.core/mapcat
 """
@@ -995,8 +1008,14 @@ end
 
 ScanEmit(f, init) = ScanEmit(f, init, nothing)
 
-outtype(xf::ScanEmit, intype) =
-    _type_scan_fixedpoint((u, x) -> xf.f(u, x)[2], typeof(xf.init), intype)
+function outtype(xf::ScanEmit, intype)
+    U = _type_scan_fixedpoint((u, x) -> xf.f(u, x)[2], typeof(xf.init), intype)
+    Y = Base._return_type((u, x) -> xf.f(u, x)[1], Tuple{U, intype})
+    if xf.onlast === nothing
+        return Y
+    end
+    return Union{Y, Base._return_type(xf.onlast, Tuple{U})}
+end
 
 start(rf::R_{ScanEmit}, result) =
     wrap(rf, rf.xform.init, start(rf.inner, result))
@@ -1014,6 +1033,15 @@ function complete(rf::R_{ScanEmit}, result)
         iresult = next(rf.inner, iresult, rf.xform.onlast(u))
     end
     return complete(rf.inner, iresult)
+end
+
+function combine(rf::R_{ScanEmit}, a, b)
+    ua, ira = unwrap(rf, a)
+    ub, irb = unwrap(rf, b)
+    irc = combine(rf.inner, ira, irb)
+    yc, uc = rf.xform.f(ua, ub)
+    irc = next(rf.inner, irc, yc)
+    return wrap(rf, uc, irc)
 end
 
 """
