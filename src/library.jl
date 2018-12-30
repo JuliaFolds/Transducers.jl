@@ -923,14 +923,26 @@ Scan(f) = Scan(f, nothing)
 _lefttype(xf::Scan{<:Any, Nothing}, intype) = typeof(identityof(xf.f, intype))
 _lefttype(xf::Scan{<:Any, T}, _) where {T} = T
 
+# Maybe this is fine:
+# outtype(xf::Scan, intype) = Union{_lefttype(xf, intype), intype}
+
 outtype(xf::Scan, intype) =
-    Union{Base.return_types(xf.f, (_lefttype(xf, intype), intype))...}
+    _type_scan_fixedpoint(xf.f, _lefttype(xf, intype), intype)
+
+function _type_scan_fixedpoint(f, A, X, limit = 10)
+    for _ in 1:limit
+        Y = Union{A,Base.return_types(f, (A, X))...}
+        A === Y && return Y
+        A = Y
+    end
+    return Any
+end
 
 function start(rf::R_{Scan}, result)
     if rf.xform.init === nothing
         init = identityof(rf.xform.f, InType(rf))
     else
-        init = rf.xform.init :: InType(rf)
+        init = rf.xform.init
     end
     return wrap(rf, init, start(rf.inner, result))
 end
@@ -1025,7 +1037,7 @@ Iterated(f, init::T) where T = Iterated(f, init, _type_fixedpoint(f, T))
 
 function _type_fixedpoint(f, X, limit = 10)
     for _ in 1:limit
-        Y = Union{Base.return_types(f, (X,))...}
+        Y = Union{X, Base.return_types(f, (X,))...}
         X === Y && return Y
         X = Y
     end
