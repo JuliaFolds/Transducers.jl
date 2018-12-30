@@ -4,7 +4,7 @@ using Transducers
 # test.
 
 EXAMPLE_PAGES = [
-    "Splitting words" => "examples/words.md",
+    "Parallel word count" => "examples/words.md",
 ]
 
 function transducers_literate(;
