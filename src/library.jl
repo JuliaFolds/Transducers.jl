@@ -871,11 +871,11 @@ result so far to the inner reduction step.
 The inner reducing step receives the sequence `y₁, y₂, y₃, ..., yₙ, ...`
 when the sequence `x₁, x₂, x₃, ..., xₙ, ...` is fed to `Scan(f)`.
 
-    y₁ = f(x₁, init)
-    y₂ = f(x₂, y₁)
-    y₃ = f(x₃, y₂)
+    y₁ = f(init, x₁)
+    y₂ = f(y₁, x₂)
+    y₃ = f(y₂, x₃)
     ...
-    yₙ = f(xₙ, yₙ₋₁)
+    yₙ = f(yₙ₋₁, xₙ)
 
 This is a generalized version of the
 [_prefix sum_](https://en.wikipedia.org/wiki/Prefix_sum) also known as
@@ -887,6 +887,8 @@ is used in a process that gurantee an order, such as [`mapfoldl`](@ref).
 Unless `f` is a function with known identity element such as `+`, `*`,
 `min`, `max`, and `append!`, the initial state `init` must be
 provided.
+
+See also: [`ScanEmit`](@ref), [`Iterated`](@ref).
 
 # Examples
 ```jldoctest
@@ -941,6 +943,42 @@ function next(rf::R_{Scan}, result, input)
 end
 
 """
+    ScanEmit(f, init)
+
+Accumulate input `x` with a function `f` with the call signature
+`(x, u) -> (y, u)` and pass the result `y` to the inner reduction step.
+
+The inner reducing step receives the sequence `y₁, y₂, y₃, ..., yₙ,
+...` computed as follows
+
+    u₀ = init
+    y₁, u₁ = f(u₀, x₁)
+    y₂, u₂ = f(u₁, x₂)
+    y₃, u₃ = f(u₂, x₃)
+    ...
+    yₙ, uₙ = f(uₙ₋₁, xₙ)
+
+when the sequence `x₁, x₂, x₃, ..., xₙ, ...` is fed to `ScanEmit(f)`.
+
+See also: [`ScanEmit`](@ref), [`Iterated`](@ref).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(ScanEmit(tuple, 0), 1:3)
+3-element Array{Int64,1}:
+ 0
+ 1
+ 2
+```
+"""
+ScanEmit(f, init) =
+    Map(x -> (nothing, x)) |>
+    Scan(((_, u), (_, x)) -> f(u, x), (nothing, init)) |>
+    Map(first)
+
+"""
     Iterated(f, init[, T::Type])
 
 Generate a sequence `init`, `f(init)`, `f(f(init))`, `f(f(f(init)))`,
@@ -950,7 +988,9 @@ $(_shared_notes_unfold)
 
 Use the third argument `T` to specify the output type of `f`.
 
-See also:
+See also: [`Scan`](@ref), [`ScanEmit`](@ref).
+
+The idea is taken from
 [`IterTools.iterated`](https://juliacollections.github.io/IterTools.jl/latest/#IterTools.iterated)
 
 # Examples

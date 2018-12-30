@@ -50,6 +50,13 @@ end
     end
 end
 
+@testset "ScanEmit" begin
+    @testset for xs in iterator_variants(1:3)
+        @test collect(ScanEmit(tuple, 0), xs) == 0:2
+        @test_broken collect(ScanEmit(tuple, nothing), xs) == [nothing; 1:2]
+    end
+end
+
 @testset "TeeZip" begin
     @testset for xs in iterator_variants(1:5)
         @test collect(TeeZip(Filter(isodd) |> Map(inc)), xs) ==

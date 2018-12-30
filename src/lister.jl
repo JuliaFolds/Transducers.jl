@@ -8,6 +8,7 @@ TransducerLister() = TransducerLister(@__MODULE__)
 
 is_transducer_type(t) = t isa Type && t <: Transducer
 is_transducer_type(::typeof(Zip)) = true
+is_transducer_type(::typeof(ScanEmit)) = true
 
 Transducer(tl::TransducerLister) =
     Filter(x -> is_transducer_type(getproperty(tl.m, x))) |>
