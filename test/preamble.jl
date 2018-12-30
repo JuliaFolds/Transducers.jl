@@ -1,4 +1,5 @@
 using Test
+using Random
 using Statistics: mean
 using Transducers
 using Transducers: finaltype, simple_transduce, Reduced
