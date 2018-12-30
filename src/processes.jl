@@ -4,7 +4,38 @@
     __foldl__(rf, init, reducible::T, complete)
 
 Left fold a `reducible` with reducing function `rf` and initial value
-`init`.
+`init`.  This is primary an API for overloading when the reducible
+"container" or "context" (e.g., I/O stream) of type `T` can provide a
+better reduction mechanism than the default iterator-based one.
+
+For a simple iterable type `MyType`, a valid implementation is:
+
+```julia
+function __foldl__(rf, val, itr::MyType, complete)
+    for x in itr
+        val = next(rf, val, x)
+        @return_if_reduced complete(rf, val)
+    end
+    return complete(rf, val)
+end
+```
+
+although in this case default ` __foldl__` can handle `MyType` and
+thus there is no need for defining it.  In general, defining
+`__foldl__` is useful only when there is a better way to go over items
+in `reducible` than `Base.iterate`.
+
+**Some rationale on `complete` as an argument**.  The argument
+`complete` almost always is [`Transducers.complete`](@ref) except
+inside [`Cat`](@ref) and alike which require to run `__foldl__`
+without completing the reduction process.  One possible design of the
+API is to not complete in `__foldl__`.  However, it results in the
+output type `Union{S, Reduced{S}}` where `S = typeof(init)` can be a
+complex nested `struct` when many stateful transducers are composed.
+Completing the reduction process before returning from `__foldl__`
+avoids this problem as then returned type would be `Union{A,
+Reduced{A}}` where `A` is the resulting/accumulated type by the
+"bottom" reduction step (e.g., `step` passed to [`mapfoldl`](@ref)).
 
 See also: [`@return_if_reduced`](@ref).
 """
@@ -16,7 +47,7 @@ function __foldl__(rf, init, coll, complete)
     ret = iterate(coll)
     ret === nothing && return complete(rf, init)
 
-    # Some Transducers like PartitionBy does a special type-unstable
+    # Some transducers like PartitionBy do a special type-unstable
     # thing in the first iteration.  Let's try to make the main loop
     # type-stable by hoisting it out.  It won't work when they are
     # wrapped by filter-like Transducers but it may be a good
