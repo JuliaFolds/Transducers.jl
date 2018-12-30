@@ -17,11 +17,11 @@ let suite = BenchmarkGroup()
     n = 10^5
 
     let xs = randn(10)
-        @assert manual_filter_map_reduce(xs) == mapfoldl(xf, +, 0.0, xs)
+        @assert manual_filter_map_reduce(xs) == mapfoldl(xf, +,  xs, init=0.0)
     end
 
     suite["xf"] = @benchmarkable(
-        mapfoldl($xf, +, 0.0, xs),
+        mapfoldl($xf, +, xs, init=0.0),
         setup=(xs = randn($n)))
     suite["man"] = @benchmarkable(
         manual_filter_map_reduce(xs),

@@ -79,7 +79,7 @@ An efficient way to use transducers is combination with
 intermediate lazy object and compiles to a single loop:
 
 ```jldoctest filter-map
-julia> mapfoldl(xf, +, 0, 1:6)
+julia> mapfoldl(xf, +, 1:6, init=0)
 24
 ```
 
@@ -92,7 +92,7 @@ iterator would be:
 ```julia
 f(x) = 2x
 imap = Base.Iterators.Generator  # like `map`, but returns an iterator
-mapfoldl(f, +, 0, filter(iseven, input))
+mapfoldl(f, +, filter(iseven, input), init=0)
 foldl(+, imap(f, filter(iseven, input)))  # equivalent
 #        ______________________________
 #        composition occurs at input part
@@ -101,7 +101,7 @@ foldl(+, imap(f, filter(iseven, input)))  # equivalent
 Compare it to how transducers are used:
 
 ```julia
-mapfoldl(Filter(iseven) |> Map(f), +, 0, input)
+mapfoldl(Filter(iseven) |> Map(f), +, input, init=0)
 #        ________________________
 #        composition occurs at computation part
 ```
@@ -203,7 +203,7 @@ function map_filter_cat_transducers(xs, init)
     return acc
 end
 
-@assert mapfoldl(xf, +, 0, 1:10) == map_filter_cat_transducers(1:10, 0)
+@assert mapfoldl(xf, +, 1:10, init=0) == map_filter_cat_transducers(1:10, 0)
 # output
 
 ```

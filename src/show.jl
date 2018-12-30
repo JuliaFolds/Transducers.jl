@@ -28,9 +28,9 @@ print_spaced_arrow(io) = print_arrow(io, ' ', ' ')
 
 function Base.summary(io::IO, xform::Transducer)
     xff = TransducerFolder(xform)
-    n = mapfoldl(Count(), right, nothing, xff)
-    f = mapfoldl(Take(1), right, nothing, xff)
-    l = mapfoldl(TakeLast(1), right, nothing, xff)
+    n = mapfoldl(Count(), right, xff, init=nothing)
+    f = mapfoldl(Take(1), right, xff, init=nothing)
+    l = mapfoldl(TakeLast(1), right, xff, init=nothing)
     @assert n > 0
     if n == 1
         print(io, nameof(typeof(xform)))

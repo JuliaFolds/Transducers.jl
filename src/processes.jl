@@ -55,7 +55,7 @@ function simple_transduce(xform, f, init, coll)
 end
 
 """
-    mapfoldl(xf, step, init, itr) :: T
+    mapfoldl(xf, step, itr; init) :: T
     transduce(xf, step, init, itr) :: Union{T, Reduced{T}}
 
 Compose transducer `xf` with reducing step function `step` and reduce
@@ -90,7 +90,7 @@ julia> function step_demo(state)
            state
        end;
 
-julia> mapfoldl(Filter(isodd), step_demo, 0.0, 1:4)
+julia> mapfoldl(Filter(isodd), step_demo, 1:4, init=0.0)
 (state, input) = (0.0, 1)
 (state, input) = (1.0, 3)
 Finishing with state = 4.0
@@ -100,7 +100,7 @@ Finishing with state = 4.0
 mapfoldl
 
 """
-    mapfoldl(xf, step, init, itr) :: T
+    mapfoldl(xf, step, itr; init) :: T
     transduce(xf, step, init, itr) :: Union{T, Reduced{T}}
 
 See [`mapfoldl`](@ref).
@@ -119,8 +119,15 @@ end
 # performance for `map!` to be comparable with the native loop.
 # See: ../benchmark/bench_filter_map_map!.jl
 
-Base.mapfoldl(xform::Transducer, f, init, itr) =
-    unreduced(transduce(xform, f, init, itr))
+function mapfoldl_init(xform, step, itr)
+    T = outtype(xform, ieltype(itr))
+    Base.reduce_empty(step, T)
+end
+
+function Base.mapfoldl(xform::Transducer, step, itr;
+                       init=mapfoldl_init(xform, step, itr))
+    unreduced(transduce(xform, step, init, itr))
+end
 
 struct Eduction{F, C}
     rf::F
@@ -338,18 +345,17 @@ julia> copy!(PartitionBy(x -> x ÷ 3) |> Map(sum), Int[], 1:10)
 Base.copy!(xf::Transducer, dest, src) = append!(xf, empty!(dest), src)
 
 """
-    foldl(step, xf::Transducer, init, itr)
-    foldl(step, ed::Eduction, init)
+    foldl(step, xf::Transducer, itr; init)
+    foldl(step, ed::Eduction; init)
 
-The first form is a shorthand for `mapfoldl(xf, Completing(step),
-init, itr)`.  It is intended to be used with `do` block.  It is also
-equivalent to `foldl(step, eduction(xf, itr), init)`.
+The first form is a shorthand for `mapfoldl(xf, Completing(step), itr; init)`. It is intended to be used with `do` block.  It is also
+equivalent to `foldl(step, eduction(xf, itr); init)`.
 
 # Examples
 ```jldoctest
 julia> using Transducers
 
-julia> foldl(Filter(isodd), 0.0, 1:4) do state, input
+julia> foldl(Filter(isodd), 1:4, init=0.0) do state, input
            @show state, input
            state + input
        end
@@ -358,11 +364,14 @@ julia> foldl(Filter(isodd), 0.0, 1:4) do state, input
 4.0
 ```
 """
-Base.foldl(step, xform::Transducer, init, itr) =
-    mapfoldl(xform, Completing(step), init, itr)
+function Base.foldl(step, xform::Transducer, itr;
+                    init=mapfoldl_init(xform, step, itr))
+    mapfoldl(xform, Completing(step), itr, init=init)
+end
 
-Base.foldl(step, ed::Eduction, init) =
-    foldl(step, Transducer(ed), init, ed.coll)
+function Base.foldl(step, ed::Eduction; kw...)
+    foldl(step, Transducer(ed), ed.coll; kw...)
+end
 
 """
     foreach(eff, xf::Transducer, itr)

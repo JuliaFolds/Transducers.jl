@@ -5,24 +5,39 @@ include("preamble.jl")
     # https://clojure.org/reference/transducers#_transduce
     xf = Filter(isodd) |> Map(inc)
     @testset for xs in iterator_variants(0:4)
-        @test mapfoldl(xf, +, 0, xs) == 6
-        @test mapfoldl(xf, +, 100, xs) == 106
+        @test mapfoldl(xf, +, xs, init=0) == 6
+        @test mapfoldl(xf, +, xs, init=100) == 106
     end
 
     # https://clojuredocs.org/clojure.core/transduce
     xf = Filter(isodd) |> Take(10)
     @testset "$(typeof(xs))" for xs in iterator_variants(0:1000)
-        @test mapfoldl(xf, push!, Int[], xs) == 1:2:19
-        @test mapfoldl(xf, +, 0, xs) == 100
-        @test mapfoldl(xf, +, 17, xs) == 117
-        @test mapfoldl(xf, string, "", xs) == "135791113151719"
+        @test mapfoldl(xf, push!, xs, init=Int[]) == 1:2:19
+        @test mapfoldl(xf, +, xs, init=0) == 100
+        @test mapfoldl(xf, +, xs, init=17) == 117
+        @test mapfoldl(xf, string, xs, init="") == "135791113151719"
 
         @test transduce(xf, push!, Int[], xs) == Reduced(1:2:19)
         @test transduce(xf, +, 0, xs) == Reduced(100)
         @test transduce(xf, +, 17, xs) == Reduced(117)
         @test transduce(xf, string, "", xs) == Reduced("135791113151719")
     end
+
+    @testset "empty" begin
+        xf = Filter(_ -> false)
+        iter = 1:4
+        @test foldl(+, xf, iter) === 0
+        @test foldl(+, xf, iter, init=32.) === 32.
+
+        ed = eduction(xf, iter)
+        @test foldl(+, ed) === 0
+        @test foldl(+, ed, init=32.) === 32.
+
+        @test mapfoldl(xf, +, iter) === 0
+        @test mapfoldl(xf, +, iter, init=32.) === 32.
+    end
 end
+
 
 @testset "eduction" begin
     # https://clojuredocs.org/clojure.core/eduction
