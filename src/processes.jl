@@ -162,7 +162,9 @@ end
 
 function mapfoldl_init(xform, step, itr)
     T = outtype(xform, ieltype(itr))
-    Base.reduce_empty(step, T)
+    return identityof(step, T)
+    # TODO: Move this after the construction of `Reduction` to avoid
+    # running `outtype` twice.
 end
 
 function Base.mapfoldl(xform::Transducer, step, itr;

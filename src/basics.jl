@@ -15,8 +15,7 @@ const DenseSubVector{T} =
     SubArray{T, 1, Vector{T}, Tuple{UnitRange{Int64}}, true}
 
 
-identityof(::typeof(+), e) = zero(e)
-identityof(::typeof(*), e) = one(e)
+identityof(op, e) = Base.reduce_empty(op, e)
 identityof(::typeof(min), e) = typemax(e)
 identityof(::typeof(max), e) = typemin(e)
 identityof(::typeof(append!), e) = empty(e)
