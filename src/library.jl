@@ -985,10 +985,23 @@ julia> collect(ScanEmit(tuple, 0), 1:3)
  2
 ```
 """
-ScanEmit(f, init) =
-    Map(x -> (nothing, x)) |>
-    Scan(((_, u), (_, x)) -> f(u, x), (nothing, init)) |>
-    Map(first)
+struct ScanEmit{F, T} <: Transducer
+    f::F
+    init::T
+end
+
+outtype(xf::ScanEmit, intype) =
+    _type_scan_fixedpoint((u, x) -> xf.f(u, x)[2], typeof(xf.init), intype)
+
+start(rf::R_{ScanEmit}, result) =
+    wrap(rf, rf.xform.init, start(rf.inner, result))
+
+function next(rf::R_{ScanEmit}, result, input)
+    wrapping(rf, result) do u0, iresult
+        y1, u1 = rf.xform.f(u0, input)
+        return u1, next(rf.inner, iresult, y1)
+    end
+end
 
 """
     Iterated(f, init[, T::Type])
