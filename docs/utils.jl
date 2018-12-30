@@ -1,7 +1,31 @@
 using Documenter
 using Transducers
+# Not importing `Literate` here so that this file can be included from
+# test.
 
-transducers_makedocs(; kwargs...) =
+EXAMPLE_PAGES = [
+    "Splitting words" => "examples/words.md",
+]
+
+function transducers_literate(;
+        inputbase = joinpath(@__DIR__, "..", "examples"),
+        outputbase = joinpath(@__DIR__, "src", "examples"),
+        examples = EXAMPLE_PAGES,
+        kwargs...)
+    for (_, outpath) in examples
+        name, = splitext(basename(outpath))
+        inputfile = joinpath(inputbase, "$name.jl")
+        outputdir = outputbase
+        Literate.markdown(
+            inputfile, outputdir;
+            documenter = true,
+            kwargs...)
+    end
+end
+
+transducers_makedocs(;
+        examples = EXAMPLE_PAGES,
+        kwargs...) =
     makedocs(;
         modules = [Transducers],
         pages = [
@@ -9,6 +33,7 @@ transducers_makedocs(; kwargs...) =
             "Manual" => "manual.md",
             "Interface" => "interface.md",
             hide("Internals" => "internals.md"),
+            "Examples" => examples,
         ],
         repo = "https://github.com/tkf/Transducers.jl/blob/{commit}{path}#L{line}",
         sitename = "Transducers.jl",

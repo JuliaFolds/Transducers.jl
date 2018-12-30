@@ -1,9 +1,6 @@
 module TestExamplesWords
 include("preamble.jl")
-
-include("../examples/loader.jl")
-using .TransducersExamplesLoaders: @exload
-@exload("words")
+include("../examples/words.jl")
 
 N_SAMPLES = 100
 # N_SAMPLES = 1  # for debug

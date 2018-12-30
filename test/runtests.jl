@@ -16,6 +16,6 @@ end  # module
 using Test
 @testset "doctest" begin
     include("../docs/utils.jl")
-    transducers_makedocs()
+    transducers_makedocs(examples=[])
     @test true
 end

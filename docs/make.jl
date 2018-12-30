@@ -11,6 +11,8 @@ exec ${JULIA} "${BASH_SOURCE[0]}" "$@"
 =#
 
 include("utils.jl")
+using Literate
+transducers_literate()
 transducers_makedocs()
 deploydocs(;
     repo="github.com/tkf/Transducers.jl",
