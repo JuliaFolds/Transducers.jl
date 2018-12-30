@@ -955,7 +955,7 @@ function next(rf::R_{Scan}, result, input)
 end
 
 """
-    ScanEmit(f, init)
+    ScanEmit(f, init[, onlast])
 
 Accumulate input `x` with a function `f` with the call signature
 `(x, u) -> (y, u)` and pass the result `y` to the inner reduction step.
@@ -969,6 +969,8 @@ The inner reducing step receives the sequence `y₁, y₂, y₃, ..., yₙ,
     y₃, u₃ = f(u₂, x₃)
     ...
     yₙ, uₙ = f(uₙ₋₁, xₙ)
+    ...
+    yₒₒ = onlast(uₒₒ)
 
 when the sequence `x₁, x₂, x₃, ..., xₙ, ...` is fed to `ScanEmit(f)`.
 
@@ -985,10 +987,13 @@ julia> collect(ScanEmit(tuple, 0), 1:3)
  2
 ```
 """
-struct ScanEmit{F, T} <: Transducer
+struct ScanEmit{F, T, L} <: Transducer
     f::F
     init::T
+    onlast::L
 end
+
+ScanEmit(f, init) = ScanEmit(f, init, nothing)
 
 outtype(xf::ScanEmit, intype) =
     _type_scan_fixedpoint((u, x) -> xf.f(u, x)[2], typeof(xf.init), intype)
@@ -1001,6 +1006,14 @@ function next(rf::R_{ScanEmit}, result, input)
         y1, u1 = rf.xform.f(u0, input)
         return u1, next(rf.inner, iresult, y1)
     end
+end
+
+function complete(rf::R_{ScanEmit}, result)
+    u, iresult = unwrap(rf, result)
+    if rf.xform.onlast !== nothing
+        iresult = next(rf.inner, iresult, rf.xform.onlast(u))
+    end
+    return complete(rf.inner, iresult)
 end
 
 """
