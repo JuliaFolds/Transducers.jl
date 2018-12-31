@@ -276,6 +276,14 @@ end
                 [[1:4;], [5:8;], [9:i;]]
         end
     end
+    @testset "Combination with stateful transducers" begin
+        @testset for xs in iterator_variants(1:6)
+            @test collect(Take(5) |> Partition(3, 1) |> Map(copy), xs) ==
+                [[1:3;], [2:4;], [3:5;]]
+            @test collect(Partition(3, 1) |> Map(copy) |> Take(3), xs) ==
+                [[1:3;], [2:4;], [3:5;]]
+        end
+    end
 end
 
 @testset "Count" begin
