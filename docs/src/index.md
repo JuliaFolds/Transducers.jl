@@ -75,7 +75,7 @@ An efficient way to use transducers is combination with
 intermediate lazy object and compiles to a single loop:
 
 ```jldoctest filter-map
-julia> mapfoldl(xf, +, 1:6, init=0)
+julia> mapfoldl(xf, +, 1:6)
 24
 ```
 
@@ -174,14 +174,10 @@ As a consequence, computations requiring to expand an item into a
 sequence can be processed efficiently.  Consider the following
 example:
 
-```jldoctest map-filter-cat; output = false, filter = r"Map\(.*?\)"
-xf = Map(x -> 1:x) |> Filter(iseven ∘ sum) |> Cat()
-
-# output
-
-Map(Main.λ❓) |>
-    Filter(Base.λ❓) |>
-    Cat()
+```jldoctest map-filter-cat
+julia> xf = Map(x -> 1:x) |> Filter(iseven ∘ sum) |> Cat()
+       mapfoldl(xf, *, 1:10)
+29262643200
 ```
 
 This is lowered to a nested `for` loops:
@@ -193,14 +189,14 @@ function map_filter_cat_transducers(xs, init)
         y1 = 1:x                # Map
         if iseven(sum(y1))      # Filter
             for y2 in y1        # Cat
-                acc += y2       # +
+                acc *= y2       # *
             end
         end
     end
     return acc
 end
 
-@assert mapfoldl(xf, +, 1:10, init=0) == map_filter_cat_transducers(1:10, 0)
+@assert mapfoldl(xf, *, 1:10) == map_filter_cat_transducers(1:10, 1)
 # output
 
 ```
