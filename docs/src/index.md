@@ -237,33 +237,41 @@ mapfoldl(xf, step, input, init=...)
 #   `-- transducible process
 ```
 
-* **Reducing function** (or **reducing step function**): A reducing
-  function in a narrow sense is a "callable" of the signature `(X, Y)
-  -> X` (or `(X, X) -> X` in case for [`mapreduce`](@ref)).  It is the
-  function that can be passed to the classic (non-Transducers.jl)
-  `Base.foldl` or `Base.reduce`.  It is sometimes referred to as a
-  `rf` or `step`.  In Transducers.jl, [`next(rf, ::X, ::Y) :: X`](@ref
-  Transducers.next) is used instead of a "bare" callable.
-  Furthermore, a reducing function in a loose sense also includes
-  other interfaces such as [`start(rf, ::X)`](@ref Transducers.start)
-  and [`complete(rf, ::X)`](@ref Transducers.complete).
+* **Reducing function** or **Reducing step (function)**: A reducing
+  function combines result-so-far with the input.  It is in a narrow
+  sense a "callable" `op` of the signature `op(::X, ::Y) :: X` (or
+  `op(::X, ::X) :: X` in case for [`mapreduce`](@ref)) or
+  schematically:
 
-* **Transducer**: A transducer is a composable recipe for transforming
-  a reducing function and creating a new reducing function.  It is
-  sometimes referred to as a `xf` or `xform`.  A transducer can be
-  composed of many sub-transducers; the syntax in Transducers.jl is
-  `xf = xf₁ |> xf₂ |> ... |> xfₙ`.  The composed transducers are
-  applied to the "bottom" reducing function from right to left, i.e.,
-  schematically, a new reducing function ``\mathrm{rf}`` is obtained
-  from the "bottom" reducing function ``\mathrm{rf}_0`` by
+  ```math
+  (\text{result-so-far}, \text{input}) \mapsto \text{result-so-far}
+  ```
+
+  It is the function that can be passed to the classic
+  (non-Transducers.jl) `Base.foldl` or `Base.reduce`.  It is sometimes
+  referred to as a `step` or `op`.  In Transducers.jl,
+  [`next(rf, ::X, ::Y) :: X`](@ref Transducers.next) is used instead
+  of a "bare" callable.  Furthermore, a reducing function in a loose
+  sense also includes other interfaces such as [`start(rf, ::X)`](@ref
+  Transducers.start) and [`complete(rf, ::X)`](@ref
+  Transducers.complete).
+
+* **Transducer**: A transducer transforms a reducing function into a
+  new reducing function.  It is sometimes referred to as a `xf` or
+  `xform`.  A transducer can be composed of many sub-transducers; the
+  syntax in Transducers.jl is `xf = xf₁ |> xf₂ |> ... |> xfₙ`.  The
+  composed transducers are applied to the "bottom" reducing function
+  from right to left, i.e., schematically, a new reducing function
+  ``\mathrm{rf}`` is obtained from the "bottom" reducing function
+  ``\mathrm{step}`` by
 
   ```math
   \mathrm{rf} =
-  \mathrm{xf}_1(\mathrm{xf}_2(...( \mathrm{xf}_{n}(\mathrm{rf}_0))))
+  \mathrm{xf}_1(\mathrm{xf}_2(...(\mathrm{xf}_{n}(\mathrm{step}))))
   ```
 
   Given a composition `xf₁ |> xf₂`, transducer `xf₂` is said to be the
-  _inner transducer_ of `xf₁`.  Likewise,
+  _inner transducer_ of `xf₁ |> xf₂`.  Likewise,
   ``\mathrm{xf}_2(\mathrm{rf}')`` is an _inner reducing function_ of
   ``\mathrm{xf}_1(\mathrm{xf}_2(\mathrm{rf}'))``.
 
