@@ -40,7 +40,7 @@ end
     end
 
     ed = eduction(Scan(+), 1:10)
-    @test finaltype(ed.rf) === Int
+    @test eltype(ed) === Int
 
     xs0 = [0, -1, 3, -2, 1]
     @testset for xs in [xs0, collect(xs0)]
@@ -64,7 +64,7 @@ end
     end
 
     ed = eduction(TeeZip(Filter(isodd) |> Map(x -> x + 1)), 1:5)
-    @test finaltype(ed.rf) === Tuple{Int,Int}
+    @test eltype(ed) === Tuple{Int,Int}
 
     xf = Map(inc) |> TeeZip(Filter(isodd)) |> Map(first)
     @testset for xs in iterator_variants(1:6)

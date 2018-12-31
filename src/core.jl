@@ -93,6 +93,10 @@ InType(::T) where T = InType(T)
 InType(::Type{Reduction{X, I, intype}}) where {X, I, intype} = intype
 InType(T::Type) = throw(MethodError(InType, (T,)))
 
+InnerMostReductionType(::Type{R}) where {R <:Reduction} = R
+InnerMostReductionType(::Type{<:Reduction{<:Any, I}}) where {I <: Reduction} =
+    InnerMostReductionType(I)
+
 Transducer(rf::Reduction{<:Transducer, <:Reduction}) =
     Composition(rf.xform, Transducer(rf.inner))
 Transducer(rf::Reduction) = rf.xform

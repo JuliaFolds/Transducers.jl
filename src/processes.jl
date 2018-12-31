@@ -244,7 +244,8 @@ transduce(xform::Transducer, f, init, ed::Eduction) =
     transduce(Transducer(ed) |> xform, f, init, ed.coll)
 
 Base.IteratorSize(::Type{<:Eduction}) = Base.SizeUnknown()
-Base.IteratorEltype(::Type{<:Eduction}) = Base.EltypeUnknown()
+Base.IteratorEltype(::Type{<:Eduction}) = Base.HasEltype()
+Base.eltype(::Type{<:Eduction{F}}) where F = InType(InnerMostReductionType(F))
 
 function Base.iterate(ts::Eduction, state = nothing)
     if state === nothing

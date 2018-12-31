@@ -2,7 +2,7 @@ using Test
 using Random
 using Statistics: mean
 using Transducers
-using Transducers: finaltype, simple_transduce, Reduced
+using Transducers: simple_transduce, Reduced
 
 inc(x) = x + oneunit(x)
 
