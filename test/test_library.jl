@@ -192,6 +192,30 @@ end
     end
 end
 
+@testset "FlagFirst" begin
+    one2three = [
+        (true, 1),
+        (false, 2),
+        (false, 3),
+    ]
+    @testset for xs in iterator_variants(1:3)
+        @test collect(FlagFirst(), xs) == one2three
+    end
+    @testset "Combination with stateful transducers" begin
+        @testset for xs in iterator_variants(1:3)
+            @test collect(FlagFirst() |> FlagFirst(), xs) == [
+                (true, (true, 1)),
+                (false, (false, 2)),
+                (false, (false, 3)),
+            ]
+            @test collect(FlagFirst() |> Take(5), xs) == one2three
+            @test collect(Take(5) |> FlagFirst(), xs) == one2three
+            @test collect(FlagFirst() |> Take(2), xs) == one2three[1:2]
+            @test collect(Take(2) |> FlagFirst(), xs) == one2three[1:2]
+        end
+    end
+end
+
 # https://clojuredocs.org/clojure.core/keep
 @testset "Keep" begin
     xf = Keep() do x
