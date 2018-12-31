@@ -1,7 +1,7 @@
 # # How to write transducers
 #
 # `Transducers` don't export public interface for implementing
-# transducers (and transducible processes).  Let's import some handy
+# transducers (and reducible collections).  Let's import some handy
 # ones:
 
 using Transducers

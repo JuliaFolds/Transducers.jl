@@ -20,7 +20,7 @@ Transducers.unwrap
 Transducers.wrapping
 ```
 
-## Interface for transducible processes
+## Interface for reducibles
 
 ```@docs
 Transducers.__foldl__

@@ -1,10 +1,8 @@
-# # How to make your data type a transducible process
+# # How to make your data type reducible
 #
-# Let's see how to make a vector-of-vector a transducible process;
-# i.e., a type that can be fed to [`mapfoldl`](@ref) instead of the
-# iterator.  Transducible process knows how to "drive" transducers.
-# Another way to express it is that transducible process knows how to
-# reduce itself using the reducing step function.
+# Let's see how to make a vector-of-vector a [reducible
+# collection](@ref Glossary); i.e., a type that can be fed to
+# [`mapfoldl`](@ref).
 
 struct VecOfVec{T}
     vectors::Vector{Vector{T}}

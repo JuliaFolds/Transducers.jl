@@ -5,7 +5,7 @@ using Transducers
 
 EXAMPLE_PAGES = [
     "Writing transducers" => "examples/transducers.md",
-    "Writing transducible processes" => "examples/transducible_processes.md",
+    "Writing reducibles" => "examples/reducibles.md",
     "Parallel word count" => "examples/words.md",
 ]
 

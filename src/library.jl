@@ -318,8 +318,8 @@ end
 """
     TakeWhile(pred)
 
-Take items while `pred` returns `true`.  Abort the transducible
-process when `pred` returns `false` for the first time.
+Take items while `pred` returns `true`.  Abort the reduction when
+`pred` returns `false` for the first time.
 
 $(_thx_clj("take-while"))
 

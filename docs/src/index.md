@@ -227,12 +227,14 @@ Markdown.MD(Transducers.TransducerLister())
 
 ```julia
 mapfoldl(xf, step, input, init=...)
-#        |   |     |
-#        |   |     `-- transducible process / reducible
-#        |   |
-#        |   `-- "bottom" reducing function
-#        |
-#        `-- transducer
+#   |    |   |     |
+#   |    |   |     `-- reducible
+#   |    |   |
+#   |    |   `-- "bottom" (inner most) reducing function
+#   |    |
+#   |    `-- transducer
+#   |
+#   `-- transducible process
 ```
 
 * **Reducing function** (or **reducing step function**): A reducing
@@ -265,10 +267,16 @@ mapfoldl(xf, step, input, init=...)
   ``\mathrm{xf}_2(\mathrm{rf}')`` is an _inner reducing function_ of
   ``\mathrm{xf}_1(\mathrm{xf}_2(\mathrm{rf}'))``.
 
-* **Transducible process** (or **reducible**): Any object that can be
-  passed to [`mapfoldl`](@ref) and alike is transducible.  Iterators
-  are automatically transducible as this is the canonical fallback
-  implementation.
+* **Reducible collection** (or just **Reducible**): Any object that
+  can be passed to [`mapfoldl`](@ref) and alike is reducible.  A
+  reducible collection knows how to apply reducing function to its
+  elements.  Iterators are automatically reducible as this is the
+  canonical fallback implementation.
+
+* **Transducible process**: A function that can reduce reducible
+  collections using transducers is a transducible process.  Examples
+  are [`mapfoldl`](@ref) and [`mapreduce`](@ref).  Find more in
+  [Transducible processes](@ref).
 
 
 ## Links
