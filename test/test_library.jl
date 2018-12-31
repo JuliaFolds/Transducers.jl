@@ -312,6 +312,12 @@ end
             Second(1) + Millisecond(2),
         ]
     end
+    @testset "Combination with stateful transducers" begin
+        @testset for xs in iterator_variants(1:3)
+            @test collect(Count() |> Drop(1), xs) == 2:3
+            @test collect(Drop(1) |> Count(), xs) == 1:2
+        end
+    end
 end
 
 @testset "(Get|Set)Index" begin
