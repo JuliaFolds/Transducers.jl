@@ -78,6 +78,36 @@ end
     end
 end
 
+@testset "Take" begin
+    @testset for xs in iterator_variants(1:5)
+        @test collect(Take(3), xs) == 1:3
+        @test collect(Take(3) |> Take(4), xs) == 1:3
+        @test collect(Take(4) |> Take(3), xs) == 1:3
+        @test collect(Take(10), xs) == 1:5
+        @test collect(Take(10) |> Take(20), xs) == 1:5
+        @test collect(Take(20) |> Take(10), xs) == 1:5
+    end
+    @testset "Combination with stateless transducers" begin
+        @testset for xs in iterator_variants(1:5)
+            @test collect(Filter(isodd) |> Take(2), xs) == 1:2:3
+            @test collect(Filter(iseven) |> Take(3), xs) == 2:2:4  # no abort
+            @test collect(Take(3) |> Filter(isodd), xs) == 1:2:3
+            @test collect(Take(3) |> Filter(iseven), xs) == [2]
+        end
+    end
+    @testset "Combination with stateful transducers" begin
+        @testset for xs in Any[1:5, collect(1:5)]
+            @test eltype(xs) <: Number
+            @test collect(Take(3) |> Scan(+), xs) == cumsum(1:3)
+            @test collect(Scan(+) |> Take(3), xs) == cumsum(1:3)
+        end
+        @testset for xs in iterator_variants(1:5)
+            @test collect(TakeLast(4) |> Take(2), xs) == 2:3
+            @test collect(Take(4) |> TakeLast(2), xs) == 3:4
+        end
+    end
+end
+
 @testset "TakeLast" begin
     @testset "Combination with stateful transducers" begin
         @testset for xs in iterator_variants(1:5)
