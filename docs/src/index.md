@@ -81,7 +81,7 @@ julia> mapfoldl(xf, +, 1:6, init=0)
 
 ## Difference to iterators
 
-How `mapfoldl` and `foldl` are used illustrate the difference between
+How `mapfoldl` and `foldl` are used illustrates the difference between
 iterators and transducers.  Implementation of the above computation in
 iterator would be:
 
@@ -159,16 +159,16 @@ end
 
 ```
 
-Notice that the `input` is the _outer_ most block while `+` is in the
-inner most block.  Transducers passed to `mapfoldl` appears in the
-block between them in the order they are composed.  An outer
-transducer (say `Filter`) "pushes" _arbitrary_ number of items to the
-inner transducer (`Map` in above example).  Note that `Filter` can
-choose to _not_ push an item (i.e., push zero item) when the predicate
-returns `false`.  This _push-based_ nature of the transducers allows
-the generation of very natural and efficient code.  To put it another
-way, the transducers and [transducible processes](@ref Glossary) _own_
-the loop.
+Notice that the iteration of `input` is at the _outer_ most block
+while `+` is in the inner most block.  Transducers passed to
+`mapfoldl` appears in the block between them in the order they are
+composed.  An outer transducer (say `Filter`) "pushes" _arbitrary_
+number of items to the inner transducer (`Map` in above example).
+Note that `Filter` can choose to _not_ push an item (i.e., push zero
+item) when the predicate returns `false`.  This _push-based_ nature of
+the transducers allows the generation of very natural and efficient
+code.  To put it another way, the transducers and
+[transducible processes](@ref Glossary) _own_ the loop.
 
 As a consequence, computations requiring to expand an item into a
 sequence can be processed efficiently.  Consider the following
