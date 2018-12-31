@@ -144,6 +144,13 @@ end
 @testset "Drop" begin
     @testset for xs in iterator_variants(1:10)
         @test collect(Drop(3), xs) == 4:10
+        @test collect(Drop(3) |> Drop(3), xs) == 7:10
+    end
+    @testset "Combination with stateful transducers" begin
+        @testset for xs in iterator_variants(1:10)
+            @test collect(Drop(3) |> Take(3), xs) == 4:6
+            @test collect(Take(5) |> Drop(3), xs) == 4:5
+        end
     end
 end
 
