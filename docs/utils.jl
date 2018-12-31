@@ -4,6 +4,7 @@ using Transducers
 # test.
 
 EXAMPLE_PAGES = [
+    "Writing transducers" => "examples/transducers.md",
     "Parallel word count" => "examples/words.md",
 ]
 
