@@ -153,22 +153,30 @@ function transduce(xform::Transducer, f, init, coll)
     return transduce(rf, init, coll)
 end
 
-# TODO: should it be an internal?
-@inline transduce(rf::Reduction, init, coll) =
-    __foldl__(rf, start(rf, init), coll, complete)
-# Inlining `transduce` and `__foldl__` were essential for the
-# performance for `map!` to be comparable with the native loop.
-# See: ../benchmark/bench_filter_map_map!.jl
+struct MissingInit end
 
-function mapfoldl_init(xform, step, itr)
-    T = outtype(xform, ieltype(itr))
-    return identityof(step, T)
-    # TODO: Move this after the construction of `Reduction` to avoid
-    # running `outtype` twice.
+provide_init(rf::Reduction, init) = init
+function provide_init(rf::Reduction, ::MissingInit)
+    T = finaltype(rf)
+    op = innermost_rf(rf)
+    return identityof(op, T)
+end
+
+innermost_rf(rf::Reduction) = innermost_rf(rf.inner)
+innermost_rf(f) = f
+innermost_rf(o::Completing) = innermost_rf(o.f)
+
+# TODO: should it be an internal?
+@inline function transduce(rf::Reduction, init, coll)
+    # Inlining `transduce` and `__foldl__` were essential for the
+    # performance for `map!` to be comparable with the native loop.
+    # See: ../benchmark/bench_filter_map_map!.jl
+    val = provide_init(rf, init)
+    return __foldl__(rf, start(rf, val), coll, complete)
 end
 
 function Base.mapfoldl(xform::Transducer, step, itr;
-                       init=mapfoldl_init(xform, step, itr))
+                       init=MissingInit())
     unreduced(transduce(xform, step, init, itr))
 end
 
@@ -216,7 +224,7 @@ end
 
 # AbstractArray for disambiguation
 function Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
-                        init=mapfoldl_init(xform, step, itr),
+                        init=MissingInit(),
                         kwargs...)
     rf = Reduction(xform, step, eltype(itr))
     return unreduced(__reduce__(rf, init, itr; kwargs...))
@@ -458,8 +466,8 @@ julia> foldl(Filter(isodd), 1:4, init=0.0) do state, input
 ```
 """
 function Base.foldl(step, xform::Transducer, itr;
-                    init=mapfoldl_init(xform, step, itr))
-    mapfoldl(xform, Completing(step), itr, init=init)
+                    kw...)
+    mapfoldl(xform, Completing(step), itr; kw...)
 end
 
 function Base.foldl(step, ed::Eduction; kw...)

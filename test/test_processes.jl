@@ -35,6 +35,9 @@ include("preamble.jl")
 
         @test mapfoldl(xf, +, iter) === 0
         @test mapfoldl(xf, +, iter, init=32.) === 32.
+
+        nested_xf = Drop(10^9) |> FlagFirst() |> Map(x -> 32)
+        @test foldl(+, nested_xf, iter) === 0
     end
 end
 
