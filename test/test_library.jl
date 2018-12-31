@@ -329,4 +329,18 @@ end
     end
 end
 
+@testset "Inject" begin
+    @testset for xs in iterator_variants(1:3)
+        @test collect(Inject(xs), xs) == collect(zip(xs, xs))
+        @test collect(Inject(5:6), xs) == collect(zip(1:2, 5:6))
+        @test collect(Inject(xs), 5:6) == collect(zip(5:6, 1:2))
+    end
+    @testset "Combination with stateful transducers" begin
+        @testset for xs in iterator_variants(1:3)
+            @test collect(Inject(xs) |> Take(2), xs) == collect(zip(1:2, 1:2))
+            @test collect(Take(2) |> Inject(xs), xs) == collect(zip(1:2, 1:2))
+        end
+    end
+end
+
 end  # module
