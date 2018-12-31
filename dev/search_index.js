@@ -97,6 +97,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "manual/#Base.mapreduce",
+    "page": "Manual",
+    "title": "Base.mapreduce",
+    "category": "function",
+    "text": "mapreduce(xf, step, itr; init) :: T\n\nPossibly parallel version of mapfoldl.  The \"bottom\" reduction function step(::T, ::T) :: T must be associative and init must be its identity element.\n\nTransducers composing xf must be stateless and non-terminating (e.g., Map, Filter, Cat, etc.) except for ScanEmit.  Note that Scan is not supported (although possible in theory).\n\nSee mapfoldl.\n\n\n\n\n\n"
+},
+
+{
     "location": "manual/#Transducers.eduction",
     "page": "Manual",
     "title": "Transducers.eduction",
@@ -149,7 +157,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducible processes",
     "category": "section",
-    "text": "mapfoldl\ntransduce\nfoldl\nforeach\neduction\nmap!\ncopy!\nappend!\ncollect\nChannel"
+    "text": "mapfoldl\ntransduce\nfoldl\nforeach\nmapreduce\neduction\nmap!\ncopy!\nappend!\ncollect\nChannel"
 },
 
 {
@@ -233,6 +241,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "manual/#Transducers.Inject",
+    "page": "Manual",
+    "title": "Transducers.Inject",
+    "category": "type",
+    "text": "Inject(iterator)\n\nInject the output from iterator to the stream processed by the inner reduction step.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Inject(Iterators.cycle(\"hello\")), 1:8)\n8-element Array{Tuple{Int64,Char},1}:\n (1, \'h\')\n (2, \'e\')\n (3, \'l\')\n (4, \'l\')\n (5, \'o\')\n (6, \'h\')\n (7, \'e\')\n (8, \'l\')\n\njulia> collect(Inject(Iterators.repeated([1 2])), 1:4)\n4-element Array{Tuple{Int64,Array{Int64,2}},1}:\n (1, [1 2])\n (2, [1 2])\n (3, [1 2])\n (4, [1 2])\n\njulia> collect(Inject(Iterators.product(1:2, 3:5)), 1:100)\n6-element Array{Tuple{Int64,Tuple{Int64,Int64}},1}:\n (1, (1, 3))\n (2, (2, 3))\n (3, (1, 4))\n (4, (2, 4))\n (5, (1, 5))\n (6, (2, 5))\n\n\n\n\n\n"
+},
+
+{
     "location": "manual/#Transducers.Interpose",
     "page": "Manual",
     "title": "Transducers.Interpose",
@@ -245,7 +261,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Iterated",
     "category": "type",
-    "text": "Iterated(f, init[, T::Type])\n\nGenerate a sequence init, f(init), f(f(init)), f(f(f(init))), and so on.\n\nNote that input is ignored.  To use the input in the downstream reduction steps, use TeeZip or Zip.\n\nUse the third argument T to specify the output type of f.\n\nSee also: IterTools.iterated\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Iterated(x -> 2x, 1), 1:5)\n5-element Array{Int64,1}:\n  1\n  2\n  4\n  8\n 16\n\njulia> collect(TeeZip(Iterated(x -> 2x, 1)), 1:5)\n5-element Array{Tuple{Int64,Int64},1}:\n (1, 1)\n (2, 2)\n (3, 4)\n (4, 8)\n (5, 16)\n\n\n\n\n\n"
+    "text": "Iterated(f, init[, T::Type])\n\nGenerate a sequence init, f(init), f(f(init)), f(f(f(init))), and so on.\n\nNote that input is ignored.  To use the input in the downstream reduction steps, use TeeZip or Zip.\n\nUse the third argument T to specify the output type of f.\n\nSee also: Scan, ScanEmit.\n\nThe idea is taken from IterTools.iterated\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Iterated(x -> 2x, 1), 1:5)\n5-element Array{Int64,1}:\n  1\n  2\n  4\n  8\n 16\n\njulia> collect(TeeZip(Iterated(x -> 2x, 1)), 1:5)\n5-element Array{Tuple{Int64,Int64},1}:\n (1, 1)\n (2, 2)\n (3, 4)\n (4, 8)\n (5, 16)\n\n\n\n\n\n"
 },
 
 {
@@ -281,14 +297,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "manual/#Transducers.Merge",
-    "page": "Manual",
-    "title": "Transducers.Merge",
-    "category": "type",
-    "text": "Merge(iterator)\n\nMerge the output from iterator to the stream processed by the inner reduction step.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Merge(Iterators.cycle(\"hello\")), 1:8)\n8-element Array{Tuple{Int64,Char},1}:\n (1, \'h\')\n (2, \'e\')\n (3, \'l\')\n (4, \'l\')\n (5, \'o\')\n (6, \'h\')\n (7, \'e\')\n (8, \'l\')\n\njulia> collect(Merge(Iterators.repeated([1 2])), 1:4)\n4-element Array{Tuple{Int64,Array{Int64,2}},1}:\n (1, [1 2])\n (2, [1 2])\n (3, [1 2])\n (4, [1 2])\n\njulia> collect(Merge(Iterators.product(1:2, 3:5)), 1:100)\n6-element Array{Tuple{Int64,Tuple{Int64,Int64}},1}:\n (1, (1, 3))\n (2, (2, 3))\n (3, (1, 4))\n (4, (2, 4))\n (5, (1, 5))\n (6, (2, 5))\n\n\n\n\n\n"
-},
-
-{
     "location": "manual/#Transducers.Partition",
     "page": "Manual",
     "title": "Transducers.Partition",
@@ -317,7 +325,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Scan",
     "category": "type",
-    "text": "Scan(f, [init])\n\nAccumulate input with binary function f and pass the accumulated result so far to the inner reduction step.\n\nThe inner reducing step receives the sequence y₁, y₂, y₃, ..., yₙ, ... when the sequence x₁, x₂, x₃, ..., xₙ, ... is fed to Scan(f).\n\ny₁ = f(x₁, init)\ny₂ = f(x₂, y₁)\ny₃ = f(x₃, y₂)\n...\nyₙ = f(xₙ, yₙ₋₁)\n\nThis is a generalized version of the prefix sum also known as cumulative sum, inclusive scan, or scan.\n\nNote that the associativity of f is not required when the transducer is used in a process that gurantee an order, such as mapfoldl.\n\nUnless f is a function with known identity element such as +, *, min, max, and append!, the initial state init must be provided.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Scan(*), 1:3)\n3-element Array{Int64,1}:\n 1\n 2\n 6\n\njulia> collect(Map(x -> x + im) |> Scan(*), 1:3)\n3-element Array{Complex{Int64},1}:\n 1 + 1im\n 1 + 3im\n 0 + 10im\n\njulia> collect(Scan(*, 10), 1:3)\n3-element Array{Int64,1}:\n 10\n 20\n 60\n\n\n\n\n\n"
+    "text": "Scan(f, [init])\n\nAccumulate input with binary function f and pass the accumulated result so far to the inner reduction step.\n\nThe inner reducing step receives the sequence y₁, y₂, y₃, ..., yₙ, ... when the sequence x₁, x₂, x₃, ..., xₙ, ... is fed to Scan(f).\n\ny₁ = f(init, x₁)\ny₂ = f(y₁, x₂)\ny₃ = f(y₂, x₃)\n...\nyₙ = f(yₙ₋₁, xₙ)\n\nThis is a generalized version of the prefix sum also known as cumulative sum, inclusive scan, or scan.\n\nNote that the associativity of f is not required when the transducer is used in a process that gurantee an order, such as mapfoldl.\n\nUnless f is a function with known identity element such as +, *, min, max, and append!, the initial state init must be provided.\n\nSee also: ScanEmit, Iterated.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Scan(*), 1:3)\n3-element Array{Int64,1}:\n 1\n 2\n 6\n\njulia> collect(Map(x -> x + im) |> Scan(*), 1:3)\n3-element Array{Complex{Int64},1}:\n 1 + 1im\n 1 + 3im\n 0 + 10im\n\njulia> collect(Scan(*, 10), 1:3)\n3-element Array{Int64,1}:\n 10\n 20\n 60\n\n\n\n\n\n"
+},
+
+{
+    "location": "manual/#Transducers.ScanEmit",
+    "page": "Manual",
+    "title": "Transducers.ScanEmit",
+    "category": "type",
+    "text": "ScanEmit(f, init[, onlast])\n\nAccumulate input x with a function f with the call signature (x, u) -> (y, u) and pass the result y to the inner reduction step.\n\nThe inner reducing step receives the sequence y₁, y₂, y₃, ..., yₙ, ... computed as follows\n\nu₀ = init\ny₁, u₁ = f(u₀, x₁)\ny₂, u₂ = f(u₁, x₂)\ny₃, u₃ = f(u₂, x₃)\n...\nyₙ, uₙ = f(uₙ₋₁, xₙ)\n...\nyₒₒ = onlast(uₒₒ)\n\nwhen the sequence x₁, x₂, x₃, ..., xₙ, ... is fed to ScanEmit(f).\n\nSee also: ScanEmit, Iterated.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(ScanEmit(tuple, 0), 1:3)\n3-element Array{Int64,1}:\n 0\n 1\n 2\n\n\n\n\n\n"
 },
 
 {
@@ -558,6 +574,86 @@ var documenterSearchIndex = {"docs": [
     "title": "Internals",
     "category": "section",
     "text": "Transducers.simple_transduce"
+},
+
+{
+    "location": "examples/transducers/#",
+    "page": "Writing transducers",
+    "title": "Writing transducers",
+    "category": "page",
+    "text": "EditURL = \"https://github.com/tkf/Transducers.jl/blob/master/examples/transducers.jl\""
+},
+
+{
+    "location": "examples/transducers/#How-to-write-transducers-1",
+    "page": "Writing transducers",
+    "title": "How to write transducers",
+    "category": "section",
+    "text": "Transducers don\'t export public interface for implementing transducers (and transducible processes).  Let\'s import some handy ones:using Transducers\nusing Transducers: Transducer, R_, next"
+},
+
+{
+    "location": "examples/transducers/#Stateless-transducer-1",
+    "page": "Writing transducers",
+    "title": "Stateless transducer",
+    "category": "section",
+    "text": "Let\'s write manually what Filter(x -> x isa Int) |> Map(x -> x + 1) would do:struct AddOneIfInt <: Transducer end\n\nfunction Transducers.next(rf::R_{AddOneIfInt}, result, input)\n    if input isa IntOutput input + 1 is passed to the \"inner\" reducing step:        next(rf.inner, result, input + 1)\n    elseFiltering out is done by \"doing nothing\"; return result-so-far as-is:        result\n    end\nendIneed, for integer collection, it increments input by one:addone_out1 = begin  # hide\ncollect(AddOneIfInt(), 1:5)\nend  # hideNon integer elements are filtered out:collect(AddOneIfInt(), Any[3, nothing, 2.0, missing, 5])Notice that output eltype is Any; it can be fixed by defining outtype:Transducers.outtype(::AddOneIfInt, _intype) = Int\n\naddone_out2 = begin  # hide\ncollect(AddOneIfInt(), 1:5)\nend  # hide"
+},
+
+{
+    "location": "examples/transducers/#Stateful-transducer-1",
+    "page": "Writing transducers",
+    "title": "Stateful transducer",
+    "category": "section",
+    "text": "AddOneIfInt is a stateless transducer which is very easy to implement.  A stateful transducer needs a bit more code.using Transducers: start, complete, InType, wrap, unwrap, wrapping\nusing RandomLet\'s define a transducer that spits out a random past element from the buffer:struct RandomRecall <: Transducer\n    history::Int\n    seed::Int\nend\nRandomRecall() = RandomRecall(3, 0)\nnothing  # hideA stateful transducer needs to implement Transducers.start to \"allocate\" its private state.  Here, the private state is a buffer and a random number generator state rng:function Transducers.start(rf::R_{RandomRecall}, result)\n    buffer = InType(rf)[]\n    rng = MersenneTwister(rf.xform.seed)\n    private_state = (buffer, rng)\n    return wrap(rf, private_state, start(rf.inner, result))\nendStateful transducer needs to unwrap its private state inside Transducers.next and then re-wrap it.  There is a helper function Transducers.wrapping does that with the do block:function Transducers.next(rf::R_{RandomRecall}, result, input)\n    wrapping(rf, result) do (buffer, rng), iresultPickup a random element to be passed to the inner reducing function. Replace it with the new incoming one in the buffer:        if length(buffer) < rf.xform.history\n            push!(buffer, input)\n            iinput = rand(rng, buffer)\n        else\n            i = rand(rng, 1:length(buffer))\n            iinput = buffer[i]\n            buffer[i] = input\n        endCall the inner reducing function.  Note that iresult unwrapped by Transducers.wrapping must be passed to next:        iresult = next(rf.inner, iresult, iinput)\n        return (buffer, rng), iresult\n    end\nend\n\nTransducers.outtype(::RandomRecall, intype) = intypeIndeed, it picks up some random elements from the past elements:recall_out1 = begin  # hide\ncollect(RandomRecall(), 1:5)\nend  # hideWith slightly more complex transducer:collect(Filter(isodd) |> RandomRecall() |> Filter(x -> x > 10) |> Take(5), 1:100)Another overloadable API is Transducers.complete.  It is invoked at the end of each transducible process.  It is useful for, e.g., flushing buffer.function Transducers.complete(rf::R_{RandomRecall}, result)\n    (buffer, _), iresult = unwrap(rf, result)\n    for x in bufferNote that inner next can be called more than one time inside next and complete:        iresult = next(rf.inner, iresult, x)\n    endcomplete for inner reducing function must be called exactly once:    return complete(rf.inner, iresult)\nendThis then adds 3 (= RandomRecall().history) more elements to the output:recall_out2 = begin  # hide\ncollect(RandomRecall(), 1:5)\nend  # hideThis page was generated using Literate.jl."
+},
+
+{
+    "location": "examples/transducible_processes/#",
+    "page": "Writing transducible processes",
+    "title": "Writing transducible processes",
+    "category": "page",
+    "text": "EditURL = \"https://github.com/tkf/Transducers.jl/blob/master/examples/transducible_processes.jl\""
+},
+
+{
+    "location": "examples/transducible_processes/#How-to-make-your-data-type-a-transducible-process-1",
+    "page": "Writing transducible processes",
+    "title": "How to make your data type a transducible process",
+    "category": "section",
+    "text": "Let\'s see how to make a vector-of-vector a transducible process; i.e., a type that can be fed to mapfoldl instead of the iterator.  Transducible process knows how to \"drive\" transducers. Another way to express it is that transducible process knows how to reduce itself using the reducing step function.struct VecOfVec{T}\n    vectors::Vector{Vector{T}}\nendWe need Transducers.next to invoke the reducing function rf and Transducers.@return_if_reduced to support early termination.using Transducers\nusing Transducers: next, @return_if_reducedSupporting mapfoldl and similar only requires Transducers.__foldl__:function Transducers.__foldl__(rf, val, vov::VecOfVec, complete)\n    for vector in vov.vectors\n        for x in vector\n            val = next(rf, val, x)\n            @return_if_reduced complete(rf, val)\n        end\n    end\n    return complete(rf, val)\nendNote that it\'s often a good idea to implement Base.eltype:Base.eltype(::VecOfVec{T}) where {T} = TIt can be then used as the input to the transducers:vov = VecOfVec(collect.([1:n for n in 1:3]))\ncollect(Map(identity), vov)Transducers.@return_if_reduced above is used to support terminating transducer like Take.collect(Take(3), vov)More complex example:collect(PartitionBy(isequal(1)) |> Map(copy) |> TeeZip(Map(sum)), vov)Notice that writing Transducers.__foldl__ is very straightforward comparing to how to define an iterator:function Base.iterate(vov::VecOfVec, state=nothing)\n    if state === nothing\n        i, j = 1, 1\n    else\n        i, j = state\n    end\n    i > length(vov.vectors) && return nothingIf j is in bound, we are iterating the same sub-vector:    vi = vov.vectors[i]\n    if j <= length(vi)\n        return vi[j], (i, j + 1)\n    endOtherwise, find the next non-empty sub-vector and start iterating it:    for k in i + 1:length(vov.vectors)\n        vk = vov.vectors[k]\n        if !isempty(vk)\n            return vk[1], (k, 2)  # i=k, j=2\n        end\n    end\n    return nothing\nend\n\nBase.length(vov::VecOfVec) = sum(length, vov.vectors)\n\ncollect(vov)This page was generated using Literate.jl."
+},
+
+{
+    "location": "examples/words/#",
+    "page": "Parallel word count",
+    "title": "Parallel word count",
+    "category": "page",
+    "text": "EditURL = \"https://github.com/tkf/Transducers.jl/blob/master/examples/words.jl\""
+},
+
+{
+    "location": "examples/words/#Splitting-a-string-into-words-and-counting-them-in-parallel-1",
+    "page": "Parallel word count",
+    "title": "Splitting a string into words and counting them in parallel",
+    "category": "section",
+    "text": "We start from the parallel algorithm presented in Guy Steele\'s 2009 ICFP talk (video).  It splits a space-separated string into list of strings (words).  The repeating theme in the talk was to build \"singleton solutions\" and then merge them together using an associative function.  We will follow this guideline and slightly extend the algorithm.Here is the original algorithm, re-written in Julia:struct Chunk\n    s::String\nend\n\nstruct Segment\n    l::String\n    A::Vector{String}\n    r::String\nend\n\nSegment() = Segment(\"\", [], \"\")\n\nmaybewordv(s::String) = isempty(s) ? String[] : [s]\n\n⊕(x::Chunk, y::Chunk) = Chunk(x.s * y.s)\n⊕(x::Chunk, y::Segment) = Segment(x.s * y.l, y.A, y.r)\n⊕(x::Segment, y::Chunk) = Segment(x.l, x.A, x.r * y.s)\n⊕(x::Segment, y::Segment) =\n    Segment(x.l,\n            append!(append!(x.A, maybewordv(x.r * y.l)), y.A),\n            y.r)\n\nsegmentorchunk(c::Char) = c == \' \' ? Segment() : Chunk(string(c))\n\nfunction collectwords(s::String)\n    g = mapfoldl(segmentorchunk, ⊕, s; init=Segment())\n    if g isa Char\n        return maybewordv(g.s)\n    else\n        return append!(append!(maybewordv(g.l), g.A), maybewordv(g.r))\n    end\nend\nnothing  # hideHere is how it works:using Test\n@testset begin\n    @test collectwords(\"This is a sample\") == [\"This\", \"is\", \"a\", \"sample\"]\n    @test collectwords(\" Here is another sample \") == [\"Here\", \"is\", \"another\", \"sample\"]\n    @test collectwords(\"JustOneWord\") == [\"JustOneWord\"]\n    @test collectwords(\" \") == []\n    @test collectwords(\"\") == []\nend\nnothing  # hide"
+},
+
+{
+    "location": "examples/words/#String-splitting-transducer-1",
+    "page": "Parallel word count",
+    "title": "String-splitting transducer",
+    "category": "section",
+    "text": "Let\'s try to make it re-usable by packaging it into transducers.using TransducersRather than accumulating words into a vector, we are going to write a transducer that \"emits\" a word as soon as it is ready.  The downstream transducer may choose to record everything or only aggregate, e.g., reduced statistics.  To this end, we replace Segment in the original algorithm tostruct Vacant\n    l::String\n    r::String\nendand output the words in the \"middle\" without accumulating it.  We use ScanEmit which requires an operator/function like ⊕ above but returning a pair of output and next state.  This function (extract below) must have the signature (S, S) -> (O, S) where S is the type for accumulated state and input and O is the output type.extract(x::Chunk, y::Chunk) = (), Chunk(x.s * y.s)\nextract(x::Chunk, y::Vacant) = (), Vacant(x.s * y.l, y.r)\nextract(x::Vacant, y::Chunk) = (), Vacant(x.l, x.r * y.s)\nextract(x::Vacant, y::Vacant) = maybewordt(x.r * y.l), Vacant(x.l, y.r)\n\nmaybewordt(s) = isempty(s) ? () : (s,)\nnothing  # hidemaybewordt(x.r * y.l) in the last line is the \"emission\".The words at the beginning and/or the end are not handled by extract.  This must be handled separately:lastword(x::Chunk) = maybewordt(x.s)\nlastword(x::Vacant) = (maybewordt(x.r)..., maybewordt(x.l)...)\n\nvacantorchunk(c::Char) = c == \' \' ? Vacant(\"\", \"\") : Chunk(string(c))\n\nwordsxf = Map(vacantorchunk) |> ScanEmit(extract, Chunk(\"\"), lastword) |> Cat()Test:@testset begin\n    @test collect(wordsxf, \"This is a sample\") == [\"is\", \"a\", \"sample\", \"This\"]\n    @test collect(wordsxf, \" Here is another sample \") == [\"Here\", \"is\", \"another\", \"sample\"]\n    @test collect(wordsxf, \"JustOneWord\") == [\"JustOneWord\"]\n    @test collect(wordsxf, \" \") == []\n    @test collect(wordsxf, \"\") == []\nend\nnothing  # hideSide note: In the first example, the first word This comes last. This is actually expected since both .l and .r are flushed in lastword which is called at the very end.  Here, This is stored in .l field.  If the order of the words is important, there are many possible fixes.  For example, extract and lastword can bundle information about the origin of the word (left vs middle-or-right).  Alternatively, perhaps the easiest solution is to insert a space in the beginning of input data."
+},
+
+{
+    "location": "examples/words/#Word-counting-transducer-1",
+    "page": "Parallel word count",
+    "title": "Word-counting transducer",
+    "category": "section",
+    "text": "We can pipe the resulting words into various transducers.processcount(word) = Base.ImmutableDict(word => 1)\ncountxf = wordsxf |> Map(processcount)Transducer countxf constructs a \"singleton solution\" as a dictionary which then accumulated with the associative reducing step function mergecont:mergecont(a, b) = merge(+, a, b)\nmergecont(a) = a\nnothing  # hideNote that the unary form is required for the completion. Alternatively, we can use Completing((a, b) -> merge(+, a, b)) instead of mergecont.  Putting the transducer and reducing function together, we get:countwords(s; kwargs...) =\n    mapreduce(Map(Char) |> countxf,\n              mergecont,\n              transcode(UInt8, s);\n              init = Base.ImmutableDict{String,Int}(),\n              kwargs...)\nnothing  # hideSide note: Since mapreduce does not support string, the input string is converted to a Vector{UInt8} first by transcode. That\'s why there is Map(Char) |> before countxf.  Of course, this is not valid for UTF-8 in general.Side note 2: we are (ab)using the fact that merging ImmutableDicts yields a Dict:@assert merge(Base.ImmutableDict{String,Int}(),\n              Base.ImmutableDict{String,Int}()) isa Dict{String,Int}Let\'s run some tests with different number of threads:@testset for nthreads in [1, 2, 4]\n    @test countwords(\"This is a sample\", nthreads=nthreads) ==\n        Dict(\"This\" => 1, \"is\" => 1, \"a\" => 1, \"sample\" => 1)\n    @test countwords(\" Here is another sample \", nthreads=nthreads) ==\n        Dict(\"Here\" => 1, \"is\" => 1, \"another\" => 1, \"sample\" => 1)\n    @test countwords(\"JustOneWord\", nthreads=nthreads) ==\n        Dict(\"JustOneWord\" => 1)\n    @test countwords(\" \", nthreads=nthreads) == Dict()\n    @test countwords(\"\", nthreads=nthreads) == Dict()\n    @test countwords(\"aaa bb aaa aaa bb bb aaa\", nthreads=nthreads) ==\n        Dict(\"aaa\" => 4, \"bb\" => 3)\nend\nnothing  # hideThis page was generated using Literate.jl."
 },
 
 ]}
