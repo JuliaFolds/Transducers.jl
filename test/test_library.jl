@@ -286,6 +286,21 @@ end
     end
 end
 
+@testset "Iterated" begin
+    @testset for xs in iterator_variants(1:3)
+        @test collect(Iterated(x -> x + 1, 1), xs) == 1:3
+    end
+    @testset "Combination with stateful transducers" begin
+        @testset for xs in iterator_variants(1:3)
+            @test collect(
+                Iterated(identity, nothing) |> Iterated(x -> x + 1, 1),
+                xs) == 1:3
+            @test collect(Iterated(x -> x + 1, 1) |> Drop(1), xs) == 2:3
+            @test collect(Drop(1) |> Iterated(x -> x + 1, 1), xs) == 1:2
+        end
+    end
+end
+
 @testset "Count" begin
     @testset for xs in iterator_variants(1:3)
         @test collect(Count(), xs) == 1:3
