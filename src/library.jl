@@ -662,6 +662,7 @@ function complete(rf::R_{Partition}, result)
         iinput = @view iinput[s + 1:end]
         iinput :: DenseSubVector
         iresult = next(rf.inner, iresult, iinput)
+        @return_if_reduced complete(rf.inner, iresult)
     end
     return complete(rf.inner, iresult)
 end
@@ -723,6 +724,7 @@ function complete(rf::R_{PartitionBy}, ps)
     (iinput, _), iresult = unwrap(rf, ps)
     if !isempty(iinput)
         iresult = next(rf.inner, iresult, iinput)
+        @return_if_reduced complete(rf.inner, iresult)
     end
     return complete(rf.inner, iresult)
 end
@@ -1034,6 +1036,7 @@ function complete(rf::R_{ScanEmit}, result)
     u, iresult = unwrap(rf, result)
     if rf.xform.onlast !== nothing
         iresult = next(rf.inner, iresult, rf.xform.onlast(u))
+        @return_if_reduced complete(rf.inner, iresult)
     end
     return complete(rf.inner, iresult)
 end

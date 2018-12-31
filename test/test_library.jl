@@ -32,6 +32,11 @@ end
     @testset for xs in iterator_variants(1:5)
         @test collect(xf, xs) == [[1, 2], [3], [4, 5]]
     end
+    @testset "Inner transducer terminated during complete" begin
+        @testset for xs in iterator_variants(1:5)
+            @test collect(xf |> Take(3), xs) == [[1, 2], [3], [4, 5]]
+        end
+    end
 end
 
 @testset "Scan" begin
@@ -53,7 +58,13 @@ end
 @testset "ScanEmit" begin
     @testset for xs in iterator_variants(1:3)
         @test collect(ScanEmit(tuple, 0), xs) == 0:2
+        @test collect(ScanEmit(tuple, 0, identity), xs) == 0:3
         @test collect(ScanEmit(tuple, nothing), xs) == [nothing; 1:2]
+    end
+    @testset "Inner transducer terminated during complete" begin
+        @testset for xs in iterator_variants(1:3)
+            @test collect(ScanEmit(tuple, 0, identity) |> Take(4), xs) == 0:3
+        end
     end
 end
 
@@ -282,6 +293,15 @@ end
                 [[1:3;], [2:4;], [3:5;]]
             @test collect(Partition(3, 1) |> Map(copy) |> Take(3), xs) ==
                 [[1:3;], [2:4;], [3:5;]]
+        end
+    end
+    @testset "Inner transducer terminated during complete" begin
+        @testset "w=4, 9:$i" for i in 9:12
+            @testset for xs in iterator_variants(1:i)
+                @test collect(
+                    Partition(4, flush=true) |> Map(copy) |> Take(3),
+                    xs) == [[1:4;], [5:8;], [9:i;]]
+            end
         end
     end
 end
