@@ -7,11 +7,21 @@
 # them together using an associative function.  We will follow this
 # guideline and slightly extend the algorithm.
 #
-# Here is the original algorithm, re-written in Julia:
+# It is highly recommended to just watch the talk for understanding
+# the algorithm.  However, we briefly describe how it works.
+#
+# When a certain contiguous region of a string is processed, we either
+# already have seen at least one space or not.  These two states are
+# tracked using following two types.  If there is no space so far, we
+# only have a chunk of a possibly larger word (see example below):
 
 struct Chunk
     s::String
 end
+
+# If there are one or more spaces, (possibly zero) words that are
+# already determined and left/right "chunks" have to be tracked
+# separately:
 
 struct Segment
     l::String
@@ -19,9 +29,21 @@ struct Segment
     r::String
 end
 
-Segment() = Segment("", [], "")
+# Here is an example taken from the talk:
+#
+# ```
+# Segment("Here", ["is", "a"], "")
+#    |
+#    |       Segment("lian", "string")
+#  __|_____            _|______
+# |        |          |        |
+# Here is a sesquipedalian string of words
+#           |________|          |________|
+#    Chunk("sesquipeda")        Segment("g", ["of"], "words")
+# ```
 
-maybewordv(s::String) = isempty(s) ? String[] : [s]
+# We then need a way to merge two results which can independently in
+# one of the above two states.
 
 ⊕(x::Chunk, y::Chunk) = Chunk(x.s * y.s)
 ⊕(x::Chunk, y::Segment) = Segment(x.s * y.l, y.A, y.r)
@@ -31,10 +53,20 @@ maybewordv(s::String) = isempty(s) ? String[] : [s]
             append!(append!(x.A, maybewordv(x.r * y.l)), y.A),
             y.r)
 
-segmentorchunk(c::Char) = c == ' ' ? Segment() : Chunk(string(c))
+maybewordv(s::String) = isempty(s) ? String[] : [s]
+nothing  # hide
+
+# Input is a sequence of `Char`s.  Each of them has to be converted
+# into a "singleton solution" which can be merged with already
+# aggregated (or another singleton) solution with `⊕`:
+
+segmentorchunk(c::Char) = c == ' ' ? Segment("", [], "") : Chunk(string(c))
+nothing  # hide
+
+# Putting them together, we get:
 
 function collectwords(s::String)
-    g = mapfoldl(segmentorchunk, ⊕, s; init=Segment())
+    g = mapfoldl(segmentorchunk, ⊕, s; init=Segment("", [], ""))
     if g isa Char
         return maybewordv(g.s)
     else
@@ -43,7 +75,7 @@ function collectwords(s::String)
 end
 nothing  # hide
 
-# Here is how it works:
+# Let's run a few tests covering some edge cases:
 
 using Test
 @testset begin
