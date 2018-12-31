@@ -971,7 +971,7 @@ end
     ScanEmit(f, init[, onlast])
 
 Accumulate input `x` with a function `f` with the call signature
-`(x, u) -> (y, u)` and pass the result `y` to the inner reduction step.
+`(u, x) -> (y, u)` and pass the result `y` to the inner reduction step.
 
 The inner reducing step receives the sequence `y₁, y₂, y₃, ..., yₙ,
 ...` computed as follows
