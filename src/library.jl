@@ -240,7 +240,7 @@ struct Take <: AbstractFilter
     n::Int
 end
 
-start(rf::R_{Take}, result) = wrap(rf, rf.xform.n, result)
+start(rf::R_{Take}, result) = wrap(rf, rf.xform.n, start(rf.inner, result))
 
 next(rf::R_{Take}, result, input) =
     wrapping(rf, result) do n, iresult
@@ -280,7 +280,7 @@ end
 
 function start(rf::R_{TakeLast}, result)
     n = rf.xform.n
-    return wrap(rf, (-n, Vector{InType(rf)}(undef, n)), result)
+    return wrap(rf, (-n, Vector{InType(rf)}(undef, n)), start(rf.inner, result))
 end
 
 next(rf::R_{TakeLast}, result, input) =
@@ -364,7 +364,7 @@ struct TakeNth <: AbstractFilter
     n::Int
 end
 
-start(rf::R_{TakeNth}, result) = wrap(rf, rf.xform.n, result)
+start(rf::R_{TakeNth}, result) = wrap(rf, rf.xform.n, start(rf.inner, result))
 
 next(rf::R_{TakeNth}, result, input) =
     wrapping(rf, result) do c, iresult
@@ -400,7 +400,7 @@ struct Drop <: AbstractFilter
     n::Int
 end
 
-start(rf::R_{Drop}, result) = wrap(rf, 0, result)
+start(rf::R_{Drop}, result) = wrap(rf, 0, start(rf.inner, result))
 
 next(rf::R_{Drop}, result, input) =
     wrapping(rf, result) do c, iresult
@@ -449,7 +449,7 @@ end
 
 function start(rf::R_{DropLast}, result)
     n = rf.xform.n + 1
-    return wrap(rf, (-n, Vector{InType(rf)}(undef, n)), result)
+    return wrap(rf, (-n, Vector{InType(rf)}(undef, n)), start(rf.inner, result))
 end
 
 next(rf::R_{DropLast}, result, input) =
@@ -499,7 +499,7 @@ struct DropWhile{F} <: AbstractFilter
     pred::F
 end
 
-start(rf::R_{DropWhile}, result) = wrap(rf, true, result)
+start(rf::R_{DropWhile}, result) = wrap(rf, true, start(rf.inner, result))
 
 next(rf::R_{DropWhile}, result, input) =
     wrapping(rf, result) do dropping, iresult
@@ -535,7 +535,7 @@ struct FlagFirst <: Transducer end
 
 outtype(::FlagFirst, intype) = Tuple{Bool,intype}
 
-start(rf::R_{FlagFirst}, result) = wrap(rf, true, result)
+start(rf::R_{FlagFirst}, result) = wrap(rf, true, start(rf.inner, result))
 
 next(rf::R_{FlagFirst}, result, input) =
     wrapping(rf, result) do isfirst, iresult
@@ -594,7 +594,7 @@ outtype(::Partition, intype) = DenseSubVector{intype}
 function start(rf::R_{Partition}, result)
     buf = Vector{InType(rf)}()
     sizehint!(buf, rf.xform.size)
-    return wrap(rf, (0, 0, buf), result)
+    return wrap(rf, (0, 0, buf), start(rf.inner, result))
 end
 
 function next(rf::R_{Partition}, result, input)
@@ -1099,7 +1099,8 @@ function _type_fixedpoint(f, X, limit = 10)
 end
 
 outtype(xf::Iterated{<:Any, T}, ::Any) where T = T
-start(rf::R_{Iterated}, result) = wrap(rf, rf.xform.init, result)
+start(rf::R_{Iterated}, result) =
+    wrap(rf, rf.xform.init, start(rf.inner, result))
 next(rf::R_{Iterated}, result, ::Any) =
     wrapping(rf, result) do istate, iresult
         return rf.xform.f(istate), next(rf.inner, iresult, istate)
@@ -1145,7 +1146,7 @@ end
 Count(start = 1) = Count(start, oneunit(start))
 
 outtype(xf::Count{T}, ::Any) where T = T
-start(rf::R_{Count}, result) = wrap(rf, rf.xform.start, result)
+start(rf::R_{Count}, result) = wrap(rf, rf.xform.start, start(rf.inner, result))
 next(rf::R_{Count}, result, ::Any) =
     wrapping(rf, result) do istate, iresult
         return istate + rf.xform.step, next(rf.inner, iresult, istate)
@@ -1382,7 +1383,8 @@ struct Inject{T} <: Transducer
 end
 
 outtype(xf::Inject, intype) = Tuple{intype, ieltype(xf.iterator)}
-start(rf::R_{Inject}, result) = wrap(rf, iterate(rf.xform.iterator), result)
+start(rf::R_{Inject}, result) =
+    wrap(rf, iterate(rf.xform.iterator), start(rf.inner, result))
 next(rf::R_{Inject}, result, input) =
     wrapping(rf, result) do istate, iresult
         istate === nothing && return istate, ensure_reduced(iresult)
