@@ -34,7 +34,7 @@ end
 # ```
 # Segment("Here", ["is", "a"], "")
 #    |
-#    |       Segment("lian", "string")
+#    |       Segment("lian", [], "string")
 #  __|_____            _|______
 # |        |          |        |
 # Here is a sesquipedalian string of words
@@ -119,7 +119,8 @@ extract(x::Vacant, y::Vacant) = maybewordt(x.r * y.l), Vacant(x.l, y.r)
 maybewordt(s) = isempty(s) ? () : (s,)
 nothing  # hide
 
-# `maybewordt(x.r * y.l)` in the last line is the "emission".
+# `maybewordt(x.r * y.l)` in `extract(x::Vacant, y::Vacant)` is the
+# "emission".
 #
 # The words at the beginning and/or the end are not handled by
 # `extract`.  This must be handled separately:
