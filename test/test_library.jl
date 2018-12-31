@@ -109,6 +109,12 @@ end
 end
 
 @testset "TakeLast" begin
+    @testset for xs in iterator_variants(1:5)
+        @test collect(TakeLast(2), xs) == 4:5
+        @test collect(TakeLast(10), xs) == 1:5
+        @test collect(TakeLast(3) |> TakeLast(4), xs) == 3:5
+        @test collect(TakeLast(4) |> TakeLast(3), xs) == 3:5
+    end
     @testset "Combination with stateful transducers" begin
         @testset for xs in iterator_variants(1:5)
             @test collect(Take(4) |> TakeLast(2), xs) == 3:4
@@ -126,6 +132,12 @@ end
 @testset "TakeNth" begin
     @testset for xs in iterator_variants(1:10)
         @test collect(TakeNth(3), xs) == 1:3:10
+    end
+    @testset "Combination with stateful transducers" begin
+        @testset for xs in iterator_variants(1:10)
+            @test collect(Take(4) |> TakeNth(2), xs) == (1:4)[1:2:end]
+            @test collect(TakeNth(2) |> Take(4), xs) == (1:2:10)[1:4]
+        end
     end
 end
 
