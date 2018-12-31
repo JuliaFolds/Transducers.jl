@@ -58,7 +58,7 @@ end
     end
 
     ed = eduction(xf, 1:5)
-    @test finaltype(ed.rf) === Int
+    @test eltype(ed) === Int
 end
 
 @testset "append!" begin

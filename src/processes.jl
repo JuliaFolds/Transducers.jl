@@ -244,7 +244,13 @@ transduce(xform::Transducer, f, init, ed::Eduction) =
     transduce(Transducer(ed) |> xform, f, init, ed.coll)
 
 Base.IteratorSize(::Type{<:Eduction}) = Base.SizeUnknown()
+
 Base.IteratorEltype(::Type{<:Eduction}) = Base.EltypeUnknown()
+# eltype(::Type{<:Eduction}) can't be implemented (or it's tricky
+# especially for TeeZip) so it's EltypeUnknown for now.
+#
+# ...though it's easy when there is a value:
+Base.eltype(ed::Eduction) = finaltype(ed.rf)
 
 function Base.iterate(ts::Eduction, state = nothing)
     if state === nothing
