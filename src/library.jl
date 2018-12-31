@@ -1398,3 +1398,30 @@ next(rf::R_{Inject}, result, input) =
         iresult2 = next(rf.inner, iresult, (input, y))
         return iterate(rf.xform.iterator, s), iresult2
     end
+
+
+"""
+    Enumerate()
+
+Transducer variant of `Base.enumerate`.
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Enumerate(), ["A", "B", "C"])
+3-element Array{Tuple{Int64,String},1}:
+ (1, "A")
+ (2, "B")
+ (3, "C")
+```
+"""
+struct Enumerate <: Transducer end
+
+outtype(xf::Enumerate, intype) = Tuple{Int, intype}
+start(rf::R_{Enumerate}, result) = wrap(rf, 1, result)
+next(rf::R_{Enumerate}, result, input) =
+    wrapping(rf, result) do i, iresult
+        iresult2 = next(rf.inner, iresult, (i, input))
+        i + 1, iresult2
+    end
