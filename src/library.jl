@@ -1340,16 +1340,16 @@ Base.:(==)(xf1::SetIndex{inbounds,A},
 
 
 """
-    Merge(iterator)
+    Inject(iterator)
 
-Merge the output from `iterator` to the stream processed by the inner
+Inject the output from `iterator` to the stream processed by the inner
 reduction step.
 
 # Examples
 ```jldoctest
 julia> using Transducers
 
-julia> collect(Merge(Iterators.cycle("hello")), 1:8)
+julia> collect(Inject(Iterators.cycle("hello")), 1:8)
 8-element Array{Tuple{Int64,Char},1}:
  (1, 'h')
  (2, 'e')
@@ -1360,14 +1360,14 @@ julia> collect(Merge(Iterators.cycle("hello")), 1:8)
  (7, 'e')
  (8, 'l')
 
-julia> collect(Merge(Iterators.repeated([1 2])), 1:4)
+julia> collect(Inject(Iterators.repeated([1 2])), 1:4)
 4-element Array{Tuple{Int64,Array{Int64,2}},1}:
  (1, [1 2])
  (2, [1 2])
  (3, [1 2])
  (4, [1 2])
 
-julia> collect(Merge(Iterators.product(1:2, 3:5)), 1:100)
+julia> collect(Inject(Iterators.product(1:2, 3:5)), 1:100)
 6-element Array{Tuple{Int64,Tuple{Int64,Int64}},1}:
  (1, (1, 3))
  (2, (2, 3))
@@ -1377,13 +1377,13 @@ julia> collect(Merge(Iterators.product(1:2, 3:5)), 1:100)
  (6, (2, 5))
 ```
 """
-struct Merge{T} <: Transducer
+struct Inject{T} <: Transducer
     iterator::T
 end
 
-outtype(xf::Merge, intype) = Tuple{intype, ieltype(xf.iterator)}
-start(rf::R_{Merge}, result) = wrap(rf, iterate(rf.xform.iterator), result)
-next(rf::R_{Merge}, result, input) =
+outtype(xf::Inject, intype) = Tuple{intype, ieltype(xf.iterator)}
+start(rf::R_{Inject}, result) = wrap(rf, iterate(rf.xform.iterator), result)
+next(rf::R_{Inject}, result, input) =
     wrapping(rf, result) do istate, iresult
         istate === nothing && return istate, ensure_reduced(iresult)
         y, s = istate
