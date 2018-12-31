@@ -1,4 +1,4 @@
-# [WIP] Transducers.jl: Composable, efficient and type-stable transducers for Julia
+# Transducers.jl: Efficient and type-stable transducers for Julia
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://tkf.github.io/Transducers.jl/stable)
 [![Latest](https://img.shields.io/badge/docs-latest-blue.svg)](https://tkf.github.io/Transducers.jl/latest)
