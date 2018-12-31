@@ -170,7 +170,25 @@ end
 
 @testset "DropWhile" begin
     @testset for xs in iterator_variants(1:10)
+        @test collect(DropWhile(x -> false), xs) == 1:10
+        @test collect(DropWhile(x -> true), xs) == []
         @test collect(DropWhile(x -> x % 3 != 0), xs) == 3:10
+    end
+    @testset "Combination with stateful transducers" begin
+        @testset for xs in iterator_variants(1:10)
+            @test collect(
+                DropWhile(x -> x ÷ 3 == 0) |> DropWhile(x -> x ÷ 3 == 1),
+                xs) == 6:10
+            @test collect(
+                DropWhile(x -> x ÷ 3 == 0) |> Take(3),
+                xs) == 3:5
+            @test collect(
+                Take(3) |> DropWhile(x -> x ÷ 3 == 0),
+                xs) == [3]
+            @test collect(
+                Take(2) |> DropWhile(x -> x ÷ 3 == 0),
+                xs) == []
+        end
     end
 end
 
