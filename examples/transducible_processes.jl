@@ -77,4 +77,49 @@ end
 
 Base.length(vov::VecOfVec) = sum(length, vov.vectors)
 
-collect(vov)
+@show collect(vov)
+
+xf = PartitionBy(isequal(1)) |> Cat()
+@assert mapfoldl(xf, +, vov, init=1) == 11
+
+using Test
+
+let err
+    try
+        @inferred mapfoldl(xf, +, vov, init=1)
+    catch err
+    end
+
+    print("Got: ")
+    showerror(stdout, err)
+    println()
+end
+
+#-
+
+@inline function Transducers.__foldl__(rf, val, vov::VecOfVec, complete)
+    if isempty(vov.vectors) || all(isempty, vov.vectors)
+        return complete(rf, val)
+    end
+
+    n = findfirst(!isempty, vov.vectors)
+    v1 = @inbounds vov.vectors[n]
+    x = @inbounds v1[1]
+    val = next(rf, val, x)
+    @return_if_reduced complete(rf, val)
+
+    for i in 2:length(v1)
+        val = next(rf, val, @inbounds v1[i])
+        @return_if_reduced complete(rf, val)
+    end
+
+    for vector in @inbounds @view vov.vectors[n + 1:end]
+        for x in vector
+            val = next(rf, val, x)
+            @return_if_reduced complete(rf, val)
+        end
+    end
+    return complete(rf, val)
+end
+
+@assert (@inferred mapfoldl(xf, +, vov, init=1)) == 11
