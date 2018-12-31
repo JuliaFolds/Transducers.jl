@@ -301,16 +301,19 @@ function complete(rf::R_{TakeLast}, result)
     if c <= 0  # buffer is not full (or c is just wrapping)
         for i in 1:(c + length(buffer))
             iresult = next(rf.inner, iresult, @inbounds buffer[i])
+            @return_if_reduced complete(rf.inner, iresult)
         end
     else
         for i in c+1:length(buffer)
             iresult = next(rf.inner, iresult, @inbounds buffer[i])
+            @return_if_reduced complete(rf.inner, iresult)
         end
         for i in 1:c
             iresult = next(rf.inner, iresult, @inbounds buffer[i])
+            @return_if_reduced complete(rf.inner, iresult)
         end
     end
-    return iresult
+    return complete(rf.inner, iresult)
 end
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/take-while

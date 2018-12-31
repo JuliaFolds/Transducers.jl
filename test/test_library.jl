@@ -78,6 +78,15 @@ end
     end
 end
 
+@testset "TakeLast" begin
+    @testset "Combination with stateful transducers" begin
+        @testset for xs in iterator_variants(1:5)
+            @test collect(Take(4) |> TakeLast(2), xs) == 3:4
+            @test collect(TakeLast(4) |> Take(2), xs) == 2:3
+        end
+    end
+end
+
 @testset "TakeWhile" begin
     @testset for xs in iterator_variants(1:5)
         @test collect(TakeWhile(x -> x < 3), xs) == 1:2

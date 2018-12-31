@@ -22,7 +22,7 @@ unreduced(x) = x
 It transforms the given expression to:
 
 ```julia
-val isa Reduced && return Reduced(complete(rf, unreduced(val)))
+val isa Reduced && return ensure_reduced(complete(rf, unreduced(val)))
 ```
 
 That is to say, if `val` is `Reduced`, unpack it, call `complete`,
@@ -33,7 +33,7 @@ re-pack into `Reduced`, and then finally return it.
 julia> using Transducers: @return_if_reduced
 
 julia> @macroexpand @return_if_reduced complete(rf, val)
-:(val isa Transducers.Reduced && return (Transducers.Reduced)(complete(rf, (Transducers.unreduced)(val))))
+:(val isa Transducers.Reduced && return (Transducers.ensure_reduced)(complete(rf, (Transducers.unreduced)(val))))
 ```
 """
 macro return_if_reduced(ex)
@@ -46,7 +46,7 @@ macro return_if_reduced(ex)
         )
     end
     complete, rf, val = esc.(ex.args)
-    :($val isa Reduced && return Reduced($complete($rf, unreduced($val))))
+    :($val isa Reduced && return ensure_reduced($complete($rf, unreduced($val))))
 end
 
 abstract type Transducer end
