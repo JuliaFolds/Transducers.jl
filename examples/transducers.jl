@@ -27,7 +27,9 @@ end
 
 # Ineed, for integer collection, it increments input by one:
 
+addone_out1 = begin  # hide
 collect(AddOneIfInt(), 1:5)
+end  # hide
 
 # Non integer elements are filtered out:
 
@@ -38,7 +40,9 @@ collect(AddOneIfInt(), Any[3, nothing, 2.0, missing, 5])
 
 Transducers.outtype(::AddOneIfInt, _intype) = Int
 
+addone_out2 = begin  # hide
 collect(AddOneIfInt(), 1:5)
+end  # hide
 
 # ## Stateful transducer
 #
@@ -51,10 +55,11 @@ using Random
 # Let's define a transducer that spits out a random past element from
 # the buffer:
 
-Base.@kwdef struct RandomRecall <: Transducer
-    history::Int = 3
-    seed::Int = 0
+struct RandomRecall <: Transducer
+    history::Int
+    seed::Int
 end
+RandomRecall() = RandomRecall(3, 0)
 nothing  # hide
 
 # A stateful transducer needs to implement [`Transducers.start`](@ref)
@@ -96,7 +101,9 @@ Transducers.outtype(::RandomRecall, intype) = intype
 
 # Indeed, it picks up some random elements from the past elements:
 
+recall_out1 = begin  # hide
 collect(RandomRecall(), 1:5)
+end  # hide
 
 # With slightly more complex transducer:
 
@@ -120,4 +127,6 @@ end
 # This then adds 3 (`= RandomRecall().history`) more elements to the
 # output:
 
+recall_out2 = begin  # hide
 collect(RandomRecall(), 1:5)
+end  # hide

@@ -5,6 +5,7 @@ using Test
         "test_library.jl",
         "test_processes.jl",
         "test_show.jl",
+        "test_examples_transducers.jl",
         "test_examples_words.jl",
         "test_ir.jl",
         ]
