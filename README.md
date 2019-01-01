@@ -1,20 +1,18 @@
 # Transducers.jl: Efficient and type-stable transducers for Julia
 
-<!-- [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://tkf.github.io/Transducers.jl/stable) -->
-
-[![Latest](https://img.shields.io/badge/docs-latest-blue.svg)](https://tkf.github.io/Transducers.jl/latest)
-[![Build Status](https://travis-ci.com/tkf/Transducers.jl.svg?branch=master)](https://travis-ci.com/tkf/Transducers.jl)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/tkf/Transducers.jl?svg=true)](https://ci.appveyor.com/project/tkf/Transducers-jl)
-[![Codecov](https://codecov.io/gh/tkf/Transducers.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/tkf/Transducers.jl)
-[![Coveralls](https://coveralls.io/repos/github/tkf/Transducers.jl/badge.svg?branch=master)](https://coveralls.io/github/tkf/Transducers.jl?branch=master)
+[![Latest documentation][docs-latest-img]][docs-latest-url]
+[![Travis Status][travis-img]][travis-url]
+[![codecov.io][codecov-img]][codecov-url]
+[![Coverage Status][coveralls-img]][coveralls-url]
 
 Transducers.jl provides composable algorithms on sequence of inputs.
-They are called
-[_transducers_](https://clojure.org/reference/transducers), first
-introduced in Clojure language by Rich Hickey.
+They are called _[transducers]_, first introduced in Clojure language
+by Rich Hickey.
+
+[transducers]: https://clojure.org/reference/transducers
 
 Using Transducers is quite straightforward, especially if you already
-know similarly concepts in iterator libraries:
+know similar concepts in iterator libraries:
 
 ```julia
 using Transducers
@@ -23,7 +21,8 @@ mapfoldl(xf, +, 1:100)
 ```
 
 However, the formalization of the transducers is quite different from
-iterators and yields a better performance for complex compositions.
+iterators and resulting in a better performance for complex
+compositions.
 
 See more in the [documentation](https://tkf.github.io/Transducers.jl/latest).
 
@@ -32,3 +31,12 @@ See more in the [documentation](https://tkf.github.io/Transducers.jl/latest).
 ```
 ]add https://github.com/tkf/Transducers.jl
 ```
+
+[docs-latest-img]: https://img.shields.io/badge/docs-latest-blue.svg
+[docs-latest-url]: https://tkf.github.io/Transducers.jl/latest
+[travis-img]: https://travis-ci.com/tkf/Transducers.jl.svg?branch=master
+[travis-url]: https://travis-ci.com/tkf/Transducers.jl
+[codecov-img]: http://codecov.io/github/tkf/Transducers.jl/coverage.svg?branch=master
+[codecov-url]: http://codecov.io/github/tkf/Transducers.jl?branch=master
+[coveralls-img]: https://coveralls.io/repos/tkf/Transducers.jl/badge.svg?branch=master&service=github
+[coveralls-url]: https://coveralls.io/github/tkf/Transducers.jl?branch=master
