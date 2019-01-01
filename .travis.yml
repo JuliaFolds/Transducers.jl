@@ -4,6 +4,7 @@ os:
   - linux
 julia:
   - 1.0
+  - 1.1
   - nightly
 matrix:
   allow_failures:
@@ -18,7 +19,7 @@ after_success:
 jobs:
   include:
     - stage: "Documentation"
-      julia: 1.0
+      julia: 1.1
       os: linux
       script:
         - docs/make.jl
