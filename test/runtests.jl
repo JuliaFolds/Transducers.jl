@@ -7,6 +7,7 @@ using Test
         "test_show.jl",
         "test_examples_transducers.jl",
         "test_examples_words.jl",
+        "test_examples_primes.jl",
         "test_ir.jl",
         ]
     include(file)

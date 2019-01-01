@@ -4,9 +4,10 @@ using Transducers
 # test.
 
 EXAMPLE_PAGES = [
+    "Parallel word count" => "examples/words.md",
+    "Prime sieve" => "examples/primes.md",
     "Writing transducers" => "examples/transducers.md",
     "Writing reducibles" => "examples/reducibles.md",
-    "Parallel word count" => "examples/words.md",
 ]
 
 function transducers_literate(;
