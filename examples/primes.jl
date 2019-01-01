@@ -3,6 +3,10 @@
 # Transducer `prime_xf` below produces a sequence of prime numbers
 # given a sequence of integers 2, 3, 4, and so on.
 
+if !@isdefined isnothing          # hide
+    isnothing(x) = x === nothing  # hide
+end                               # hide
+
 using Transducers
 
 sieve(xf, x) =
