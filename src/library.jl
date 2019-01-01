@@ -1124,6 +1124,7 @@ $(_shared_notes_unfold)
 
 See also:
 [`Iterators.countfrom`](https://docs.julialang.org/en/v1/base/iterators/).
+[`Enumerate`](@ref)
 
 # Examples
 ```jldoctest
@@ -1397,4 +1398,46 @@ next(rf::R_{Inject}, result, input) =
         y, s = istate
         iresult2 = next(rf.inner, iresult, (input, y))
         return iterate(rf.xform.iterator, s), iresult2
+    end
+
+
+"""
+    Enumerate([start[, step]])
+
+Transducer variant of `Base.enumerate`. The `start` and `step` arguments
+are optional and have the same meaning as in [`Count`](@ref).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(Enumerate(), ["A", "B", "C"])
+3-element Array{Tuple{Int64,String},1}:
+ (1, "A")
+ (2, "B")
+ (3, "C")
+
+julia> start=2; step=3;
+
+julia> collect(Enumerate(start, step), ["A", "B", "C"])
+3-element Array{Tuple{Int64,String},1}:
+ (2, "A")
+ (5, "B")
+ (8, "C")
+
+```
+"""
+struct Enumerate{T} <: Transducer
+    start::T
+    step::T
+end
+
+Enumerate(start = 1) = Enumerate(start, oneunit(start))
+
+outtype(xf::Enumerate{T}, intype) where {T} = Tuple{T, intype}
+start(rf::R_{Enumerate}, result) = wrap(rf, rf.xform.start, result)
+next(rf::R_{Enumerate}, result, input) =
+    wrapping(rf, result) do i, iresult
+        iresult2 = next(rf.inner, iresult, (i, input))
+        i + rf.xform.step, iresult2
     end

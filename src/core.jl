@@ -80,9 +80,8 @@ AbstractFilter
 # The `Reduction` type corresponds to such a function, but keeps extra information:
 # * InType records the type of input
 # * `xform` and `inner` are a decomposition of the reduction function into
-#   a reducer `xform` and an inner reduction function `inner`.
-#   `inner` reduction. `inner` can be either a `Reduction` or a function with
-#   arity-2 and arity-1 methods
+#   a transducer `xform` and an inner reduction function `inner`.
+#   `inner` can be either a `Reduction` or a function with arity-2 and arity-1 methods
 #
 struct Reduction{X <: Transducer, I, InType}
     xform::X
