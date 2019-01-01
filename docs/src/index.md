@@ -240,8 +240,8 @@ mapfoldl(xf, step, input, init=...)
 ```
 
 * **Reducing function** or **Reducing step (function)**: A reducing
-  function combines result-so-far with the input.  It is in a narrow
-  sense a "callable" `op` of the signature `op(::X, ::Y) :: X` (or
+  function combines result-so-far with the input.  It in a narrow
+  sense is a "callable" `op` of the signature `op(::X, ::Y) :: X` (or
   `op(::X, ::X) :: X` in case for [`mapreduce`](@ref)) or
   schematically:
 
