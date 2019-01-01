@@ -212,6 +212,77 @@ end
 next(rf::R_{Filter}, result, input) =
     rf.xform.pred(input) ? next(rf.inner, result, input) : result
 
+"""
+    NotA(T)
+    NotA{T}()
+
+Skip items of type `T`.  Unlike `Filter(!ismissing)`, downstream
+transducers can have a correct type information for `NotA(Missing)`.
+
+See also: [`OfType`](@ref)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(NotA(Missing), [1, missing, 2])
+2-element Array{Int64,1}:
+ 1
+ 2
+
+julia> collect(Filter(!ismissing), [1, missing, 2])  # see the eltype below
+2-element Array{Union{Missing, Int64},1}:
+ 1
+ 2
+```
+"""
+struct NotA{T} <: AbstractFilter end
+NotA(T::Type) = NotA{T}()
+
+outtype(::NotA{T}, intype) where T = Core.Compiler.typesubtract(intype, T)
+
+next(rf::R_{NotA{T}}, result, input) where T =
+    input isa T ? result : next(rf.inner, result, input)
+
+# **Side notes**.  Although in principle `NotA(Missing)` can yields a
+# better performance than `Filter(!ismissing)` (by providing more type
+# information to the compiler), it seems `Filter(!ismissing)` is
+# enough for a small example.  See:
+# https://discourse.julialang.org/t/19159/11
+#
+# So, the main benefit of `NotA` over `Filter` is `outtype`.
+
+"""
+    OfType(T)
+    OfType{T}()
+
+Include only items of type `T`.
+
+See also: [`NotA`](@ref)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> collect(OfType(Int), [1, missing, 2])
+2-element Array{Int64,1}:
+ 1
+ 2
+
+julia> collect(Filter(!ismissing), [1, missing, 2])  # see the eltype below
+2-element Array{Union{Missing, Int64},1}:
+ 1
+ 2
+```
+"""
+struct OfType{T} <: AbstractFilter end
+OfType(T::Type) = OfType{T}()
+
+outtype(::OfType{T}, _intype) where T = T
+
+next(rf::R_{OfType{T}}, result, input) where T =
+    input isa T ? next(rf.inner, result, input) : result
+
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/take
 # https://clojuredocs.org/clojure.core/take
 """
