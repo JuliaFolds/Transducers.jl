@@ -20,7 +20,7 @@ xf = Partition(7) |> Filter(x -> prod(x) % 11 == 0) |> Cat() |> Scan(+)
 mapfoldl(xf, +, 1:40)
 ```
 
-However, the formalization of the transducers is quite different from
+However, the protocol used for the transducers is quite different from
 iterators and resulting in a better performance for complex
 compositions.
 
