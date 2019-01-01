@@ -425,11 +425,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "manual/#Transducers.right",
+    "page": "Manual",
+    "title": "Transducers.right",
+    "category": "function",
+    "text": "right([l, ]r) -> r\n\nIt is simply defined as\n\nright(l, r) = r\nright(r) = r\n\nThis function is meant to be used as step argument for mapfoldl etc. for extracting the last output of the transducers.  Note that init for right is set to nothing if not provided.\n\nExamples\n\njulia> using Transducers\n\njulia> mapfoldl(Take(5), right, 1:10)\n5\n\njulia> mapfoldl(Drop(5), right, 1:3) === nothing\ntrue\n\njulia> mapfoldl(Drop(5), right, 1:3; init=0)  # using `init` as the default value\n0\n\n\n\n\n\n"
+},
+
+{
     "location": "manual/#Miscellaneous-1",
     "page": "Manual",
     "title": "Miscellaneous",
     "category": "section",
-    "text": "Modules = [Transducers]\nPrivate = false\nFilter = t -> t isa Type && !(t <: Transducers.Transducer)"
+    "text": "Completing\nright"
 },
 
 {
@@ -593,6 +601,54 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "examples/words/#",
+    "page": "Parallel word count",
+    "title": "Parallel word count",
+    "category": "page",
+    "text": "EditURL = \"https://github.com/tkf/Transducers.jl/blob/master/examples/words.jl\""
+},
+
+{
+    "location": "examples/words/#Splitting-a-string-into-words-and-counting-them-in-parallel-1",
+    "page": "Parallel word count",
+    "title": "Splitting a string into words and counting them in parallel",
+    "category": "section",
+    "text": "We start from the parallel algorithm presented in Guy Steele\'s 2009 ICFP talk (video).  It splits a space-separated string into list of strings (words).  The repeating theme in the talk was to build \"singleton solutions\" and then merge them together using an associative function.  We will follow this guideline and slightly extend the algorithm.It is highly recommended to just watch the talk for understanding the algorithm.  However, we briefly describe how it works.When a certain contiguous region of a string is processed, we either already have seen at least one space or not.  These two states are tracked using following two types.  If there is no space so far, we only have a chunk of a possibly larger word (see example below):struct Chunk\n    s::String\nendIf there are one or more spaces, (possibly zero) words that are already determined and left/right \"chunks\" have to be tracked separately:struct Segment\n    l::String\n    A::Vector{String}\n    r::String\nendHere is an example taken from the talk:Segment(\"Here\", [\"is\", \"a\"], \"\")\n   |\n   |       Segment(\"lian\", [], \"string\")\n __|_____            _|______\n|        |          |        |\nHere is a sesquipedalian string of words\n          |________|          |________|\n   Chunk(\"sesquipeda\")        Segment(\"g\", [\"of\"], \"words\")We then need a way to merge two results which can independently in one of the above two states.⊕(x::Chunk, y::Chunk) = Chunk(x.s * y.s)\n⊕(x::Chunk, y::Segment) = Segment(x.s * y.l, y.A, y.r)\n⊕(x::Segment, y::Chunk) = Segment(x.l, x.A, x.r * y.s)\n⊕(x::Segment, y::Segment) =\n    Segment(x.l,\n            append!(append!(x.A, maybewordv(x.r * y.l)), y.A),\n            y.r)\n\nmaybewordv(s::String) = isempty(s) ? String[] : [s]\nnothing  # hideInput is a sequence of Chars.  Each of them has to be converted into a \"singleton solution\" which can be merged with already aggregated (or another singleton) solution with ⊕:segmentorchunk(c::Char) = c == \' \' ? Segment(\"\", [], \"\") : Chunk(string(c))\nnothing  # hidePutting them together, we get:function collectwords(s::String)\n    g = mapfoldl(segmentorchunk, ⊕, s; init=Segment(\"\", [], \"\"))\n    if g isa Char\n        return maybewordv(g.s)\n    else\n        return append!(append!(maybewordv(g.l), g.A), maybewordv(g.r))\n    end\nend\nnothing  # hideLet\'s run a few tests covering some edge cases:using Test\n@testset begin\n    @test collectwords(\"This is a sample\") == [\"This\", \"is\", \"a\", \"sample\"]\n    @test collectwords(\" Here is another sample \") == [\"Here\", \"is\", \"another\", \"sample\"]\n    @test collectwords(\"JustOneWord\") == [\"JustOneWord\"]\n    @test collectwords(\" \") == []\n    @test collectwords(\"\") == []\nend\nnothing  # hide"
+},
+
+{
+    "location": "examples/words/#String-splitting-transducer-1",
+    "page": "Parallel word count",
+    "title": "String-splitting transducer",
+    "category": "section",
+    "text": "Let\'s try to make it re-usable by packaging it into transducers.using TransducersRather than accumulating words into a vector, we are going to write a transducer that \"emits\" a word as soon as it is ready.  The downstream transducer may choose to record everything or only aggregate, e.g., reduced statistics.  To this end, we replace Segment in the original algorithm tostruct Vacant\n    l::String\n    r::String\nendand output the words in the \"middle\" without accumulating it.  We use ScanEmit which requires an operator/function like ⊕ above but returning a pair of output and next state.  This function (extract below) must have the signature (S, S) -> (O, S) where S is the type for accumulated state and input and O is the output type.extract(x::Chunk, y::Chunk) = (), Chunk(x.s * y.s)\nextract(x::Chunk, y::Vacant) = (), Vacant(x.s * y.l, y.r)\nextract(x::Vacant, y::Chunk) = (), Vacant(x.l, x.r * y.s)\nextract(x::Vacant, y::Vacant) = maybewordt(x.r * y.l), Vacant(x.l, y.r)\n\nmaybewordt(s) = isempty(s) ? () : (s,)\nnothing  # hidemaybewordt(x.r * y.l) in extract(x::Vacant, y::Vacant) is the \"emission\".The words at the beginning and/or the end are not handled by extract.  This must be handled separately:lastword(x::Chunk) = maybewordt(x.s)\nlastword(x::Vacant) = (maybewordt(x.r)..., maybewordt(x.l)...)\n\nvacantorchunk(c::Char) = c == \' \' ? Vacant(\"\", \"\") : Chunk(string(c))\n\nwordsxf = Map(vacantorchunk) |> ScanEmit(extract, Chunk(\"\"), lastword) |> Cat()Test:@testset begin\n    @test collect(wordsxf, \"This is a sample\") == [\"is\", \"a\", \"sample\", \"This\"]\n    @test collect(wordsxf, \" Here is another sample \") == [\"Here\", \"is\", \"another\", \"sample\"]\n    @test collect(wordsxf, \"JustOneWord\") == [\"JustOneWord\"]\n    @test collect(wordsxf, \" \") == []\n    @test collect(wordsxf, \"\") == []\nend\nnothing  # hideSide note: In the first example, the first word This comes last. This is actually expected since both .l and .r are flushed in lastword which is called at the very end.  Here, This is stored in .l field.  If the order of the words is important, there are many possible fixes.  For example, extract and lastword can bundle information about the origin of the word (left vs middle-or-right).  Alternatively, perhaps the easiest solution is to insert a space in the beginning of input data."
+},
+
+{
+    "location": "examples/words/#Word-counting-transducer-1",
+    "page": "Parallel word count",
+    "title": "Word-counting transducer",
+    "category": "section",
+    "text": "We can pipe the resulting words into various transducers.processcount(word) = Base.ImmutableDict(word => 1)\ncountxf = wordsxf |> Map(processcount)Transducer countxf constructs a \"singleton solution\" as a dictionary which then accumulated with the associative reducing step function mergecont:mergecont(a, b) = merge(+, a, b)\nmergecont(a) = a\nnothing  # hideNote that the unary form is required for the completion. Alternatively, we can use Completing((a, b) -> merge(+, a, b)) instead of mergecont.  Putting the transducer and reducing function together, we get:countwords(s; kwargs...) =\n    mapreduce(Map(Char) |> countxf,\n              mergecont,\n              transcode(UInt8, s);\n              init = Base.ImmutableDict{String,Int}(),\n              kwargs...)\nnothing  # hideSide note: Since mapreduce does not support string, the input string is converted to a Vector{UInt8} first by transcode. That\'s why there is Map(Char) |> before countxf.  Of course, this is not valid for UTF-8 in general.Side note 2: we are (ab)using the fact that merging ImmutableDicts yields a Dict:@assert merge(Base.ImmutableDict{String,Int}(),\n              Base.ImmutableDict{String,Int}()) isa Dict{String,Int}Let\'s run some tests with different number of threads:@testset for nthreads in [1, 2, 4]\n    @test countwords(\"This is a sample\", nthreads=nthreads) ==\n        Dict(\"This\" => 1, \"is\" => 1, \"a\" => 1, \"sample\" => 1)\n    @test countwords(\" Here is another sample \", nthreads=nthreads) ==\n        Dict(\"Here\" => 1, \"is\" => 1, \"another\" => 1, \"sample\" => 1)\n    @test countwords(\"JustOneWord\", nthreads=nthreads) ==\n        Dict(\"JustOneWord\" => 1)\n    @test countwords(\" \", nthreads=nthreads) == Dict()\n    @test countwords(\"\", nthreads=nthreads) == Dict()\n    @test countwords(\"aaa bb aaa aaa bb bb aaa\", nthreads=nthreads) ==\n        Dict(\"aaa\" => 4, \"bb\" => 3)\nend\nnothing  # hideThis page was generated using Literate.jl."
+},
+
+{
+    "location": "examples/primes/#",
+    "page": "Prime sieve",
+    "title": "Prime sieve",
+    "category": "page",
+    "text": "EditURL = \"https://github.com/tkf/Transducers.jl/blob/master/examples/primes.jl\""
+},
+
+{
+    "location": "examples/primes/#Prime-sieve-1",
+    "page": "Prime sieve",
+    "title": "Prime sieve",
+    "category": "section",
+    "text": "Transducer prime_xf below produces a sequence of prime numbers given a sequence of integers 2, 3, 4, and so on.if !@isdefined isnothing          # hide\n    isnothing(x) = x === nothing  # hide\nend                               # hide\n\nusing Transducers\n\nsieve(xf, x) =\n    if mapreduce(xf, right, (x,)) === nothing\n        nothing, xf\n    else\n        x, xf |> Filter(n -> n % x != 0)\n    end\n\nprime_xf = ScanEmit(sieve, Map(identity)) |> Filter(!isnothing)\n\nprimes = begin  # hide\ncollect(prime_xf, 2:10)\nend  # hide@assert primes == [2, 3, 5, 7]  # hideThe usage of transducers in prime_xf here is somewhat unconventional; it builds a transducer inside a transducer.  That is to say, the state of ScanEmit is itself a transducer (initialized as the identity transducer Map(identity)).  The step function sieve for ScanEmit then appends a transducer to filter out numbers divisible by a prime number when a prime number is found (i.e., a number is not filtered out by existing filter transducer).See: right, ScanEmit, Map, Filter, mapreduce, collectnote: Side notes\nThis is inspired by the prime sieve implemented using communicating sequential processes (CSP) written in Newsqueak by Doug McIlroy and also ported to Go (See also Google Tech Talk by Rob Pike). But, once I\'ve written this, I\'m not sure if I needed to know about CSP to implement this.  CSP and transducers probably do not relate much.  However, I thought this was a somewhat interesting intersection (and I wanted to give credit to them anyway).This page was generated using Literate.jl."
+},
+
+{
     "location": "examples/transducers/#",
     "page": "Writing transducers",
     "title": "Writing transducers",
@@ -638,38 +694,6 @@ var documenterSearchIndex = {"docs": [
     "title": "How to make your data type reducible",
     "category": "section",
     "text": "Let\'s see how to make a vector-of-vector a reducible collection; i.e., a type that can be fed to mapfoldl.struct VecOfVec{T}\n    vectors::Vector{Vector{T}}\nendWe need Transducers.next to invoke the reducing function rf and Transducers.@return_if_reduced to support early termination.using Transducers\nusing Transducers: next, @return_if_reducedSupporting mapfoldl and similar only requires Transducers.__foldl__:function Transducers.__foldl__(rf, val, vov::VecOfVec, complete)\n    for vector in vov.vectors\n        for x in vector\n            val = next(rf, val, x)\n            @return_if_reduced complete(rf, val)\n        end\n    end\n    return complete(rf, val)\nendNote that it\'s often a good idea to implement Base.eltype:Base.eltype(::VecOfVec{T}) where {T} = TIt can be then used as the input to the transducers:vov = VecOfVec(collect.([1:n for n in 1:3]))\ncollect(Map(identity), vov)Transducers.@return_if_reduced above is used to support terminating transducer like Take.collect(Take(3), vov)More complex example:collect(PartitionBy(isequal(1)) |> Map(copy) |> TeeZip(Map(sum)), vov)Notice that writing Transducers.__foldl__ is very straightforward comparing to how to define an iterator:function Base.iterate(vov::VecOfVec, state=nothing)\n    if state === nothing\n        i, j = 1, 1\n    else\n        i, j = state\n    end\n    i > length(vov.vectors) && return nothingIf j is in bound, we are iterating the same sub-vector:    vi = vov.vectors[i]\n    if j <= length(vi)\n        return vi[j], (i, j + 1)\n    endOtherwise, find the next non-empty sub-vector and start iterating it:    for k in i + 1:length(vov.vectors)\n        vk = vov.vectors[k]\n        if !isempty(vk)\n            return vk[1], (k, 2)  # i=k, j=2\n        end\n    end\n    return nothing\nend\n\nBase.length(vov::VecOfVec) = sum(length, vov.vectors)\n\ncollect(vov)This page was generated using Literate.jl."
-},
-
-{
-    "location": "examples/words/#",
-    "page": "Parallel word count",
-    "title": "Parallel word count",
-    "category": "page",
-    "text": "EditURL = \"https://github.com/tkf/Transducers.jl/blob/master/examples/words.jl\""
-},
-
-{
-    "location": "examples/words/#Splitting-a-string-into-words-and-counting-them-in-parallel-1",
-    "page": "Parallel word count",
-    "title": "Splitting a string into words and counting them in parallel",
-    "category": "section",
-    "text": "We start from the parallel algorithm presented in Guy Steele\'s 2009 ICFP talk (video).  It splits a space-separated string into list of strings (words).  The repeating theme in the talk was to build \"singleton solutions\" and then merge them together using an associative function.  We will follow this guideline and slightly extend the algorithm.It is highly recommended to just watch the talk for understanding the algorithm.  However, we briefly describe how it works.When a certain contiguous region of a string is processed, we either already have seen at least one space or not.  These two states are tracked using following two types.  If there is no space so far, we only have a chunk of a possibly larger word (see example below):struct Chunk\n    s::String\nendIf there are one or more spaces, (possibly zero) words that are already determined and left/right \"chunks\" have to be tracked separately:struct Segment\n    l::String\n    A::Vector{String}\n    r::String\nendHere is an example taken from the talk:Segment(\"Here\", [\"is\", \"a\"], \"\")\n   |\n   |       Segment(\"lian\", [], \"string\")\n __|_____            _|______\n|        |          |        |\nHere is a sesquipedalian string of words\n          |________|          |________|\n   Chunk(\"sesquipeda\")        Segment(\"g\", [\"of\"], \"words\")We then need a way to merge two results which can independently in one of the above two states.⊕(x::Chunk, y::Chunk) = Chunk(x.s * y.s)\n⊕(x::Chunk, y::Segment) = Segment(x.s * y.l, y.A, y.r)\n⊕(x::Segment, y::Chunk) = Segment(x.l, x.A, x.r * y.s)\n⊕(x::Segment, y::Segment) =\n    Segment(x.l,\n            append!(append!(x.A, maybewordv(x.r * y.l)), y.A),\n            y.r)\n\nmaybewordv(s::String) = isempty(s) ? String[] : [s]\nnothing  # hideInput is a sequence of Chars.  Each of them has to be converted into a \"singleton solution\" which can be merged with already aggregated (or another singleton) solution with ⊕:segmentorchunk(c::Char) = c == \' \' ? Segment(\"\", [], \"\") : Chunk(string(c))\nnothing  # hidePutting them together, we get:function collectwords(s::String)\n    g = mapfoldl(segmentorchunk, ⊕, s; init=Segment(\"\", [], \"\"))\n    if g isa Char\n        return maybewordv(g.s)\n    else\n        return append!(append!(maybewordv(g.l), g.A), maybewordv(g.r))\n    end\nend\nnothing  # hideLet\'s run a few tests covering some edge cases:using Test\n@testset begin\n    @test collectwords(\"This is a sample\") == [\"This\", \"is\", \"a\", \"sample\"]\n    @test collectwords(\" Here is another sample \") == [\"Here\", \"is\", \"another\", \"sample\"]\n    @test collectwords(\"JustOneWord\") == [\"JustOneWord\"]\n    @test collectwords(\" \") == []\n    @test collectwords(\"\") == []\nend\nnothing  # hide"
-},
-
-{
-    "location": "examples/words/#String-splitting-transducer-1",
-    "page": "Parallel word count",
-    "title": "String-splitting transducer",
-    "category": "section",
-    "text": "Let\'s try to make it re-usable by packaging it into transducers.using TransducersRather than accumulating words into a vector, we are going to write a transducer that \"emits\" a word as soon as it is ready.  The downstream transducer may choose to record everything or only aggregate, e.g., reduced statistics.  To this end, we replace Segment in the original algorithm tostruct Vacant\n    l::String\n    r::String\nendand output the words in the \"middle\" without accumulating it.  We use ScanEmit which requires an operator/function like ⊕ above but returning a pair of output and next state.  This function (extract below) must have the signature (S, S) -> (O, S) where S is the type for accumulated state and input and O is the output type.extract(x::Chunk, y::Chunk) = (), Chunk(x.s * y.s)\nextract(x::Chunk, y::Vacant) = (), Vacant(x.s * y.l, y.r)\nextract(x::Vacant, y::Chunk) = (), Vacant(x.l, x.r * y.s)\nextract(x::Vacant, y::Vacant) = maybewordt(x.r * y.l), Vacant(x.l, y.r)\n\nmaybewordt(s) = isempty(s) ? () : (s,)\nnothing  # hidemaybewordt(x.r * y.l) in extract(x::Vacant, y::Vacant) is the \"emission\".The words at the beginning and/or the end are not handled by extract.  This must be handled separately:lastword(x::Chunk) = maybewordt(x.s)\nlastword(x::Vacant) = (maybewordt(x.r)..., maybewordt(x.l)...)\n\nvacantorchunk(c::Char) = c == \' \' ? Vacant(\"\", \"\") : Chunk(string(c))\n\nwordsxf = Map(vacantorchunk) |> ScanEmit(extract, Chunk(\"\"), lastword) |> Cat()Test:@testset begin\n    @test collect(wordsxf, \"This is a sample\") == [\"is\", \"a\", \"sample\", \"This\"]\n    @test collect(wordsxf, \" Here is another sample \") == [\"Here\", \"is\", \"another\", \"sample\"]\n    @test collect(wordsxf, \"JustOneWord\") == [\"JustOneWord\"]\n    @test collect(wordsxf, \" \") == []\n    @test collect(wordsxf, \"\") == []\nend\nnothing  # hideSide note: In the first example, the first word This comes last. This is actually expected since both .l and .r are flushed in lastword which is called at the very end.  Here, This is stored in .l field.  If the order of the words is important, there are many possible fixes.  For example, extract and lastword can bundle information about the origin of the word (left vs middle-or-right).  Alternatively, perhaps the easiest solution is to insert a space in the beginning of input data."
-},
-
-{
-    "location": "examples/words/#Word-counting-transducer-1",
-    "page": "Parallel word count",
-    "title": "Word-counting transducer",
-    "category": "section",
-    "text": "We can pipe the resulting words into various transducers.processcount(word) = Base.ImmutableDict(word => 1)\ncountxf = wordsxf |> Map(processcount)Transducer countxf constructs a \"singleton solution\" as a dictionary which then accumulated with the associative reducing step function mergecont:mergecont(a, b) = merge(+, a, b)\nmergecont(a) = a\nnothing  # hideNote that the unary form is required for the completion. Alternatively, we can use Completing((a, b) -> merge(+, a, b)) instead of mergecont.  Putting the transducer and reducing function together, we get:countwords(s; kwargs...) =\n    mapreduce(Map(Char) |> countxf,\n              mergecont,\n              transcode(UInt8, s);\n              init = Base.ImmutableDict{String,Int}(),\n              kwargs...)\nnothing  # hideSide note: Since mapreduce does not support string, the input string is converted to a Vector{UInt8} first by transcode. That\'s why there is Map(Char) |> before countxf.  Of course, this is not valid for UTF-8 in general.Side note 2: we are (ab)using the fact that merging ImmutableDicts yields a Dict:@assert merge(Base.ImmutableDict{String,Int}(),\n              Base.ImmutableDict{String,Int}()) isa Dict{String,Int}Let\'s run some tests with different number of threads:@testset for nthreads in [1, 2, 4]\n    @test countwords(\"This is a sample\", nthreads=nthreads) ==\n        Dict(\"This\" => 1, \"is\" => 1, \"a\" => 1, \"sample\" => 1)\n    @test countwords(\" Here is another sample \", nthreads=nthreads) ==\n        Dict(\"Here\" => 1, \"is\" => 1, \"another\" => 1, \"sample\" => 1)\n    @test countwords(\"JustOneWord\", nthreads=nthreads) ==\n        Dict(\"JustOneWord\" => 1)\n    @test countwords(\" \", nthreads=nthreads) == Dict()\n    @test countwords(\"\", nthreads=nthreads) == Dict()\n    @test countwords(\"aaa bb aaa aaa bb bb aaa\", nthreads=nthreads) ==\n        Dict(\"aaa\" => 4, \"bb\" => 3)\nend\nnothing  # hideThis page was generated using Literate.jl."
 },
 
 ]}
