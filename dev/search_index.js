@@ -189,7 +189,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Count",
     "category": "type",
-    "text": "Count([start[, step]])\n\nGenerate a sequence start, start + step, start + step + step, and so on.\n\nNote that input is ignored.  To use the input in the downstream reduction steps, use TeeZip or Zip.\n\nstart defaults to 1 and step defaults to oneunit(start).\n\nSee also: Iterators.countfrom.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(TeeZip(Count()), -3:-1)\n3-element Array{Tuple{Int64,Int64},1}:\n (-3, 1)\n (-2, 2)\n (-1, 3)\n\njulia> using Dates\n\njulia> collect(TeeZip(Count(Day(1))) |> Map(xs -> *(xs...)), 1:3)\n3-element Array{Day,1}:\n 1 day\n 4 days\n 9 days\n\n\n\n\n\n"
+    "text": "Count([start[, step]])\n\nGenerate a sequence start, start + step, start + step + step, and so on.\n\nNote that input is ignored.  To use the input in the downstream reduction steps, use TeeZip or Zip.\n\nstart defaults to 1 and step defaults to oneunit(start).\n\nSee also: Iterators.countfrom. Enumerate\n\nExamples\n\njulia> using Transducers\n\njulia> collect(TeeZip(Count()), -3:-1)\n3-element Array{Tuple{Int64,Int64},1}:\n (-3, 1)\n (-2, 2)\n (-1, 3)\n\njulia> using Dates\n\njulia> collect(TeeZip(Count(Day(1))) |> Map(xs -> *(xs...)), 1:3)\n3-element Array{Day,1}:\n 1 day\n 4 days\n 9 days\n\n\n\n\n\n"
 },
 
 {
@@ -230,6 +230,14 @@ var documenterSearchIndex = {"docs": [
     "title": "Transducers.DropWhile",
     "category": "type",
     "text": "DropWhile(pred)\n\nDrop items while pred returns true consecutively.  It becomes a no-op after pred returns a false.\n\nThis API is modeled after drop-while in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(DropWhile(x -> x < 3), [1:5; 1:2])\n5-element Array{Int64,1}:\n 3\n 4\n 5\n 1\n 2\n\n\n\n\n\n"
+},
+
+{
+    "location": "manual/#Transducers.Enumerate",
+    "page": "Manual",
+    "title": "Transducers.Enumerate",
+    "category": "type",
+    "text": "Enumerate([start[, step]])\n\nTransducer variant of Base.enumerate. The start and step arguments are optional and have the same meaning as in Count.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Enumerate(), [\"A\", \"B\", \"C\"])\n3-element Array{Tuple{Int64,String},1}:\n (1, \"A\")\n (2, \"B\")\n (3, \"C\")\n\njulia> start=2; step=3;\n\njulia> collect(Enumerate(start, step), [\"A\", \"B\", \"C\"])\n3-element Array{Tuple{Int64,String},1}:\n (2, \"A\")\n (5, \"B\")\n (8, \"C\")\n\n\n\n\n\n\n"
 },
 
 {
