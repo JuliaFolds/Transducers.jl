@@ -11,13 +11,13 @@ by Rich Hickey.
 
 [transducers]: https://clojure.org/reference/transducers
 
-Using Transducers is quite straightforward, especially if you already
+Using transducers is quite straightforward, especially if you already
 know similar concepts in iterator libraries:
 
 ```julia
 using Transducers
-xf = Partition(7) |> Filter(x -> prod(x) % 11 == 0) |> Cat() |> TakeNth(5)
-mapfoldl(xf, +, 1:100)
+xf = Partition(7) |> Filter(x -> prod(x) % 11 == 0) |> Cat() |> Scan(+)
+mapfoldl(xf, +, 1:40)
 ```
 
 However, the formalization of the transducers is quite different from
