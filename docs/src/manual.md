@@ -31,8 +31,7 @@ Filter = Transducers.is_transducer_type
 
 ## Miscellaneous
 
-```@autodocs
-Modules = [Transducers]
-Private = false
-Filter = t -> t isa Type && !(t <: Transducers.Transducer)
+```@docs
+Completing
+right
 ```

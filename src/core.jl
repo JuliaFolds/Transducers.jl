@@ -375,3 +375,39 @@ function next(rf::SideEffect, result, input)
     rf.f(input)
     return result
 end
+
+"""
+    right([l, ]r) -> r
+
+It is simply defined as
+
+```julia
+right(l, r) = r
+right(r) = r
+```
+
+This function is meant to be used as `step` argument for
+[`mapfoldl`](@ref) etc. for extracting the last output of the
+transducers.  Note that `init` for `right` is set to `nothing` if not
+provided.
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> mapfoldl(Take(5), right, 1:10)
+5
+
+julia> mapfoldl(Drop(5), right, 1:3) === nothing
+true
+
+julia> mapfoldl(Drop(5), right, 1:3; init=0)  # using `init` as the default value
+0
+```
+"""
+right(l, r) = r
+right(r) = r
+
+identityof(::typeof(right), ::Any) = nothing
+# This is just a right identity but `right` is useful for left-fold
+# context anyway so I guess it's fine.

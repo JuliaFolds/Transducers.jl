@@ -15,9 +15,6 @@ function __foldl__(rf, val, xff::TransducerFolder, complete)
     return complete(rf, val)
 end
 
-right(l, r) = r
-right(r) = r
-
 function print_arrow(io, pre, post)
     print(io, pre)
     printstyled(io, "|>"; color=:light_black, bold=true)
@@ -28,9 +25,9 @@ print_spaced_arrow(io) = print_arrow(io, ' ', ' ')
 
 function Base.summary(io::IO, xform::Transducer)
     xff = TransducerFolder(xform)
-    n = mapfoldl(Count(), right, xff, init=nothing)
-    f = mapfoldl(Take(1), right, xff, init=nothing)
-    l = mapfoldl(TakeLast(1), right, xff, init=nothing)
+    n = mapfoldl(Count(), right, xff)
+    f = mapfoldl(Take(1), right, xff)
+    l = mapfoldl(TakeLast(1), right, xff)
     @assert n > 0
     if n == 1
         print(io, nameof(typeof(xform)))
