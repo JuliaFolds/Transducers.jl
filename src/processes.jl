@@ -86,7 +86,7 @@ end
 
 Call [`__foldl__`](@ref) without calling [`complete`](@ref).
 """
-foldl_nocomplete(rf, init, coll) = __foldl__(completing(rf), init, coll)
+foldl_nocomplete(rf, init, coll) = __foldl__(skipcomplete(rf), init, coll)
 
 """
     mapfoldl(xf, step, itr; init) :: T

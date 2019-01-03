@@ -368,11 +368,10 @@ complete(::Completing, result) = result
 combine(rf::Completing, a, b) = combine(rf.f, a, b)
 
 # If I expose `Reduction` as a user-interface, I should export
-# `completing` instead of the struct `Completing`.  Although it makes
-# sense to call it differently.  `shieldcomplete`?
-completing(rf::Reduction) = Reduction(NoComplete(), rf, InType(rf))
-completing(f) = Completing(f)
-# completing(f) = Reduction(NoComplete(), f, Any)
+# `skipcomplete` instead of the struct `Completing`.
+skipcomplete(rf::Reduction) = Reduction(NoComplete(), rf, InType(rf))
+skipcomplete(f) = Completing(f)
+# skipcomplete(f) = Reduction(NoComplete(), f, Any)
 # TODO: get rid of `Completing` struct.  I need to make sure it's
 # possible to refine `InType` from `Any` when it's re-composed.
 
