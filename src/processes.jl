@@ -1,7 +1,7 @@
 # --- Transducible processes
 
 """
-    __foldl__(rf, init, reducible::T, complete)
+    __foldl__(rf, init, reducible::T)
 
 Left fold a `reducible` with reducing function `rf` and initial value
 `init`.  This is primary an API for overloading when the reducible
@@ -11,7 +11,7 @@ better reduction mechanism than the default iterator-based one.
 For a simple iterable type `MyType`, a valid implementation is:
 
 ```julia
-function __foldl__(rf, val, itr::MyType, complete)
+function __foldl__(rf, val, itr::MyType)
     for x in itr
         val = next(rf, val, x)
         @return_if_reduced complete(rf, val)
@@ -25,25 +25,11 @@ thus there is no need for defining it.  In general, defining
 `__foldl__` is useful only when there is a better way to go over items
 in `reducible` than `Base.iterate`.
 
-**Some rationale on `complete` as an argument**.  The argument
-`complete` almost always is [`Transducers.complete`](@ref) except
-inside [`Cat`](@ref) and alike which require to run `__foldl__`
-without completing the reduction process.  One possible design of the
-API is to not complete in `__foldl__`.  However, it results in the
-output type `Union{S, Reduced{S}}` where `S = typeof(init)` can be a
-complex nested `struct` when many stateful transducers are composed.
-Completing the reduction process before returning from `__foldl__`
-avoids this problem as then returned type would be `Union{A,
-Reduced{A}}` where `A` is the resulting/accumulated type by the
-"bottom" reduction step (e.g., `step` passed to [`mapfoldl`](@ref)).
-
 See also: [`@return_if_reduced`](@ref).
 """
 __foldl__
 
-nocomplete(_, result) = result
-
-function __foldl__(rf, init, coll, complete)
+function __foldl__(rf, init, coll)
     ret = iterate(coll)
     ret === nothing && return complete(rf, init)
 
@@ -64,7 +50,7 @@ function __foldl__(rf, init, coll, complete)
 end
 
 # TODO: use IndexStyle
-@inline function __foldl__(rf, init, arr::AbstractArray, complete)
+@inline function __foldl__(rf, init, arr::AbstractArray)
     isempty(arr) && return complete(rf, init)
     val = next(rf, init, @inbounds arr[firstindex(arr)])
     @return_if_reduced complete(rf, val)
@@ -94,6 +80,13 @@ function simple_transduce(xform, f, init, coll)
     rf = Reduction(xform, f, eltype(coll))
     return __simple_foldl__(rf, start(rf, init), coll)
 end
+
+"""
+    foldl_nocomplete(rf, init, coll)
+
+Call [`__foldl__`](@ref) without calling [`complete`](@ref).
+"""
+foldl_nocomplete(rf, init, coll) = __foldl__(completing(rf), init, coll)
 
 """
     mapfoldl(xf, step, itr; init) :: T
@@ -172,7 +165,7 @@ innermost_rf(o::Completing) = innermost_rf(o.f)
     # performance for `map!` to be comparable with the native loop.
     # See: ../benchmark/bench_filter_map_map!.jl
     val = provide_init(rf, init)
-    return __foldl__(rf, start(rf, val), coll, complete)
+    return __foldl__(rf, start(rf, val), coll)
 end
 
 function Base.mapfoldl(xform::Transducer, step, itr;
@@ -199,7 +192,7 @@ Base.mapreduce
 function __reduce__(rf, init, arr::AbstractArray;
                     nthreads = max(1, min(length(arr), Threads.nthreads())))
     if nthreads == 1
-        return __foldl__(rf, start(rf, init), arr, complete)
+        return __foldl__(rf, start(rf, init), arr)
     else
         w = length(arr) ÷ nthreads
         results = Vector{Any}(undef, nthreads)
@@ -209,7 +202,7 @@ function __reduce__(rf, init, arr::AbstractArray;
             else
                 chunk = @view arr[(i - 1) * w + 1:i * w]
             end
-            results[i] = __foldl__(rf, start(rf, init), chunk, nocomplete)
+            results[i] = foldl_nocomplete(rf, start(rf, init), chunk)
         end
         # It can be done in `log2(n)` for loops but it's not clear if
         # `combine` is compute-intensive enough so that launching

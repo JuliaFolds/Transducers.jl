@@ -8,17 +8,18 @@ struct VecOfVec{T}
     vectors::Vector{Vector{T}}
 end
 
-# We need [`Transducers.next`](@ref) to invoke the reducing function
-# `rf` and [`Transducers.@return_if_reduced`](@ref) to support early
-# termination.
+# We need [`next`](@ref Transducers.next) and [`complete`](@ref
+# Transducers.complete) to invoke the reducing function `rf` and
+# [`@return_if_reduced`](@ref Transducers.@return_if_reduced) to
+# support early termination.
 
 using Transducers
-using Transducers: next, @return_if_reduced
+using Transducers: next, complete, @return_if_reduced
 
 # Supporting [`mapfoldl`](@ref) and similar only requires
 # [`Transducers.__foldl__`](@ref):
 
-function Transducers.__foldl__(rf, val, vov::VecOfVec, complete)
+function Transducers.__foldl__(rf, val, vov::VecOfVec)
     for vector in vov.vectors
         for x in vector
             val = next(rf, val, x)

@@ -344,6 +344,11 @@ outtype(::AbstractFilter, intype) = intype
 finaltype(rf::Reduction{<:Transducer, <:Reduction}) = finaltype(rf.inner)
 finaltype(rf::Reduction) = outtype(rf.xform, InType(rf))
 
+struct NoComplete <: Transducer end
+outtype(::NoComplete, intype) = intype
+next(rf::R_{NoComplete}, result, input) = next(rf.inner, result, input)
+complete(::R_{NoComplete}, result) = result  # don't call inner complete
+
 """
     Completing(function)
 
@@ -361,6 +366,15 @@ start(rf::Completing, result) = start(rf.f, result)
 next(rf::Completing, result, input)  = next(rf.f, result, input)
 complete(::Completing, result) = result
 combine(rf::Completing, a, b) = combine(rf.f, a, b)
+
+# If I expose `Reduction` as a user-interface, I should export
+# `completing` instead of the struct `Completing`.  Although it makes
+# sense to call it differently.  `shieldcomplete`?
+completing(rf::Reduction) = Reduction(NoComplete(), rf, InType(rf))
+completing(f) = Completing(f)
+# completing(f) = Reduction(NoComplete(), f, Any)
+# TODO: get rid of `Completing` struct.  I need to make sure it's
+# possible to refine `InType` from `Any` when it's re-composed.
 
 struct SideEffect{F}  # Note: not a Transducer
     f::F

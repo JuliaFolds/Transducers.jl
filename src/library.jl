@@ -143,7 +143,7 @@ next(rf::R_{Cat}, result, input) =
         else
             istate1 = istate0
         end
-        istate2 = __foldl__(rf.inner, istate1, input, nocomplete)
+        istate2 = foldl_nocomplete(rf.inner, istate1, input)
         istate2, istate2
     end
 
