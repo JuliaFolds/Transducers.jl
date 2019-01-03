@@ -321,6 +321,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "manual/#Transducers.NotA",
+    "page": "Manual",
+    "title": "Transducers.NotA",
+    "category": "type",
+    "text": "NotA(T)\nNotA{T}()\n\nSkip items of type T.  Unlike Filter(!ismissing), downstream transducers can have a correct type information for NotA(Missing).\n\nSee also: OfType\n\nExamples\n\njulia> using Transducers\n\njulia> collect(NotA(Missing), [1, missing, 2])\n2-element Array{Int64,1}:\n 1\n 2\n\njulia> collect(Filter(!ismissing), [1, missing, 2])  # see the eltype below\n2-element Array{Union{Missing, Int64},1}:\n 1\n 2\n\n\n\n\n\n"
+},
+
+{
+    "location": "manual/#Transducers.OfType",
+    "page": "Manual",
+    "title": "Transducers.OfType",
+    "category": "type",
+    "text": "OfType(T)\nOfType{T}()\n\nInclude only items of type T.\n\nSee also: NotA\n\nExamples\n\njulia> using Transducers\n\njulia> collect(OfType(Int), [1, missing, 2])\n2-element Array{Int64,1}:\n 1\n 2\n\njulia> collect(Filter(!ismissing), [1, missing, 2])  # see the eltype below\n2-element Array{Union{Missing, Int64},1}:\n 1\n 2\n\n\n\n\n\n"
+},
+
+{
     "location": "manual/#Transducers.Partition",
     "page": "Manual",
     "title": "Transducers.Partition",
