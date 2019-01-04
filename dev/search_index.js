@@ -581,7 +581,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Interface",
     "title": "Transducers.__foldl__",
     "category": "function",
-    "text": "__foldl__(rf, init, reducible::T, complete)\n\nLeft fold a reducible with reducing function rf and initial value init.  This is primary an API for overloading when the reducible \"container\" or \"context\" (e.g., I/O stream) of type T can provide a better reduction mechanism than the default iterator-based one.\n\nFor a simple iterable type MyType, a valid implementation is:\n\nfunction __foldl__(rf, val, itr::MyType, complete)\n    for x in itr\n        val = next(rf, val, x)\n        @return_if_reduced complete(rf, val)\n    end\n    return complete(rf, val)\nend\n\nalthough in this case default __foldl__ can handle MyType and thus there is no need for defining it.  In general, defining __foldl__ is useful only when there is a better way to go over items in reducible than Base.iterate.\n\nSome rationale on complete as an argument.  The argument complete almost always is Transducers.complete except inside Cat and alike which require to run __foldl__ without completing the reduction process.  One possible design of the API is to not complete in __foldl__.  However, it results in the output type Union{S, Reduced{S}} where S = typeof(init) can be a complex nested struct when many stateful transducers are composed. Completing the reduction process before returning from __foldl__ avoids this problem as then returned type would be Union{A, Reduced{A}} where A is the resulting/accumulated type by the \"bottom\" reduction step (e.g., step passed to mapfoldl).\n\nSee also: @return_if_reduced.\n\n\n\n\n\n"
+    "text": "__foldl__(rf, init, reducible::T)\n\nLeft fold a reducible with reducing function rf and initial value init.  This is primary an API for overloading when the reducible \"container\" or \"context\" (e.g., I/O stream) of type T can provide a better reduction mechanism than the default iterator-based one.\n\nFor a simple iterable type MyType, a valid implementation is:\n\nfunction __foldl__(rf, val, itr::MyType)\n    for x in itr\n        val = next(rf, val, x)\n        @return_if_reduced complete(rf, val)\n    end\n    return complete(rf, val)\nend\n\nalthough in this case default __foldl__ can handle MyType and thus there is no need for defining it.  In general, defining __foldl__ is useful only when there is a better way to go over items in reducible than Base.iterate.\n\nSee also: @return_if_reduced.\n\n\n\n\n\n"
 },
 
 {
@@ -617,11 +617,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "internals/#Transducers.foldl_nocomplete",
+    "page": "Internals",
+    "title": "Transducers.foldl_nocomplete",
+    "category": "function",
+    "text": "foldl_nocomplete(rf, init, coll)\n\nCall __foldl__ without calling complete.\n\n\n\n\n\n"
+},
+
+{
     "location": "internals/#Internals-1",
     "page": "Internals",
     "title": "Internals",
     "category": "section",
-    "text": "Transducers.simple_transduce"
+    "text": "Transducers.simple_transduce\nTransducers.foldl_nocomplete"
 },
 
 {
@@ -717,7 +725,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Writing reducibles",
     "title": "How to make your data type reducible",
     "category": "section",
-    "text": "Let\'s see how to make a vector-of-vector a reducible collection; i.e., a type that can be fed to mapfoldl.struct VecOfVec{T}\n    vectors::Vector{Vector{T}}\nendWe need Transducers.next to invoke the reducing function rf and Transducers.@return_if_reduced to support early termination.using Transducers\nusing Transducers: next, @return_if_reducedSupporting mapfoldl and similar only requires Transducers.__foldl__:function Transducers.__foldl__(rf, val, vov::VecOfVec, complete)\n    for vector in vov.vectors\n        for x in vector\n            val = next(rf, val, x)\n            @return_if_reduced complete(rf, val)\n        end\n    end\n    return complete(rf, val)\nendNote that it\'s often a good idea to implement Base.eltype:Base.eltype(::VecOfVec{T}) where {T} = TIt can be then used as the input to the transducers:vov = VecOfVec(collect.([1:n for n in 1:3]))\ncollect(Map(identity), vov)Transducers.@return_if_reduced above is used to support terminating transducer like Take.collect(Take(3), vov)More complex example:collect(PartitionBy(isequal(1)) |> Map(copy) |> TeeZip(Map(sum)), vov)Notice that writing Transducers.__foldl__ is very straightforward comparing to how to define an iterator:function Base.iterate(vov::VecOfVec, state=nothing)\n    if state === nothing\n        i, j = 1, 1\n    else\n        i, j = state\n    end\n    i > length(vov.vectors) && return nothingIf j is in bound, we are iterating the same sub-vector:    vi = vov.vectors[i]\n    if j <= length(vi)\n        return vi[j], (i, j + 1)\n    endOtherwise, find the next non-empty sub-vector and start iterating it:    for k in i + 1:length(vov.vectors)\n        vk = vov.vectors[k]\n        if !isempty(vk)\n            return vk[1], (k, 2)  # i=k, j=2\n        end\n    end\n    return nothing\nend\n\nBase.length(vov::VecOfVec) = sum(length, vov.vectors)\n\ncollect(vov)This page was generated using Literate.jl."
+    "text": "Let\'s see how to make a vector-of-vector a reducible collection; i.e., a type that can be fed to mapfoldl.struct VecOfVec{T}\n    vectors::Vector{Vector{T}}\nendWe need next and complete to invoke the reducing function rf and @return_if_reduced to support early termination.using Transducers\nusing Transducers: next, complete, @return_if_reducedSupporting mapfoldl and similar only requires Transducers.__foldl__:function Transducers.__foldl__(rf, val, vov::VecOfVec)\n    for vector in vov.vectors\n        for x in vector\n            val = next(rf, val, x)\n            @return_if_reduced complete(rf, val)\n        end\n    end\n    return complete(rf, val)\nendNote that it\'s often a good idea to implement Base.eltype:Base.eltype(::VecOfVec{T}) where {T} = TIt can be then used as the input to the transducers:vov = VecOfVec(collect.([1:n for n in 1:3]))\ncollect(Map(identity), vov)Transducers.@return_if_reduced above is used to support terminating transducer like Take.collect(Take(3), vov)More complex example:collect(PartitionBy(isequal(1)) |> Map(copy) |> TeeZip(Map(sum)), vov)Notice that writing Transducers.__foldl__ is very straightforward comparing to how to define an iterator:function Base.iterate(vov::VecOfVec, state=nothing)\n    if state === nothing\n        i, j = 1, 1\n    else\n        i, j = state\n    end\n    i > length(vov.vectors) && return nothingIf j is in bound, we are iterating the same sub-vector:    vi = vov.vectors[i]\n    if j <= length(vi)\n        return vi[j], (i, j + 1)\n    endOtherwise, find the next non-empty sub-vector and start iterating it:    for k in i + 1:length(vov.vectors)\n        vk = vov.vectors[k]\n        if !isempty(vk)\n            return vk[1], (k, 2)  # i=k, j=2\n        end\n    end\n    return nothing\nend\n\nBase.length(vov::VecOfVec) = sum(length, vov.vectors)\n\ncollect(vov)This page was generated using Literate.jl."
 },
 
 ]}
