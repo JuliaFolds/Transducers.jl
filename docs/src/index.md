@@ -124,7 +124,7 @@ function map_filter_iterators(xs, init)
             ret = iterate(xs, state)                  #
             ret === nothing && return acc             #
             @label filter                             #
-            state, x = ret                            #
+            x, state = ret                            #
             iseven(x) && break             # filter   :
         end                                #          :
         y = 2x              # imap         :          :
@@ -160,7 +160,9 @@ function map_filter_transducers(xs, init)
     return acc
 end
 
-@assert map_filter_iterators(1:10, 0) == map_filter_transducers(1:10, 0)
+xs = [6, 8, 1, 4, 5, 6, 6, 7, 9, 9, 7, 8, 6, 8, 2, 5, 2, 4, 3, 7]
+@assert map_filter_iterators(xs, 0) == map_filter_transducers(xs, 0)
+
 # output
 
 ```
