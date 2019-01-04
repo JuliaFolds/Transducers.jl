@@ -45,7 +45,7 @@ foldl(+, imap(f, filter(iseven, input)))  # equivalent
             ret = iterate(xs, state)                  #
             ret === nothing &amp;&amp; return acc             #
             @label filter                             #
-            state, x = ret                            #
+            x, state = ret                            #
             iseven(x) &amp;&amp; break             # filter   :
         end                                #          :
         y = 2x              # imap         :          :
@@ -65,7 +65,8 @@ end</code></pre><p>Notice that the iteration of <code>input</code> is the <em>in
     return acc
 end
 
-@assert map_filter_iterators(1:10, 0) == map_filter_transducers(1:10, 0)</code></pre><p>Notice that the iteration of <code>input</code> is at the <em>outer</em> most block while <code>+</code> is in the inner most block.  Transducers passed to <code>mapfoldl</code> appears in the block between them in the order they are composed.  An outer transducer (say <code>Filter</code>) &quot;pushes&quot; <em>arbitrary</em> number of items to the inner transducer (<code>Map</code> in above example). Note that <code>Filter</code> can choose to <em>not</em> push an item (i.e., push zero item) when the predicate returns <code>false</code>.  This <em>push-based</em> nature of the transducers allows the generation of very natural and efficient code.  To put it another way, the transducers and <a href="#Glossary-1">transducible processes</a> <em>own</em> the loop.</p><p>As a consequence, computations requiring to expand an item into a sequence can be processed efficiently.  Consider the following example:</p><pre><code class="language-julia-repl">julia&gt; xf = Map(x -&gt; 1:x) |&gt; Filter(iseven ∘ sum) |&gt; Cat()
+xs = [6, 8, 1, 4, 5, 6, 6, 7, 9, 9, 7, 8, 6, 8, 2, 5, 2, 4, 3, 7]
+@assert map_filter_iterators(xs, 0) == map_filter_transducers(xs, 0)</code></pre><p>Notice that the iteration of <code>input</code> is at the <em>outer</em> most block while <code>+</code> is in the inner most block.  Transducers passed to <code>mapfoldl</code> appears in the block between them in the order they are composed.  An outer transducer (say <code>Filter</code>) &quot;pushes&quot; <em>arbitrary</em> number of items to the inner transducer (<code>Map</code> in above example). Note that <code>Filter</code> can choose to <em>not</em> push an item (i.e., push zero item) when the predicate returns <code>false</code>.  This <em>push-based</em> nature of the transducers allows the generation of very natural and efficient code.  To put it another way, the transducers and <a href="#Glossary-1">transducible processes</a> <em>own</em> the loop.</p><p>As a consequence, computations requiring to expand an item into a sequence can be processed efficiently.  Consider the following example:</p><pre><code class="language-julia-repl">julia&gt; xf = Map(x -&gt; 1:x) |&gt; Filter(iseven ∘ sum) |&gt; Cat()
        mapfoldl(xf, *, 1:10)
 29262643200</code></pre><p>This is lowered to a nested <code>for</code> loops:</p><pre><code class="language-julia">function map_filter_cat_transducers(xs, init)
     acc = init
