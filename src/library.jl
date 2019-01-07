@@ -214,7 +214,6 @@ next(rf::R_{Filter}, result, input) =
 
 """
     NotA(T)
-    NotA{T}()
 
 Skip items of type `T`.  Unlike `Filter(!ismissing)`, downstream
 transducers can have a correct type information for `NotA(Missing)`.
@@ -254,7 +253,6 @@ next(rf::R_{NotA{T}}, result, input) where T =
 
 """
     OfType(T)
-    OfType{T}()
 
 Include only items of type `T`.
 
