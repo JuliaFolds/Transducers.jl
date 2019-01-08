@@ -368,6 +368,12 @@ end
         @test collect(Enumerate(), xs) == [(1,2), (2,4), (3,6)]
         @test collect(Enumerate(10, 20), xs) == [(10, 2), (30, 4), (50, 6)]
     end
+    @testset "Combination with stateful transducers" begin
+        @testset for xs in iterator_variants(2:2:6)
+            @test collect(Enumerate() |> Take(2), xs) == [(1, 2), (2, 4)]
+            @test collect(Drop(2) |> Enumerate(), xs) == [(1, 6)]
+        end
+    end
 end
 
 end  # module

@@ -1517,7 +1517,8 @@ end
 Enumerate(start = 1) = Enumerate(start, oneunit(start))
 
 outtype(xf::Enumerate{T}, intype) where {T} = Tuple{T, intype}
-start(rf::R_{Enumerate}, result) = wrap(rf, rf.xform.start, result)
+start(rf::R_{Enumerate}, result) =
+    wrap(rf, rf.xform.start, start(rf.inner, result))
 next(rf::R_{Enumerate}, result, input) =
     wrapping(rf, result) do i, iresult
         iresult2 = next(rf.inner, iresult, (i, input))
