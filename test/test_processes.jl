@@ -39,6 +39,17 @@ include("preamble.jl")
         nested_xf = Drop(10^9) |> FlagFirst() |> Map(x -> 32)
         @test foldl(+, nested_xf, iter) === 0
     end
+
+    @testset "zip-of-arrays" begin
+        @testset for xs in Iterators.Zip[
+                zip(0:3),
+                zip(0:3, 1:2:8),
+                zip(0:3, 1:2:8, 10:3:19),
+                zip(reshape([1:9;], (3, 3)), [10:3:34;]),
+                ]
+            @test mapfoldl(MapSplat(*), +, xs) == sum(map(*, xs.is...))
+        end
+    end
 end
 
 
