@@ -81,6 +81,15 @@ end
     @testset for xs in iterator_variants(1:6)
         @test collect(xf, xs) == 3:2:7
     end
+
+    @testset "Union type input" begin
+        @testset for xs in iterator_variants([10, missing, 20])
+            @test collect(Zip(Count(), NotA(Missing)), xs) == [
+                (1, 10)
+                (3, 20)
+            ]
+        end
+    end
 end
 
 @testset "Replace" begin

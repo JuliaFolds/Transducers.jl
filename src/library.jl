@@ -1286,22 +1286,24 @@ struct Joiner{F, T}  # Note: not a Transducer
     inner::F  # original inner reduction
     value::T  # original input
 
-    Joiner(inner::F, value::T) where {F,T} = new{F,T}(inner, value)
+    Joiner{F,T}(inner, value) where {F,T} = new{F,T}(inner, value)
     Joiner{F,T}(inner) where {F,T} = new{F,T}(inner)
 end
+
+joinerfor(rf::Reduction, rest...) =
+    Joiner{typeof(rf.inner), InType(rf)}(rf.inner, rest...)
 
 next(rf::Joiner, result, input) = next(rf.inner, result, (rf.value, input))
 complete(rf::Joiner, result) = complete(rf.inner, result)
 
 outtype(xf::TeeZip, intype) = Tuple{intype, outtype(xf.xform, intype)}
 
-@inline rejoin(rf::R_{TeeZip},
-               f = Joiner{typeof(rf.inner), InType(rf)}(rf.inner)) =
+@inline rejoin(rf::R_{TeeZip}, f = joinerfor(rf)) =
     Reduction(rf.xform.xform, f, InType(rf))
 
 start(rf::R_{TeeZip}, result) = start(rejoin(rf), result)
 next(rf::R_{TeeZip}, result, input) =
-    next(rejoin(rf, Joiner(rf.inner, input)), result, input)
+    next(rejoin(rf, joinerfor(rf, input)), result, input)
 complete(rf::R_{TeeZip}, result) = complete(rejoin(rf), result)
 
 # add joint
