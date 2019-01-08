@@ -423,3 +423,92 @@ right(r) = r
 identityof(::typeof(right), ::Any) = nothing
 # This is just a right identity but `right` is useful for left-fold
 # context anyway so I guess it's fine.
+
+
+"""
+    Initializer(f[, ReturnType])
+
+Wrap a factory function to create an initial value for transducible
+processes (e.g., [`mapfoldl`](@ref)) and "stateful" transducers (e.g.,
+[`Scan`](@ref)).
+
+`Initializer` must be used whenever using in-place reduction with
+[`mapreduce`](@ref).
+
+# Examples
+```jldoctest Initializer
+julia> using Transducers
+
+julia> xf1 = Scan(push!, [])
+Scan(push!, Any[])
+
+julia> mapfoldl(xf1, right, 1:3)
+3-element Array{Any,1}:
+ 1
+ 2
+ 3
+
+julia> xf1
+Scan(push!, Any[1, 2, 3])
+```
+
+Notice that the array is stored in `xf1` and mutated in-place.  As a
+result, second run of `mapfoldl` contains the results from the first
+run:
+
+```jldoctest Initializer
+julia> mapfoldl(xf1, right, 10:11)
+5-element Array{Any,1}:
+  1
+  2
+  3
+ 10
+ 11
+```
+
+This may not be desired.  To avoid this behavior, create an
+`Initializer` object which takes a factory function to create a new
+initial value.
+
+```jldoctest Initializer; filter = r"#+[0-9]+"
+julia> xf2 = Scan(push!, Initializer(() -> []))
+Scan(push!, Initializer{##9#10,Array{Any,1}}(##9#10()))
+
+julia> mapfoldl(xf2, right, 1:3)
+3-element Array{Any,1}:
+ 1
+ 2
+ 3
+
+julia> mapfoldl(xf2, right, 10:11)
+2-element Array{Any,1}:
+ 10
+ 11
+```
+
+Keyword argument `init` for transducible processes also accept an
+`Initializer`:
+
+```jldoctest Initializer
+julia> mapfoldl(Map(identity), push!, "abc"; init=Initializer(() -> Char[]))
+3-element Array{Char,1}:
+ 'a'
+ 'b'
+ 'c'
+```
+"""
+struct Initializer{F, ReturnType}
+    f::F
+end
+
+Initializer(f, ReturnType) = Initializer{typeof(f), ReturnType}(f)
+Initializer(f) = Initializer(f, Base._return_type(f, Tuple{}))
+Initializer(::Any, ::Type{Union{}}) =
+    error("Return type must not be a `Union{}`.")
+
+initvalue(x) = x
+initvalue(init::Initializer{<:Any, T}) where T = init.f() :: T
+# Does it make sense to have the type assertion  here?
+
+inittypeof(::T) where T = T
+inittypeof(::Initializer{<:Any, T}) where T = T

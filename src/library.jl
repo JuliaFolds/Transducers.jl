@@ -10,6 +10,11 @@ Note that input is ignored.  To use the input in the downstream
 reduction steps, use [`TeeZip`](@ref) or [`Zip`](@ref).
 """
 
+_use_initializer = """
+An [`Initializer`](@ref) object can be passed to `init` for creating
+a dedicated (possibly mutable) state for each fold.
+"""
+
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/map
 # https://clojuredocs.org/clojure.core/map
 """
@@ -975,6 +980,8 @@ Unless `f` is a function with known identity element such as `+`, `*`,
 `min`, `max`, and `append!`, the initial state `init` must be
 provided.
 
+$_use_initializer
+
 See also: [`ScanEmit`](@ref), [`Iterated`](@ref).
 
 # Examples
@@ -1029,7 +1036,7 @@ function start(rf::R_{Scan}, result)
     if rf.xform.init === nothing
         init = identityof(rf.xform.f, InType(rf))
     else
-        init = rf.xform.init
+        init = initvalue(rf.xform.init)
     end
     return wrap(rf, init, start(rf.inner, result))
 end
@@ -1061,6 +1068,8 @@ The inner reducing step receives the sequence `y₁, y₂, y₃, ..., yₙ,
 
 when the sequence `x₁, x₂, x₃, ..., xₙ, ...` is fed to `ScanEmit(f)`.
 
+$_use_initializer
+
 See also: [`ScanEmit`](@ref), [`Iterated`](@ref).
 
 # Examples
@@ -1083,7 +1092,9 @@ end
 ScanEmit(f, init) = ScanEmit(f, init, nothing)
 
 function outtype(xf::ScanEmit, intype)
-    U = _type_scan_fixedpoint((u, x) -> xf.f(u, x)[2], typeof(xf.init), intype)
+    U = _type_scan_fixedpoint((u, x) -> xf.f(u, x)[2],
+                              inittypeof(xf.init),
+                              intype)
     Y = Base._return_type((u, x) -> xf.f(u, x)[1], Tuple{U, intype})
     if xf.onlast === nothing
         return Y
@@ -1092,7 +1103,7 @@ function outtype(xf::ScanEmit, intype)
 end
 
 start(rf::R_{ScanEmit}, result) =
-    wrap(rf, rf.xform.init, start(rf.inner, result))
+    wrap(rf, initvalue(rf.xform.init), start(rf.inner, result))
 
 function next(rf::R_{ScanEmit}, result, input)
     wrapping(rf, result) do u0, iresult
@@ -1128,6 +1139,8 @@ and so on.
 $(_shared_notes_unfold)
 
 Use the third argument `T` to specify the output type of `f`.
+
+$_use_initializer
 
 See also: [`Scan`](@ref), [`ScanEmit`](@ref).
 
@@ -1175,7 +1188,7 @@ end
 
 outtype(xf::Iterated{<:Any, T}, ::Any) where T = T
 start(rf::R_{Iterated}, result) =
-    wrap(rf, rf.xform.init, start(rf.inner, result))
+    wrap(rf, initvalue(rf.xform.init), start(rf.inner, result))
 next(rf::R_{Iterated}, result, ::Any) =
     wrapping(rf, result) do istate, iresult
         return rf.xform.f(istate), next(rf.inner, iresult, istate)

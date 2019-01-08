@@ -33,5 +33,6 @@ Filter = Transducers.is_transducer_type
 
 ```@docs
 Completing
+Initializer
 right
 ```

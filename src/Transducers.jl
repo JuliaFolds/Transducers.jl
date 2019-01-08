@@ -5,7 +5,7 @@ export Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, TeeZip, Zip,
     Interpose, Dedupe, Partition, GetIndex, SetIndex, Iterated, Count, Inject,
     TakeLast, FlagFirst, MapSplat, ScanEmit, Enumerate, NotA, OfType,
     transduce, eduction,
-    Completing, right
+    Completing, Initializer, right
 
 include("basics.jl")
 include("core.jl")
