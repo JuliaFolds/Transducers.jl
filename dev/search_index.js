@@ -285,7 +285,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Iterated",
     "category": "type",
-    "text": "Iterated(f, init[, T::Type])\n\nGenerate a sequence init, f(init), f(f(init)), f(f(f(init))), and so on.\n\nNote that input is ignored.  To use the input in the downstream reduction steps, use TeeZip or Zip.\n\nUse the third argument T to specify the output type of f.\n\nSee also: Scan, ScanEmit.\n\nThe idea is taken from IterTools.iterated\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Iterated(x -> 2x, 1), 1:5)\n5-element Array{Int64,1}:\n  1\n  2\n  4\n  8\n 16\n\njulia> collect(TeeZip(Iterated(x -> 2x, 1)), 1:5)\n5-element Array{Tuple{Int64,Int64},1}:\n (1, 1)\n (2, 2)\n (3, 4)\n (4, 8)\n (5, 16)\n\n\n\n\n\n"
+    "text": "Iterated(f, init[, T::Type])\n\nGenerate a sequence init, f(init), f(f(init)), f(f(f(init))), and so on.\n\nNote that input is ignored.  To use the input in the downstream reduction steps, use TeeZip or Zip.\n\nUse the third argument T to specify the output type of f.\n\nAn Initializer object can be passed to init for creating a dedicated (possibly mutable) state for each fold.\n\nSee also: Scan, ScanEmit.\n\nThe idea is taken from IterTools.iterated\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Iterated(x -> 2x, 1), 1:5)\n5-element Array{Int64,1}:\n  1\n  2\n  4\n  8\n 16\n\njulia> collect(TeeZip(Iterated(x -> 2x, 1)), 1:5)\n5-element Array{Tuple{Int64,Int64},1}:\n (1, 1)\n (2, 2)\n (3, 4)\n (4, 8)\n (5, 16)\n\n\n\n\n\n"
 },
 
 {
@@ -325,7 +325,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.NotA",
     "category": "type",
-    "text": "NotA(T)\nNotA{T}()\n\nSkip items of type T.  Unlike Filter(!ismissing), downstream transducers can have a correct type information for NotA(Missing).\n\nSee also: OfType\n\nExamples\n\njulia> using Transducers\n\njulia> collect(NotA(Missing), [1, missing, 2])\n2-element Array{Int64,1}:\n 1\n 2\n\njulia> collect(Filter(!ismissing), [1, missing, 2])  # see the eltype below\n2-element Array{Union{Missing, Int64},1}:\n 1\n 2\n\n\n\n\n\n"
+    "text": "NotA(T)\n\nSkip items of type T.  Unlike Filter(!ismissing), downstream transducers can have a correct type information for NotA(Missing).\n\nSee also: OfType\n\nExamples\n\njulia> using Transducers\n\njulia> collect(NotA(Missing), [1, missing, 2])\n2-element Array{Int64,1}:\n 1\n 2\n\njulia> collect(Filter(!ismissing), [1, missing, 2])  # see the eltype below\n2-element Array{Union{Missing, Int64},1}:\n 1\n 2\n\n\n\n\n\n"
 },
 
 {
@@ -333,7 +333,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.OfType",
     "category": "type",
-    "text": "OfType(T)\nOfType{T}()\n\nInclude only items of type T.\n\nSee also: NotA\n\nExamples\n\njulia> using Transducers\n\njulia> collect(OfType(Int), [1, missing, 2])\n2-element Array{Int64,1}:\n 1\n 2\n\njulia> collect(Filter(!ismissing), [1, missing, 2])  # see the eltype below\n2-element Array{Union{Missing, Int64},1}:\n 1\n 2\n\n\n\n\n\n"
+    "text": "OfType(T)\n\nInclude only items of type T.\n\nSee also: NotA\n\nExamples\n\njulia> using Transducers\n\njulia> collect(OfType(Int), [1, missing, 2])\n2-element Array{Int64,1}:\n 1\n 2\n\njulia> collect(Filter(!ismissing), [1, missing, 2])  # see the eltype below\n2-element Array{Union{Missing, Int64},1}:\n 1\n 2\n\n\n\n\n\n"
 },
 
 {
@@ -365,7 +365,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Scan",
     "category": "type",
-    "text": "Scan(f, [init])\n\nAccumulate input with binary function f and pass the accumulated result so far to the inner reduction step.\n\nThe inner reducing step receives the sequence y₁, y₂, y₃, ..., yₙ, ... when the sequence x₁, x₂, x₃, ..., xₙ, ... is fed to Scan(f).\n\ny₁ = f(init, x₁)\ny₂ = f(y₁, x₂)\ny₃ = f(y₂, x₃)\n...\nyₙ = f(yₙ₋₁, xₙ)\n\nThis is a generalized version of the prefix sum also known as cumulative sum, inclusive scan, or scan.\n\nNote that the associativity of f is not required when the transducer is used in a process that gurantee an order, such as mapfoldl.\n\nUnless f is a function with known identity element such as +, *, min, max, and append!, the initial state init must be provided.\n\nSee also: ScanEmit, Iterated.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Scan(*), 1:3)\n3-element Array{Int64,1}:\n 1\n 2\n 6\n\njulia> collect(Map(x -> x + im) |> Scan(*), 1:3)\n3-element Array{Complex{Int64},1}:\n 1 + 1im\n 1 + 3im\n 0 + 10im\n\njulia> collect(Scan(*, 10), 1:3)\n3-element Array{Int64,1}:\n 10\n 20\n 60\n\n\n\n\n\n"
+    "text": "Scan(f, [init])\n\nAccumulate input with binary function f and pass the accumulated result so far to the inner reduction step.\n\nThe inner reducing step receives the sequence y₁, y₂, y₃, ..., yₙ, ... when the sequence x₁, x₂, x₃, ..., xₙ, ... is fed to Scan(f).\n\ny₁ = f(init, x₁)\ny₂ = f(y₁, x₂)\ny₃ = f(y₂, x₃)\n...\nyₙ = f(yₙ₋₁, xₙ)\n\nThis is a generalized version of the prefix sum also known as cumulative sum, inclusive scan, or scan.\n\nNote that the associativity of f is not required when the transducer is used in a process that gurantee an order, such as mapfoldl.\n\nUnless f is a function with known identity element such as +, *, min, max, and append!, the initial state init must be provided.\n\nAn Initializer object can be passed to init for creating a dedicated (possibly mutable) state for each fold.\n\nSee also: ScanEmit, Iterated.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Scan(*), 1:3)\n3-element Array{Int64,1}:\n 1\n 2\n 6\n\njulia> collect(Map(x -> x + im) |> Scan(*), 1:3)\n3-element Array{Complex{Int64},1}:\n 1 + 1im\n 1 + 3im\n 0 + 10im\n\njulia> collect(Scan(*, 10), 1:3)\n3-element Array{Int64,1}:\n 10\n 20\n 60\n\n\n\n\n\n"
 },
 
 {
@@ -373,7 +373,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.ScanEmit",
     "category": "type",
-    "text": "ScanEmit(f, init[, onlast])\n\nAccumulate input x with a function f with the call signature (u, x) -> (y, u) and pass the result y to the inner reduction step.\n\nThe inner reducing step receives the sequence y₁, y₂, y₃, ..., yₙ, ... computed as follows\n\nu₀ = init\ny₁, u₁ = f(u₀, x₁)\ny₂, u₂ = f(u₁, x₂)\ny₃, u₃ = f(u₂, x₃)\n...\nyₙ, uₙ = f(uₙ₋₁, xₙ)\n...\nyₒₒ = onlast(uₒₒ)\n\nwhen the sequence x₁, x₂, x₃, ..., xₙ, ... is fed to ScanEmit(f).\n\nSee also: ScanEmit, Iterated.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(ScanEmit(tuple, 0), 1:3)\n3-element Array{Int64,1}:\n 0\n 1\n 2\n\n\n\n\n\n"
+    "text": "ScanEmit(f, init[, onlast])\n\nAccumulate input x with a function f with the call signature (u, x) -> (y, u) and pass the result y to the inner reduction step.\n\nThe inner reducing step receives the sequence y₁, y₂, y₃, ..., yₙ, ... computed as follows\n\nu₀ = init\ny₁, u₁ = f(u₀, x₁)\ny₂, u₂ = f(u₁, x₂)\ny₃, u₃ = f(u₂, x₃)\n...\nyₙ, uₙ = f(uₙ₋₁, xₙ)\n...\nyₒₒ = onlast(uₒₒ)\n\nwhen the sequence x₁, x₂, x₃, ..., xₙ, ... is fed to ScanEmit(f).\n\nAn Initializer object can be passed to init for creating a dedicated (possibly mutable) state for each fold.\n\nSee also: ScanEmit, Iterated.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(ScanEmit(tuple, 0), 1:3)\n3-element Array{Int64,1}:\n 0\n 1\n 2\n\n\n\n\n\n"
 },
 
 {
@@ -449,6 +449,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "manual/#Transducers.Initializer",
+    "page": "Manual",
+    "title": "Transducers.Initializer",
+    "category": "type",
+    "text": "Initializer(f[, ReturnType])\n\nWrap a factory function to create an initial value for transducible processes (e.g., mapfoldl) and \"stateful\" transducers (e.g., Scan).\n\nInitializer must be used whenever using in-place reduction with mapreduce.\n\nExamples\n\njulia> using Transducers\n\njulia> xf1 = Scan(push!, [])\nScan(push!, Any[])\n\njulia> mapfoldl(xf1, right, 1:3)\n3-element Array{Any,1}:\n 1\n 2\n 3\n\njulia> xf1\nScan(push!, Any[1, 2, 3])\n\nNotice that the array is stored in xf1 and mutated in-place.  As a result, second run of mapfoldl contains the results from the first run:\n\njulia> mapfoldl(xf1, right, 10:11)\n5-element Array{Any,1}:\n  1\n  2\n  3\n 10\n 11\n\nThis may not be desired.  To avoid this behavior, create an Initializer object which takes a factory function to create a new initial value.\n\njulia> xf2 = Scan(push!, Initializer(() -> []))\nScan(push!, Initializer{##9#10,Array{Any,1}}(##9#10()))\n\njulia> mapfoldl(xf2, right, 1:3)\n3-element Array{Any,1}:\n 1\n 2\n 3\n\njulia> mapfoldl(xf2, right, 10:11)\n2-element Array{Any,1}:\n 10\n 11\n\nKeyword argument init for transducible processes also accept an Initializer:\n\njulia> mapfoldl(Map(identity), push!, \"abc\"; init=Initializer(() -> Char[]))\n3-element Array{Char,1}:\n \'a\'\n \'b\'\n \'c\'\n\n\n\n\n\n"
+},
+
+{
     "location": "manual/#Transducers.right",
     "page": "Manual",
     "title": "Transducers.right",
@@ -461,7 +469,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Miscellaneous",
     "category": "section",
-    "text": "Completing\nright"
+    "text": "Completing\nInitializer\nright"
 },
 
 {
@@ -661,7 +669,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Parallel word count",
     "title": "Word-counting transducer",
     "category": "section",
-    "text": "We can pipe the resulting words into various transducers.processcount(word) = Base.ImmutableDict(word => 1)\ncountxf = wordsxf |> Map(processcount)Transducer countxf constructs a \"singleton solution\" as a dictionary which then accumulated with the associative reducing step function mergecont:mergecont(a, b) = merge(+, a, b)\nmergecont(a) = a\nnothing  # hideNote that the unary form is required for the completion. Alternatively, we can use Completing((a, b) -> merge(+, a, b)) instead of mergecont.  Putting the transducer and reducing function together, we get:countwords(s; kwargs...) =\n    mapreduce(Map(Char) |> countxf,\n              mergecont,\n              transcode(UInt8, s);\n              init = Base.ImmutableDict{String,Int}(),\n              kwargs...)\nnothing  # hideSide note: Since mapreduce does not support string, the input string is converted to a Vector{UInt8} first by transcode. That\'s why there is Map(Char) |> before countxf.  Of course, this is not valid for UTF-8 in general.Side note 2: we are (ab)using the fact that merging ImmutableDicts yields a Dict:@assert merge(Base.ImmutableDict{String,Int}(),\n              Base.ImmutableDict{String,Int}()) isa Dict{String,Int}Let\'s run some tests with different number of threads:@testset for nthreads in [1, 2, 4]\n    @test countwords(\"This is a sample\", nthreads=nthreads) ==\n        Dict(\"This\" => 1, \"is\" => 1, \"a\" => 1, \"sample\" => 1)\n    @test countwords(\" Here is another sample \", nthreads=nthreads) ==\n        Dict(\"Here\" => 1, \"is\" => 1, \"another\" => 1, \"sample\" => 1)\n    @test countwords(\"JustOneWord\", nthreads=nthreads) ==\n        Dict(\"JustOneWord\" => 1)\n    @test countwords(\" \", nthreads=nthreads) == Dict()\n    @test countwords(\"\", nthreads=nthreads) == Dict()\n    @test countwords(\"aaa bb aaa aaa bb bb aaa\", nthreads=nthreads) ==\n        Dict(\"aaa\" => 4, \"bb\" => 3)\nend\nnothing  # hideThis page was generated using Literate.jl."
+    "text": "We can pipe the resulting words into various transducers.processcount(word) = Base.ImmutableDict(word => 1)\ncountxf = wordsxf |> Map(processcount)Transducer countxf constructs a \"singleton solution\" as a dictionary which then accumulated with the associative reducing step function mergecont!:mergecont!(a, b) = merge!(+, a, b)\nmergecont!(a) = a\nnothing  # hideNote that the unary form is required for the completion. Alternatively, we can use Completing((a, b) -> merge!(+, a, b)) instead of mergecont!.  Putting the transducer and reducing function together, we get:countwords(s; kwargs...) =\n    mapreduce(Map(Char) |> countxf,\n              mergecont!,\n              transcode(UInt8, s);\n              init = Initializer(Dict{String,Int}),\n              kwargs...)\nnothing  # hideSide note: Since mapreduce does not support string, the input string is converted to a Vector{UInt8} first by transcode. That\'s why there is Map(Char) |> before countxf.  Of course, this is not valid for UTF-8 in general.Side note 2: We use Initializer to create a fresh initial state for each sub-reduce to avoid overwriting mutable data between threads.Let\'s run some tests with different number of threads:@testset for nthreads in [1, 2, 4]\n    @test countwords(\"This is a sample\", nthreads=nthreads) ==\n        Dict(\"This\" => 1, \"is\" => 1, \"a\" => 1, \"sample\" => 1)\n    @test countwords(\" Here is another sample \", nthreads=nthreads) ==\n        Dict(\"Here\" => 1, \"is\" => 1, \"another\" => 1, \"sample\" => 1)\n    @test countwords(\"JustOneWord\", nthreads=nthreads) ==\n        Dict(\"JustOneWord\" => 1)\n    @test countwords(\" \", nthreads=nthreads) == Dict()\n    @test countwords(\"\", nthreads=nthreads) == Dict()\n    @test countwords(\"aaa bb aaa aaa bb bb aaa\", nthreads=nthreads) ==\n        Dict(\"aaa\" => 4, \"bb\" => 3)\nend\nnothing  # hideThis page was generated using Literate.jl."
 },
 
 {

@@ -61,14 +61,13 @@ test set      |    5      5</code></pre></div><p>Side note: In the first example
 countxf = wordsxf |&gt; Map(processcount)</code></pre><pre><code class="language-none">Map(vacantorchunk) |&gt;
     ScanEmit(extract, Chunk(&quot;&quot;), lastword) |&gt;
     Cat() |&gt;
-    Map(processcount)</code></pre></div><p>Transducer <code>countxf</code> constructs a &quot;singleton solution&quot; as a dictionary which then accumulated with the associative reducing step function <code>mergecont</code>:</p><div><pre><code class="language-julia">mergecont(a, b) = merge(+, a, b)
-mergecont(a) = a</code></pre></div><p>Note that the unary form is required for the completion. Alternatively, we can use <a href="../../manual/#Transducers.Completing"><code>Completing((a, b) -&gt; merge(+, a, b))</code></a> instead of <code>mergecont</code>.  Putting the transducer and reducing function together, we get:</p><div><pre><code class="language-julia">countwords(s; kwargs...) =
+    Map(processcount)</code></pre></div><p>Transducer <code>countxf</code> constructs a &quot;singleton solution&quot; as a dictionary which then accumulated with the associative reducing step function <code>mergecont!</code>:</p><div><pre><code class="language-julia">mergecont!(a, b) = merge!(+, a, b)
+mergecont!(a) = a</code></pre></div><p>Note that the unary form is required for the completion. Alternatively, we can use <a href="../../manual/#Transducers.Completing"><code>Completing((a, b) -&gt; merge!(+, a, b))</code></a> instead of <code>mergecont!</code>.  Putting the transducer and reducing function together, we get:</p><div><pre><code class="language-julia">countwords(s; kwargs...) =
     mapreduce(Map(Char) |&gt; countxf,
-              mergecont,
+              mergecont!,
               transcode(UInt8, s);
-              init = Base.ImmutableDict{String,Int}(),
-              kwargs...)</code></pre></div><p>Side note: Since <a href="../../manual/#Base.mapreduce"><code>mapreduce</code></a> does not support string, the input string is converted to a <code>Vector{UInt8}</code> first by <code>transcode</code>. That&#39;s why there is <code>Map(Char) |&gt;</code> before <code>countxf</code>.  Of course, this is not valid for UTF-8 in general.</p><p>Side note 2: we are (ab)using the fact that merging <code>ImmutableDict</code>s yields a <code>Dict</code>:</p><div><pre><code class="language-julia">@assert merge(Base.ImmutableDict{String,Int}(),
-              Base.ImmutableDict{String,Int}()) isa Dict{String,Int}</code></pre></div><p>Let&#39;s run some tests with different number of threads:</p><div><pre><code class="language-julia">@testset for nthreads in [1, 2, 4]
+              init = Initializer(Dict{String,Int}),
+              kwargs...)</code></pre></div><p>Side note: Since <a href="../../manual/#Base.mapreduce"><code>mapreduce</code></a> does not support string, the input string is converted to a <code>Vector{UInt8}</code> first by <code>transcode</code>. That&#39;s why there is <code>Map(Char) |&gt;</code> before <code>countxf</code>.  Of course, this is not valid for UTF-8 in general.</p><p>Side note 2: We use <a href="../../manual/#Transducers.Initializer"><code>Initializer</code></a> to create a fresh initial state for each sub-reduce to avoid overwriting mutable data between threads.</p><p>Let&#39;s run some tests with different number of threads:</p><div><pre><code class="language-julia">@testset for nthreads in [1, 2, 4]
     @test countwords(&quot;This is a sample&quot;, nthreads=nthreads) ==
         Dict(&quot;This&quot; =&gt; 1, &quot;is&quot; =&gt; 1, &quot;a&quot; =&gt; 1, &quot;sample&quot; =&gt; 1)
     @test countwords(&quot; Here is another sample &quot;, nthreads=nthreads) ==
