@@ -78,7 +78,7 @@ performance tuning.
 """
 function simple_transduce(xform, f, init, coll)
     rf = Reduction(xform, f, eltype(coll))
-    return __simple_foldl__(rf, start(rf, init), coll)
+    return __simple_foldl__(rf, _start_init(rf, init), coll)
 end
 
 """
@@ -159,13 +159,15 @@ innermost_rf(rf::Reduction) = innermost_rf(rf.inner)
 innermost_rf(f) = f
 innermost_rf(o::Completing) = innermost_rf(o.f)
 
+# Materialize initial value and then call start.
+_start_init(rf, init) = start(rf, provide_init(rf, init))
+
 # TODO: should it be an internal?
 @inline function transduce(rf::Reduction, init, coll)
     # Inlining `transduce` and `__foldl__` were essential for the
     # performance for `map!` to be comparable with the native loop.
     # See: ../benchmark/bench_filter_map_map!.jl
-    val = provide_init(rf, init)
-    return __foldl__(rf, start(rf, val), coll)
+    return __foldl__(rf, _start_init(rf, init), coll)
 end
 
 function Base.mapfoldl(xform::Transducer, step, itr;
@@ -192,7 +194,7 @@ Base.mapreduce
 function __reduce__(rf, init, arr::AbstractArray;
                     nthreads = max(1, min(length(arr), Threads.nthreads())))
     if nthreads == 1
-        return __foldl__(rf, start(rf, init), arr)
+        return __foldl__(rf, _start_init(rf, init), arr)
     else
         w = length(arr) ÷ nthreads
         results = Vector{Any}(undef, nthreads)
@@ -202,7 +204,7 @@ function __reduce__(rf, init, arr::AbstractArray;
             else
                 chunk = @view arr[(i - 1) * w + 1:i * w]
             end
-            results[i] = foldl_nocomplete(rf, start(rf, init), chunk)
+            results[i] = foldl_nocomplete(rf, _start_init(rf, init), chunk)
         end
         # It can be done in `log2(n)` for loops but it's not clear if
         # `combine` is compute-intensive enough so that launching

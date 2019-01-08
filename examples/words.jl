@@ -161,22 +161,22 @@ countxf = wordsxf |> Map(processcount)
 
 # Transducer `countxf` constructs a "singleton solution" as a
 # dictionary which then accumulated with the associative reducing step
-# function `mergecont`:
+# function `mergecont!`:
 
-mergecont(a, b) = merge(+, a, b)
-mergecont(a) = a
+mergecont!(a, b) = merge!(+, a, b)
+mergecont!(a) = a
 nothing  # hide
 
 # Note that the unary form is required for the completion.
-# Alternatively, we can use [`Completing((a, b) -> merge(+, a,
-# b))`](@ref Completing) instead of `mergecont`.  Putting the
+# Alternatively, we can use [`Completing((a, b) -> merge!(+, a,
+# b))`](@ref Completing) instead of `mergecont!`.  Putting the
 # transducer and reducing function together, we get:
 
 countwords(s; kwargs...) =
     mapreduce(Map(Char) |> countxf,
-              mergecont,
+              mergecont!,
               transcode(UInt8, s);
-              init = Base.ImmutableDict{String,Int}(),
+              init = Initializer(Dict{String,Int}),
               kwargs...)
 nothing  # hide
 
@@ -185,11 +185,9 @@ nothing  # hide
 # That's why there is `Map(Char) |>` before `countxf`.  Of course,
 # this is not valid for UTF-8 in general.
 #
-# Side note 2: we are (ab)using the fact that merging `ImmutableDict`s
-# yields a `Dict`:
-
-@assert merge(Base.ImmutableDict{String,Int}(),
-              Base.ImmutableDict{String,Int}()) isa Dict{String,Int}
+# Side note 2: We use [`Initializer`](@ref) to create a fresh initial
+# state for each sub-reduce to avoid overwriting mutable data between
+# threads.
 
 # Let's run some tests with different number of threads:
 
