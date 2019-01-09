@@ -20,7 +20,7 @@ collect(Map(identity), vov)</code></pre><pre><code class="language-none">6-eleme
  3</code></pre></div><p><a href="../../interface/#Transducers.@return_if_reduced"><code>Transducers.@return_if_reduced</code></a> above is used to support terminating transducer like <a href="../../manual/#Transducers.Take"><code>Take</code></a>.</p><div><pre><code class="language-julia">collect(Take(3), vov)</code></pre><pre><code class="language-none">3-element Array{Int64,1}:
  1
  1
- 2</code></pre></div><p>More complex example:</p><div><pre><code class="language-julia">collect(PartitionBy(isequal(1)) |&gt; Map(copy) |&gt; TeeZip(Map(sum)), vov)</code></pre><pre><code class="language-none">4-element Array{Tuple{Array{Int64,1},Int64},1}:
+ 2</code></pre></div><p>More complex example:</p><div><pre><code class="language-julia">collect(PartitionBy(isequal(1)) |&gt; Zip(Map(copy), Map(sum)), vov)</code></pre><pre><code class="language-none">4-element Array{Tuple{Array{Int64,1},Int64},1}:
  ([1, 1], 2)
  ([2], 2)
  ([1], 1)

@@ -189,7 +189,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Count",
     "category": "type",
-    "text": "Count([start[, step]])\n\nGenerate a sequence start, start + step, start + step + step, and so on.\n\nNote that input is ignored.  To use the input in the downstream reduction steps, use TeeZip or Zip.\n\nstart defaults to 1 and step defaults to oneunit(start).\n\nSee also: Iterators.countfrom. Enumerate\n\nExamples\n\njulia> using Transducers\n\njulia> collect(TeeZip(Count()), -3:-1)\n3-element Array{Tuple{Int64,Int64},1}:\n (-3, 1)\n (-2, 2)\n (-1, 3)\n\njulia> using Dates\n\njulia> collect(TeeZip(Count(Day(1))) |> Map(xs -> *(xs...)), 1:3)\n3-element Array{Day,1}:\n 1 day\n 4 days\n 9 days\n\n\n\n\n\n"
+    "text": "Count([start[, step]])\n\nGenerate a sequence start, start + step, start + step + step, and so on.\n\nNote that input is ignored.  To use the input in the downstream reduction steps, use Zip.\n\nstart defaults to 1 and step defaults to oneunit(start).\n\nSee also: Iterators.countfrom. Enumerate\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Zip(Map(identity), Count()), -3:-1)\n3-element Array{Tuple{Int64,Int64},1}:\n (-3, 1)\n (-2, 2)\n (-1, 3)\n\njulia> using Dates\n\njulia> collect(Zip(Map(identity), Count(Day(1))) |> Map(xs -> *(xs...)), 1:3)\n3-element Array{Day,1}:\n 1 day\n 4 days\n 9 days\n\n\n\n\n\n"
 },
 
 {
@@ -257,22 +257,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "manual/#Transducers.GetIndex",
-    "page": "Manual",
-    "title": "Transducers.GetIndex",
-    "category": "type",
-    "text": "GetIndex(array)\nGetIndex{inbounds}(array)\n\nTransform an integer input i to array[i].\n\nExamples\n\njulia> using Transducers\n\njulia> collect(GetIndex(1:10), [2, 3, 4])\n3-element Array{Int64,1}:\n 2\n 3\n 4\n\njulia> collect(GetIndex{true}(1:10), [2, 3, 4])\n3-element Array{Int64,1}:\n 2\n 3\n 4\n\n\n\n\n\n"
-},
-
-{
-    "location": "manual/#Transducers.Inject",
-    "page": "Manual",
-    "title": "Transducers.Inject",
-    "category": "type",
-    "text": "Inject(iterator)\n\nInject the output from iterator to the stream processed by the inner reduction step.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Inject(Iterators.cycle(\"hello\")), 1:8)\n8-element Array{Tuple{Int64,Char},1}:\n (1, \'h\')\n (2, \'e\')\n (3, \'l\')\n (4, \'l\')\n (5, \'o\')\n (6, \'h\')\n (7, \'e\')\n (8, \'l\')\n\njulia> collect(Inject(Iterators.repeated([1 2])), 1:4)\n4-element Array{Tuple{Int64,Array{Int64,2}},1}:\n (1, [1 2])\n (2, [1 2])\n (3, [1 2])\n (4, [1 2])\n\njulia> collect(Inject(Iterators.product(1:2, 3:5)), 1:100)\n6-element Array{Tuple{Int64,Tuple{Int64,Int64}},1}:\n (1, (1, 3))\n (2, (2, 3))\n (3, (1, 4))\n (4, (2, 4))\n (5, (1, 5))\n (6, (2, 5))\n\n\n\n\n\n"
-},
-
-{
     "location": "manual/#Transducers.Interpose",
     "page": "Manual",
     "title": "Transducers.Interpose",
@@ -285,7 +269,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Iterated",
     "category": "type",
-    "text": "Iterated(f, init[, T::Type])\n\nGenerate a sequence init, f(init), f(f(init)), f(f(f(init))), and so on.\n\nNote that input is ignored.  To use the input in the downstream reduction steps, use TeeZip or Zip.\n\nUse the third argument T to specify the output type of f.\n\nAn Initializer object can be passed to init for creating a dedicated (possibly mutable) state for each fold.\n\nSee also: Scan, ScanEmit.\n\nThe idea is taken from IterTools.iterated\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Iterated(x -> 2x, 1), 1:5)\n5-element Array{Int64,1}:\n  1\n  2\n  4\n  8\n 16\n\njulia> collect(TeeZip(Iterated(x -> 2x, 1)), 1:5)\n5-element Array{Tuple{Int64,Int64},1}:\n (1, 1)\n (2, 2)\n (3, 4)\n (4, 8)\n (5, 16)\n\n\n\n\n\n"
+    "text": "Iterated(f, init[, T::Type])\n\nGenerate a sequence init, f(init), f(f(init)), f(f(f(init))), and so on.\n\nNote that input is ignored.  To use the input in the downstream reduction steps, use Zip.\n\nUse the third argument T to specify the output type of f.\n\nAn Initializer object can be passed to init for creating a dedicated (possibly mutable) state for each fold.\n\nSee also: Scan, ScanEmit.\n\nThe idea is taken from IterTools.iterated\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Iterated(x -> 2x, 1), 1:5)\n5-element Array{Int64,1}:\n  1\n  2\n  4\n  8\n 16\n\njulia> collect(Zip(Map(identity), Iterated(x -> 2x, 1)), 1:5)\n5-element Array{Tuple{Int64,Int64},1}:\n (1, 1)\n (2, 2)\n (3, 4)\n (4, 8)\n (5, 16)\n\n\n\n\n\n"
 },
 
 {
@@ -377,14 +361,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "manual/#Transducers.SetIndex",
-    "page": "Manual",
-    "title": "Transducers.SetIndex",
-    "category": "type",
-    "text": "SetIndex(array)\nSetIndex{inbounds}(array)\n\nPerform array[i] = v for each input pair (i, v).\n\nExamples\n\njulia> using Transducers\n\njulia> ys = zeros(3);\n\njulia> mapfoldl(SetIndex(ys), first ∘ tuple, [(1, 11.1), (3, 33.3)], init=nothing)\n\njulia> ys\n3-element Array{Float64,1}:\n 11.1\n  0.0\n 33.3\n\n\n\n\n\n"
-},
-
-{
     "location": "manual/#Transducers.Take",
     "page": "Manual",
     "title": "Transducers.Take",
@@ -417,14 +393,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "manual/#Transducers.TeeZip",
-    "page": "Manual",
-    "title": "Transducers.TeeZip",
-    "category": "type",
-    "text": "TeeZip(xform::Transducer)\n\nBranch input into two \"flows\", inject one into xform and then merge the output of xform with the original input.\n\nTo illustrate how it works, consider the following usage\n\nxf0 |> TeeZip(xf1) |> xf2\n\nwhere xf0, xf1, and xf2 are some transducers.  Schematically, the output yn from xfn flows as follows:\n\nxf0      xf1                       xf2\n---- y0 ------ y1 ---.-- (y0, y1) ----->\n      |              |\n       `-------------\'\n    \"Tee\"          \"Zip\"\n\nExamples\n\njulia> using Transducers\n\njulia> collect(TeeZip(Filter(isodd) |> Map(x -> x + 1)), 1:5)\n3-element Array{Tuple{Int64,Int64},1}:\n (1, 2)\n (3, 4)\n (5, 6)\n\n\n\n\n\n"
-},
-
-{
     "location": "manual/#Transducers.Zip-Tuple",
     "page": "Manual",
     "title": "Transducers.Zip",
@@ -438,6 +406,46 @@ var documenterSearchIndex = {"docs": [
     "title": "Transducers",
     "category": "section",
     "text": "Modules = [Transducers]\nPrivate = false\nFilter = Transducers.is_transducer_type"
+},
+
+{
+    "location": "manual/#Transducers.TeeZip",
+    "page": "Manual",
+    "title": "Transducers.TeeZip",
+    "category": "type",
+    "text": "TeeZip(xform::Transducer)\n\nBranch input into two \"flows\", inject one into xform and then merge the output of xform with the original input.\n\nwarning: Warning\nThis API is experimental.  Backward incompatible change, including the removal of this API, is more likely to occur than other parts of this package.\n\nTo illustrate how it works, consider the following usage\n\nxf0 |> TeeZip(xf1) |> xf2\n\nwhere xf0, xf1, and xf2 are some transducers.  Schematically, the output yn from xfn flows as follows:\n\nxf0      xf1                       xf2\n---- y0 ------ y1 ---.-- (y0, y1) ----->\n      |              |\n       `-------------\'\n    \"Tee\"          \"Zip\"\n\nExamples\n\njulia> using Transducers\n       using Transducers: TeeZip\n\njulia> collect(TeeZip(Filter(isodd) |> Map(x -> x + 1)), 1:5)\n3-element Array{Tuple{Int64,Int64},1}:\n (1, 2)\n (3, 4)\n (5, 6)\n\n\n\n\n\n"
+},
+
+{
+    "location": "manual/#Transducers.GetIndex",
+    "page": "Manual",
+    "title": "Transducers.GetIndex",
+    "category": "type",
+    "text": "GetIndex(array)\nGetIndex{inbounds}(array)\n\nTransform an integer input i to array[i].\n\nwarning: Warning\nThis API is experimental.  Backward incompatible change, including the removal of this API, is more likely to occur than other parts of this package.\n\nExamples\n\njulia> using Transducers\n       using Transducers: GetIndex\n\njulia> collect(GetIndex(1:10), [2, 3, 4])\n3-element Array{Int64,1}:\n 2\n 3\n 4\n\njulia> collect(GetIndex{true}(1:10), [2, 3, 4])\n3-element Array{Int64,1}:\n 2\n 3\n 4\n\n\n\n\n\n"
+},
+
+{
+    "location": "manual/#Transducers.SetIndex",
+    "page": "Manual",
+    "title": "Transducers.SetIndex",
+    "category": "type",
+    "text": "SetIndex(array)\nSetIndex{inbounds}(array)\n\nPerform array[i] = v for each input pair (i, v).\n\nwarning: Warning\nThis API is experimental.  Backward incompatible change, including the removal of this API, is more likely to occur than other parts of this package.\n\nExamples\n\njulia> using Transducers\n       using Transducers: SetIndex\n\njulia> ys = zeros(3);\n\njulia> mapfoldl(SetIndex(ys), first ∘ tuple, [(1, 11.1), (3, 33.3)], init=nothing)\n\njulia> ys\n3-element Array{Float64,1}:\n 11.1\n  0.0\n 33.3\n\n\n\n\n\n"
+},
+
+{
+    "location": "manual/#Transducers.Inject",
+    "page": "Manual",
+    "title": "Transducers.Inject",
+    "category": "type",
+    "text": "Inject(iterator)\n\nInject the output from iterator to the stream processed by the inner reduction step.\n\nwarning: Warning\nThis API is experimental.  Backward incompatible change, including the removal of this API, is more likely to occur than other parts of this package.\n\nExamples\n\njulia> using Transducers\n       using Transducers: Inject\n\njulia> collect(Inject(Iterators.cycle(\"hello\")), 1:8)\n8-element Array{Tuple{Int64,Char},1}:\n (1, \'h\')\n (2, \'e\')\n (3, \'l\')\n (4, \'l\')\n (5, \'o\')\n (6, \'h\')\n (7, \'e\')\n (8, \'l\')\n\njulia> collect(Inject(Iterators.repeated([1 2])), 1:4)\n4-element Array{Tuple{Int64,Array{Int64,2}},1}:\n (1, [1 2])\n (2, [1 2])\n (3, [1 2])\n (4, [1 2])\n\njulia> collect(Inject(Iterators.product(1:2, 3:5)), 1:100)\n6-element Array{Tuple{Int64,Tuple{Int64,Int64}},1}:\n (1, (1, 3))\n (2, (2, 3))\n (3, (1, 4))\n (4, (2, 4))\n (5, (1, 5))\n (6, (2, 5))\n\n\n\n\n\n"
+},
+
+{
+    "location": "manual/#Experimental-1",
+    "page": "Manual",
+    "title": "Experimental",
+    "category": "section",
+    "text": "Transducers.TeeZip\nTransducers.GetIndex\nTransducers.SetIndex\nTransducers.Inject"
 },
 
 {
@@ -789,7 +797,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Writing reducibles",
     "title": "How to make your data type reducible",
     "category": "section",
-    "text": "Let\'s see how to make a vector-of-vector a reducible collection; i.e., a type that can be fed to mapfoldl.struct VecOfVec{T}\n    vectors::Vector{Vector{T}}\nendWe need next and complete to invoke the reducing function rf and @return_if_reduced to support early termination.using Transducers\nusing Transducers: next, complete, @return_if_reducedSupporting mapfoldl and similar only requires Transducers.__foldl__:function Transducers.__foldl__(rf, val, vov::VecOfVec)\n    for vector in vov.vectors\n        for x in vector\n            val = next(rf, val, x)\n            @return_if_reduced complete(rf, val)\n        end\n    end\n    return complete(rf, val)\nendNote that it\'s often a good idea to implement Base.eltype:Base.eltype(::VecOfVec{T}) where {T} = TIt can be then used as the input to the transducers:vov = VecOfVec(collect.([1:n for n in 1:3]))\ncollect(Map(identity), vov)Transducers.@return_if_reduced above is used to support terminating transducer like Take.collect(Take(3), vov)More complex example:collect(PartitionBy(isequal(1)) |> Map(copy) |> TeeZip(Map(sum)), vov)Notice that writing Transducers.__foldl__ is very straightforward comparing to how to define an iterator:function Base.iterate(vov::VecOfVec, state=nothing)\n    if state === nothing\n        i, j = 1, 1\n    else\n        i, j = state\n    end\n    i > length(vov.vectors) && return nothingIf j is in bound, we are iterating the same sub-vector:    vi = vov.vectors[i]\n    if j <= length(vi)\n        return vi[j], (i, j + 1)\n    endOtherwise, find the next non-empty sub-vector and start iterating it:    for k in i + 1:length(vov.vectors)\n        vk = vov.vectors[k]\n        if !isempty(vk)\n            return vk[1], (k, 2)  # i=k, j=2\n        end\n    end\n    return nothing\nend\n\nBase.length(vov::VecOfVec) = sum(length, vov.vectors)\n\ncollect(vov)This page was generated using Literate.jl."
+    "text": "Let\'s see how to make a vector-of-vector a reducible collection; i.e., a type that can be fed to mapfoldl.struct VecOfVec{T}\n    vectors::Vector{Vector{T}}\nendWe need next and complete to invoke the reducing function rf and @return_if_reduced to support early termination.using Transducers\nusing Transducers: next, complete, @return_if_reducedSupporting mapfoldl and similar only requires Transducers.__foldl__:function Transducers.__foldl__(rf, val, vov::VecOfVec)\n    for vector in vov.vectors\n        for x in vector\n            val = next(rf, val, x)\n            @return_if_reduced complete(rf, val)\n        end\n    end\n    return complete(rf, val)\nendNote that it\'s often a good idea to implement Base.eltype:Base.eltype(::VecOfVec{T}) where {T} = TIt can be then used as the input to the transducers:vov = VecOfVec(collect.([1:n for n in 1:3]))\ncollect(Map(identity), vov)Transducers.@return_if_reduced above is used to support terminating transducer like Take.collect(Take(3), vov)More complex example:collect(PartitionBy(isequal(1)) |> Zip(Map(copy), Map(sum)), vov)Notice that writing Transducers.__foldl__ is very straightforward comparing to how to define an iterator:function Base.iterate(vov::VecOfVec, state=nothing)\n    if state === nothing\n        i, j = 1, 1\n    else\n        i, j = state\n    end\n    i > length(vov.vectors) && return nothingIf j is in bound, we are iterating the same sub-vector:    vi = vov.vectors[i]\n    if j <= length(vi)\n        return vi[j], (i, j + 1)\n    endOtherwise, find the next non-empty sub-vector and start iterating it:    for k in i + 1:length(vov.vectors)\n        vk = vov.vectors[k]\n        if !isempty(vk)\n            return vk[1], (k, 2)  # i=k, j=2\n        end\n    end\n    return nothing\nend\n\nBase.length(vov::VecOfVec) = sum(length, vov.vectors)\n\ncollect(vov)This page was generated using Literate.jl."
 },
 
 ]}
