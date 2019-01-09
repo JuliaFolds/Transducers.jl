@@ -343,6 +343,19 @@ outtype(::AbstractFilter, intype) = intype
 finaltype(rf::Reduction{<:Transducer, <:Reduction}) = finaltype(rf.inner)
 finaltype(rf::Reduction) = outtype(rf.xform, InType(rf))
 
+# isexpansive(::Any) = true
+isexpansive(::Transducer) = true
+isexpansive(::AbstractFilter) = false
+# isexpansive(rf::Reduction) = isexpansive(rf.xform) || isexpansive(rf.inner)
+isexpansive(xf::Composition) = isexpansive(xf.outer) || isexpansive(xf.inner)
+# Should it be a type-level trait?
+
+#=
+iscontractive(::Any) = false
+iscontractive(::AbstractFilter) = true
+iscontractive(rf::Reduction) = iscontractive(rf.xform) && iscontractive(rf.inner)
+=#
+
 struct NoComplete <: Transducer end
 outtype(::NoComplete, intype) = intype
 next(rf::R_{NoComplete}, result, input) = next(rf.inner, result, input)

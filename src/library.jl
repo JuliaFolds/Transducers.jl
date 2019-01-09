@@ -40,6 +40,7 @@ struct Map{F} <: Transducer
     f::F
 end
 
+isexpansive(::Map) = false
 outtype(xf::Map, intype) = Union{Base.return_types(xf.f, (intype,))...}
 next(rf::R_{Map}, result, input) = next(rf.inner, result, rf.xform.f(input))
 
@@ -64,6 +65,7 @@ struct MapSplat{F} <: Transducer
     f::F
 end
 
+isexpansive(::MapSplat) = false
 outtype(xf::MapSplat, intype) = Union{Base.return_types(xf.f, intype)...}
 next(rf::R_{MapSplat}, result, input) =
     next(rf.inner, result, rf.xform.f(input...))
@@ -110,6 +112,7 @@ struct Replace{D} <: Transducer
     d::D  # dictionary-like object
 end
 
+isexpansive(::Replace) = false
 outtype(xf::Replace, intype) = Union{intype, avaltype(xf.d)}
 next(rf::R_{Replace}, result, input) =
     next(rf.inner, result, get(rf.xform.d, input, input))
@@ -610,6 +613,7 @@ julia> collect(FlagFirst(), 1:3)
 """
 struct FlagFirst <: Transducer end
 
+isexpansive(::FlagFirst) = false
 outtype(::FlagFirst, intype) = Tuple{Bool,intype}
 
 start(rf::R_{FlagFirst}, result) = wrap(rf, true, start(rf.inner, result))
@@ -666,6 +670,7 @@ end
 Partition(size, step; flush = false) = Partition(size; step = step, flush = flush)
 Partition(size; step = size, flush = false) = Partition(size, step, flush)
 
+isexpansive(::Partition) = false
 outtype(::Partition, intype) = DenseSubVector{intype}
 
 function start(rf::R_{Partition}, result)
@@ -773,6 +778,7 @@ end
 
 struct Unseen end
 
+isexpansive(::PartitionBy) = false
 outtype(::PartitionBy, intype) = Vector{intype}
 
 function start(rf::R_{PartitionBy}, result)
@@ -832,6 +838,7 @@ struct Keep{F} <: Transducer
     f::F
 end
 
+isexpansive(::Keep) = false
 outtype(xf::Keep, intype) =
     Core.Compiler.typesubtract(Union{Base.return_types(xf.f, (intype,))...},
                                Nothing)
@@ -1020,6 +1027,7 @@ _lefttype(xf::Scan{<:Any, T}, _) where {T} = T
 # Maybe this is fine:
 # outtype(xf::Scan, intype) = Union{_lefttype(xf, intype), intype}
 
+isexpansive(::Scan) = false
 outtype(xf::Scan, intype) =
     _type_scan_fixedpoint(xf.f, _lefttype(xf, intype), intype)
 
@@ -1090,6 +1098,8 @@ struct ScanEmit{F, T, L} <: Transducer
 end
 
 ScanEmit(f, init) = ScanEmit(f, init, nothing)
+
+isexpansive(xf::ScanEmit) = xf.onlast === nothing
 
 function outtype(xf::ScanEmit, intype)
     U = _type_scan_fixedpoint((u, x) -> xf.f(u, x)[2],
@@ -1186,6 +1196,7 @@ function _type_fixedpoint(f, X, limit = 10)
     return Any
 end
 
+isexpansive(::Iterated) = false
 outtype(xf::Iterated{<:Any, T}, ::Any) where T = T
 start(rf::R_{Iterated}, result) =
     wrap(rf, initvalue(rf.xform.init), start(rf.inner, result))
@@ -1234,6 +1245,7 @@ end
 
 Count(start = 1) = Count(start, oneunit(start))
 
+isexpansive(::Count) = false
 outtype(xf::Count{T}, ::Any) where T = T
 start(rf::R_{Count}, result) = wrap(rf, rf.xform.start, start(rf.inner, result))
 next(rf::R_{Count}, result, ::Any) =
@@ -1297,6 +1309,7 @@ start(rf::Joiner, result) = start(rf.inner, result)
 next(rf::Joiner, result, input) = next(rf.inner, result, (rf.value, input))
 complete(rf::Joiner, result) = complete(rf.inner, result)
 
+isexpansive(xf::TeeZip) = isexpansive(xf.xform)
 outtype(xf::TeeZip, intype) = Tuple{intype, outtype(xf.xform, intype)}
 
 @inline rejoin(rf::R_{TeeZip}, f = joinerfor(rf)) =
@@ -1375,6 +1388,7 @@ end
 GetIndex{inbounds}(array::A) where {inbounds, A} = GetIndex{inbounds, A}(array)
 GetIndex(array) = GetIndex{false}(array)
 
+isexpansive(::GetIndex) = false
 outtype(xf::GetIndex, ::Type{<:Integer}) = eltype(xf.array)
 outtype(::GetIndex, T) =
     error("Unexpected non-integer input type for GetIndex:\n", T)
@@ -1416,6 +1430,7 @@ end
 SetIndex{inbounds}(array::A) where {inbounds, A} = SetIndex{inbounds, A}(array)
 SetIndex(array) = SetIndex{false}(array)
 
+isexpansive(::SetIndex) = false
 outtype(xf::SetIndex, ::Type{<:Integer}) = eltype(xf.array)
 outtype(::SetIndex, T) =
     error("Unexpected non-integer input type for SetIndex:\n", T)
@@ -1474,6 +1489,7 @@ struct Inject{T} <: Transducer
     iterator::T
 end
 
+isexpansive(::Inject) = false
 outtype(xf::Inject, intype) = Tuple{intype, ieltype(xf.iterator)}
 start(rf::R_{Inject}, result) =
     wrap(rf, iterate(rf.xform.iterator), start(rf.inner, result))
@@ -1519,6 +1535,7 @@ end
 
 Enumerate(start = 1) = Enumerate(start, oneunit(start))
 
+isexpansive(::Enumerate) = false
 outtype(xf::Enumerate{T}, intype) where {T} = Tuple{T, intype}
 start(rf::R_{Enumerate}, result) =
     wrap(rf, rf.xform.start, start(rf.inner, result))

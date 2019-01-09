@@ -413,7 +413,7 @@ true
 ```
 """
 function Base.map!(xf::Transducer, dest::AbstractArray, src::AbstractArray)
-    # TODO: check that `xf` is non-expansive
+    isexpansive(xf) && error("map! only supports non-expanding transducer")
     # TODO: support Dict
     indices = eachindex(dest, src)
 

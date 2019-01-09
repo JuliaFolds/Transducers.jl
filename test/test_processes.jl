@@ -95,6 +95,10 @@ end
         dest = zero(src)
         @test map!(Filter(isodd) |> Scan(+), dest, src) == [1, 0, 4, 0, 9]
     end
+
+    @testset "Expansive transducers are not allowed" begin
+        @test_throws Exception map!(Cat(), [0], 1:1)
+    end
 end
 
 @testset "copy!" begin
@@ -122,6 +126,26 @@ end
     for _ in 1:100
         xs = randn(100)
         @test transduce(xf, +, 0.0, xs) == simple_transduce(xf, +, 0.0, xs)
+    end
+end
+
+@testset "isexpansive" begin
+    expansives = [
+        Cat()
+        Cat() |> Filter(isodd)
+        Filter(isodd) |> Cat()
+    ]
+    @testset for xf in expansives
+        @test isexpansive(xf)
+        @test isexpansive(TeeZip(xf))
+    end
+    nonexpansives = [
+        Map(identity)
+        Map(identity) |> Count()
+    ]
+    @testset for xf in nonexpansives
+        @test !isexpansive(xf)
+        @test !isexpansive(TeeZip(xf))
     end
 end
 
