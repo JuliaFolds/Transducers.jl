@@ -1293,6 +1293,7 @@ end
 joinerfor(rf::Reduction, rest...) =
     Joiner{typeof(rf.inner), InType(rf)}(rf.inner, rest...)
 
+start(rf::Joiner, result) = start(rf.inner, result)
 next(rf::Joiner, result, input) = next(rf.inner, result, (rf.value, input))
 complete(rf::Joiner, result) = complete(rf.inner, result)
 

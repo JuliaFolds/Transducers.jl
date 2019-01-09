@@ -82,6 +82,22 @@ end
         @test collect(xf, xs) == 3:2:7
     end
 
+    @testset "Combination with stateful transducers" begin
+        @testset for xs in iterator_variants(2:2:6)
+            @test collect(TeeZip(Map(identity)) |> Count(), xs) == 1:3
+            @test collect(TeeZip(Count()) |> Count(), xs) == 1:3
+            @test collect(Count() |> TeeZip(Map(x -> x + 10)), xs) ==
+                collect(zip(1:3, (1:3) .+ 10))
+            @test collect(
+                Enumerate() |> TeeZip(Map(x -> x[end] + 10)) |> Enumerate(),
+                xs) == [
+                    (1, ((1, 2), 12))
+                    (2, ((2, 4), 14))
+                    (3, ((3, 6), 16))
+                ]
+        end
+    end
+
     @testset "Union type input" begin
         @testset for xs in iterator_variants([10, missing, 20])
             @test collect(Zip(Count(), NotA(Missing)), xs) == [
