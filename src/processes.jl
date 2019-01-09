@@ -65,17 +65,20 @@ end
 @inline _getvalues(i, a, rest...) = (@inbounds a[i], _getvalues(i, rest...)...)
 
 # TODO: merge this with array implementation
-@inline function __foldl__(rf, init,
-                           zs::Iterators.Zip{<:Tuple{Vararg{AbstractArray}}})
-    isempty(zs) && return complete(rf, init)
-    idxs = eachindex(zs.is...)
-    val = next(rf, init, _getvalues(firstindex(idxs), zs.is...))
-    @return_if_reduced complete(rf, val)
-    for i in firstindex(idxs) + 1:lastindex(idxs)
-        val = next(rf, val, _getvalues(i, zs.is...))
+@static if VERSION >= v"1.1-"
+    @inline function __foldl__(
+            rf, init,
+            zs::Iterators.Zip{<:Tuple{Vararg{AbstractArray}}})
+        isempty(zs) && return complete(rf, init)
+        idxs = eachindex(zs.is...)
+        val = next(rf, init, _getvalues(firstindex(idxs), zs.is...))
         @return_if_reduced complete(rf, val)
+        for i in firstindex(idxs) + 1:lastindex(idxs)
+            val = next(rf, val, _getvalues(i, zs.is...))
+            @return_if_reduced complete(rf, val)
+        end
+        return complete(rf, val)
     end
-    return complete(rf, val)
 end
 
 function __simple_foldl__(rf, val, itr)
