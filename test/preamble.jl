@@ -2,7 +2,8 @@ using Test
 using Random
 using Statistics: mean
 using Transducers
-using Transducers: simple_transduce, Reduced, isexpansive
+using Transducers: simple_transduce, Reduced, isexpansive,
+    TeeZip, GetIndex, SetIndex, Inject
 
 inc(x) = x + oneunit(x)
 

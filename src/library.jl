@@ -1,3 +1,10 @@
+_experimental_warning = """
+!!! warning
+    This API is experimental.  Backward incompatible change, including
+    the removal of this API, is more likely to occur than other parts
+    of this package.
+"""
+
 _shared_vector_warning = """
 !!! warning
     The vector passed to the inner reducing function is valid only
@@ -7,7 +14,7 @@ _shared_vector_warning = """
 
 _shared_notes_unfold = """
 Note that input is ignored.  To use the input in the downstream
-reduction steps, use [`TeeZip`](@ref) or [`Zip`](@ref).
+reduction steps, use [`Zip`](@ref).
 """
 
 _use_initializer = """
@@ -1169,7 +1176,7 @@ julia> collect(Iterated(x -> 2x, 1), 1:5)
   8
  16
 
-julia> collect(TeeZip(Iterated(x -> 2x, 1)), 1:5)
+julia> collect(Zip(Map(identity), Iterated(x -> 2x, 1)), 1:5)
 5-element Array{Tuple{Int64,Int64},1}:
  (1, 1)
  (2, 2)
@@ -1223,7 +1230,7 @@ See also:
 ```jldoctest
 julia> using Transducers
 
-julia> collect(TeeZip(Count()), -3:-1)
+julia> collect(Zip(Map(identity), Count()), -3:-1)
 3-element Array{Tuple{Int64,Int64},1}:
  (-3, 1)
  (-2, 2)
@@ -1231,7 +1238,7 @@ julia> collect(TeeZip(Count()), -3:-1)
 
 julia> using Dates
 
-julia> collect(TeeZip(Count(Day(1))) |> Map(xs -> *(xs...)), 1:3)
+julia> collect(Zip(Map(identity), Count(Day(1))) |> Map(xs -> *(xs...)), 1:3)
 3-element Array{Day,1}:
  1 day
  4 days
@@ -1259,6 +1266,8 @@ next(rf::R_{Count}, result, ::Any) =
 Branch input into two "flows", inject one into `xform` and then merge
 the output of `xform` with the original input.
 
+$_experimental_warning
+
 To illustrate how it works, consider the following usage
 
 ```
@@ -1279,6 +1288,7 @@ xf0      xf1                       xf2
 # Examples
 ```jldoctest
 julia> using Transducers
+       using Transducers: TeeZip
 
 julia> collect(TeeZip(Filter(isodd) |> Map(x -> x + 1)), 1:5)
 3-element Array{Tuple{Int64,Int64},1}:
@@ -1321,7 +1331,7 @@ next(rf::R_{TeeZip}, result, input) =
 complete(rf::R_{TeeZip}, result) = complete(rejoin(rf), result)
 
 # add joint
-Base.adjoint(xf::Transducer) = TeeZip(xf)
+# Base.adjoint(xf::Transducer) = TeeZip(xf)
 
 """
     Zip(xforms...)
@@ -1364,9 +1374,12 @@ _zip_between(((y0, ys), yn)) = (y0, (ys..., yn))
 
 Transform an integer input `i` to `array[i]`.
 
+$_experimental_warning
+
 # Examples
 ```jldoctest
 julia> using Transducers
+       using Transducers: GetIndex
 
 julia> collect(GetIndex(1:10), [2, 3, 4])
 3-element Array{Int64,1}:
@@ -1408,9 +1421,12 @@ Base.:(==)(xf1::GetIndex{inbounds,A},
 
 Perform `array[i] = v` for each input pair `(i, v)`.
 
+$_experimental_warning
+
 # Examples
 ```jldoctest
 julia> using Transducers
+       using Transducers: SetIndex
 
 julia> ys = zeros(3);
 
@@ -1453,9 +1469,12 @@ Base.:(==)(xf1::SetIndex{inbounds,A},
 Inject the output from `iterator` to the stream processed by the inner
 reduction step.
 
+$_experimental_warning
+
 # Examples
 ```jldoctest
 julia> using Transducers
+       using Transducers: Inject
 
 julia> collect(Inject(Iterators.cycle("hello")), 1:8)
 8-element Array{Tuple{Int64,Char},1}:

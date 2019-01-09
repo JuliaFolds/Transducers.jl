@@ -1,8 +1,8 @@
 module Transducers
 
-export Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, TeeZip, Zip,
+export Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, Zip,
     Replace, TakeWhile, TakeNth, Drop, DropLast, DropWhile, Keep, Distinct,
-    Interpose, Dedupe, Partition, GetIndex, SetIndex, Iterated, Count, Inject,
+    Interpose, Dedupe, Partition, Iterated, Count,
     TakeLast, FlagFirst, MapSplat, ScanEmit, Enumerate, NotA, OfType,
     transduce, eduction,
     Completing, Initializer, right

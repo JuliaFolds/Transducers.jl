@@ -45,7 +45,7 @@ collect(Take(3), vov)
 
 # More complex example:
 
-collect(PartitionBy(isequal(1)) |> Map(copy) |> TeeZip(Map(sum)), vov)
+collect(PartitionBy(isequal(1)) |> Zip(Map(copy), Map(sum)), vov)
 
 # Notice that writing [`Transducers.__foldl__`](@ref) is very
 # straightforward comparing to how to define an iterator:

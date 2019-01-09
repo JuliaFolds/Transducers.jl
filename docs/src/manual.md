@@ -29,6 +29,15 @@ Private = false
 Filter = Transducers.is_transducer_type
 ```
 
+### Experimental
+
+```@docs
+Transducers.TeeZip
+Transducers.GetIndex
+Transducers.SetIndex
+Transducers.Inject
+```
+
 ## Miscellaneous
 
 ```@docs
