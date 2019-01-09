@@ -76,10 +76,10 @@ nonmissings = mapfoldl(xf_mdot |> Count(), right, zip(xs, ys); init=0)
 
 using Statistics: mean
 
-xf_demean = let
+function xf_demean(xs, ys)
     xmean = mean(skipmissing(xs))
     ymean = mean(skipmissing(ys))
-    Map(((x, y),) -> (x - xmean, y - ymean))
+    return Map(((x, y),) -> (x - xmean, y - ymean))
 end
 
-mapfoldl(xf_demean |> xf_mdot, +, zip(xs, ys)) / nonmissings
+mapfoldl(xf_demean(xs, ys) |> xf_mdot, +, zip(xs, ys)) / nonmissings
