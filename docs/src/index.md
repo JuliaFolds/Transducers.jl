@@ -24,12 +24,6 @@ type-stability.
 
 [^pure]: ...although not pure in the strong sense as `Base.@pure`.
 
-## Installation
-
-```
-]add https://github.com/tkf/Transducers.jl
-```
-
 ## Examples
 
 If you are familiar with
