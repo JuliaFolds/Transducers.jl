@@ -25,7 +25,7 @@ nothing  # hide
 # (prefixed by a `label`).  Let's sandwich the previous `MapSplat(*)`
 # with it:
 
-_ = mapfoldl(
+mapfoldl(
     xf_printer(" input") |> MapSplat(*) |> xf_printer("output"),
     +, zip(1:3, 10:2:14))
 flush(stdout)  # hide
