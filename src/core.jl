@@ -199,7 +199,6 @@ complete(f, result) = f(result)
 complete(rf::Reduction, result) =
     # Not using dispatch to avoid ambiguity
     if result isa PrivateState{typeof(rf)}
-        # TODO: make a test case that this is crucial:
         complete(rf.inner, unwrap(rf, result)[2])
     else
         complete(rf.inner, result)
