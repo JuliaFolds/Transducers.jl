@@ -4,6 +4,7 @@ using Transducers
 # test.
 
 EXAMPLE_PAGES = [
+    "Tutorial: Missing values" => "examples/tutorial_missings.md",
     "Parallel word count" => "examples/words.md",
     "Prime sieve" => "examples/primes.md",
     "Writing transducers" => "examples/transducers.md",
