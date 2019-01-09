@@ -41,13 +41,15 @@ include("preamble.jl")
     end
 
     @testset "zip-of-arrays" begin
-        @testset for xs in Iterators.Zip[
-                zip(0:3),
-                zip(0:3, 1:2:8),
-                zip(0:3, 1:2:8, 10:3:19),
-                zip(reshape([1:9;], (3, 3)), [10:3:34;]),
+        @testset for arrays in [
+                (0:3,),
+                (0:3, 1:2:8),
+                (0:3, 1:2:8, 10:3:19),
+                (reshape([1:9;], (3, 3)), [10:3:34;]),
                 ]
-            @test mapfoldl(MapSplat(*), +, xs) == sum(map(*, xs.is...))
+            xs = zip(arrays...)
+            VERSION >= v"1.1-" && @test xs isa Iterators.Zip
+            @test mapfoldl(MapSplat(*), +, xs) == sum(map(*, arrays...))
         end
     end
 end
