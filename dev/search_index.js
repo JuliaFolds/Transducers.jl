@@ -17,14 +17,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "#Installation-1",
-    "page": "Home",
-    "title": "Installation",
-    "category": "section",
-    "text": "]add https://github.com/tkf/Transducers.jl"
-},
-
-{
     "location": "#Examples-1",
     "page": "Home",
     "title": "Examples",
@@ -685,7 +677,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial: Missing values",
     "title": "Addition",
     "category": "section",
-    "text": "How do we use transducers for vector-to-vector transformation?  Here is a function to calculate y = x + y while ignoring missing values in x.function add_skipmissing!(ys, xs)\n    length(ys) == length(xs) || error(\"length(ys) != length(xs)\")For filtering out missing values from xs while tracking indices, we use Zip.  To iterate over the output of the transducer, foreach is used instead of mapfoldl since mutating an array is better expressed as a side-effect than a fold.    foreach(Zip(Count(), NotA(Missing)), xs) do (i, xi)\n        @inbounds ys[i] += xi\n    endwarning: Warning\nNote the difference between Zip(Count(), NotA(Missing)) and Zip(NotA(Missing), Count()) in Transducers.jl.  The former enumerates all the elements in xs while the latter enumerates only non-missing values.We then return the mutated value to behave like the rest of Julia functions (push!, mul!, etc.):    return ys\nend\nnothing  # hideExample:@assert begin  # hide\nadd_skipmissing!([100, 110, 120], [1, missing, 2])\nend == [101, 110, 122]  # hide"
+    "text": "How do we use transducers for vector-to-vector transformation?  Here is a function to calculate y = x + y while ignoring missing values in x.function add_skipmissing!(ys, xs)\n    length(ys) == length(xs) || error(\"length(ys) != length(xs)\")For filtering out missing values from xs while tracking indices, we use Zip.  To iterate over the output of the transducer, foreach is used instead of mapfoldl since mutating an array is better expressed as a side-effect than a fold.    foreach(Zip(Count(), NotA(Missing)), xs) do (i, xi)\n        @inbounds ys[i] += xi\n    endwarning: Warning\nNote the difference between Zip(Count(), NotA(Missing)) and Zip(NotA(Missing), Count()) in Transducers.jl.  The former enumerates all the elements in xs while the latter enumerates only non-missing values.We then return the mutated value to behave like the rest of Julia functions (push!, mul!, etc.):    return ys\nend\nnothing  # hideExample:ans =  # hide\nadd_skipmissing!([100, 110, 120], [1, missing, 2])@assert ans == [101, 110, 122]  # hide"
 },
 
 {
