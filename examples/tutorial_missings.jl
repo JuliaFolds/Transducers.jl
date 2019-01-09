@@ -125,9 +125,10 @@ nothing  # hide
 
 # Example:
 
-@assert begin  # hide
+ans =  # hide
 add_skipmissing!([100, 110, 120], [1, missing, 2])
-end == [101, 110, 122]  # hide
+#-
+@assert ans == [101, 110, 122]  # hide
 
 # ## Vectorized reduction
 #
