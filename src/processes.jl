@@ -572,7 +572,7 @@ input = [2, 3, 4, 5, 6, 7, 8, 9]
 ```
 """
 Base.Channel(xform::Transducer, itr;
-             ctype = _chan_ctype(xform, itr),
+             ctype::Type = _chan_ctype(xform, itr),
              kwargs...) =
     Channel(; ctype = ctype, kwargs...) do chan
         foreach(x -> put!(chan, x), xform, itr)
