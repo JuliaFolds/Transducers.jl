@@ -251,7 +251,7 @@ struct Eduction{F, C}
 end
 
 Eduction(xform::Transducer, coll) =
-    Eduction(Reduction(xform, push!, ieltype(coll)), coll)
+    Eduction(Reduction(xform, Completing(push!), ieltype(coll)), coll)
 
 Transducer(ed::Eduction) = Transducer(ed.rf)
 
@@ -354,7 +354,8 @@ julia> append!(Drop(2), [-1, -2], 1:5)
   5
 ```
 """
-Base.append!(xf::Transducer, to, from) = transduce(xf, push!, to, from)
+Base.append!(xf::Transducer, to, from) =
+    transduce(xf, Completing(push!), to, from)
 
 """
     collect(xf::Transducer, itr)
@@ -376,7 +377,7 @@ julia> collect(Interpose(missing), 1:3)
 ```
 """
 function Base.collect(xf::Transducer, coll)
-    rf = Reduction(xf, push!, eltype(coll))
+    rf = Reduction(xf, Completing(push!), eltype(coll))
     to = finaltype(rf)[]
     return unreduced(transduce(rf, to, coll))
 end

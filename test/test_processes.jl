@@ -74,11 +74,21 @@ end
     @test eltype(ed) === Int
 end
 
+# Custom container without unary push! method
+struct MinimalContainer
+    internal
+end
+
+Base.push!(coll::MinimalContainer, x) =
+    MinimalContainer(push!(coll.internal, x))
+
 @testset "append!" begin
     # https://clojuredocs.org/clojure.core/into#example-57294b20e4b050526f331420
     xf = Map(x -> x + 2) |> Filter(isodd)
     @testset for xs in iterator_variants(0:9)
         @test append!(xf, [-1, -2], xs) == [-1, -2, 3, 5, 7, 9, 11]
+        @test append!(xf, MinimalContainer([-1, -2]), xs).internal ==
+            [-1, -2, 3, 5, 7, 9, 11]
     end
 end
 
