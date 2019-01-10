@@ -5,7 +5,7 @@
 [![codecov.io][codecov-img]][codecov-url]
 [![Coverage Status][coveralls-img]][coveralls-url]
 
-Transducers.jl provides composable algorithms on sequence of inputs.
+Transducers.jl provides composable algorithms on "sequence" of inputs.
 They are called _[transducers]_, first introduced in Clojure language
 by Rich Hickey.
 
@@ -21,8 +21,11 @@ mapfoldl(xf, +, 1:40)
 ```
 
 However, the protocol used for the transducers is quite different from
-iterators and resulting in a better performance for complex
-compositions.
+iterators and results in a better performance for complex
+compositions.  Furthermore, some transducers support parallel
+execution.  If a transducer is composed of such transducers, it can be
+automatically re-used both in sequential (`mapfoldl` etc.) and
+parallel (`mapreduce`) contexts.
 
 See more in the [documentation](https://tkf.github.io/Transducers.jl/dev).
 

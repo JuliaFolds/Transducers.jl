@@ -7,7 +7,7 @@ end
 ```
 
 [Transducers](https://clojure.org/reference/transducers) are
-transformations of sequence of input that can be composed very
+transformations of "sequence" of input that can be composed very
 efficiently.  The interface used by transducers naturally describes a
 wide range of processes that is expressible as a succession of steps.
 Furthermore, transducers can be defined without specifying the details
