@@ -633,9 +633,9 @@ julia> using Transducers
 
 julia> collect(FlagFirst(), 1:3)
 3-element Array{Tuple{Bool,Int64},1}:
- (true, 1)
- (false, 2)
- (false, 3)
+ ($_true_str, 1)
+ ($_false_str, 2)
+ ($_false_str, 3)
 ```
 """
 struct FlagFirst <: Transducer end

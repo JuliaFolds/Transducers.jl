@@ -38,3 +38,8 @@ _cljref(name) =
     "[`$name` in Clojure]($(_cljapiurl(name)))"
 _thx_clj(name) =
     "This API is modeled after $(_cljref(name))."
+
+
+# https://github.com/JuliaLang/julia/pull/30575
+const _true_str = sprint(show, true; context=:typeinfo => Bool)
+const _false_str = sprint(show, false; context=:typeinfo => Bool)
