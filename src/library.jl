@@ -322,6 +322,11 @@ julia> collect(Take(5), 1:2)
 """
 struct Take <: AbstractFilter
     n::Int
+
+    function Take(n)
+        @argcheck n >= 0
+        return new(n)
+    end
 end
 
 start(rf::R_{Take}, result) = wrap(rf, rf.xform.n, start(rf.inner, result))
@@ -360,6 +365,11 @@ julia> collect(TakeLast(5), 1:2)
 """
 struct TakeLast <: AbstractFilter
     n::Int
+
+    function TakeLast(n)
+        @argcheck n >= 0
+        return new(n)
+    end
 end
 
 function start(rf::R_{TakeLast}, result)
@@ -449,6 +459,11 @@ julia> collect(TakeNth(3), 1:9)
 """
 struct TakeNth <: AbstractFilter
     n::Int
+
+    function TakeNth(n)
+        @argcheck n > 0
+        return new(n)
+    end
 end
 
 start(rf::R_{TakeNth}, result) = wrap(rf, rf.xform.n, start(rf.inner, result))
@@ -485,6 +500,11 @@ julia> collect(Drop(3), 1:5)
 """
 struct Drop <: AbstractFilter
     n::Int
+
+    function Drop(n)
+        @argcheck n >= 0
+        return new(n)
+    end
 end
 
 start(rf::R_{Drop}, result) = wrap(rf, 0, start(rf.inner, result))
@@ -529,7 +549,7 @@ struct DropLast <: AbstractFilter
     n::Int
 
     function DropLast(n)
-        @assert n > 0
+        @argcheck n >= 0
         return new(n)
     end
 end
@@ -672,6 +692,12 @@ struct Partition <: Transducer
     size::Int
     step::Int
     flush::Bool
+
+    function Partition(size, step, flush)
+        @argcheck size > 0
+        @argcheck step > 0
+        return new(size, step, flush)
+    end
 end
 
 Partition(size, step; flush = false) = Partition(size; step = step, flush = flush)

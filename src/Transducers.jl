@@ -7,6 +7,8 @@ export Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, Zip,
     transduce, eduction,
     Completing, Initializer, right
 
+using ArgCheck
+
 include("basics.jl")
 include("core.jl")
 include("library.jl")

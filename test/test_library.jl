@@ -401,4 +401,15 @@ end
     end
 end
 
+@testset "Invalid arguments" begin
+    @test_throws ArgumentError Take(-1)
+    @test_throws ArgumentError TakeLast(-1)
+    @test_throws ArgumentError TakeNth(0)
+    @test_throws ArgumentError Drop(-1)
+    @test_throws ArgumentError DropLast(-1)
+    @test_throws ArgumentError Partition(0)
+    @test_throws ArgumentError Partition(0, 1)
+    @test_throws ArgumentError Partition(1, 0)
+end
+
 end  # module
