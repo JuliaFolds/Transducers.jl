@@ -13,7 +13,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Transducers for Julia",
     "category": "section",
-    "text": "DocTestSetup = quote\n    using Transducers\nendTransducers are transformations of sequence of input that can be composed very efficiently.  The interface used by transducers naturally describes a wide range of processes that is expressible as a succession of steps. Furthermore, transducers can be defined without specifying the details of the input and output (collections, streams, channels, etc.)  and therefore achieves a full reusability.  Transducers are introduced by Rich Hickey, the creator of the Clojure language. His Strange Loop talk is a great introduction to the idea of transducers.Transducers.jl is an implementation of the transducers in Julia. Aiming to satisfy high-performance needs of Julia users, Transducers.jl uses a formulation that is pure [pure] and aiding type-stability.[pure]: ...although not pure in the strong sense as Base.@pure."
+    "text": "DocTestSetup = quote\n    using Transducers\nendTransducers are transformations of \"sequence\" of input that can be composed very efficiently.  The interface used by transducers naturally describes a wide range of processes that is expressible as a succession of steps. Furthermore, transducers can be defined without specifying the details of the input and output (collections, streams, channels, etc.)  and therefore achieves a full reusability.  Transducers are introduced by Rich Hickey, the creator of the Clojure language. His Strange Loop talk is a great introduction to the idea of transducers.Transducers.jl is an implementation of the transducers in Julia. Aiming to satisfy high-performance needs of Julia users, Transducers.jl uses a formulation that is pure [pure] and aiding type-stability."
 },
 
 {
@@ -53,7 +53,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Links",
     "category": "section",
-    "text": "\"Transducers\" by Rich Hickey - YouTube\nRich Hickey - Inside Transducers - YouTube\nCppCon 2015: Juan Pedro Bolívar Puente “Transducers: from Clojure to C++\" - YouTube"
+    "text": "\"Transducers\" by Rich Hickey - YouTube\nRich Hickey - Inside Transducers - YouTube\nCppCon 2015: Juan Pedro Bolívar Puente “Transducers: from Clojure to C++\" - YouTube[pure]: ...although not pure in the strong sense as Base.@pure."
 },
 
 {
