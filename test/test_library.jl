@@ -44,14 +44,21 @@ end
         @test collect(Scan(+), 1:10) == cumsum(1:10)
     end
 
-    ed = eduction(Scan(+), 1:10)
-    @test eltype(ed) === Int
-
     xs0 = [0, -1, 3, -2, 1]
     @testset for xs in [xs0, collect(xs0)]
     # @testset for xs in iterator_variants([0, -1, 3, -2, 1])  # TODO: fix
         @test collect(Scan(max), xs) == [0, 0, 3, 3, 3]
         @test collect(Scan(min), xs) == [0, -1, -1, -2, -2]
+    end
+
+    @testset "outtype" begin
+        @test eltype(eduction(Scan(+), 1:10)) === Int
+        @test eltype(eduction(Scan(+, 0.0), 1:10)) === Float64
+        @test eltype(eduction(Scan(+, missing), 1:10)) === Missing
+        @test eltype(eduction(Scan(+, Initializer(() -> rand())), Int[])) ===
+            Float64
+        @test eltype(eduction(Scan(+, Initializer(() -> rand(Int))), Int[])) ===
+            Int
     end
 end
 
@@ -65,6 +72,19 @@ end
         @testset for xs in iterator_variants(1:3)
             @test collect(ScanEmit(tuple, 0, identity) |> Take(4), xs) == 0:3
         end
+    end
+
+    @testset "outtype" begin
+        @test eltype(eduction(ScanEmit(tuple, 0), 1:10)) === Int
+        @test eltype(eduction(ScanEmit(tuple, 0.0), 1:10)) ===
+            Union{Float64, Int64}
+        @test eltype(eduction(
+            ScanEmit(tuple, missing), 1:10)) === Union{Missing, Int64}
+        @test eltype(eduction(
+            ScanEmit(tuple, Initializer(() -> rand())), Int[])) ===
+                Union{Float64, Int64}
+        @test eltype(eduction(
+            ScanEmit(tuple, Initializer(() -> rand(Int))), Int[])) === Int
     end
 end
 
