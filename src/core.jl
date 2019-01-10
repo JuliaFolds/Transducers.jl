@@ -513,7 +513,7 @@ struct Initializer{F, ReturnType}
     f::F
 end
 
-Initializer(f, ReturnType) = Initializer{typeof(f), ReturnType}(f)
+Initializer(f, ReturnType::Type) = Initializer{typeof(f), ReturnType}(f)
 Initializer(f) = Initializer(f, Base._return_type(f, Tuple{}))
 Initializer(::Any, ::Type{Union{}}) =
     error("Return type must not be a `Union{}`.")
