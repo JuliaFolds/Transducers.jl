@@ -1055,7 +1055,7 @@ end
 Scan(f) = Scan(f, nothing)
 
 _lefttype(xf::Scan{<:Any, Nothing}, intype) = typeof(identityof(xf.f, intype))
-_lefttype(xf::Scan{<:Any, T}, _) where {T} = T
+_lefttype(xf::Scan, ::Any) = inittypeof(xf.init)
 
 # Maybe this is fine:
 # outtype(xf::Scan, intype) = Union{_lefttype(xf, intype), intype}
