@@ -66,7 +66,7 @@ mergecont!(a) = a</code></pre></div><p>Note that the unary form is required for 
     mapreduce(Map(Char) |&gt; countxf,
               mergecont!,
               transcode(UInt8, s);
-              init = Initializer(Dict{String,Int}),
+              init = Initializer(_ -&gt; Dict{String,Int}()),
               kwargs...)</code></pre></div><p>Side note: Since <a href="../../manual/#Base.mapreduce"><code>mapreduce</code></a> does not support string, the input string is converted to a <code>Vector{UInt8}</code> first by <code>transcode</code>. That&#39;s why there is <code>Map(Char) |&gt;</code> before <code>countxf</code>.  Of course, this is not valid for UTF-8 in general.</p><p>Side note 2: We use <a href="../../manual/#Transducers.Initializer"><code>Initializer</code></a> to create a fresh initial state for each sub-reduce to avoid overwriting mutable data between threads.</p><p>Let&#39;s run some tests with different number of threads:</p><div><pre><code class="language-julia">@testset for nthreads in [1, 2, 4]
     @test countwords(&quot;This is a sample&quot;, nthreads=nthreads) ==
         Dict(&quot;This&quot; =&gt; 1, &quot;is&quot; =&gt; 1, &quot;a&quot; =&gt; 1, &quot;sample&quot; =&gt; 1)
