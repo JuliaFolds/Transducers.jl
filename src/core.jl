@@ -513,7 +513,6 @@ end
 
 initvalue(x, ::Any) = x
 initvalue(init::Initializer, intype) = init.f(intype)
-# Does it make sense to have the type assertion  here?
 
 _initvalue(rf::Reduction) = initvalue(rf.xform.init, InType(rf))
 
