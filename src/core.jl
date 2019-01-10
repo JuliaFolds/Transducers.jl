@@ -324,9 +324,6 @@ See [`wrap`](@ref), [`unwrap`](@ref), and [`next`](@ref).
     state1, iresult1 = f(state0, iresult0)
     return wrap(rf, state1, iresult1)
 end
-# TODO: Should `wrapping` happen automatically in `next`?  That is to
-# say, how about let `__next__(rf, iresult, state, input)` be the
-# interface function and `next(rf, result, input)` be the calling API.
 
 unwrap_all(ps::PrivateState) = unwrap_all(ps.result)
 unwrap_all(result) = result
