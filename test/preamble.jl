@@ -18,3 +18,24 @@ function iterator_variants(xs)
     push!(iters, Base.Generator(identity, xs))
     return iters
 end
+
+
+macro expressions(ex)
+    @assert ex isa Expr
+    @assert ex.head == :block
+    :([$([QuoteNode(a) for a in ex.args if a isa Expr]...)])
+end
+
+
+macro test_error(ex)
+    quote
+        let err = nothing
+            try
+                $(esc(ex))
+            catch err
+            end
+            @test err isa Exception
+            err
+        end
+    end
+end

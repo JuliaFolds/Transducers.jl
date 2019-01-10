@@ -572,12 +572,24 @@ input = [2, 3, 4, 5, 6, 7, 8, 9]
 ```
 """
 Base.Channel(xform::Transducer, itr;
-             ctype = outtype(xform, ieltype(itr)),
+             ctype = _chan_ctype(xform, itr),
              kwargs...) =
     Channel(; ctype = ctype, kwargs...) do chan
         foreach(x -> put!(chan, x), xform, itr)
         return
     end
+
+function _chan_ctype(xform, itr)
+    ctype = outtype(xform, ieltype(itr))
+    if ctype === Union{}
+        error("""
+$_non_executable_transducer_msg
+Use `mapfoldl` etc. with `init` argument to run the transducer
+forcefully and find out which one causes the problem.
+""")
+    end
+    return ctype
+end
 
 Base.Channel(xform::Transducer, ed::Eduction; kwargs...) =
     Channel(Transducer(ed) |> xform, ed.coll; kwargs...)

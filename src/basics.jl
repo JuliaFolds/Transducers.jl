@@ -21,6 +21,17 @@ identityof(::typeof(max), e) = typemin(e)
 identityof(::typeof(append!), e) = empty(e)
 ridentityof(::typeof(append!), e) = ()
 
+const _non_executable_transducer_msg = """
+Output type of the transducer is inferred to be a `Union{}`.  This
+probably means one or more of the composed transducers throw.
+"""
+
+identityof(::Any, ::Type{Union{}}) = error("""
+$_non_executable_transducer_msg
+You can pass `init` argument to run the transducer forcefully and find
+out which one causes the problem.
+""")
+
 _cljapiurl(name) =
     "https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/$name"
 _cljref(name) =

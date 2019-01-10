@@ -149,4 +149,35 @@ end
     end
 end
 
+@testset "Non-executable transducers" begin
+    @testset for ex in @expressions begin
+            mapfoldl(Map(error), +, Int[])
+            foldl(+, Map(error), Int[])
+            foldl(+, eduction(Map(error), Int[]))
+            Channel(Map(error), Int[])
+            Channel(eduction(Map(error), Int[]))
+            Channel(Map(error), eduction(Map(identity), Int[]))
+            Channel(Map(identity), eduction(Map(error), Int[]))
+        end
+
+        err = @eval @test_error $ex
+        @test occursin("inferred", sprint(showerror, err))
+        @test occursin("`Union{}`", sprint(showerror, err))
+    end
+
+    @testset for ex in @expressions begin
+            mapfoldl(Map(error), +, ["hello"]; init=0)
+            foldl(+, Map(error), ["hello"]; init=0)
+            foreach(tuple, Map(error), ["hello"])
+            foreach(tuple, eduction(Map(error), ["hello"]))
+            collect(Map(error), ["hello"])
+            collect(eduction(Map(error), ["hello"]))
+            append!(Map(error), [], ["hello"])
+            copy!(Map(error), [], ["hello"])
+        end
+
+        @eval @test_throws ErrorException("hello") $ex
+    end
+end
+
 end  # module
