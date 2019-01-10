@@ -1,5 +1,6 @@
 using Test
 using Random
+using SparseArrays: issparse, sparse
 using Statistics: mean
 using Transducers
 using Transducers: simple_transduce, Reduced, isexpansive,
@@ -16,6 +17,10 @@ function iterator_variants(xs)
         push!(iters, collect(xs))
     end
     push!(iters, Base.Generator(identity, xs))
+    if !issparse(xs) && !any(ismissing, xs)
+        # Currently not optimal at all, but it should work.
+        push!(iters, sparse(xs))
+    end
     return iters
 end
 
