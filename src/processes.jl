@@ -168,7 +168,7 @@ end
 
 struct MissingInit end
 
-provide_init(rf::Reduction, init) = initvalue(init)
+provide_init(rf::Reduction, init) = initvalue(init, InType(rf))
 function provide_init(rf::Reduction, ::MissingInit)
     T = finaltype(rf)
     op = innermost_rf(rf)

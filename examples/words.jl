@@ -176,7 +176,7 @@ countwords(s; kwargs...) =
     mapreduce(Map(Char) |> countxf,
               mergecont!,
               transcode(UInt8, s);
-              init = Initializer(Dict{String,Int}),
+              init = Initializer(_ -> Dict{String,Int}()),
               kwargs...)
 nothing  # hide
 

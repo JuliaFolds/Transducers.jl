@@ -55,9 +55,9 @@ end
         @test eltype(eduction(Scan(+), 1:10)) === Int
         @test eltype(eduction(Scan(+, 0.0), 1:10)) === Float64
         @test eltype(eduction(Scan(+, missing), 1:10)) === Missing
-        @test eltype(eduction(Scan(+, Initializer(() -> rand())), Int[])) ===
+        @test eltype(eduction(Scan(+, Initializer(_ -> rand())), Int[])) ===
             Float64
-        @test eltype(eduction(Scan(+, Initializer(() -> rand(Int))), Int[])) ===
+        @test eltype(eduction(Scan(+, Initializer(_ -> rand(Int))), Int[])) ===
             Int
     end
 end
@@ -81,10 +81,10 @@ end
         @test eltype(eduction(
             ScanEmit(tuple, missing), 1:10)) === Union{Missing, Int64}
         @test eltype(eduction(
-            ScanEmit(tuple, Initializer(() -> rand())), Int[])) ===
+            ScanEmit(tuple, Initializer(_ -> rand())), Int[])) ===
                 Union{Float64, Int64}
         @test eltype(eduction(
-            ScanEmit(tuple, Initializer(() -> rand(Int))), Int[])) === Int
+            ScanEmit(tuple, Initializer(_ -> rand(Int))), Int[])) === Int
     end
 end
 

@@ -1055,7 +1055,7 @@ end
 Scan(f) = Scan(f, nothing)
 
 _lefttype(xf::Scan{<:Any, Nothing}, intype) = typeof(identityof(xf.f, intype))
-_lefttype(xf::Scan, ::Any) = inittypeof(xf.init)
+_lefttype(xf::Scan, intype) = inittypeof(xf.init, intype)
 
 # Maybe this is fine:
 # outtype(xf::Scan, intype) = Union{_lefttype(xf, intype), intype}
@@ -1077,7 +1077,7 @@ function start(rf::R_{Scan}, result)
     if rf.xform.init === nothing
         init = identityof(rf.xform.f, InType(rf))
     else
-        init = initvalue(rf.xform.init)
+        init = _initvalue(rf)
     end
     return wrap(rf, init, start(rf.inner, result))
 end
@@ -1136,7 +1136,7 @@ isexpansive(xf::ScanEmit) = xf.onlast === nothing
 
 function outtype(xf::ScanEmit, intype)
     U = _type_scan_fixedpoint((u, x) -> xf.f(u, x)[2],
-                              inittypeof(xf.init),
+                              inittypeof(xf.init, intype),
                               intype)
     Y = Base._return_type((u, x) -> xf.f(u, x)[1], Tuple{U, intype})
     if xf.onlast === nothing
@@ -1146,7 +1146,7 @@ function outtype(xf::ScanEmit, intype)
 end
 
 start(rf::R_{ScanEmit}, result) =
-    wrap(rf, initvalue(rf.xform.init), start(rf.inner, result))
+    wrap(rf, _initvalue(rf), start(rf.inner, result))
 
 function next(rf::R_{ScanEmit}, result, input)
     wrapping(rf, result) do u0, iresult
@@ -1232,7 +1232,7 @@ end
 isexpansive(::Iterated) = false
 outtype(xf::Iterated{<:Any, T}, ::Any) where T = T
 start(rf::R_{Iterated}, result) =
-    wrap(rf, initvalue(rf.xform.init), start(rf.inner, result))
+    wrap(rf, _initvalue(rf), start(rf.inner, result))
 next(rf::R_{Iterated}, result, ::Any) =
     wrapping(rf, result) do istate, iresult
         return rf.xform.f(istate), next(rf.inner, iresult, istate)

@@ -435,11 +435,12 @@ identityof(::typeof(right), ::Any) = nothing
 
 
 """
-    Initializer(f[, ReturnType])
+    Initializer(f)
 
 Wrap a factory function to create an initial value for transducible
 processes (e.g., [`mapfoldl`](@ref)) and "stateful" transducers (e.g.,
-[`Scan`](@ref)).
+[`Scan`](@ref)).  Factory function `f` takes the input type to the
+transducer or the reducing function.
 
 `Initializer` must be used whenever using in-place reduction with
 [`mapreduce`](@ref).
@@ -480,44 +481,58 @@ This may not be desired.  To avoid this behavior, create an
 initial value.
 
 ```jldoctest Initializer; filter = r"#+[0-9]+"
-julia> xf2 = Scan(push!, Initializer(() -> []))
-Scan(push!, Initializer{##9#10,Array{Any,1}}(##9#10()))
+julia> xf2 = Scan(push!, Initializer(T -> T[]))
+Scan(push!, Initializer(##9#10()))
 
 julia> mapfoldl(xf2, right, 1:3)
-3-element Array{Any,1}:
+3-element Array{Int64,1}:
  1
  2
  3
 
-julia> mapfoldl(xf2, right, 10:11)
-2-element Array{Any,1}:
- 10
- 11
+julia> mapfoldl(xf2, right, [10.0, 11.0])
+2-element Array{Float64,1}:
+ 10.0
+ 11.0
 ```
 
 Keyword argument `init` for transducible processes also accept an
 `Initializer`:
 
 ```jldoctest Initializer
-julia> mapfoldl(Map(identity), push!, "abc"; init=Initializer(() -> Char[]))
+julia> mapfoldl(Map(identity), push!, "abc"; init=Initializer(T -> T[]))
 3-element Array{Char,1}:
  'a'
  'b'
  'c'
 ```
 """
-struct Initializer{F, ReturnType}
+struct Initializer{F}
     f::F
 end
 
-Initializer(f, ReturnType::Type) = Initializer{typeof(f), ReturnType}(f)
-Initializer(f) = Initializer(f, Base._return_type(f, Tuple{}))
-Initializer(::Any, ::Type{Union{}}) =
-    error("Return type must not be a `Union{}`.")
-
-initvalue(x) = x
-initvalue(init::Initializer{<:Any, T}) where T = init.f() :: T
+initvalue(x, ::Any) = x
+initvalue(init::Initializer, intype) = init.f(intype)
 # Does it make sense to have the type assertion  here?
 
-inittypeof(::T) where T = T
-inittypeof(::Initializer{<:Any, T}) where T = T
+_initvalue(rf::Reduction) = initvalue(rf.xform.init, InType(rf))
+
+inittypeof(::T, ::Type) where T = T
+function inittypeof(init::Initializer, intype::Type)
+    T = Base.promote_op(init.f, intype)
+    if T <: Union{}
+        error("""
+Return type of $(init.f) is inferred to be a `Union{}`.  It is likely
+that this function with input type
+    $(intype)
+throws.
+""")
+    end
+    return T
+end
+
+function Base.show(io::IO, init::Initializer)
+    print(io, "Initializer(")
+    show(io, init.f)
+    print(io, ')')
+end

@@ -145,7 +145,7 @@ xs = [
 function xf_sum_columns(prototype)
     T = Base.nonmissingtype(eltype(prototype)) # subtract Missing from type
     dims = size(prototype)
-    return Scan(add_skipmissing!, Initializer(() -> zeros(T, dims)))
+    return Scan(add_skipmissing!, Initializer(_ -> zeros(T, dims)))
 end
 nothing  # hide
 
