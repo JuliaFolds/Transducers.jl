@@ -22,8 +22,6 @@ Aiming to satisfy high-performance needs of Julia users,
 Transducers.jl uses a formulation that is _pure_ [^pure] and aiding
 type-stability.
 
-[^pure]: ...although not pure in the strong sense as `Base.@pure`.
-
 ## Examples
 
 If you are familiar with
@@ -290,3 +288,8 @@ mapfoldl(xf, step, input, init=...)
 * ["Transducers" by Rich Hickey - YouTube](https://www.youtube.com/watch?v=6mTbuzafcII)
 * [Rich Hickey - Inside Transducers - YouTube](https://www.youtube.com/watch?v=4KqUvG8HPYo)
 * [CppCon 2015: Juan Pedro Bolívar Puente “Transducers: from Clojure to C++" - YouTube](https://www.youtube.com/watch?v=vohGJjGxtJQ)
+
+
+---
+
+[^pure]: ...although not pure in the strong sense as `Base.@pure`.
