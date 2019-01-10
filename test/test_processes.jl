@@ -168,6 +168,7 @@ end
     @testset for ex in @expressions begin
             mapfoldl(Map(error), +, ["hello"]; init=0)
             foldl(+, Map(error), ["hello"]; init=0)
+            foldl(+, eduction(Map(error), ["hello"]); init=0)
             foreach(tuple, Map(error), ["hello"])
             foreach(tuple, eduction(Map(error), ["hello"]))
             collect(Map(error), ["hello"])
