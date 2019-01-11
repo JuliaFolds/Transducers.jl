@@ -52,6 +52,22 @@ include("preamble.jl")
             @test mapfoldl(MapSplat(*), +, xs) == sum(map(*, arrays...))
         end
     end
+
+    @testset "product-of-iterators" begin
+        iterator_prototypes = [
+            (1, 2),
+            0:3,
+            [-1, 2, 1],
+        ]
+        @testset for iterators in Iterators.product(iterator_prototypes,
+                                                    iterator_prototypes,
+                                                    iterator_prototypes),
+                n in 1:length(iterators)
+            xs = Iterators.product(iterators[1:n]...)
+            @test collect(Map(identity), xs) == collect(xs)[:]
+            @test mapfoldl(MapSplat(*), +, xs) == sum(Base.splat(*), xs)
+        end
+    end
 end
 
 

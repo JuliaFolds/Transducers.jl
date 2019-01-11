@@ -81,6 +81,36 @@ end
     end
 end
 
+@inline function __foldl__(
+        rf, init,
+        prod::Iterators.ProductIterator{<:Tuple{Any,Any,Vararg{Any}}})
+    val = _foldl_product(rf, init, (), prod.iterators...)
+    val isa Reduced && return val
+    return complete(rf, val)
+end
+
+@noinline _foldl_product(rf, val, ::Any) = error("Unreachable")
+@inline _foldl_product(rf, val, ::Tuple) = next(rf, val, ())
+
+@inline function _foldl_product(rf, val, outer, iterators...)
+    inner_iterators, outer_iterator = _poptail(iterators)
+    for input in outer_iterator
+        val_ = _foldl_product(rf, val, (input, outer...), inner_iterators...)
+        val_ isa Reduced && return val_
+        val = val_
+    end
+    return val
+end
+
+@inline function _foldl_product(rf, val, outer, iterator)
+    for input in iterator
+        val_ = next(rf, val, (input, outer...))
+        @return_if_reduced complete(rf, val_)
+        val = val_
+    end
+    return val
+end
+
 function __simple_foldl__(rf, val, itr)
     for x in itr
         val = next(rf, val, x)

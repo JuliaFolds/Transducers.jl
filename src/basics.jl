@@ -47,6 +47,13 @@ You can pass `init` argument to run the transducer forcefully and find
 out which one causes the problem.
 """)
 
+@inline _poptail(xs) = _poptail_impl(xs...)
+@inline _poptail_impl(a) = (), a
+@inline function _poptail_impl(a, xs...)
+    head, tail = _poptail_impl(xs...)
+    return (a, head...), tail
+end
+
 _cljapiurl(name) =
     "https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/$name"
 _cljref(name) =
