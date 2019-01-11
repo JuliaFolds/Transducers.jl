@@ -1,5 +1,7 @@
 # --- Utilities
 
+valueof(::Val{x}) where x = x
+
 ieltype(T) =
     if Base.IteratorEltype(T) isa Base.HasEltype
         eltype(T)
@@ -10,6 +12,12 @@ ieltype(T) =
 avaltype(x) = avaltype(typeof(x))
 avaltype(T::Type) = valtype(T)
 avaltype(T::Type{<:Union{AbstractArray,AbstractString}}) = eltype(T)
+
+prefixed_type_name(@nospecialize x) =
+    sprint(show, typeof(x), context = :module => Base)
+# `:module => Base` to enforce that the type is prefixed even when
+# `typeof(x)` is imported in `Main`.  See:
+# https://github.com/JuliaLang/julia/pull/29466
 
 const DenseSubVector{T} =
     SubArray{T, 1, Vector{T}, Tuple{UnitRange{Int64}}, true}

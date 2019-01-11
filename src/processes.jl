@@ -54,7 +54,7 @@ end
     isempty(arr) && return complete(rf, init)
     val = next(rf, init, @inbounds arr[firstindex(arr)])
     @return_if_reduced complete(rf, val)
-    for i in firstindex(arr) + 1:lastindex(arr)
+    @simd_if rf for i in firstindex(arr) + 1:lastindex(arr)
         val = next(rf, val, @inbounds arr[i])
         @return_if_reduced complete(rf, val)
     end
@@ -73,7 +73,7 @@ end
         idxs = eachindex(zs.is...)
         val = next(rf, init, _getvalues(firstindex(idxs), zs.is...))
         @return_if_reduced complete(rf, val)
-        for i in firstindex(idxs) + 1:lastindex(idxs)
+        @simd_if rf for i in firstindex(idxs) + 1:lastindex(idxs)
             val = next(rf, val, _getvalues(i, zs.is...))
             @return_if_reduced complete(rf, val)
         end
@@ -103,7 +103,9 @@ end
 end
 
 @inline function _foldl_product(rf, val, outer, iterator)
-    for input in iterator
+    # TODO: Handle the case inner iterators are tuples.  In such case,
+    # inner-most non-tuple iterators should use @simd_if.
+    @simd_if rf for input in iterator
         val_ = next(rf, val, (input, outer...))
         @return_if_reduced complete(rf, val_)
         val = val_
@@ -191,8 +193,9 @@ See [`mapfoldl`](@ref).
 """
 transduce
 
-function transduce(xform::Transducer, f, init, coll)
-    rf = Reduction(xform, f, eltype(coll))
+function transduce(xform::Transducer, f, init, coll;
+                   simd = false)
+    rf = Reduction(maybe_usesimd(xform, simd), f, eltype(coll))
     return transduce(rf, init, coll)
 end
 
@@ -221,8 +224,9 @@ _start_init(rf, init) = start(rf, provide_init(rf, init))
 end
 
 function Base.mapfoldl(xform::Transducer, step, itr;
-                       init=MissingInit())
-    unreduced(transduce(xform, step, init, itr))
+                       simd = false,
+                       init = MissingInit())
+    unreduced(transduce(xform, step, init, itr; simd=simd))
 end
 
 """
@@ -269,9 +273,10 @@ end
 
 # AbstractArray for disambiguation
 function Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
-                        init=MissingInit(),
+                        init = MissingInit(),
+                        simd = false,
                         kwargs...)
-    rf = Reduction(xform, step, eltype(itr))
+    rf = Reduction(maybe_usesimd(xform, simd), step, eltype(itr))
     return unreduced(__reduce__(rf, init, itr; kwargs...))
 end
 

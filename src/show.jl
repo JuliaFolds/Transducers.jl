@@ -45,9 +45,11 @@ end
 
 is_anonymous(n) = n == :anonymous || startswith(string(n), '#')
 
+_name_of_transducer_type(xf) = nameof(typeof(xf))
+
 function show_transducer(io, mime, xf)
     @nospecialize io, xf
-    printstyled(io, nameof(typeof(xf)); color=:cyan)
+    printstyled(io, _name_of_transducer_type(xf); color=:cyan)
     printstyled(io, '('; color=:yellow)
     show_args(io, mime, xf)
     printstyled(io, ')'; color=:yellow)

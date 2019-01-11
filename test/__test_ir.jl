@@ -3,7 +3,7 @@ include("preamble.jl")
 using InteractiveUtils: code_llvm, code_warntype
 using Statistics: mean
 
-using Transducers: Reduction, start, __foldl__, __simple_foldl__
+using Transducers: Reduction, start, __foldl__, __simple_foldl__, maybe_usesimd
 
 """
     llvm_ir(f, args) :: String
@@ -31,6 +31,14 @@ nmatches(r, s) = count(_ -> true, eachmatch(r, s))
     ir = llvm_ir(map!, (xf, ys, xs))
     @test nmatches(r"fmul <4 x double>", ir) >= 4
     @test nmatches(r"fcmp [a-z]* <4 x double>", ir) >= 4
+end
+
+
+@testset "Cat SIMD" begin
+    coll = [Float64[]]
+    rf = Reduction(maybe_usesimd(Cat(), true), +, eltype(coll))
+    ir = llvm_ir(transduce, (rf, 0.0, coll))
+    @test nmatches(r"fadd (fast )?<4 x double>", ir) >= 9
 end
 
 

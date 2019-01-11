@@ -12,6 +12,7 @@ using ArgCheck
 include("basics.jl")
 include("core.jl")
 include("library.jl")
+include("simd.jl")
 include("processes.jl")
 include("lister.jl")
 include("show.jl")
