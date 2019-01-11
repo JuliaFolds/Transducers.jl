@@ -191,4 +191,20 @@ end
     end
 end
 
+@testset "identityof error" begin
+    @test mapfoldl(Map(identity), right, Any[]) === nothing
+    err = @test_error mapfoldl(Map(identity), +, Any[])
+    msg = sprint(showerror, err)
+    @test occursin("cannot be inferred", msg)
+    @test occursin("Use the argument `init` to specify the initial value",
+                   msg)
+
+    @test mapfoldl(Map(identity), right, Vector{Int}[]) === nothing
+    err = @test_error mapfoldl(Map(identity), +, Vector{Int}[])
+    msg = sprint(showerror, err)
+    @test occursin("Array", msg)
+    @test occursin("Use the argument `init` to specify the initial value",
+                   msg)
+end
+
 end  # module

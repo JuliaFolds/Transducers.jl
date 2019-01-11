@@ -15,7 +15,22 @@ const DenseSubVector{T} =
     SubArray{T, 1, Vector{T}, Tuple{UnitRange{Int64}}, true}
 
 
-identityof(op, e) = Base.reduce_empty(op, e)
+function identityof(op, e)
+    e === Any && error("""
+Input type to the reducing function `$op` cannot be inferred (it is
+inferred to be `$e`).
+Use the argument `init` to specify the initial value (if this error
+is caused via `mapfoldl` and alike).
+""")
+    e <: Array && error("""
+Input type to the reducing function `$op` is inferred to be `$e`.
+However, there is no sensible initial value of an `Array` w.r.t. `$op`.
+Use the argument `init` to specify the initial value (if this error
+is caused via `mapfoldl` and alike).
+""")
+    return Base.reduce_empty(op, e)
+end
+
 identityof(::typeof(min), e) = typemax(e)
 identityof(::typeof(max), e) = typemin(e)
 identityof(::typeof(append!), e) = empty(e)
