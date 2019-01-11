@@ -1,5 +1,6 @@
 # Transducers.jl: Efficient and type-stable transducers for Julia
 
+[![Stable documentation][docs-stable-img]][docs-stable-url]
 [![Latest documentation][docs-dev-img]][docs-dev-url]
 [![Travis Status][travis-img]][travis-url]
 [![codecov.io][codecov-img]][codecov-url]
@@ -35,6 +36,8 @@ See more in the [documentation](https://tkf.github.io/Transducers.jl/dev).
 ]add https://github.com/tkf/Transducers.jl
 ```
 
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-url]: https://tkf.github.io/Transducers.jl/stable
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://tkf.github.io/Transducers.jl/dev
 [travis-img]: https://travis-ci.com/tkf/Transducers.jl.svg?branch=master
