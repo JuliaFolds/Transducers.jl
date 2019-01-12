@@ -141,8 +141,8 @@ Call [`__foldl__`](@ref) without calling [`complete`](@ref).
 foldl_nocomplete(rf, init, coll) = __foldl__(skipcomplete(rf), init, coll)
 
 """
-    mapfoldl(xf, step, itr; init) :: T
-    transduce(xf, step, init, itr) :: Union{T, Reduced{T}}
+    mapfoldl(xf, step, reducible; init, simd) :: T
+    transduce(xf, step, init, reducible; simd) :: Union{T, Reduced{T}}
 
 Compose transducer `xf` with reducing step function `step` and reduce
 `itr` using it.
@@ -158,9 +158,15 @@ This API is modeled after $(_cljref("transduce")).
 - `step`: A callable which accepts 1 and 2 arguments.  If it only
   accepts 2 arguments, wrap it by [`Completing`](@ref) to add
   [`complete`](@ref) protocol.
+- `reducible`: A reducible object (array, dictionary, any iterator, etc.).
 - `init`: An initial value fed to the first argument to reducing step
   function `step`.
-- `itr`: An iterable.
+- `simd`: If `true` or `:ivdep`, enable SIMD using `Base.@simd`.  If
+  `:ivdep`, use `@simd ivdep for ... end` variant.  Read Julia manual
+  of `Base.@simd` to understand when it is appropriate to use this
+  option.  For example, `simd = :ivdep` _must not_ used with stateful
+  transducer like [`Scan`](@ref).  This option has no effect if
+  `false` (default).
 
 # Examples
 ```jldoctest
@@ -186,8 +192,7 @@ Finishing with state = 4.0
 mapfoldl
 
 """
-    mapfoldl(xf, step, itr; init) :: T
-    transduce(xf, step, init, itr) :: Union{T, Reduced{T}}
+    transduce(xf, step, init, reducible) :: Union{T, Reduced{T}}
 
 See [`mapfoldl`](@ref).
 """
@@ -230,7 +235,7 @@ function Base.mapfoldl(xform::Transducer, step, itr;
 end
 
 """
-    mapreduce(xf, step, itr; init) :: T
+    mapreduce(xf, step, reducible; init, simd) :: T
 
 Possibly parallel version of [`mapfoldl`](@ref).  The "bottom"
 reduction function `step(::T, ::T) :: T` must be associative and
@@ -503,11 +508,14 @@ julia> copy!(PartitionBy(x -> x ÷ 3) |> Map(sum), Int[], 1:10)
 Base.copy!(xf::Transducer, dest, src) = append!(xf, empty!(dest), src)
 
 """
-    foldl(step, xf::Transducer, itr; init)
-    foldl(step, ed::Eduction; init)
+    foldl(step, xf::Transducer, reducible; init, simd)
+    foldl(step, ed::Eduction; init, simd)
 
-The first form is a shorthand for `mapfoldl(xf, Completing(step), itr; init)`. It is intended to be used with `do` block.  It is also
-equivalent to `foldl(step, eduction(xf, itr); init)`.
+The first form is a shorthand for `mapfoldl(xf, Completing(step),
+reducible)`.  It is intended to be used with a `do` block.  It is also
+equivalent to `foldl(step, eduction(xf, itr))`.
+
+See: [`mapfoldl`](@ref).
 
 # Examples
 ```jldoctest
@@ -532,12 +540,13 @@ function Base.foldl(step, ed::Eduction; kw...)
 end
 
 """
-    foreach(eff, xf::Transducer, itr)
-    foreach(eff, ed::Eduction)
+    foreach(eff, xf::Transducer, reducible; simd)
+    foreach(eff, ed::Eduction; simd)
 
-Feed the results of `xf` processing items in `itr` into a unary
-function `eff` which is used primary for a side-effect.  It is
-equivalent to `foreach(eff, eduction(xf, coll))`.  Note that
+Feed the results of `xf` processing items in `reducible` into a unary
+function `eff`.  This is useful when the primary computation at the
+bottom is the side-effect.  It is also equivalent to `foreach(eff,
+eduction(xf, coll))`.  Note that
 
 ```julia
 foreach(eduction(xf, coll)) do x
@@ -556,6 +565,8 @@ end
 as the former does not have to translate the transducer protocol to
 the iterator protocol.
 
+See: [`mapfoldl`](@ref).
+
 # Examples
 ```jldoctest
 julia> using Transducers
@@ -567,9 +578,10 @@ input = 1
 input = 3
 ```
 """
-Base.foreach(eff, xform::Transducer, coll) =
-    transduce(xform, SideEffect(eff), nothing, coll)
-Base.foreach(eff, ed::Eduction) = foreach(eff, Transducer(ed), ed.coll)
+Base.foreach(eff, xform::Transducer, coll; kwargs...) =
+    transduce(xform, SideEffect(eff), nothing, coll; kwargs...)
+Base.foreach(eff, ed::Eduction; kwargs...) =
+    foreach(eff, Transducer(ed), ed.coll; kwargs...)
 
 
 """
