@@ -38,7 +38,9 @@ end
     coll = [Float64[]]
     rf = Reduction(maybe_usesimd(Cat(), true), +, eltype(coll))
     ir = llvm_ir(transduce, (rf, 0.0, coll))
-    @test nmatches(r"fadd (fast )?<4 x double>", ir) >= 9
+    @test_broken_if(
+        VERSION < v"1.1-",
+        nmatches(r"fadd (fast )?<4 x double>", ir) >= 9)
 end
 
 

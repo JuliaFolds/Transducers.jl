@@ -44,3 +44,15 @@ macro test_error(ex)
         end
     end
 end
+
+
+macro test_broken_if(cond, ex)
+    ex = quote
+        if $cond
+            $Test.@test_broken $ex
+        else
+            $Test.@test $ex
+        end
+    end
+    esc(ex)
+end
