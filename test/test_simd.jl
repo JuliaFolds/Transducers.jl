@@ -41,4 +41,27 @@ end
     end
 end
 
+@testset "foldl" begin
+    @testset for simd in [false, true]
+        xs = [1:100;]
+        result = foldl(eduction(Map(identity), xs);
+                       init = 0.0,
+                       simd = simd) do y, x
+            y + 2x
+        end
+        @test result == sum(2 .* xs)
+    end
+end
+
+@testset "foreach" begin
+    @testset for simd in [false, true, :ivdep]
+        xs = [1:100;]
+        ys = zeros(100)
+        foreach(Zip(Count(), Map(x -> x + 1.0)), xs; simd=simd) do (i, x)
+            @inbounds ys[i] = x
+        end
+        @test ys == xs .+ 1.0
+    end
+end
+
 end  # module
