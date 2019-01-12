@@ -3,7 +3,8 @@ include("preamble.jl")
 using InteractiveUtils: code_llvm, code_warntype
 using Statistics: mean
 
-using Transducers: Reduction, start, __foldl__, __simple_foldl__, maybe_usesimd
+using Transducers: Reduction, start, __foldl__, __simple_foldl__,
+    maybe_usesimd, SideEffect
 
 """
     llvm_ir(f, args) :: String
@@ -41,6 +42,44 @@ end
     @test_broken_if(
         VERSION < v"1.1-",
         nmatches(r"fadd (fast )?<4 x double>", ir) >= 9)
+end
+
+unsafe_setter(ys) =
+    function((i, x),)
+        @inbounds ys[i] = x
+    end
+
+@testset "foreach SIMD" begin
+    xf_double = Map(x -> 2x)
+
+    params = [
+        Enumerate => (false, xf_double |> Enumerate()),
+        TeeZip => (false,
+                   xf_double |> Transducers.TeeZip(Count()) |> Map(reverse)),
+        Zip => (true, Zip(Count(), xf_double)),
+    ]
+
+    @testset "$key" for key in first.(params)
+        broken, xf = Dict(params)[key]
+
+        xs = ones(10)
+        ys = zero(xs)
+
+        foreach(unsafe_setter(ys), xf, xs)
+        @test ys == 2xs
+
+        # Manual "expand" `foreach` internal (so that I can observe
+        # SIMD in the IR).
+        rf = Reduction(maybe_usesimd(xf, true),
+                       SideEffect(unsafe_setter(ys)),
+                       eltype(xs))
+        fill!(ys, 0)
+        transduce(rf, nothing, xs)
+        @test ys == 2xs
+
+        ir = llvm_ir(transduce, (rf, nothing, xs))
+        @test_broken_if broken nmatches(r"fmul <4 x double>", ir) >= 4
+    end
 end
 
 
