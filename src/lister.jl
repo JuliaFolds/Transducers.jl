@@ -1,5 +1,32 @@
 import Markdown
 
+_unexported_public_api = (
+    ## ../docs/src/manual.md
+    # Experimental
+    TeeZip,
+    GetIndex,
+    SetIndex,
+    Inject,
+    ## ../docs/src/interface.md
+    # Core interface for transducers
+    Transducer,
+    AbstractFilter,
+    R_,
+    start,
+    next,
+    complete,
+    outtype,
+    # Helpers for stateful transducers
+    wrap,
+    unwrap,
+    wrapping,
+    # Interface for reducibles
+    __foldl__,
+    getproperty(@__MODULE__, Symbol("@return_if_reduced")),
+)
+
+is_internal(t) = (parentmodule(t) === @__MODULE__) && t ∉ _unexported_public_api
+
 is_transducer_type(t) = t isa Type && t <: Transducer
 is_transducer_type(::typeof(Zip)) = true
 

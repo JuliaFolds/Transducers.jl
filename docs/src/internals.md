@@ -1,6 +1,7 @@
 # Internals
 
-```@docs
-Transducers.simple_transduce
-Transducers.foldl_nocomplete
+```@autodocs
+Modules = [Transducers]
+Public = false
+Filter = Transducers.is_internal
 ```
