@@ -77,7 +77,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Base.mapfoldl",
     "category": "function",
-    "text": "mapfoldl(xf, step, itr; init) :: T\ntransduce(xf, step, init, itr) :: Union{T, Reduced{T}}\n\nCompose transducer xf with reducing step function step and reduce itr using it.\n\nwarning: Warning\ntransduce differs from mapfoldl as Reduced{T} is returned if the transducer xf or step aborts the reduction.\n\nThis API is modeled after transduce in Clojure.\n\nArguments\n\nxf::Transducer: A transducer.\nstep: A callable which accepts 1 and 2 arguments.  If it only accepts 2 arguments, wrap it by Completing to add complete protocol.\ninit: An initial value fed to the first argument to reducing step function step.\nitr: An iterable.\n\nExamples\n\njulia> using Transducers\n\njulia> function step_demo(state, input)\n           @show state, input\n           state + input\n       end;\n\njulia> function step_demo(state)\n           println(\"Finishing with state = \", state)\n           state\n       end;\n\njulia> mapfoldl(Filter(isodd), step_demo, 1:4, init=0.0)\n(state, input) = (0.0, 1)\n(state, input) = (1.0, 3)\nFinishing with state = 4.0\n4.0\n\n\n\n\n\n"
+    "text": "mapfoldl(xf, step, reducible; init, simd) :: T\ntransduce(xf, step, init, reducible; simd) :: Union{T, Reduced{T}}\n\nCompose transducer xf with reducing step function step and reduce itr using it.\n\nwarning: Warning\ntransduce differs from mapfoldl as Reduced{T} is returned if the transducer xf or step aborts the reduction.\n\nThis API is modeled after transduce in Clojure.\n\nArguments\n\nxf::Transducer: A transducer.\nstep: A callable which accepts 1 and 2 arguments.  If it only accepts 2 arguments, wrap it by Completing to add complete protocol.\nreducible: A reducible object (array, dictionary, any iterator, etc.).\ninit: An initial value fed to the first argument to reducing step function step.\nsimd: If true or :ivdep, enable SIMD using Base.@simd.  If :ivdep, use @simd ivdep for ... end variant.  Read Julia manual of Base.@simd to understand when it is appropriate to use this option.  For example, simd = :ivdep must not used with stateful transducer like Scan.  This option has no effect if false (default).\n\nExamples\n\njulia> using Transducers\n\njulia> function step_demo(state, input)\n           @show state, input\n           state + input\n       end;\n\njulia> function step_demo(state)\n           println(\"Finishing with state = \", state)\n           state\n       end;\n\njulia> mapfoldl(Filter(isodd), step_demo, 1:4, init=0.0)\n(state, input) = (0.0, 1)\n(state, input) = (1.0, 3)\nFinishing with state = 4.0\n4.0\n\n\n\n\n\n"
 },
 
 {
@@ -85,7 +85,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.transduce",
     "category": "function",
-    "text": "mapfoldl(xf, step, itr; init) :: T\ntransduce(xf, step, init, itr) :: Union{T, Reduced{T}}\n\nSee mapfoldl.\n\n\n\n\n\n"
+    "text": "transduce(xf, step, init, reducible) :: Union{T, Reduced{T}}\n\nSee mapfoldl.\n\n\n\n\n\n"
 },
 
 {
@@ -93,7 +93,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Base.foldl",
     "category": "function",
-    "text": "foldl(step, xf::Transducer, itr; init)\nfoldl(step, ed::Eduction; init)\n\nThe first form is a shorthand for mapfoldl(xf, Completing(step), itr; init). It is intended to be used with do block.  It is also equivalent to foldl(step, eduction(xf, itr); init).\n\nExamples\n\njulia> using Transducers\n\njulia> foldl(Filter(isodd), 1:4, init=0.0) do state, input\n           @show state, input\n           state + input\n       end\n(state, input) = (0.0, 1)\n(state, input) = (1.0, 3)\n4.0\n\n\n\n\n\n"
+    "text": "foldl(step, xf::Transducer, reducible; init, simd)\nfoldl(step, ed::Eduction; init, simd)\n\nThe first form is a shorthand for mapfoldl(xf, Completing(step), reducible).  It is intended to be used with a do block.  It is also equivalent to foldl(step, eduction(xf, itr)).\n\nSee: mapfoldl.\n\nExamples\n\njulia> using Transducers\n\njulia> foldl(Filter(isodd), 1:4, init=0.0) do state, input\n           @show state, input\n           state + input\n       end\n(state, input) = (0.0, 1)\n(state, input) = (1.0, 3)\n4.0\n\n\n\n\n\n"
 },
 
 {
@@ -101,7 +101,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Base.foreach",
     "category": "function",
-    "text": "foreach(eff, xf::Transducer, itr)\nforeach(eff, ed::Eduction)\n\nFeed the results of xf processing items in itr into a unary function eff which is used primary for a side-effect.  It is equivalent to foreach(eff, eduction(xf, coll)).  Note that\n\nforeach(eduction(xf, coll)) do x\n    ...\nend\n\ncan be more efficient than\n\nfor x in eduction(xf, coll)\n    ...\nend\n\nas the former does not have to translate the transducer protocol to the iterator protocol.\n\nExamples\n\njulia> using Transducers\n\njulia> foreach(eduction(Filter(isodd), 1:4)) do input\n           @show input\n       end\ninput = 1\ninput = 3\n\n\n\n\n\n"
+    "text": "foreach(eff, xf::Transducer, reducible; simd)\nforeach(eff, ed::Eduction; simd)\n\nFeed the results of xf processing items in reducible into a unary function eff.  This is useful when the primary computation at the bottom is the side-effect.  It is also equivalent to foreach(eff, eduction(xf, coll)).  Note that\n\nforeach(eduction(xf, coll)) do x\n    ...\nend\n\ncan be more efficient than\n\nfor x in eduction(xf, coll)\n    ...\nend\n\nas the former does not have to translate the transducer protocol to the iterator protocol.\n\nSee: mapfoldl.\n\nExamples\n\njulia> using Transducers\n\njulia> foreach(eduction(Filter(isodd), 1:4)) do input\n           @show input\n       end\ninput = 1\ninput = 3\n\n\n\n\n\n"
 },
 
 {
@@ -109,7 +109,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Base.mapreduce",
     "category": "function",
-    "text": "mapreduce(xf, step, itr; init) :: T\n\nPossibly parallel version of mapfoldl.  The \"bottom\" reduction function step(::T, ::T) :: T must be associative and init must be its identity element.\n\nTransducers composing xf must be stateless and non-terminating (e.g., Map, Filter, Cat, etc.) except for ScanEmit.  Note that Scan is not supported (although possible in theory).\n\nSee mapfoldl.\n\n\n\n\n\n"
+    "text": "mapreduce(xf, step, reducible; init, simd) :: T\n\nPossibly parallel version of mapfoldl.  The \"bottom\" reduction function step(::T, ::T) :: T must be associative and init must be its identity element.\n\nTransducers composing xf must be stateless and non-terminating (e.g., Map, Filter, Cat, etc.) except for ScanEmit.  Note that Scan is not supported (although possible in theory).\n\nSee mapfoldl.\n\n\n\n\n\n"
 },
 
 {
@@ -617,19 +617,51 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "internals/#Transducers.simple_transduce",
+    "location": "internals/#Transducers.UseSIMD",
+    "page": "Internals",
+    "title": "Transducers.UseSIMD",
+    "category": "type",
+    "text": "UseSIMD{ivdep}()\n\nTell the reducible to run the inner reducing function using @simd. The reducible can support it using @simd_if.\n\n\n\n\n\n"
+},
+
+{
+    "location": "internals/#Transducers.foldl_nocomplete-Tuple{Any,Any,Any}",
+    "page": "Internals",
+    "title": "Transducers.foldl_nocomplete",
+    "category": "method",
+    "text": "foldl_nocomplete(rf, init, coll)\n\nCall __foldl__ without calling complete.\n\n\n\n\n\n"
+},
+
+{
+    "location": "internals/#Transducers.maybe_usesimd-Tuple{Transducers.Transducer,Union{Bool, Symbol}}",
+    "page": "Internals",
+    "title": "Transducers.maybe_usesimd",
+    "category": "method",
+    "text": "maybe_usesimd(xform, simd)\n\nInsert UseSIMD to xform if appropriate.\n\nArguments\n\nxform::Transducer\nsimd: false, true, or :ivdep.\n\nExamples\n\njulia> using Transducers\n       using Transducers: maybe_usesimd\n\njulia> maybe_usesimd(Map(identity), false)\nMap(identity)\n\njulia> maybe_usesimd(Map(identity), true)\nTransducers.UseSIMD{false}() |>\n    Map(identity)\n\njulia> maybe_usesimd(Cat(), true)\nCat() |>\n    Transducers.UseSIMD{false}()\n\njulia> maybe_usesimd(Map(sin) |> Cat() |> Map(cos), :ivdep)\nMap(sin) |>\n    Cat() |>\n    Transducers.UseSIMD{true}() |>\n    Map(cos)\n\njulia> maybe_usesimd(Map(sin) |> Cat() |> Map(cos) |> Cat() |> Map(tan), true)\nMap(sin) |>\n    Cat() |>\n    Map(cos) |>\n    Cat() |>\n    Transducers.UseSIMD{false}() |>\n    Map(tan)\n\n\n\n\n\n"
+},
+
+{
+    "location": "internals/#Transducers.simple_transduce-NTuple{4,Any}",
     "page": "Internals",
     "title": "Transducers.simple_transduce",
-    "category": "function",
+    "category": "method",
     "text": "simple_transduce(xform, step, init, coll)\n\nSimplified version of transduce.  For simple transducers Julia may be able to emit a good code.  This function exists only for performance tuning.\n\n\n\n\n\n"
 },
 
 {
-    "location": "internals/#Transducers.foldl_nocomplete",
+    "location": "internals/#Transducers.usesimd-Tuple{Transducers.Transducer,Transducers.UseSIMD}",
     "page": "Internals",
-    "title": "Transducers.foldl_nocomplete",
-    "category": "function",
-    "text": "foldl_nocomplete(rf, init, coll)\n\nCall __foldl__ without calling complete.\n\n\n\n\n\n"
+    "title": "Transducers.usesimd",
+    "category": "method",
+    "text": "usesimd(xform::Transducer, xfsimd::UseSIMD)\n\nWrap the inner-most loop of Transducer xform with UseSIMD{ivdep}. It\'s almost equivalent to UseSIMD{ivdep}() |> xform except that UseSIMD{ivdep}() is inserted after the inner-most Cat if xform includes Cat.\n\n\n\n\n\n"
+},
+
+{
+    "location": "internals/#Transducers.@simd_if-Tuple{Any,Any}",
+    "page": "Internals",
+    "title": "Transducers.@simd_if",
+    "category": "macro",
+    "text": "@simd_if rf for ... end\n\nWrap for-loop with @simd if the outer most transducer of the reducing function rf is UseSIMD.\n\n\n\n\n\n"
 },
 
 {
@@ -637,7 +669,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Internals",
     "title": "Internals",
     "category": "section",
-    "text": "Transducers.simple_transduce\nTransducers.foldl_nocomplete"
+    "text": "Modules = [Transducers]\nPublic = false\nFilter = Transducers.is_internal"
 },
 
 {
