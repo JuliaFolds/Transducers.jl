@@ -11,11 +11,15 @@ EXAMPLE_PAGES = [
     "Writing reducibles" => "examples/reducibles.md",
 ]
 
+transducers_rm_examples() =
+    rm(joinpath(@__DIR__, "src/examples"); force=true, recursive=true)
+
 function transducers_literate(;
         inputbase = joinpath(@__DIR__, "..", "examples"),
         outputbase = joinpath(@__DIR__, "src", "examples"),
         examples = EXAMPLE_PAGES,
         kwargs...)
+    transducers_rm_examples()
     for (_, outpath) in examples
         name, = splitext(basename(outpath))
         inputfile = joinpath(inputbase, "$name.jl")
