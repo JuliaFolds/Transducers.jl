@@ -4,7 +4,7 @@ using InteractiveUtils: code_llvm, code_warntype
 using Statistics: mean
 
 using Transducers: Reduction, start, __foldl__, __simple_foldl__,
-    maybe_usesimd, SideEffect
+    maybe_usesimd, SideEffect, _prepare_map, _map!
 
 """
     llvm_ir(f, args) :: String
@@ -29,9 +29,21 @@ nmatches(r, s) = count(_ -> true, eachmatch(r, s))
     xf = Filter(x -> -0.5 < x < 0.5) |> Map(x -> 2x)
     xs = Float64[]
     ys = Float64[]
-    ir = llvm_ir(map!, (xf, ys, xs))
-    @test_broken nmatches(r"fmul <4 x double>", ir) >= 4
-    @test_broken nmatches(r"fcmp [a-z]* <4 x double>", ir) >= 4
+
+    @testset "history" begin
+        # This test used to work but it wouldn't work now (unless the
+        # compiler becomes _extremely_ smart).
+        ir = llvm_ir(map!, (xf, ys, xs))
+        @test_broken nmatches(r"fmul <4 x double>", ir) >= 4
+        @test_broken nmatches(r"fcmp [a-z]* <4 x double>", ir) >= 4
+    end
+
+    @testset for simd in [false, true, :ivdep]
+        args = _prepare_map(xf, ys, xs, simd)
+        ir = llvm_ir(_map!, args)
+        @test nmatches(r"fmul <4 x double>", ir) >= 4
+        @test nmatches(r"fcmp [a-z]* <4 x double>", ir) >= 4
+    end
 end
 
 
@@ -67,7 +79,7 @@ unsafe_setter(ys) =
         foreach(unsafe_setter(ys), xf, xs)
         @test ys == 2xs
 
-        # Manual "expand" `foreach` internal (so that I can observe
+        # Manually "expand" `foreach` internal (so that I can observe
         # SIMD in the IR).
         rf = Reduction(maybe_usesimd(xf, true),
                        SideEffect(unsafe_setter(ys)),

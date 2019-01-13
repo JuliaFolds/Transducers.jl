@@ -223,8 +223,7 @@ _start_init(rf, init) = start(rf, provide_init(rf, init))
 # TODO: should it be an internal?
 @inline function transduce(rf::AbstractReduction, init, coll)
     # Inlining `transduce` and `__foldl__` were essential for the
-    # performance for `map!` to be comparable with the native loop.
-    # See: ../benchmark/bench_filter_map_map!.jl
+    # `darkritual` below to work.
     return __foldl__(rf, _start_init(rf, init), coll)
 end
 
@@ -424,7 +423,7 @@ end
 # Base.collect(xf, coll) = append!([], xf, coll)
 
 """
-    map!(xf::Transducer, dest, src)
+    map!(xf::Transducer, dest, src; simd)
 
 Feed `src` to transducer `xf`, storing the result in `dest`.
 Collections `dest` and `src` must have the same shape.  Transducer
@@ -453,34 +452,46 @@ julia> ans === ys
 true
 ```
 """
-function Base.map!(xf::Transducer, dest::AbstractArray, src::AbstractArray)
+function Base.map!(xf::Transducer, dest::AbstractArray, src::AbstractArray;
+                   simd = false)
+    _map!(_prepare_map(xf, dest, src, simd)...)
+    return dest
+end
+
+_map!(rf, coll, dest) = transduce(darkritual(rf, dest), nothing, coll)
+
+# Deep-copy `AbstractReduction` so that compiler can treat the all
+# reducing function tree nodes as local variables (???).  Aslo, it
+# tells compiler that `dest` is a local variable so that it won't
+# fetch `dest` via `getproperty` in each iteration.  (This is too much
+# magic...  My reasoning of how it works could be completely wrong.
+# But at least it should not change the semantics of the function.)
+@inline darkritual(rf::R, dest) where {R <: Reduction} =
+    if rf.inner isa AbstractReduction
+        R(rf.xform, darkritual(rf.inner, dest))
+    else
+        @assert rf.xform.array === dest
+        xf = typeof(rf.xform)(dest) :: SetIndex
+        R(xf, rf.inner)
+    end
+@inline darkritual(rf::R, dest) where {R <: Joiner} =
+    R(darkritual(rf.inner, dest), rf.value)
+@inline darkritual(rf::R, dest) where {R <: Splitter} =
+    R(darkritual(rf.inner, dest), rf.lens)
+
+function _prepare_map(xf, dest, src, simd)
     isexpansive(xf) && error("map! only supports non-expanding transducer")
     # TODO: support Dict
     indices = eachindex(dest, src)
 
     rf = Reduction(
-        TeeZip(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
-        (x, _...) -> x,  # :: Nothing
+        maybe_usesimd(
+            TeeZip(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
+            simd),
+        (::Vararg) -> nothing,
         eltype(indices))
 
-    #=
-    # Following code is (almost) equivalent to the one commented out
-    # above.  However, it turned out this is much friendlier to
-    # Julia's type system.  The only difference is that I manually set
-    # the output type of `TeeZip` to `Tuple{eltype(indices),Any}`.
-    # Actual `outtype` may do a better job but the second argument is
-    # not used by `SetIndex`.  By not using `TeeZip`'s `outtype`,
-    # this avoids type instability.
-    rf = Reduction(
-        TeeZip(GetIndex{true}(src) |> xf),
-        Reduction(SetIndex{true}(dest),
-                  (x, _...) -> x,  # :: Nothing
-                  Tuple{eltype(indices),Any}),
-        eltype(indices))
-    =#
-
-    transduce(rf, nothing, indices)
-    return dest
+    return rf, indices, dest
 end
 
 """
