@@ -147,7 +147,7 @@ foldl_nocomplete(rf, init, coll) = __foldl__(skipcomplete(rf), init, coll)
 Compose transducer `xf` with reducing step function `step` and reduce
 `itr` using it.
 
-!!! warning
+!!! note
     `transduce` differs from `mapfoldl` as `Reduced{T}` is returned if
     the transducer `xf` or `step` aborts the reduction.
 
