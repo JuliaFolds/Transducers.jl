@@ -155,6 +155,18 @@ end
     end
 end
 
+@testset "Transducer(::Reduction)" begin
+    # testing Transducer(::Eduction) which calls Transducer(::Reduction)
+    @testset for xf in [
+            Map(sin),
+            TeeZip(Filter(isfinite) |> Map(tan)),
+            Map(sin) |> TeeZip(Filter(isfinite) |> Map(tan)) |>
+                Map(cos),
+            ]
+        @test Transducer(eduction(xf, 1:1)) === xf
+    end
+end
+
 @testset "isexpansive" begin
     expansives = [
         Cat()

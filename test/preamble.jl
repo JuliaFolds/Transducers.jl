@@ -3,7 +3,7 @@ using Random
 using SparseArrays: issparse, sparse
 using Statistics: mean
 using Transducers
-using Transducers: simple_transduce, Reduced, isexpansive,
+using Transducers: Transducer, simple_transduce, Reduced, isexpansive,
     TeeZip, GetIndex, SetIndex, Inject
 
 inc(x) = x + oneunit(x)
