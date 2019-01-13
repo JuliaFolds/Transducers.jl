@@ -1403,8 +1403,6 @@ end
 
 function Reduction(xf::TeeZip, f, intype::Type)
     @nospecialize
-    # TODO: Don't use Map(identity) here.  (ATM, required for correct
-    # InType.)
     rf, lens = _teezip_rf(xf.xform, intype, (nothing, f, intype))
     return Splitter(rf, lens)
 end
