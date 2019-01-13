@@ -3,7 +3,7 @@ struct TransducerFolder
 end
 
 function __foldl__(rf, val, xff::TransducerFolder)
-    @nospecialize rf, val, xf, complete
+    @nospecialize
     xf = _normalize(xff.xform)
     while xf isa Composition
         val = next(rf, val, xf.outer)
