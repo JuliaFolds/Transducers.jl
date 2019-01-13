@@ -30,8 +30,8 @@ nmatches(r, s) = count(_ -> true, eachmatch(r, s))
     xs = Float64[]
     ys = Float64[]
     ir = llvm_ir(map!, (xf, ys, xs))
-    @test nmatches(r"fmul <4 x double>", ir) >= 4
-    @test nmatches(r"fcmp [a-z]* <4 x double>", ir) >= 4
+    @test_broken nmatches(r"fmul <4 x double>", ir) >= 4
+    @test_broken nmatches(r"fcmp [a-z]* <4 x double>", ir) >= 4
 end
 
 
