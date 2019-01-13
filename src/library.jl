@@ -1330,16 +1330,114 @@ end
 # `Reduction` dynamically which calls to the rest of inner reductions
 # after the value is zipped (joined).
 
-struct Joiner{F, T}  # Note: not a Transducer
+# Consider a transducer:
+#
+#     Map(identity) |>
+#         TeeZip(
+#             Count() |> Filter(isodd)
+#         ) |>
+#         MapSplat(*)
+#
+# Applying this transducer to a reducing function `rf` produces
+#
+#     Reduction(
+#         identity,
+#         Splitter(
+#             Reduction(
+#                 Count(),
+#                 Reduction(
+#                     Filter(isodd),
+#                     Joiner(
+#                         Reduction(
+#                             MapSplat(*),
+#                             rf),
+#                         value)))))
+#
+# where `value` is the placeholder for the output value of the
+# transducer (here `Map(identity)`) outer to `TeeZip`.
+
+struct Splitter{R, L} <: AbstractReduction
+    inner::R
+    lens::L
+end
+
+struct Joiner{F, T, intype} <: AbstractReduction
     inner::F  # original inner reduction
     value::T  # original input
 
-    Joiner{F,T}(inner, value) where {F,T} = new{F,T}(inner, value)
-    Joiner{F,T}(inner) where {F,T} = new{F,T}(inner)
+    function Joiner{F,T,intype}(inner, value = MissingInit()) where {F,T,intype}
+        if inner isa AbstractReduction && InType(inner) !== intype
+            error("""
+            `intype` specified for `Joiner` and inner reducing function
+            does not match.
+                intype = $intype
+                InType(inner) = $(InType(inner))
+            """)
+        end
+        if value isa MissingInit
+            return new{F,T,intype}(inner)
+        else
+            return new{F,T,intype}(inner, value)
+        end
+    end
 end
 
-joinerfor(rf::Reduction, rest...) =
-    Joiner{typeof(rf.inner), InType(rf)}(rf.inner, rest...)
+# TODO: move intype to the type parameter of AbstractReduction
+InType(::Type{<:Splitter{Reduction{X, I, intype}}}) where {X, I, intype} =
+    intype
+InType(::Type{<:Joiner{F, T, intype}}) where {F, T, intype} =
+    intype
+
+finaltype(rf::Splitter) = finaltype(rf.inner)
+finaltype(rf::Joiner{<:AbstractReduction}) = finaltype(rf.inner)
+finaltype(rf::Joiner) = InType(rf)
+
+Setfield.constructor_of(::Type{T}) where {T <: Joiner} = T
+
+# It's ugly that `Reduction` returns a non-`Reduction` type!  TODO: fix it
+function Reduction(xf::Composition{<:TeeZip}, f, intype::Type)
+    rf, lens = _teezip_rf(xf.outer.xform, intype, (xf.inner, f, intype))
+    return Splitter(rf, lens)
+end
+
+function Reduction(xf::TeeZip, f, intype::Type)
+    # TODO: Don't use Map(identity) here.  (ATM, required for correct
+    # InType.)
+    rf, lens = _teezip_rf(xf.xform, intype, (nothing, f, intype))
+    return Splitter(rf, lens)
+end
+
+# Construct reducing function and lens to `Joiner`'s `value` field in
+# parallel.  In principle, this should make it possible to use nested
+# `TeeZip`.  But this doesn't work ATM since `@lens _.inner` is
+# hard-coded.
+function _teezip_rf(xf::Composition, intype, downstream)
+    intype_inner = outtype(xf.outer, intype)
+    rf_inner, lens_inner = _teezip_rf(xf.inner, intype_inner, downstream)
+    rf = Reduction(xf.outer, rf_inner, intype)
+    if has(xf.outer, TeeZip)
+        error("Nested TeeZip is currently not supported.")
+    end
+    return (rf, (@lens _.inner) ∘ lens_inner)
+end
+
+function _teezip_rf(xf, intype, downstream)
+    xf_ds, f, intype_orig = downstream
+    intype_ds = Tuple{intype_orig, outtype(xf, intype)}
+    if xf_ds === nothing
+        rf_ds = f
+    else
+        rf_ds = Reduction(xf_ds, f, intype_ds)
+    end
+    joiner = Joiner{typeof(rf_ds), intype_orig, intype_ds}(rf_ds)
+    rf = Reduction(xf, joiner, intype)
+    return (rf, @lens _.inner.value)
+end
+
+start(rf::Splitter, result) = start(rf.inner, result)
+next(rf::Splitter, result, input) =
+    next(set(rf.inner, rf.lens, input), result, input)
+complete(rf::Splitter, result) = complete(rf.inner, result)
 
 start(rf::Joiner, result) = start(rf.inner, result)
 next(rf::Joiner, result, input) = next(rf.inner, result, (rf.value, input))
@@ -1348,13 +1446,25 @@ complete(rf::Joiner, result) = complete(rf.inner, result)
 isexpansive(xf::TeeZip) = isexpansive(xf.xform)
 outtype(xf::TeeZip, intype) = Tuple{intype, outtype(xf.xform, intype)}
 
-@inline rejoin(rf::R_{TeeZip}, f = joinerfor(rf)) =
-    Reduction(rf.xform.xform, f, InType(rf))
+function Transducer(rf::Splitter)
+    xf_split, xf_ds = _rf_to_teezip(rf.inner)
+    return TeeZip(xf_split) |> xf_ds
+end
 
-start(rf::R_{TeeZip}, result) = start(rejoin(rf), result)
-next(rf::R_{TeeZip}, result, input) =
-    next(rejoin(rf, joinerfor(rf, input)), result, input)
-complete(rf::R_{TeeZip}, result) = complete(rejoin(rf), result)
+function _rf_to_teezip(rf::Reduction{<:Transducer, <:Joiner})
+    if rf.inner.inner isa AbstractReduction
+        xf = Transducer(rf.inner.inner)
+    else
+        xf = IdentityTransducer()
+    end
+    return rf.xform, xf
+end
+
+function _rf_to_teezip(rf::Reduction)
+    xf_split, xf_ds = _rf_to_teezip(rf.inner)
+    return rf.xform |> xf_split, xf_ds
+end
+
 
 # add joint
 # Base.adjoint(xf::Transducer) = TeeZip(xf)

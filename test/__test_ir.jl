@@ -53,14 +53,13 @@ unsafe_setter(ys) =
     xf_double = Map(x -> 2x)
 
     params = [
-        Enumerate => (false, xf_double |> Enumerate()),
-        TeeZip => (false,
-                   xf_double |> Transducers.TeeZip(Count()) |> Map(reverse)),
-        Zip => (true, Zip(Count(), xf_double)),
+        :Enumerate => xf_double |> Enumerate(),
+        :TeeZip => xf_double |> Transducers.TeeZip(Count()) |> Map(reverse),
+        :Zip => Zip(Count(), xf_double),
     ]
 
     @testset "$key" for key in first.(params)
-        broken, xf = Dict(params)[key]
+        xf = Dict(params)[key]
 
         xs = ones(10)
         ys = zero(xs)
@@ -78,7 +77,7 @@ unsafe_setter(ys) =
         @test ys == 2xs
 
         ir = llvm_ir(transduce, (rf, nothing, xs))
-        @test_broken_if broken nmatches(r"fmul <4 x double>", ir) >= 4
+        @test nmatches(r"fmul <4 x double>", ir) >= 4
     end
 end
 

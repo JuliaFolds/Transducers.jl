@@ -2,6 +2,7 @@ module TestTransducers
 using Test
 
 testfiles = [
+    "test_core.jl",
     "test_library.jl",
     "test_processes.jl",
     "test_show.jl",

@@ -59,6 +59,9 @@ end
 
 struct IdentityTransducer <: Transducer end
 
+has(xf::Transducer, T::Type) = xf isa T
+has(xf::Composition, T::Type) = has(xf.outer, T) || has(xf.inner, T)
+
 """
     Transducer
 
@@ -74,6 +77,8 @@ appropriately defined for child types.
 """
 AbstractFilter
 
+abstract type AbstractReduction end
+
 # In clojure a reduction function is one of signature
 # whatever, input -> whatever
 #
@@ -83,16 +88,18 @@ AbstractFilter
 #   a transducer `xform` and an inner reduction function `inner`.
 #   `inner` can be either a `Reduction` or a function with arity-2 and arity-1 methods
 #
-struct Reduction{X <: Transducer, I, InType}
+struct Reduction{X <: Transducer, I, InType} <: AbstractReduction
     xform::X
     inner::I
 end
+
+Setfield.constructor_of(::Type{T}) where {T <: Reduction} = T
 
 InType(::T) where T = InType(T)
 InType(::Type{Reduction{X, I, intype}}) where {X, I, intype} = intype
 InType(T::Type) = throw(MethodError(InType, (T,)))
 
-Transducer(rf::Reduction{<:Transducer, <:Reduction}) =
+Transducer(rf::Reduction{<:Transducer, <:AbstractReduction}) =
     Composition(rf.xform, Transducer(rf.inner))
 Transducer(rf::Reduction) = rf.xform
 
@@ -337,7 +344,7 @@ Output item type for the transducer `xf` when the input type is `intype`.
 outtype(::Any, ::Any) = Any
 outtype(::AbstractFilter, intype) = intype
 
-finaltype(rf::Reduction{<:Transducer, <:Reduction}) = finaltype(rf.inner)
+finaltype(rf::Reduction{<:Transducer, <:AbstractReduction}) = finaltype(rf.inner)
 finaltype(rf::Reduction) = outtype(rf.xform, InType(rf))
 
 # isexpansive(::Any) = true

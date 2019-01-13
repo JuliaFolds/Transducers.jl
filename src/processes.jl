@@ -206,14 +206,14 @@ end
 
 struct MissingInit end
 
-provide_init(rf::Reduction, init) = initvalue(init, InType(rf))
-function provide_init(rf::Reduction, ::MissingInit)
+provide_init(rf::AbstractReduction, init) = initvalue(init, InType(rf))
+function provide_init(rf::AbstractReduction, ::MissingInit)
     T = finaltype(rf)
     op = innermost_rf(rf)
     return identityof(op, T)
 end
 
-innermost_rf(rf::Reduction) = innermost_rf(rf.inner)
+innermost_rf(rf::AbstractReduction) = innermost_rf(rf.inner)
 innermost_rf(f) = f
 innermost_rf(o::Completing) = innermost_rf(o.f)
 
@@ -221,7 +221,7 @@ innermost_rf(o::Completing) = innermost_rf(o.f)
 _start_init(rf, init) = start(rf, provide_init(rf, init))
 
 # TODO: should it be an internal?
-@inline function transduce(rf::Reduction, init, coll)
+@inline function transduce(rf::AbstractReduction, init, coll)
     # Inlining `transduce` and `__foldl__` were essential for the
     # performance for `map!` to be comparable with the native loop.
     # See: ../benchmark/bench_filter_map_map!.jl
@@ -458,13 +458,12 @@ function Base.map!(xf::Transducer, dest::AbstractArray, src::AbstractArray)
     # TODO: support Dict
     indices = eachindex(dest, src)
 
-    #=
     rf = Reduction(
         TeeZip(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
         (x, _...) -> x,  # :: Nothing
         eltype(indices))
-    =#
 
+    #=
     # Following code is (almost) equivalent to the one commented out
     # above.  However, it turned out this is much friendlier to
     # Julia's type system.  The only difference is that I manually set
@@ -478,6 +477,7 @@ function Base.map!(xf::Transducer, dest::AbstractArray, src::AbstractArray)
                   (x, _...) -> x,  # :: Nothing
                   Tuple{eltype(indices),Any}),
         eltype(indices))
+    =#
 
     transduce(rf, nothing, indices)
     return dest
