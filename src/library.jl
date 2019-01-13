@@ -1396,11 +1396,13 @@ Setfield.constructor_of(::Type{T}) where {T <: Joiner} = T
 
 # It's ugly that `Reduction` returns a non-`Reduction` type!  TODO: fix it
 function Reduction(xf::Composition{<:TeeZip}, f, intype::Type)
+    @nospecialize
     rf, lens = _teezip_rf(xf.outer.xform, intype, (xf.inner, f, intype))
     return Splitter(rf, lens)
 end
 
 function Reduction(xf::TeeZip, f, intype::Type)
+    @nospecialize
     # TODO: Don't use Map(identity) here.  (ATM, required for correct
     # InType.)
     rf, lens = _teezip_rf(xf.xform, intype, (nothing, f, intype))
@@ -1412,6 +1414,7 @@ end
 # `TeeZip`.  But this doesn't work ATM since `@lens _.inner` is
 # hard-coded.
 function _teezip_rf(xf::Composition, intype, downstream)
+    @nospecialize
     intype_inner = outtype(xf.outer, intype)
     rf_inner, lens_inner = _teezip_rf(xf.inner, intype_inner, downstream)
     rf = Reduction(xf.outer, rf_inner, intype)
@@ -1422,6 +1425,7 @@ function _teezip_rf(xf::Composition, intype, downstream)
 end
 
 function _teezip_rf(xf, intype, downstream)
+    @nospecialize
     xf_ds, f, intype_orig = downstream
     intype_ds = Tuple{intype_orig, outtype(xf, intype)}
     if xf_ds === nothing
