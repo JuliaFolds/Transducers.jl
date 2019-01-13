@@ -65,6 +65,31 @@ Reduction{▶ Float64}(
         (@lens _.inner.value)))
 ```
 
+```jldoctest
+rf = Reduction(
+    TeeZip(Count() |> TeeZip(FlagFirst())),
+    right,
+    Float64)
+@set! rf.inner.inner.inner.inner.value = 123456789
+@set! rf.inner.inner.inner.inner.inner.value = 1.25
+
+# output
+
+Splitter{▶ Float64}(
+    Reduction{▶ Float64}(
+        Count(1, 1),
+        Splitter{▶ Int64}(
+            Reduction{▶ Int64}(
+                FlagFirst(),
+                Joiner{▶ ⦃Int64, ⦃Bool, Int64⦄⦄}(
+                    Joiner{▶ ⦃Float64, ⦃Int64, ⦃Bool, Int64⦄⦄⦄}(
+                        Transducers.right,
+                        1.25),
+                    123456789)),
+            (@lens _.inner.value))),
+    (@lens _.inner.inner.inner.inner.value))
+```
+
 ```@meta
 DocTestSetup = nothing
 ```

@@ -1377,13 +1377,15 @@ struct Joiner{F, T, intype} <: AbstractReduction
 end
 
 @inline _joiner_error(::Any, ::Any) = nothing
-@inline _joiner_error(inner::AbstractReduction, intype) =
+@inline _joiner_error(inner::Reduction, intype) =
     _joiner_error(inner, intype, InType(inner))
 @inline _joiner_error(inner, ::Type{T}, ::Type{T}) where T = nothing
 @noinline _joiner_error(inner, intype, intype_inner) = error("""
 `intype` specified for `Joiner` and inner reducing function does not match.
     intype = $intype
     InType(inner) = $intype_inner
+where
+    inner = $inner
 """)
 
 # TODO: move intype to the type parameter of AbstractReduction
@@ -1401,29 +1403,21 @@ Setfield.constructor_of(::Type{T}) where {T <: Joiner} = T
 # It's ugly that `Reduction` returns a non-`Reduction` type!  TODO: fix it
 function Reduction(xf::Composition{<:TeeZip}, f, intype::Type)
     @nospecialize
-    rf, lens = _teezip_rf(xf.outer.xform, intype, (xf.inner, f, intype))
-    return Splitter(rf, lens)
+    rf = _teezip_rf(xf.outer.xform, intype, (xf.inner, f, intype))
+    return Splitter(rf, _teezip_lens(rf))
 end
 
 function Reduction(xf::TeeZip, f, intype::Type)
     @nospecialize
-    rf, lens = _teezip_rf(xf.xform, intype, (nothing, f, intype))
-    return Splitter(rf, lens)
+    rf = _teezip_rf(xf.xform, intype, (nothing, f, intype))
+    return Splitter(rf, _teezip_lens(rf))
 end
 
-# Construct reducing function and lens to `Joiner`'s `value` field in
-# parallel.  In principle, this should make it possible to use nested
-# `TeeZip`.  But this doesn't work ATM since `@lens _.inner` is
-# hard-coded.
 function _teezip_rf(xf::Composition, intype, downstream)
     @nospecialize
     intype_inner = outtype(xf.outer, intype)
-    rf_inner, lens_inner = _teezip_rf(xf.inner, intype_inner, downstream)
-    rf = Reduction(xf.outer, rf_inner, intype)
-    if has(xf.outer, TeeZip)
-        error("Nested TeeZip is currently not supported.")
-    end
-    return (rf, (@lens _.inner) ∘ lens_inner)
+    rf_inner = _teezip_rf(xf.inner, intype_inner, downstream)
+    return Reduction(xf.outer, rf_inner, intype)
 end
 
 function _teezip_rf(xf, intype, downstream)
@@ -1436,9 +1430,41 @@ function _teezip_rf(xf, intype, downstream)
         rf_ds = Reduction(xf_ds, f, intype_ds)
     end
     joiner = Joiner{typeof(rf_ds), intype_orig, intype_ds}(rf_ds)
-    rf = Reduction(xf, joiner, intype)
-    return (rf, @lens _.inner.value)
+    return Reduction(xf, joiner, intype)
 end
+
+"""
+    _teezip_lens(rf) :: Lens
+
+Return a lens to the `.value` field of the first "unbalanced"
+`Joiner`.  A `Joiner` matched with preceding `Splitter` would be
+treated as a regular reducing function node.  Thus, reducing function
+`rf` must have one more `Joiner` than `Splitter`.
+"""
+_teezip_lens
+
+# begin/end is not necessary for @nospecialize/@specialize; it's just
+# for visually marking the lines applying @nospecialize.
+@nospecialize
+begin
+
+    _teezip_lens(rf) = _joiner_lens(rf)[1] ∘ (@lens _.value)
+
+    _joiner_lens(rf::Joiner) = (@lens _), rf.inner
+    function _joiner_lens(rf::Reduction)
+        lens, rf_ds = _joiner_lens(rf.inner)
+        return (@lens _.inner) ∘ lens, rf_ds
+    end
+    function _joiner_lens(rf::Splitter)
+        lens_nested, rf_nested = _joiner_lens(rf.inner)
+        lens, rf_ds = _joiner_lens(rf_nested)
+        return (@lens _.inner) ∘ lens_nested ∘ (@lens _.inner) ∘ lens, rf_ds
+        # The first/left `_.inner` is for `Splitter` and the
+        # middle/second `_.inner` is for `Joiner`.
+    end
+
+end
+@specialize
 
 start(rf::Splitter, result) = start(rf.inner, result)
 next(rf::Splitter, result, input) =

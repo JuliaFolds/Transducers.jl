@@ -126,6 +126,27 @@ end
             ]
         end
     end
+
+    @testset "Nested TeeZip" begin
+        @testset for xs in iterator_variants(1:5)
+            if xs isa Base.Generator
+                # produces UndefRefError
+                @test_broken collect(TeeZip(Filter(isodd) |>
+                                            Map(inc) |>
+                                            TeeZip(Map(inc))),
+                                     xs)
+                continue
+            end
+            @test collect(TeeZip(Filter(isodd) |>
+                                 Map(inc) |>
+                                 TeeZip(Map(inc))),
+                          xs) == [
+                    (1, (2, 3)),
+                    (3, (4, 5)),
+                    (5, (6, 7)),
+                ]
+        end
+    end
 end
 
 @testset "Replace" begin
