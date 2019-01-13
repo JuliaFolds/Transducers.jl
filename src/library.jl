@@ -1365,22 +1365,26 @@ struct Joiner{F, T, intype} <: AbstractReduction
     inner::F  # original inner reduction
     value::T  # original input
 
-    function Joiner{F,T,intype}(inner, value = MissingInit()) where {F,T,intype}
-        if inner isa AbstractReduction && InType(inner) !== intype
-            error("""
-            `intype` specified for `Joiner` and inner reducing function
-            does not match.
-                intype = $intype
-                InType(inner) = $(InType(inner))
-            """)
-        end
-        if value isa MissingInit
-            return new{F,T,intype}(inner)
-        else
-            return new{F,T,intype}(inner, value)
-        end
+    @inline function Joiner{F,T,intype}(inner) where {F,T,intype}
+        _joiner_error(inner, intype)
+        return new(inner)
+    end
+
+    @inline function Joiner{F,T,intype}(inner, value) where {F,T,intype}
+        _joiner_error(inner, intype)
+        return new(inner, value)
     end
 end
+
+@inline _joiner_error(::Any, ::Any) = nothing
+@inline _joiner_error(inner::AbstractReduction, intype) =
+    _joiner_error(inner, intype, InType(inner))
+@inline _joiner_error(inner, ::Type{T}, ::Type{T}) where T = nothing
+@noinline _joiner_error(inner, intype, intype_inner) = error("""
+`intype` specified for `Joiner` and inner reducing function does not match.
+    intype = $intype
+    InType(inner) = $intype_inner
+""")
 
 # TODO: move intype to the type parameter of AbstractReduction
 InType(::Type{<:Splitter{Reduction{X, I, intype}}}) where {X, I, intype} =
