@@ -525,16 +525,11 @@ _initvalue(rf::Reduction) = initvalue(rf.xform.init, InType(rf))
 
 inittypeof(::T, ::Type) where T = T
 function inittypeof(init::Initializer, intype::Type)
-    T = Base.promote_op(init.f, intype)
-    if T <: Union{}
-        error("""
-Return type of $(init.f) is inferred to be a `Union{}`.  It is likely
-that this function with input type
-    $(intype)
-throws.
-""")
-    end
-    return T
+    # Maybe I should just call it?  But that would be a bit of waste
+    # when `init.f` allocates...
+    T = Base.promote_op(init.f, Type{intype})
+    isconcretetype(T) && return T
+    return typeof(init.f(intype))  # T==Union{} hits this code pass
 end
 
 function Base.show(io::IO, init::Initializer)

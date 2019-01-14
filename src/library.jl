@@ -1230,7 +1230,7 @@ function _type_fixedpoint(f, X, limit = 10)
 end
 
 isexpansive(::Iterated) = false
-outtype(xf::Iterated{<:Any, T}, ::Any) where T = T
+outtype(xf::Iterated, intype) = inittypeof(xf.init, intype)
 start(rf::R_{Iterated}, result) =
     wrap(rf, _initvalue(rf), start(rf.inner, result))
 next(rf::R_{Iterated}, result, ::Any) =
