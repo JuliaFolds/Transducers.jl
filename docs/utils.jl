@@ -41,10 +41,8 @@ transducers_makedocs(;
             "Manual" => "manual.md",
             "Interface" => "interface.md",
             hide("Internals" => "internals.md"),
-            hide("Doctests" => "doctests/index.md", [
-                "doctests/show_xf.md",
-                "doctests/show_rf.md",
-            ]),
+            hide("doctests/show_xf.md"),
+            hide("doctests/show_rf.md"),
             "Examples" => examples,
         ],
         repo = "https://github.com/tkf/Transducers.jl/blob/{commit}{path}#L{line}",
