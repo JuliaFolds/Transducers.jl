@@ -137,6 +137,7 @@ end
                     (3, (4, 5)),
                     (5, (6, 7)),
                 ]
+            @test collect(TeeZip(TeeZip(Map(inc))), xs) isa Vector
         end
     end
 end

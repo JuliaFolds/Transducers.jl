@@ -1393,8 +1393,7 @@ where
 """)
 
 # TODO: move intype to the type parameter of AbstractReduction
-InType(::Type{<:Splitter{Reduction{X, I, intype}}}) where {X, I, intype} =
-    intype
+InType(::Type{<:Splitter{R}}) where R = InType(R)
 InType(::Type{<:Joiner{F, T, intype}}) where {F, T, intype} =
     intype
 
