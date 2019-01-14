@@ -162,6 +162,14 @@ end
             TeeZip(Filter(isfinite) |> Map(tan)),
             Map(sin) |> TeeZip(Filter(isfinite) |> Map(tan)) |>
                 Map(cos),
+            TeeZip(Map(sin) |> TeeZip(Map(tan))),
+            TeeZip(TeeZip(Map(tan)) |> Map(identity)),
+            TeeZip(Map(sin) |> TeeZip(Map(tan)) |> Map(identity)),
+            Map(cos) |> TeeZip(Map(sin) |> TeeZip(Map(tan)) |> Map(identity)),
+            Map(cos) |>
+                TeeZip(Map(sin) |> TeeZip(Map(tan)) |> Map(identity)) |>
+                Map(first),
+            TeeZip(TeeZip(Map(tan))),
             ]
         @test Transducer(eduction(xf, 1:1)) === xf
     end

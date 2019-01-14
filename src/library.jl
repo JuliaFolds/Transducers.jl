@@ -1482,22 +1482,25 @@ isexpansive(xf::TeeZip) = isexpansive(xf.xform)
 outtype(xf::TeeZip, intype) = Tuple{intype, outtype(xf.xform, intype)}
 
 function Transducer(rf::Splitter)
-    xf_split, xf_ds = _rf_to_teezip(rf.inner)
-    return TeeZip(xf_split) |> xf_ds
-end
-
-function _rf_to_teezip(rf::Reduction{<:Transducer, <:Joiner})
-    if rf.inner.inner isa AbstractReduction
-        xf = Transducer(rf.inner.inner)
+    xf_split, rf_ds = _rf_to_teezip(rf.inner)
+    if rf_ds isa AbstractReduction
+        return TeeZip(xf_split) |> Transducer(rf_ds)
     else
-        xf = IdentityTransducer()
+        return TeeZip(xf_split)
     end
-    return rf.xform, xf
 end
 
 function _rf_to_teezip(rf::Reduction)
-    xf_split, xf_ds = _rf_to_teezip(rf.inner)
-    return rf.xform |> xf_split, xf_ds
+    xf_split, rf_ds = _rf_to_teezip(rf.inner)
+    return rf.xform |> xf_split, rf_ds
+end
+
+_rf_to_teezip(rf::Joiner) = IdentityTransducer(), rf.inner
+
+function _rf_to_teezip(rf::Splitter)
+    xf_split, rf_inner = _rf_to_teezip(rf.inner)
+    xf_inner, rf_ds = _rf_to_teezip(rf_inner)
+    return TeeZip(xf_split) |> xf_inner, rf_ds
 end
 
 
