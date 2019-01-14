@@ -90,6 +90,58 @@ Splitter{▶ Float64}(
     (@lens _.inner.inner.inner.inner.value))
 ```
 
+```jldoctest
+rf = Reduction(
+    TeeZip(Filter(isodd) |> Map(identity) |> TeeZip(Map(identity))),
+    right,
+    Int64)
+@set! rf.inner.inner.inner.inner.inner.value = 123456789
+@set! rf.inner.inner.inner.inner.inner.inner.value= 123456789
+
+# output
+
+Splitter{▶ Int64}(
+    Reduction{▶ Int64}(
+        Filter(isodd),
+        Reduction{▶ Int64}(
+            Map(identity),
+            Splitter{▶ Int64}(
+                Reduction{▶ Int64}(
+                    Map(identity),
+                    Joiner{▶ ⦃Int64, Int64⦄}(
+                        Joiner{▶ ⦃Int64, ⦃Int64, Int64⦄⦄}(
+                            Transducers.right,
+                            123456789),
+                        123456789)),
+                (@lens _.inner.value)))),
+    (@lens _.inner.inner.inner.inner.inner.value))
+```
+
+```jldoctest
+rf = Reduction(
+    TeeZip(Filter(isodd) |> Map(identity) |> TeeZip(Map(identity))),
+    right,
+    Any)
+
+# output
+
+Splitter{▶ Any}(
+    Reduction{▶ Any}(
+        Filter(isodd),
+        Reduction{▶ Any}(
+            Map(identity),
+            Splitter{▶ Any}(
+                Reduction{▶ Any}(
+                    Map(identity),
+                    Joiner{▶ ⦃Any, Any⦄}(
+                        Joiner{▶ ⦃Any, ⦃Any, Any⦄⦄}(
+                            Transducers.right,
+                            nothing),
+                        nothing)),
+                (@lens _.inner.value)))),
+    (@lens _.inner.inner.inner.inner.inner.value))
+```
+
 ```@meta
 DocTestSetup = nothing
 ```

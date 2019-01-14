@@ -245,7 +245,11 @@ function _show_impl(io, mime, rf::Joiner)
     println(io, '(')
     _show_impl(next_io, mime, rf.inner)
     println(io, ",")
-    _show_impl(next_io, mime, rf.value)
+    if isdefined(rf, :value)
+        _show_impl(next_io, mime, rf.value)
+    else
+        _show_impl(next_io, mime, Text("#undef"))
+    end
     print(io, ")")
     return
 end

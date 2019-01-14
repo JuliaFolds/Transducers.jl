@@ -1367,7 +1367,11 @@ struct Joiner{F, T, intype} <: AbstractReduction
 
     @inline function Joiner{F,T,intype}(inner) where {F,T,intype}
         _joiner_error(inner, intype)
-        return new(inner)
+        if isbitstype(T)
+            return new(inner)
+        else
+            return new{F,Union{T,Nothing},intype}(inner, nothing)
+        end
     end
 
     @inline function Joiner{F,T,intype}(inner, value) where {F,T,intype}
