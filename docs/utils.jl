@@ -42,6 +42,7 @@ transducers_makedocs(;
             "Interface" => "interface.md",
             hide("Internals" => "internals.md"),
             hide("Doctests" => "doctests/index.md", [
+                "doctests/show_xf.md",
                 "doctests/show_rf.md",
             ]),
             "Examples" => examples,
