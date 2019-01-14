@@ -1,3 +1,6 @@
+@nospecialize
+# TODO: make show code a bit more DRY
+
 struct TransducerFolder
     xform::Transducer
 end
@@ -146,3 +149,105 @@ function Base.show(io::IO, xf::Transducer)
     end
     return
 end
+
+Base.show(io::IO, m::MIME"text/plain", rf::AbstractReduction) =
+    _show_impl(io, m, rf)
+
+function _show_impl(io, mime, x)
+    indent = get(io, :indent, "")
+    first_indent = get(io, :first_indent, indent)
+    print(io, first_indent)
+    _show_noindent(io, mime, x)
+end
+
+_show_noindent(io, mime, x) = show(io, mime, x)
+
+function _show_noindent(io, mime, x::Function)
+    m = parentmodule(x)
+    if m !== Base
+        show(io, mime, m)
+        print(io, '.')
+    end
+    print(io, nameof(x))
+end
+
+function _show_intype(io, rf)
+    print(io, "{▶ ")
+    _show_type(io, InType(rf))
+    print(io, "}")
+end
+
+_show_type(io, t) = show(io, t)
+
+function _show_type(io, t::Type{<:Tuple})
+    print(io, '⦃')
+    isfirst = true
+    for e in t.types
+        if isfirst
+            isfirst = false
+        else
+            print(io, ", ")
+        end
+        _show_type(io, e)
+    end
+    print(io, '⦄')
+end
+
+function _show_impl(io, mime, rf::Reduction)
+    indent = get(io, :indent, "")
+    first_indent = get(io, :first_indent, indent)
+    next_indent = indent * ' ' ^ 4
+    next_io = IOContext(io,
+                        :indent => next_indent,
+                        :first_indent => next_indent)
+
+    print(io, first_indent)
+    print(io, "Reduction")
+    _show_intype(io, rf)
+    println(io, '(')
+    _show_impl(next_io, mime, rf.xform)
+    println(io, ",")
+    _show_impl(next_io, mime, rf.inner)
+    print(io, ")")
+    return
+end
+
+function _show_impl(io, mime, rf::Splitter)
+    indent = get(io, :indent, "")
+    first_indent = get(io, :first_indent, indent)
+    next_indent = indent * ' ' ^ 4
+    next_io = IOContext(io,
+                        :indent => next_indent,
+                        :first_indent => next_indent)
+
+    print(io, first_indent)
+    print(io, "Splitter")
+    _show_intype(io, rf)
+    println(io, '(')
+    _show_impl(next_io, mime, rf.inner)
+    println(io, ",")
+    _show_impl(next_io, mime, rf.lens)
+    print(io, ")")
+    return
+end
+
+function _show_impl(io, mime, rf::Joiner)
+    indent = get(io, :indent, "")
+    first_indent = get(io, :first_indent, indent)
+    next_indent = indent * ' ' ^ 4
+    next_io = IOContext(io,
+                        :indent => next_indent,
+                        :first_indent => next_indent)
+
+    print(io, first_indent)
+    print(io, "Joiner")
+    _show_intype(io, rf)
+    println(io, '(')
+    _show_impl(next_io, mime, rf.inner)
+    println(io, ",")
+    _show_impl(next_io, mime, rf.value)
+    print(io, ")")
+    return
+end
+
+@specialize
