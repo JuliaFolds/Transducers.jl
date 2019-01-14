@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Show method for transducers · Transducers.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link href="../../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>Transducers.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../../">Home</a></li><li><a class="toctext" href="../../manual/">Manual</a></li><li><a class="toctext" href="../../interface/">Interface</a></li><li><span class="toctext">Examples</span><ul><li><a class="toctext" href="../../examples/tutorial_missings/">Tutorial: Missing values</a></li><li><a class="toctext" href="../../examples/words/">Parallel word count</a></li><li><a class="toctext" href="../../examples/primes/">Prime sieve</a></li><li><a class="toctext" href="../../examples/transducers/">Writing transducers</a></li><li><a class="toctext" href="../../examples/reducibles/">Writing reducibles</a></li></ul></li><li class="current"><a class="toctext" href>Show method for transducers</a><ul class="internal"></ul></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Show method for transducers</a></li></ul><a class="edit-page" href="https://github.com/tkf/Transducers.jl/blob/master/docs/src/doctests/show_xf.md#L"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Show method for transducers</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Show-method-for-transducers-1" href="#Show-method-for-transducers-1">Show method for transducers</a></h1><pre><code class="language-julia-repl">julia&gt; Map(sin) |&gt; Map(cos) |&gt; Map(tan)
+Map(sin) |&gt;
+    Map(cos) |&gt;
+    Map(tan)
+
+julia&gt; TeeZip(Map(sin) |&gt; TeeZip(Map(tan)))
+TeeZip(
+    Map(sin) |&gt;
+        TeeZip(Map(tan))
+)
+
+julia&gt; TeeZip(Map(sin) |&gt; TeeZip(Map(tan) |&gt; Filter(isfinite)) |&gt; MapSplat(*))
+TeeZip(
+    Map(sin) |&gt;
+        TeeZip(
+            Map(tan) |&gt;
+                Filter(isfinite)
+        ) |&gt;
+        MapSplat(*)
+)
+
+julia&gt; TeeZip(Map(sin) |&gt;
+              TeeZip(Map(tan) |&gt; Filter(isfinite)) |&gt;
+              MapSplat(*)) |&gt; MapSplat(+)
+TeeZip(
+    Map(sin) |&gt;
+        TeeZip(
+            Map(tan) |&gt;
+                Filter(isfinite)
+        ) |&gt;
+        MapSplat(*)
+) |&gt;
+    MapSplat(+)</code></pre><footer><hr/><a class="previous" href="../../internals/"><span class="direction">Previous</span><span class="title">Internals</span></a><a class="next" href="../show_rf/"><span class="direction">Next</span><span class="title">Show method for reducing functions</span></a></footer></article></body></html>

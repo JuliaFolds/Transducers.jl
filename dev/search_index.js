@@ -125,7 +125,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Base.map!",
     "category": "function",
-    "text": "map!(xf::Transducer, dest, src)\n\nFeed src to transducer xf, storing the result in dest. Collections dest and src must have the same shape.  Transducer xf may contain filtering transducers.  If some entries src are skipped, the corresponding entries in dest will be unchanged. Transducer xf must not contain any expansive transducers such as MapCat.\n\nSee also copy!.\n\nExamples\n\njulia> using Transducers\n\njulia> xs = collect(1:5)\n       ys = zero(xs)\n       map!(Filter(isodd), ys, xs)\n5-element Array{Int64,1}:\n 1\n 0\n 3\n 0\n 5\n\njulia> ans === ys\ntrue\n\n\n\n\n\n"
+    "text": "map!(xf::Transducer, dest, src; simd)\n\nFeed src to transducer xf, storing the result in dest. Collections dest and src must have the same shape.  Transducer xf may contain filtering transducers.  If some entries src are skipped, the corresponding entries in dest will be unchanged. Transducer xf must not contain any expansive transducers such as MapCat.\n\nSee also copy!.\n\nExamples\n\njulia> using Transducers\n\njulia> xs = collect(1:5)\n       ys = zero(xs)\n       map!(Filter(isodd), ys, xs)\n5-element Array{Int64,1}:\n 1\n 0\n 3\n 0\n 5\n\njulia> ans === ys\ntrue\n\n\n\n\n\n"
 },
 
 {
@@ -609,70 +609,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "internals/#",
-    "page": "Internals",
-    "title": "Internals",
-    "category": "page",
-    "text": ""
-},
-
-{
-    "location": "internals/#Transducers.UseSIMD",
-    "page": "Internals",
-    "title": "Transducers.UseSIMD",
-    "category": "type",
-    "text": "UseSIMD{ivdep}()\n\nTell the reducible to run the inner reducing function using @simd. The reducible can support it using @simd_if.\n\n\n\n\n\n"
-},
-
-{
-    "location": "internals/#Transducers.foldl_nocomplete-Tuple{Any,Any,Any}",
-    "page": "Internals",
-    "title": "Transducers.foldl_nocomplete",
-    "category": "method",
-    "text": "foldl_nocomplete(rf, init, coll)\n\nCall __foldl__ without calling complete.\n\n\n\n\n\n"
-},
-
-{
-    "location": "internals/#Transducers.maybe_usesimd-Tuple{Transducers.Transducer,Union{Bool, Symbol}}",
-    "page": "Internals",
-    "title": "Transducers.maybe_usesimd",
-    "category": "method",
-    "text": "maybe_usesimd(xform, simd)\n\nInsert UseSIMD to xform if appropriate.\n\nArguments\n\nxform::Transducer\nsimd: false, true, or :ivdep.\n\nExamples\n\njulia> using Transducers\n       using Transducers: maybe_usesimd\n\njulia> maybe_usesimd(Map(identity), false)\nMap(identity)\n\njulia> maybe_usesimd(Map(identity), true)\nTransducers.UseSIMD{false}() |>\n    Map(identity)\n\njulia> maybe_usesimd(Cat(), true)\nCat() |>\n    Transducers.UseSIMD{false}()\n\njulia> maybe_usesimd(Map(sin) |> Cat() |> Map(cos), :ivdep)\nMap(sin) |>\n    Cat() |>\n    Transducers.UseSIMD{true}() |>\n    Map(cos)\n\njulia> maybe_usesimd(Map(sin) |> Cat() |> Map(cos) |> Cat() |> Map(tan), true)\nMap(sin) |>\n    Cat() |>\n    Map(cos) |>\n    Cat() |>\n    Transducers.UseSIMD{false}() |>\n    Map(tan)\n\n\n\n\n\n"
-},
-
-{
-    "location": "internals/#Transducers.simple_transduce-NTuple{4,Any}",
-    "page": "Internals",
-    "title": "Transducers.simple_transduce",
-    "category": "method",
-    "text": "simple_transduce(xform, step, init, coll)\n\nSimplified version of transduce.  For simple transducers Julia may be able to emit a good code.  This function exists only for performance tuning.\n\n\n\n\n\n"
-},
-
-{
-    "location": "internals/#Transducers.usesimd-Tuple{Transducers.Transducer,Transducers.UseSIMD}",
-    "page": "Internals",
-    "title": "Transducers.usesimd",
-    "category": "method",
-    "text": "usesimd(xform::Transducer, xfsimd::UseSIMD)\n\nWrap the inner-most loop of Transducer xform with UseSIMD{ivdep}. It\'s almost equivalent to UseSIMD{ivdep}() |> xform except that UseSIMD{ivdep}() is inserted after the inner-most Cat if xform includes Cat.\n\n\n\n\n\n"
-},
-
-{
-    "location": "internals/#Transducers.@simd_if-Tuple{Any,Any}",
-    "page": "Internals",
-    "title": "Transducers.@simd_if",
-    "category": "macro",
-    "text": "@simd_if rf for ... end\n\nWrap for-loop with @simd if the outer most transducer of the reducing function rf is UseSIMD.\n\n\n\n\n\n"
-},
-
-{
-    "location": "internals/#Internals-1",
-    "page": "Internals",
-    "title": "Internals",
-    "category": "section",
-    "text": "Modules = [Transducers]\nPublic = false\nFilter = Transducers.is_internal"
-},
-
-{
     "location": "examples/tutorial_missings/#",
     "page": "Tutorial: Missing values",
     "title": "Tutorial: Missing values",
@@ -822,6 +758,110 @@ var documenterSearchIndex = {"docs": [
     "title": "How to make your data type reducible",
     "category": "section",
     "text": "Let\'s see how to make a vector-of-vector a reducible collection; i.e., a type that can be fed to mapfoldl.struct VecOfVec{T}\n    vectors::Vector{Vector{T}}\nendWe need next and complete to invoke the reducing function rf and @return_if_reduced to support early termination.using Transducers\nusing Transducers: next, complete, @return_if_reducedSupporting mapfoldl and similar only requires Transducers.__foldl__:function Transducers.__foldl__(rf, val, vov::VecOfVec)\n    for vector in vov.vectors\n        for x in vector\n            val = next(rf, val, x)\n            @return_if_reduced complete(rf, val)\n        end\n    end\n    return complete(rf, val)\nendNote that it\'s often a good idea to implement Base.eltype:Base.eltype(::VecOfVec{T}) where {T} = TIt can be then used as the input to the transducers:vov = VecOfVec(collect.([1:n for n in 1:3]))\ncollect(Map(identity), vov)Transducers.@return_if_reduced above is used to support terminating transducer like Take.collect(Take(3), vov)More complex example:collect(PartitionBy(isequal(1)) |> Zip(Map(copy), Map(sum)), vov)Notice that writing Transducers.__foldl__ is very straightforward comparing to how to define an iterator:function Base.iterate(vov::VecOfVec, state=nothing)\n    if state === nothing\n        i, j = 1, 1\n    else\n        i, j = state\n    end\n    i > length(vov.vectors) && return nothingIf j is in bound, we are iterating the same sub-vector:    vi = vov.vectors[i]\n    if j <= length(vi)\n        return vi[j], (i, j + 1)\n    endOtherwise, find the next non-empty sub-vector and start iterating it:    for k in i + 1:length(vov.vectors)\n        vk = vov.vectors[k]\n        if !isempty(vk)\n            return vk[1], (k, 2)  # i=k, j=2\n        end\n    end\n    return nothing\nend\n\nBase.length(vov::VecOfVec) = sum(length, vov.vectors)\n\ncollect(vov)This page was generated using Literate.jl."
+},
+
+{
+    "location": "internals/#",
+    "page": "Internals",
+    "title": "Internals",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "internals/#Transducers.UseSIMD",
+    "page": "Internals",
+    "title": "Transducers.UseSIMD",
+    "category": "type",
+    "text": "UseSIMD{ivdep}()\n\nTell the reducible to run the inner reducing function using @simd. The reducible can support it using @simd_if.\n\n\n\n\n\n"
+},
+
+{
+    "location": "internals/#Transducers._teezip_lens",
+    "page": "Internals",
+    "title": "Transducers._teezip_lens",
+    "category": "function",
+    "text": "_teezip_lens(rf) :: Lens\n\nReturn a lens to the .value field of the first \"unbalanced\" Joiner.  A Joiner matched with preceding Splitter would be treated as a regular reducing function node.  Thus, reducing function rf must have one more Joiner than Splitter.\n\n\n\n\n\n"
+},
+
+{
+    "location": "internals/#Transducers.foldl_nocomplete-Tuple{Any,Any,Any}",
+    "page": "Internals",
+    "title": "Transducers.foldl_nocomplete",
+    "category": "method",
+    "text": "foldl_nocomplete(rf, init, coll)\n\nCall __foldl__ without calling complete.\n\n\n\n\n\n"
+},
+
+{
+    "location": "internals/#Transducers.maybe_usesimd-Tuple{Transducers.Transducer,Union{Bool, Symbol}}",
+    "page": "Internals",
+    "title": "Transducers.maybe_usesimd",
+    "category": "method",
+    "text": "maybe_usesimd(xform, simd)\n\nInsert UseSIMD to xform if appropriate.\n\nArguments\n\nxform::Transducer\nsimd: false, true, or :ivdep.\n\nExamples\n\njulia> using Transducers\n       using Transducers: maybe_usesimd\n\njulia> maybe_usesimd(Map(identity), false)\nMap(identity)\n\njulia> maybe_usesimd(Map(identity), true)\nTransducers.UseSIMD{false}() |>\n    Map(identity)\n\njulia> maybe_usesimd(Cat(), true)\nCat() |>\n    Transducers.UseSIMD{false}()\n\njulia> maybe_usesimd(Map(sin) |> Cat() |> Map(cos), :ivdep)\nMap(sin) |>\n    Cat() |>\n    Transducers.UseSIMD{true}() |>\n    Map(cos)\n\njulia> maybe_usesimd(Map(sin) |> Cat() |> Map(cos) |> Cat() |> Map(tan), true)\nMap(sin) |>\n    Cat() |>\n    Map(cos) |>\n    Cat() |>\n    Transducers.UseSIMD{false}() |>\n    Map(tan)\n\n\n\n\n\n"
+},
+
+{
+    "location": "internals/#Transducers.simple_transduce-NTuple{4,Any}",
+    "page": "Internals",
+    "title": "Transducers.simple_transduce",
+    "category": "method",
+    "text": "simple_transduce(xform, step, init, coll)\n\nSimplified version of transduce.  For simple transducers Julia may be able to emit a good code.  This function exists only for performance tuning.\n\n\n\n\n\n"
+},
+
+{
+    "location": "internals/#Transducers.usesimd-Tuple{Transducers.Transducer,Transducers.UseSIMD}",
+    "page": "Internals",
+    "title": "Transducers.usesimd",
+    "category": "method",
+    "text": "usesimd(xform::Transducer, xfsimd::UseSIMD)\n\nWrap the inner-most loop of Transducer xform with UseSIMD{ivdep}. It\'s almost equivalent to UseSIMD{ivdep}() |> xform except that UseSIMD{ivdep}() is inserted after the inner-most Cat if xform includes Cat.\n\n\n\n\n\n"
+},
+
+{
+    "location": "internals/#Transducers.@simd_if-Tuple{Any,Any}",
+    "page": "Internals",
+    "title": "Transducers.@simd_if",
+    "category": "macro",
+    "text": "@simd_if rf for ... end\n\nWrap for-loop with @simd if the outer most transducer of the reducing function rf is UseSIMD.\n\n\n\n\n\n"
+},
+
+{
+    "location": "internals/#Internals-1",
+    "page": "Internals",
+    "title": "Internals",
+    "category": "section",
+    "text": "Modules = [Transducers]\nPublic = false\nFilter = Transducers.is_internal"
+},
+
+{
+    "location": "doctests/show_xf/#",
+    "page": "Show method for transducers",
+    "title": "Show method for transducers",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "doctests/show_xf/#Show-method-for-transducers-1",
+    "page": "Show method for transducers",
+    "title": "Show method for transducers",
+    "category": "section",
+    "text": "DocTestSetup = quote\n    using Transducers\n    using Transducers: TeeZip\nendjulia> Map(sin) |> Map(cos) |> Map(tan)\nMap(sin) |>\n    Map(cos) |>\n    Map(tan)\n\njulia> TeeZip(Map(sin) |> TeeZip(Map(tan)))\nTeeZip(\n    Map(sin) |>\n        TeeZip(Map(tan))\n)\n\njulia> TeeZip(Map(sin) |> TeeZip(Map(tan) |> Filter(isfinite)) |> MapSplat(*))\nTeeZip(\n    Map(sin) |>\n        TeeZip(\n            Map(tan) |>\n                Filter(isfinite)\n        ) |>\n        MapSplat(*)\n)\n\njulia> TeeZip(Map(sin) |>\n              TeeZip(Map(tan) |> Filter(isfinite)) |>\n              MapSplat(*)) |> MapSplat(+)\nTeeZip(\n    Map(sin) |>\n        TeeZip(\n            Map(tan) |>\n                Filter(isfinite)\n        ) |>\n        MapSplat(*)\n) |>\n    MapSplat(+)DocTestSetup = nothing"
+},
+
+{
+    "location": "doctests/show_rf/#",
+    "page": "Show method for reducing functions",
+    "title": "Show method for reducing functions",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "doctests/show_rf/#Show-method-for-reducing-functions-1",
+    "page": "Show method for reducing functions",
+    "title": "Show method for reducing functions",
+    "category": "section",
+    "text": "DocTestSetup = quote\n    using Transducers\n    using Transducers: Reduction, TeeZip\n    using Setfield: @set!\nendReduction(\n    Filter(isfinite) |> Map(sin),\n    +,\n    Float64)\n\n# output\n\nReduction{▶ Float64}(\n    Filter(isfinite),\n    Reduction{▶ Float64}(\n        Map(sin),\n        +))rf = Reduction(\n    TeeZip(Count()),\n    right,\n    Float64)\n@set! rf.inner.inner.value = 1.25\n\n# output\n\nSplitter{▶ Float64}(\n    Reduction{▶ Float64}(\n        Count(1, 1),\n        Joiner{▶ ⦃Float64, Int64⦄}(\n            Transducers.right,\n            1.25)),\n    (@lens _.inner.value))rf = Reduction(\n    Filter(isfinite) |> TeeZip(Count()) |> Enumerate() |> MapSplat(*),\n    right,\n    Float64)\n@set! rf.inner.inner.inner.value = 1.25\n\n# output\n\nReduction{▶ Float64}(\n    Filter(isfinite),\n    Splitter{▶ Float64}(\n        Reduction{▶ Float64}(\n            Count(1, 1),\n            Joiner{▶ ⦃Float64, Int64⦄}(\n                Reduction{▶ ⦃Float64, Int64⦄}(\n                    Enumerate(1, 1),\n                    Reduction{▶ ⦃Int64, ⦃Float64, Int64⦄⦄}(\n                        MapSplat(*),\n                        Transducers.right)),\n                1.25)),\n        (@lens _.inner.value)))rf = Reduction(\n    TeeZip(Count() |> TeeZip(FlagFirst())),\n    right,\n    Float64)\n@set! rf.inner.inner.inner.inner.value = 123456789\n@set! rf.inner.inner.inner.inner.inner.value = 1.25\n\n# output\n\nSplitter{▶ Float64}(\n    Reduction{▶ Float64}(\n        Count(1, 1),\n        Splitter{▶ Int64}(\n            Reduction{▶ Int64}(\n                FlagFirst(),\n                Joiner{▶ ⦃Int64, ⦃Bool, Int64⦄⦄}(\n                    Joiner{▶ ⦃Float64, ⦃Int64, ⦃Bool, Int64⦄⦄⦄}(\n                        Transducers.right,\n                        1.25),\n                    123456789)),\n            (@lens _.inner.value))),\n    (@lens _.inner.inner.inner.inner.value))rf = Reduction(\n    TeeZip(Filter(isodd) |> Map(identity) |> TeeZip(Map(identity))),\n    right,\n    Int64)\n@set! rf.inner.inner.inner.inner.inner.value = 123456789\n@set! rf.inner.inner.inner.inner.inner.inner.value= 123456789\n\n# output\n\nSplitter{▶ Int64}(\n    Reduction{▶ Int64}(\n        Filter(isodd),\n        Reduction{▶ Int64}(\n            Map(identity),\n            Splitter{▶ Int64}(\n                Reduction{▶ Int64}(\n                    Map(identity),\n                    Joiner{▶ ⦃Int64, Int64⦄}(\n                        Joiner{▶ ⦃Int64, ⦃Int64, Int64⦄⦄}(\n                            Transducers.right,\n                            123456789),\n                        123456789)),\n                (@lens _.inner.value)))),\n    (@lens _.inner.inner.inner.inner.inner.value))rf = Reduction(\n    TeeZip(Filter(isodd) |> Map(identity) |> TeeZip(Map(identity))),\n    right,\n    Any)\n\n# output\n\nSplitter{▶ Any}(\n    Reduction{▶ Any}(\n        Filter(isodd),\n        Reduction{▶ Any}(\n            Map(identity),\n            Splitter{▶ Any}(\n                Reduction{▶ Any}(\n                    Map(identity),\n                    Joiner{▶ ⦃Any, Any⦄}(\n                        Joiner{▶ ⦃Any, ⦃Any, Any⦄⦄}(\n                            Transducers.right,\n                            nothing),\n                        nothing)),\n                (@lens _.inner.value)))),\n    (@lens _.inner.inner.inner.inner.inner.value))DocTestSetup = nothing"
 },
 
 ]}
