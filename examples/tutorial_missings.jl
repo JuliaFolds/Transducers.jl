@@ -261,3 +261,43 @@ mapfoldl(xf_argmax(), right, [1, 3, missing, 2])
 # the index of the largest odd value:
 
 mapfoldl(xf_argmax(Filter(isodd)), right, [1, 4, 3, 2])
+
+# ## Extrema
+
+argext_step(should_update) =
+    ((argext, ext), (index, value)) ->
+        should_update(ext, value) ? (index, value) : (argext, ext)
+
+argext_init(::typeof(>), ::Type{Tuple{F, S}}) where {F, S} = (zero(F), typemax(S))
+argext_init(::typeof(<), ::Type{Tuple{F, S}}) where {F, S} = (zero(F), typemin(S))
+
+xf_scanext(should_update) =
+    Scan(argext_step(should_update),
+         Initializer(TT -> argext_init(should_update, TT)))
+nothing  # hide
+
+ans = # hide
+mapfoldl(Zip(Count(), NotA(Missing)) |> xf_scanext(<), right, [1.0, 3.0, missing, 2.0])
+#-
+@assert ans === (2, 3.0) # hide
+@show ans
+
+xf_fullextrema(xf_filter = NotA(Missing)) =
+    Zip(Count(), xf_filter) |> Zip(xf_scanext(>), xf_scanext(<))
+
+ans = # hide
+mapfoldl(xf_fullextrema(), right, [1.0, 3.0, -1.0, 2.0])
+#-
+@assert ans === ((3, -1.0), (2, 3.0))  # hide
+@show ans
+
+xf_argextrema(xf_filter = NotA(Missing)) =
+    xf_fullextrema(xf_filter) |> Map() do ((argmin, min), (argmax, max))
+        (argmin, argmax)
+    end
+
+ans = # hide
+mapfoldl(xf_argextrema(), right, [1.0, 3.0, -1.0, 2.0])
+#-
+@assert ans === (3, 2)  # hide
+@show ans
