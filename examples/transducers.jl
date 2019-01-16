@@ -5,7 +5,7 @@
 # ones:
 
 using Transducers
-using Transducers: Transducer, R_, next
+using Transducers: Transducer, R_, next, inner
 
 # ## Stateless transducer
 
@@ -17,7 +17,7 @@ struct AddOneIfInt <: Transducer end
 function Transducers.next(rf::R_{AddOneIfInt}, result, input)
     if input isa Int
 # Output `input + 1` is passed to the "inner" reducing step:
-        next(rf.inner, result, input + 1)
+        next(inner(rf), result, input + 1)
     else
 # Filtering out is done by "doing nothing"; return `result`-so-far
 # as-is:
@@ -70,7 +70,7 @@ function Transducers.start(rf::R_{RandomRecall}, result)
     buffer = InType(rf)[]
     rng = MersenneTwister(rf.xform.seed)
     private_state = (buffer, rng)
-    return wrap(rf, private_state, start(rf.inner, result))
+    return wrap(rf, private_state, start(inner(rf), result))
 end
 
 # Stateful transducer needs to unwrap its private state inside
@@ -92,7 +92,7 @@ function Transducers.next(rf::R_{RandomRecall}, result, input)
         end
 # Call the inner reducing function.  Note that `iresult` unwrapped by
 # [`Transducers.wrapping`](@ref) must be passed to `next`:
-        iresult = next(rf.inner, iresult, iinput)
+        iresult = next(inner(rf), iresult, iinput)
         return (buffer, rng), iresult
     end
 end
@@ -118,10 +118,10 @@ function Transducers.complete(rf::R_{RandomRecall}, result)
     for x in buffer
 # Note that inner `next` can be called more than one time inside
 # `next` and `complete`:
-        iresult = next(rf.inner, iresult, x)
+        iresult = next(inner(rf), iresult, x)
     end
 # `complete` for inner reducing function must be called exactly once:
-    return complete(rf.inner, iresult)
+    return complete(inner(rf), iresult)
 end
 
 # This then adds 3 (`= RandomRecall().history`) more elements to the

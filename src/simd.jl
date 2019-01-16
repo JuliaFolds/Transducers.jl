@@ -6,13 +6,13 @@ The reducible can support it using `@simd_if`.
 """
 struct UseSIMD{ivdep} <: Transducer end
 outtype(::UseSIMD, intype) = intype
-next(rf::R_{UseSIMD}, result, input) = next(rf.inner, result, input)
+next(rf::R_{UseSIMD}, result, input) = next(inner(rf), result, input)
 
 # Make sure UseSIMD is the outer-most transducer when UseSIMD is used
 # via Cat.
 skipcomplete(rf::R_{UseSIMD}) =
     Reduction(rf.xform::UseSIMD,
-              skipcomplete(rf.inner),
+              skipcomplete(inner(rf)),
               InType(rf))
 
 isivdep(::UseSIMD{ivdep}) where ivdep = ivdep

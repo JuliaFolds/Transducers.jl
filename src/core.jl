@@ -85,6 +85,8 @@ InType(T::Type) = throw(MethodError(InType, (T,)))
 
 Setfield.constructor_of(::Type{T}) where {T <: AbstractReduction} = T
 
+inner(rf::AbstractReduction) = rf.inner
+
 # In clojure a reduction function is one of signature
 # whatever, input -> whatever
 #
@@ -100,7 +102,7 @@ struct Reduction{intype, X <: Transducer, I} <: AbstractReduction{intype}
 end
 
 Transducer(rf::Reduction{<:Any, <:Transducer, <:AbstractReduction}) =
-    Composition(rf.xform, Transducer(rf.inner))
+    Composition(rf.xform, Transducer(inner(rf)))
 Transducer(rf::Reduction) = rf.xform
 
 """
@@ -109,7 +111,7 @@ Transducer(rf::Reduction) = rf.xform
 When defining a transducer type `X`, it is often required to dispatch
 on type `rf::R_{X}` (Reducing Function) which bundles the current
 transducer `rf.xform::X` and the inner reducing function
-`rf.inner::R_`.
+`inner(rf)::R_`.
 """
 const R_{X} = Reduction{<:Any, <:X}
 
@@ -146,14 +148,14 @@ This is an optional interface for a transducer.  Default
 implementation just calls `start` of the inner reducing function; i.e.,
 
 ```julia
-start(rf::Reduction, result) = start(rf.inner, result)
+start(rf::Reduction, result) = start(inner(rf), result)
 ```
 
 If the transducer `X` is stateful, it can "bundle" its private state
 with `state` (so that `next` function can be "pure").
 
 ```julia
-start(rf::R_{X}, result) = wrap(rf, PRIVATE_STATE, start(rf.inner, result))
+start(rf::R_{X}, result) = wrap(rf, PRIVATE_STATE, start(inner(rf), result))
 ```
 
 See [`Take`](@ref), [`PartitionBy`](@ref), etc. for real-world examples.
@@ -164,8 +166,8 @@ functions.  The idea is based on a slightly different approach taken
 in C++ Transducer library [atria](https://github.com/AbletonAG/atria).
 """
 start(::Any, result) = result
-start(rf::Reduction, result) = start(rf.inner, result)
-start(rf::R_{AbstractFilter}, result) = start(rf.inner, result)
+start(rf::Reduction, result) = start(inner(rf), result)
+start(rf::R_{AbstractFilter}, result) = start(inner(rf), result)
 
 """
     Transducers.next(rf::R_{X}, state, input)
@@ -175,7 +177,7 @@ This is the only required interface.  It takes the following form
 
 ```julia
 next(rf::R_{X}, result, input) =
-    # code calling next(rf.inner, result, possibly_modified_input)
+    # code calling next(inner(rf), result, possibly_modified_input)
 ```
 
 See [`Map`](@ref), [`Filter`](@ref), [`Cat`](@ref), etc. for
@@ -202,9 +204,9 @@ complete(f, result) = f(result)
 complete(rf::Reduction, result) =
     # Not using dispatch to avoid ambiguity
     if result isa PrivateState{typeof(rf)}
-        complete(rf.inner, unwrap(rf, result)[2])
+        complete(inner(rf), unwrap(rf, result)[2])
     else
-        complete(rf.inner, result)
+        complete(inner(rf), result)
     end
 
 combine(f, a, b) = f(a, b)
@@ -220,7 +222,7 @@ combine(rf::Reduction, a, b) =
         * `rf.xform = $(rf.xform)` is stateful and does not support `combine`.
         """)
     else
-        combine(rf.inner, a, b)
+        combine(inner(rf), a, b)
     end
 
 struct PrivateState{T, S, R}
@@ -262,7 +264,7 @@ unwrap(::T1, ::PrivateState{T2}) where {T1, T2} =
 
 Pack private `state` for reducing function `rf` (or rather the
 transducer `X`) with the result `iresult` returned from the inner
-reducing function `rf.inner`.  This packed result is typically passed
+reducing function `inner(rf)`.  This packed result is typically passed
 to the outer reducing function.
 
 This is intended to be used only in [`start`](@ref).  Inside
@@ -278,9 +280,9 @@ state `stateₙ`.  Then, calling `start(rf, result))` is equivalent to
 ```julia
 wrap(rf,
      state₁,                     # private state for xf₁
-     wrap(rf.inner,
+     wrap(inner(rf),
           state₂,                # private state for xf₂
-          wrap(rf.inner.inner,
+          wrap(inner(rf).inner,
                state₃,           # private state for xf₃
                result)))
 ```
@@ -289,9 +291,9 @@ or equivalently
 
 ```julia
 result₃ = result
-result₂ = wrap(rf.inner.inner, state₃, result₃)
-result₁ = wrap(rf.inner,       state₂, result₂)
-result₀ = wrap(rf,             state₁, result₁)
+result₂ = wrap(inner(inner(rf)), state₃, result₃)
+result₁ = wrap(inner(rf),        state₂, result₂)
+result₀ = wrap(rf,               state₁, result₁)
 ```
 
 The inner most step function receives the original `result` as the
@@ -315,7 +317,7 @@ a tuple `(state, iresult)`.  This is intended to be used only in
 ```julia
 next(rf::R_{MyTransducer}, result, input) =
     wrapping(rf, result) do my_state, iresult
-        # code calling `next(rf.inner, iresult, possibly_modified_input)`
+        # code calling `next(inner(rf), iresult, possibly_modified_input)`
         return my_state, iresult  # possibly modified
     end
 ```
@@ -341,8 +343,8 @@ outtype(::Any, ::Any) = Any
 outtype(::AbstractFilter, intype) = intype
 
 finaltype(rf::Reduction) =
-    if rf.inner isa AbstractReduction
-        finaltype(rf.inner)
+    if inner(rf) isa AbstractReduction
+        finaltype(inner(rf))
     else
         outtype(rf.xform, InType(rf))
     end
@@ -350,19 +352,19 @@ finaltype(rf::Reduction) =
 # isexpansive(::Any) = true
 isexpansive(::Transducer) = true
 isexpansive(::AbstractFilter) = false
-# isexpansive(rf::Reduction) = isexpansive(rf.xform) || isexpansive(rf.inner)
+# isexpansive(rf::Reduction) = isexpansive(rf.xform) || isexpansive(inner(rf))
 isexpansive(xf::Composition) = isexpansive(xf.outer) || isexpansive(xf.inner)
 # Should it be a type-level trait?
 
 #=
 iscontractive(::Any) = false
 iscontractive(::AbstractFilter) = true
-iscontractive(rf::Reduction) = iscontractive(rf.xform) && iscontractive(rf.inner)
+iscontractive(rf::Reduction) = iscontractive(rf.xform) && iscontractive(inner(rf))
 =#
 
 struct NoComplete <: Transducer end
 outtype(::NoComplete, intype) = intype
-next(rf::R_{NoComplete}, result, input) = next(rf.inner, result, input)
+next(rf::R_{NoComplete}, result, input) = next(inner(rf), result, input)
 complete(::R_{NoComplete}, result) = result  # don't call inner complete
 
 """
