@@ -278,28 +278,34 @@ xf_scanext(should_update) =
          Initializer(TT -> argext_init(should_update, TT)))
 nothing  # hide
 
+@time begin  #src
 ans = # hide
 mapfoldl(Zip(Count(), NotA(Missing)) |> xf_scanext(<), right, [1.0, 3.0, missing, 2.0])
+end  #src
 #-
 @assert ans === (2, 3.0) # hide
-@show ans
+@show ans  #src
 
 xf_fullextrema(xf_filter = NotA(Missing)) =
     Zip(Count(), xf_filter) |> Zip(xf_scanext(>), xf_scanext(<))
 
+@time begin  #src
 ans = # hide
 mapfoldl(xf_fullextrema(), right, [1.0, 3.0, -1.0, 2.0])
+end  #src
 #-
 @assert ans === ((3, -1.0), (2, 3.0))  # hide
-@show ans
+@show ans  #src
 
 xf_argextrema(xf_filter = NotA(Missing)) =
     xf_fullextrema(xf_filter) |> Map() do ((argmin, min), (argmax, max))
         (argmin, argmax)
     end
 
+@time begin  #src
 ans = # hide
 mapfoldl(xf_argextrema(), right, [1.0, 3.0, -1.0, 2.0])
+end  #src
 #-
 @assert ans === (3, 2)  # hide
-@show ans
+@show ans  #src
