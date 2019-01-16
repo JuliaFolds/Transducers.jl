@@ -1381,7 +1381,7 @@ outtype(xf::TeeZip, intype) = Tuple{intype, outtype(xf.xform, intype)}
 
 function Transducer(rf::R_{Splitter})
     xf_split, rf_ds = _rf_to_teezip(inner(rf))
-    if rf_ds isa AbstractReduction
+    if rf_ds isa Reduction
         return TeeZip(xf_split) |> Transducer(rf_ds)
     else
         return TeeZip(xf_split)

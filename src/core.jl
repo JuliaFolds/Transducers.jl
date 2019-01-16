@@ -77,17 +77,6 @@ appropriately defined for child types.
 """
 AbstractFilter
 
-abstract type AbstractReduction{intype} end
-
-InType(::T) where T = InType(T)
-InType(::Type{<:AbstractReduction{intype}}) where {intype} = intype
-InType(T::Type) = throw(MethodError(InType, (T,)))
-
-Setfield.constructor_of(::Type{T}) where {T <: AbstractReduction} = T
-
-inner(rf::AbstractReduction) = rf.inner
-xform(rf::AbstractReduction) = rf.xform
-
 struct TypedTransducer{intype, X <: Transducer}
     xform::X
 end
@@ -107,13 +96,19 @@ InType(::TypedTransducer{intype}) where intype = intype
 #   a transducer `xform` and an inner reduction function `inner`.
 #   `inner` can be either a `Reduction` or a function with arity-2 and arity-1 methods
 #
-struct Reduction{intype, T, F} <: AbstractReduction{intype}
+struct Reduction{intype, T, F}
     xforms::T
     bottom::F
 end
 
 Reduction(xforms, bottom) =
     Reduction{InType(xforms[1]), typeof(xforms), typeof(bottom)}(xforms, bottom)
+
+InType(::T) where T = InType(T)
+InType(::Type{<:Reduction{intype}}) where {intype} = intype
+InType(T::Type) = throw(MethodError(InType, (T,)))
+
+Setfield.constructor_of(::Type{T}) where {T <: Reduction} = T
 
 inner(rf::Reduction) =
     if length(rf.xforms) > 1
@@ -125,7 +120,7 @@ inner(rf::Reduction) =
 xform(rf::Reduction) = rf.xforms[1].xform
 
 Transducer(rf::Reduction) =
-    if inner(rf) isa AbstractReduction
+    if inner(rf) isa Reduction
         Composition(xform(rf), Transducer(inner(rf)))
     else
         xform(rf)
@@ -382,7 +377,7 @@ outtype(::Any, ::Any) = Any
 outtype(::AbstractFilter, intype) = intype
 
 finaltype(rf::Reduction) =
-    if inner(rf) isa AbstractReduction
+    if inner(rf) isa Reduction
         finaltype(inner(rf))
     else
         outtype(xform(rf), InType(rf))
