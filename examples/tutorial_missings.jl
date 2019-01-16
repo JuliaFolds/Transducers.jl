@@ -291,7 +291,7 @@ xf_fullextrema(xf_filter = NotA(Missing)) =
 
 @time begin  #src
 ans = # hide
-mapfoldl(xf_fullextrema(), right, [1.0, 3.0, -1.0, 2.0])
+mapfoldl(xf_fullextrema(), right, [1.0, 3.0, -1.0, missing, 2.0])
 end  #src
 #-
 @assert ans === ((3, -1.0), (2, 3.0))  # hide
@@ -304,7 +304,7 @@ xf_argextrema(xf_filter = NotA(Missing)) =
 
 @time begin  #src
 ans = # hide
-mapfoldl(xf_argextrema(), right, [1.0, 3.0, -1.0, 2.0])
+mapfoldl(xf_argextrema(), right, [1.0, 3.0, -1.0, missing, 2.0])
 end  #src
 #-
 @assert ans === (3, 2)  # hide
