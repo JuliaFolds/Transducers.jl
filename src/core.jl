@@ -97,12 +97,12 @@ xform(rf::AbstractReduction) = rf.xform
 #   a transducer `xform` and an inner reduction function `inner`.
 #   `inner` can be either a `Reduction` or a function with arity-2 and arity-1 methods
 #
-struct Reduction{X <: Transducer, I, intype} <: AbstractReduction{intype}
+struct Reduction{intype, X <: Transducer, I} <: AbstractReduction{intype}
     xform::X
     inner::I
 end
 
-Transducer(rf::Reduction{<:Transducer, <:AbstractReduction}) =
+Transducer(rf::Reduction{<:Any, <:Transducer, <:AbstractReduction}) =
     Composition(xform(rf), Transducer(inner(rf)))
 Transducer(rf::Reduction) = xform(rf)
 
@@ -114,10 +114,10 @@ on type `rf::R_{X}` (Reducing Function) which bundles the current
 transducer `xform(rf)::X` and the inner reducing function
 `inner(rf)::R_`.
 """
-const R_{X} = Reduction{<:X}
+const R_{X} = Reduction{<:Any, <:X}
 
 @inline Reduction(xf::X, inner::I, ::Type{InType}) where {X, I, InType} =
-    Reduction{X, I, InType}(xf, inner)
+    Reduction{InType, X, I}(xf, inner)
 
 @inline function Reduction(xf_::Composition, f, intype::Type)
     xf = _normalize(xf_)
