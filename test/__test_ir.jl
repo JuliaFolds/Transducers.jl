@@ -41,8 +41,8 @@ nmatches(r, s) = count(_ -> true, eachmatch(r, s))
     @testset for simd in [false, true, :ivdep]
         args = _prepare_map(xf, ys, xs, simd)
         ir = llvm_ir(_map!, args)
-        @test nmatches(r"fmul <4 x double>", ir) >= 4
-        @test nmatches(r"fcmp [a-z]* <4 x double>", ir) >= 4
+        @test_broken nmatches(r"fmul <4 x double>", ir) >= 4
+        @test_broken nmatches(r"fcmp [a-z]* <4 x double>", ir) >= 4
     end
 end
 
@@ -72,6 +72,7 @@ unsafe_setter(ys) =
 
     @testset "$key" for key in first.(params)
         xf = Dict(params)[key]
+        broken = key ∈ (:TeeZip, :Zip)
 
         xs = ones(10)
         ys = zero(xs)
@@ -89,7 +90,7 @@ unsafe_setter(ys) =
         @test ys == 2xs
 
         ir = llvm_ir(transduce, (rf, nothing, xs))
-        @test nmatches(r"fmul <4 x double>", ir) >= 4
+        @test_broken_if broken nmatches(r"fmul <4 x double>", ir) >= 4
     end
 end
 

@@ -466,18 +466,14 @@ _map!(rf, coll, dest) = transduce(darkritual(rf, dest), nothing, coll)
 # fetch `dest` via `getproperty` in each iteration.  (This is too much
 # magic...  My reasoning of how it works could be completely wrong.
 # But at least it should not change the semantics of the function.)
-@inline darkritual(rf::R, dest) where {R <: Reduction} =
+@inline darkritual(rf::Reduction, dest) =
     if inner(rf) isa AbstractReduction
-        R(xform(rf), darkritual(inner(rf), dest))
+        Reduction{InType(rf)}(xform(rf), darkritual(inner(rf), dest))
     else
         @assert xform(rf).array === dest
         xf = typeof(xform(rf))(dest) :: SetIndex
-        R(xf, inner(rf))
+        Reduction{InType(rf)}(xf, inner(rf))
     end
-@inline darkritual(rf::R, dest) where {R <: Joiner} =
-    R(darkritual(inner(rf), dest), rf.value)
-@inline darkritual(rf::R, dest) where {R <: Splitter} =
-    R(darkritual(inner(rf), dest), rf.lens)
 
 function _prepare_map(xf, dest, src, simd)
     isexpansive(xf) && error("map! only supports non-expanding transducer")

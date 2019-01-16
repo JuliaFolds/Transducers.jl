@@ -28,17 +28,17 @@ rf = Reduction(
     TeeZip(Count()),
     right,
     Float64)
-@set! rf.inner.inner.value = 1.25
+@set! rf.xforms[3].xform.value = 1.25
 
 # output
 
-Splitter{▶ Float64}(
+Reduction{▶ Float64}(
+    Splitter((@lens _.xforms[2].xform.value)),
     Reduction{▶ Float64}(
         Count(1, 1),
-        Joiner{▶ ⦃Float64, Int64⦄}(
-            Transducers.right,
-            1.25)),
-    (@lens _.inner.value))
+        Reduction{▶ Int64}(
+            Joiner(1.25),
+            Transducers.right)))
 ```
 
 ```jldoctest
@@ -46,23 +46,23 @@ rf = Reduction(
     Filter(isfinite) |> TeeZip(Count()) |> Enumerate() |> MapSplat(*),
     right,
     Float64)
-@set! rf.inner.inner.inner.value = 1.25
+@set! rf.xforms[4].xform.value = 1.25
 
 # output
 
 Reduction{▶ Float64}(
     Filter(isfinite),
-    Splitter{▶ Float64}(
+    Reduction{▶ Float64}(
+        Splitter((@lens _.xforms[2].xform.value)),
         Reduction{▶ Float64}(
             Count(1, 1),
-            Joiner{▶ ⦃Float64, Int64⦄}(
+            Reduction{▶ Int64}(
+                Joiner(1.25),
                 Reduction{▶ ⦃Float64, Int64⦄}(
                     Enumerate(1, 1),
                     Reduction{▶ ⦃Int64, ⦃Float64, Int64⦄⦄}(
                         MapSplat(*),
-                        Transducers.right)),
-                1.25)),
-        (@lens _.inner.value)))
+                        Transducers.right))))))
 ```
 
 ```jldoctest
@@ -70,24 +70,24 @@ rf = Reduction(
     TeeZip(Count() |> TeeZip(FlagFirst())),
     right,
     Float64)
-@set! rf.inner.inner.inner.inner.value = 123456789
-@set! rf.inner.inner.inner.inner.inner.value = 1.25
+@set! rf.xforms[5].xform.value = 123456789
+@set! rf.xforms[6].xform.value = 1.25
 
 # output
 
-Splitter{▶ Float64}(
+Reduction{▶ Float64}(
+    Splitter((@lens _.xforms[5].xform.value)),
     Reduction{▶ Float64}(
         Count(1, 1),
-        Splitter{▶ Int64}(
+        Reduction{▶ Int64}(
+            Splitter((@lens _.xforms[2].xform.value)),
             Reduction{▶ Int64}(
                 FlagFirst(),
-                Joiner{▶ ⦃Int64, ⦃Bool, Int64⦄⦄}(
-                    Joiner{▶ ⦃Float64, ⦃Int64, ⦃Bool, Int64⦄⦄⦄}(
-                        Transducers.right,
-                        1.25),
-                    123456789)),
-            (@lens _.inner.value))),
-    (@lens _.inner.inner.inner.inner.value))
+                Reduction{▶ ⦃Bool, Int64⦄}(
+                    Joiner(123456789),
+                    Reduction{▶ ⦃Int64, ⦃Bool, Int64⦄⦄}(
+                        Joiner(1.25),
+                        Transducers.right))))))
 ```
 
 ```jldoctest
@@ -95,26 +95,26 @@ rf = Reduction(
     TeeZip(Filter(isodd) |> Map(identity) |> TeeZip(Map(identity))),
     right,
     Int64)
-@set! rf.inner.inner.inner.inner.inner.value = 123456789
-@set! rf.inner.inner.inner.inner.inner.inner.value= 123456789
+@set! rf.xforms[6].xform.value = 123456789
+@set! rf.xforms[7].xform.value = 123456789
 
 # output
 
-Splitter{▶ Int64}(
+Reduction{▶ Int64}(
+    Splitter((@lens _.xforms[6].xform.value)),
     Reduction{▶ Int64}(
         Filter(isodd),
         Reduction{▶ Int64}(
             Map(identity),
-            Splitter{▶ Int64}(
+            Reduction{▶ Int64}(
+                Splitter((@lens _.xforms[2].xform.value)),
                 Reduction{▶ Int64}(
                     Map(identity),
-                    Joiner{▶ ⦃Int64, Int64⦄}(
-                        Joiner{▶ ⦃Int64, ⦃Int64, Int64⦄⦄}(
-                            Transducers.right,
-                            123456789),
-                        123456789)),
-                (@lens _.inner.value)))),
-    (@lens _.inner.inner.inner.inner.inner.value))
+                    Reduction{▶ Int64}(
+                        Joiner(123456789),
+                        Reduction{▶ ⦃Int64, Int64⦄}(
+                            Joiner(123456789),
+                            Transducers.right)))))))
 ```
 
 ```jldoctest
@@ -125,21 +125,21 @@ rf = Reduction(
 
 # output
 
-Splitter{▶ Any}(
+Reduction{▶ Any}(
+    Splitter((@lens _.xforms[6].xform.value)),
     Reduction{▶ Any}(
         Filter(isodd),
         Reduction{▶ Any}(
             Map(identity),
-            Splitter{▶ Any}(
+            Reduction{▶ Any}(
+                Splitter((@lens _.xforms[2].xform.value)),
                 Reduction{▶ Any}(
                     Map(identity),
-                    Joiner{▶ ⦃Any, Any⦄}(
-                        Joiner{▶ ⦃Any, ⦃Any, Any⦄⦄}(
-                            Transducers.right,
-                            nothing),
-                        nothing)),
-                (@lens _.inner.value)))),
-    (@lens _.inner.inner.inner.inner.inner.value))
+                    Reduction{▶ Any}(
+                        Joiner(nothing),
+                        Reduction{▶ ⦃Any, Any⦄}(
+                            Joiner(nothing),
+                            Transducers.right)))))))
 ```
 
 ```@meta

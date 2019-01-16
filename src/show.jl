@@ -212,46 +212,4 @@ function _show_impl(io, mime, rf::Reduction)
     return
 end
 
-function _show_impl(io, mime, rf::Splitter)
-    indent = get(io, :indent, "")
-    first_indent = get(io, :first_indent, indent)
-    next_indent = indent * ' ' ^ 4
-    next_io = IOContext(io,
-                        :indent => next_indent,
-                        :first_indent => next_indent)
-
-    print(io, first_indent)
-    print(io, "Splitter")
-    _show_intype(io, rf)
-    println(io, '(')
-    _show_impl(next_io, mime, inner(rf))
-    println(io, ",")
-    _show_impl(next_io, mime, rf.lens)
-    print(io, ")")
-    return
-end
-
-function _show_impl(io, mime, rf::Joiner)
-    indent = get(io, :indent, "")
-    first_indent = get(io, :first_indent, indent)
-    next_indent = indent * ' ' ^ 4
-    next_io = IOContext(io,
-                        :indent => next_indent,
-                        :first_indent => next_indent)
-
-    print(io, first_indent)
-    print(io, "Joiner")
-    _show_intype(io, rf)
-    println(io, '(')
-    _show_impl(next_io, mime, inner(rf))
-    println(io, ",")
-    if isdefined(rf, :value)
-        _show_impl(next_io, mime, rf.value)
-    else
-        _show_impl(next_io, mime, Text("#undef"))
-    end
-    print(io, ")")
-    return
-end
-
 @specialize
