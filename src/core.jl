@@ -110,10 +110,6 @@ When defining a transducer type `X`, it is often required to dispatch
 on type `rf::R_{X}` (Reducing Function) which bundles the current
 transducer `rf.xform::X` and the inner reducing function
 `rf.inner::R_`.
-
-```julia
-const R_{X} = Reduction{<:X}
-```
 """
 const R_{X} = Reduction{<:X}
 
@@ -351,8 +347,12 @@ Output item type for the transducer `xf` when the input type is `intype`.
 outtype(::Any, ::Any) = Any
 outtype(::AbstractFilter, intype) = intype
 
-finaltype(rf::Reduction{<:Transducer, <:AbstractReduction}) = finaltype(rf.inner)
-finaltype(rf::Reduction) = outtype(rf.xform, InType(rf))
+finaltype(rf::Reduction) =
+    if rf.inner isa AbstractReduction
+        finaltype(rf.inner)
+    else
+        outtype(rf.xform, InType(rf))
+    end
 
 # isexpansive(::Any) = true
 isexpansive(::Transducer) = true
