@@ -5,7 +5,7 @@
 # ones:
 
 using Transducers
-using Transducers: Transducer, R_, next, inner
+using Transducers: Transducer, R_, next, inner, xform
 
 # ## Stateless transducer
 
@@ -68,7 +68,7 @@ nothing  # hide
 
 function Transducers.start(rf::R_{RandomRecall}, result)
     buffer = InType(rf)[]
-    rng = MersenneTwister(rf.xform.seed)
+    rng = MersenneTwister(xform(rf).seed)
     private_state = (buffer, rng)
     return wrap(rf, private_state, start(inner(rf), result))
 end
@@ -82,7 +82,7 @@ function Transducers.next(rf::R_{RandomRecall}, result, input)
     wrapping(rf, result) do (buffer, rng), iresult
 # Pickup a random element to be passed to the inner reducing function.
 # Replace it with the new incoming one in the buffer:
-        if length(buffer) < rf.xform.history
+        if length(buffer) < xform(rf).history
             push!(buffer, input)
             iinput = rand(rng, buffer)
         else

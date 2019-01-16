@@ -49,7 +49,7 @@ end
 
 isexpansive(::Map) = false
 outtype(xf::Map, intype) = Union{Base.return_types(xf.f, (intype,))...}
-next(rf::R_{Map}, result, input) = next(inner(rf), result, rf.xform.f(input))
+next(rf::R_{Map}, result, input) = next(inner(rf), result, xform(rf).f(input))
 
 """
     MapSplat(f)
@@ -75,7 +75,7 @@ end
 isexpansive(::MapSplat) = false
 outtype(xf::MapSplat, intype) = Union{Base.return_types(xf.f, intype)...}
 next(rf::R_{MapSplat}, result, input) =
-    next(inner(rf), result, rf.xform.f(input...))
+    next(inner(rf), result, xform(rf).f(input...))
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/replace
 # https://clojuredocs.org/clojure.core/replace
@@ -122,7 +122,7 @@ end
 isexpansive(::Replace) = false
 outtype(xf::Replace, intype) = Union{intype, avaltype(xf.d)}
 next(rf::R_{Replace}, result, input) =
-    next(inner(rf), result, get(rf.xform.d, input, input))
+    next(inner(rf), result, get(xform(rf).d, input, input))
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/cat
 # https://clojuredocs.org/clojure.core/cat
@@ -225,7 +225,7 @@ struct Filter{P} <: AbstractFilter
 end
 
 next(rf::R_{Filter}, result, input) =
-    rf.xform.pred(input) ? next(inner(rf), result, input) : result
+    xform(rf).pred(input) ? next(inner(rf), result, input) : result
 
 """
     NotA(T)
@@ -329,7 +329,7 @@ struct Take <: AbstractFilter
     end
 end
 
-start(rf::R_{Take}, result) = wrap(rf, rf.xform.n, start(inner(rf), result))
+start(rf::R_{Take}, result) = wrap(rf, xform(rf).n, start(inner(rf), result))
 
 next(rf::R_{Take}, result, input) =
     wrapping(rf, result) do n, iresult
@@ -373,7 +373,7 @@ struct TakeLast <: AbstractFilter
 end
 
 function start(rf::R_{TakeLast}, result)
-    n = rf.xform.n
+    n = xform(rf).n
     return wrap(rf, (-n, Vector{InType(rf)}(undef, n)), start(inner(rf), result))
 end
 
@@ -435,7 +435,7 @@ struct TakeWhile{P} <: AbstractFilter
 end
 
 next(rf::R_{TakeWhile}, result, input) =
-    rf.xform.pred(input) ? next(inner(rf), result, input) : ensure_reduced(result)
+    xform(rf).pred(input) ? next(inner(rf), result, input) : ensure_reduced(result)
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/take-nth
 # https://clojuredocs.org/clojure.core/take-nth
@@ -466,11 +466,11 @@ struct TakeNth <: AbstractFilter
     end
 end
 
-start(rf::R_{TakeNth}, result) = wrap(rf, rf.xform.n, start(inner(rf), result))
+start(rf::R_{TakeNth}, result) = wrap(rf, xform(rf).n, start(inner(rf), result))
 
 next(rf::R_{TakeNth}, result, input) =
     wrapping(rf, result) do c, iresult
-        if c == rf.xform.n
+        if c == xform(rf).n
             iresult = next(inner(rf), iresult, input)
             c = 1
         else
@@ -511,7 +511,7 @@ start(rf::R_{Drop}, result) = wrap(rf, 0, start(inner(rf), result))
 
 next(rf::R_{Drop}, result, input) =
     wrapping(rf, result) do c, iresult
-        if c >= rf.xform.n
+        if c >= xform(rf).n
             c, next(inner(rf), iresult, input)
         else
             c += 1
@@ -555,7 +555,7 @@ struct DropLast <: AbstractFilter
 end
 
 function start(rf::R_{DropLast}, result)
-    n = rf.xform.n + 1
+    n = xform(rf).n + 1
     return wrap(rf, (-n, Vector{InType(rf)}(undef, n)), start(inner(rf), result))
 end
 
@@ -611,7 +611,7 @@ start(rf::R_{DropWhile}, result) = wrap(rf, true, start(inner(rf), result))
 next(rf::R_{DropWhile}, result, input) =
     wrapping(rf, result) do dropping, iresult
         if dropping
-            dropping = rf.xform.pred(input)
+            dropping = xform(rf).pred(input)
             dropping && return (dropping, iresult)
         end
         dropping, next(inner(rf), iresult, input)
@@ -708,7 +708,7 @@ outtype(::Partition, intype) = DenseSubVector{intype}
 
 function start(rf::R_{Partition}, result)
     buf = Vector{InType(rf)}()
-    sizehint!(buf, rf.xform.size)
+    sizehint!(buf, xform(rf).size)
     return wrap(rf, (0, 0, buf), start(inner(rf), result))
 end
 
@@ -720,48 +720,48 @@ end
 
 function _window_next(rf, i, s, buf, iresult, input)
     i += 1
-    @assert 1 <= i <= rf.xform.size
+    @assert 1 <= i <= xform(rf).size
     len = length(buf)
-    if s == 0 && len < rf.xform.size
+    if s == 0 && len < xform(rf).size
         push!(buf, input)
-        if i == rf.xform.size
-            # This is the first time `length(buf) == rf.xform.size` is
+        if i == xform(rf).size
+            # This is the first time `length(buf) == xform(rf).size` is
             # true.
             iinput = (@view buf[1:end]) :: DenseSubVector
             # Do not use `@view buf[:]` to make the indices
             # `UnitRange` instead of `OneTo`.
-            @assert i == rf.xform.size
+            @assert i == xform(rf).size
             i = 0
-            s = rf.xform.step
+            s = xform(rf).step
             iresult = next(inner(rf), iresult, iinput)
             # Throw away buf[1] which is just consumed by the downstream:
             deleteat!(buf, 1)
         end
         return (i, s, buf), iresult
-    elseif len < 2 * rf.xform.size - 1
+    elseif len < 2 * xform(rf).size - 1
         push!(buf, input)
     else
         # TODO: optimize for size < step case
-        buf[i + rf.xform.size - 1] = input
+        buf[i + xform(rf).size - 1] = input
     end
-    if i == rf.xform.size
+    if i == xform(rf).size
         # Wrapping the window.  Next window will be i=1.
         # Copy tail to head.
         copyto!(buf,
                 1,                  # destination offset
                 buf,
-                rf.xform.size + 1,  # source offset
-                rf.xform.size - 1)  # size
+                xform(rf).size + 1,  # source offset
+                xform(rf).size - 1)  # size
     end
     s -= 1
-    @assert 0 <= s < rf.xform.step
+    @assert 0 <= s < xform(rf).step
     if s == 0
-        s = rf.xform.step
-        iinput = @view buf[i:i + rf.xform.size - 1] # unsafe_view? @inbounds?
+        s = xform(rf).step
+        iinput = @view buf[i:i + xform(rf).size - 1] # unsafe_view? @inbounds?
         iinput :: DenseSubVector
         iresult = next(inner(rf), iresult, iinput)
     end
-    if i == rf.xform.size
+    if i == xform(rf).size
         i = 0
     end
     return (i, s, buf), iresult
@@ -769,8 +769,8 @@ end
 
 function complete(rf::R_{Partition}, result)
     (i, s, buf), iresult = unwrap(rf, result)
-    if rf.xform.flush && s != rf.xform.step
-        iinput = @view buf[i:i + rf.xform.size - 1] # unsafe_view? @inbounds?
+    if xform(rf).flush && s != xform(rf).step
+        iinput = @view buf[i:i + xform(rf).size - 1] # unsafe_view? @inbounds?
         iinput = @view iinput[s + 1:end]
         iinput :: DenseSubVector
         iresult = next(inner(rf), iresult, iinput)
@@ -821,7 +821,7 @@ end
 
 @inline function next(rf::R_{PartitionBy}, result, input)
     wrapping(rf, result) do (iinput, pval), iresult
-        val = rf.xform.f(input)
+        val = xform(rf).f(input)
         if pval isa Unseen || val == pval
             push!(iinput, input)
         else
@@ -877,7 +877,7 @@ outtype(xf::Keep, intype) =
                                Nothing)
 
 function next(rf::R_{Keep}, result, input)
-    iinput = rf.xform.f(input)
+    iinput = xform(rf).f(input)
     return iinput === nothing ? result : next(inner(rf), result, iinput)
 end
 
@@ -953,7 +953,7 @@ start(rf::R_{Interpose}, result) = wrap(rf, Val(true), start(inner(rf), result))
 next(rf::R_{Interpose}, result, input) =
     wrapping(rf, result) do isfirst, iresult
         if isfirst isa Val{false}
-            iresult = next(inner(rf), iresult, rf.xform.sep)
+            iresult = next(inner(rf), iresult, xform(rf).sep)
         end
         return Val(false), next(inner(rf), iresult, input)
     end
@@ -1074,8 +1074,8 @@ function _type_scan_fixedpoint(f, A, X, limit = 10)
 end
 
 function start(rf::R_{Scan}, result)
-    if rf.xform.init === nothing
-        init = identityof(rf.xform.f, InType(rf))
+    if xform(rf).init === nothing
+        init = identityof(xform(rf).f, InType(rf))
     else
         init = _initvalue(rf)
     end
@@ -1084,7 +1084,7 @@ end
 
 function next(rf::R_{Scan}, result, input)
     wrapping(rf, result) do acc, iresult
-        acc = rf.xform.f(acc, input)
+        acc = xform(rf).f(acc, input)
         return acc, next(inner(rf), iresult, acc)
     end
 end
@@ -1150,15 +1150,15 @@ start(rf::R_{ScanEmit}, result) =
 
 function next(rf::R_{ScanEmit}, result, input)
     wrapping(rf, result) do u0, iresult
-        y1, u1 = rf.xform.f(u0, input)
+        y1, u1 = xform(rf).f(u0, input)
         return u1, next(inner(rf), iresult, y1)
     end
 end
 
 function complete(rf::R_{ScanEmit}, result)
     u, iresult = unwrap(rf, result)
-    if rf.xform.onlast !== nothing
-        iresult = next(inner(rf), iresult, rf.xform.onlast(u))
+    if xform(rf).onlast !== nothing
+        iresult = next(inner(rf), iresult, xform(rf).onlast(u))
         @return_if_reduced complete(inner(rf), iresult)
     end
     return complete(inner(rf), iresult)
@@ -1168,7 +1168,7 @@ function combine(rf::R_{ScanEmit}, a, b)
     ua, ira = unwrap(rf, a)
     ub, irb = unwrap(rf, b)
     irc = combine(inner(rf), ira, irb)
-    yc, uc = rf.xform.f(ua, ub)
+    yc, uc = xform(rf).f(ua, ub)
     irc = next(inner(rf), irc, yc)
     return wrap(rf, uc, irc)
 end
@@ -1235,7 +1235,7 @@ start(rf::R_{Iterated}, result) =
     wrap(rf, _initvalue(rf), start(inner(rf), result))
 next(rf::R_{Iterated}, result, ::Any) =
     wrapping(rf, result) do istate, iresult
-        return rf.xform.f(istate), next(inner(rf), iresult, istate)
+        return xform(rf).f(istate), next(inner(rf), iresult, istate)
     end
 
 """
@@ -1280,10 +1280,10 @@ Count(start = 1) = Count(start, oneunit(start))
 
 isexpansive(::Count) = false
 outtype(xf::Count{T}, ::Any) where T = T
-start(rf::R_{Count}, result) = wrap(rf, rf.xform.start, start(inner(rf), result))
+start(rf::R_{Count}, result) = wrap(rf, xform(rf).start, start(inner(rf), result))
 next(rf::R_{Count}, result, ::Any) =
     wrapping(rf, result) do istate, iresult
-        return istate + rf.xform.step, next(inner(rf), iresult, istate)
+        return istate + xform(rf).step, next(inner(rf), iresult, istate)
     end
 
 """
@@ -1492,7 +1492,7 @@ end
 
 function _rf_to_teezip(rf::Reduction)
     xf_split, rf_ds = _rf_to_teezip(inner(rf))
-    return rf.xform |> xf_split, rf_ds
+    return xform(rf) |> xf_split, rf_ds
 end
 
 _rf_to_teezip(rf::Joiner) = IdentityTransducer(), inner(rf)
@@ -1581,9 +1581,9 @@ outtype(::GetIndex, T) =
     error("Unexpected non-integer input type for GetIndex:\n", T)
 
 next(rf::R_{GetIndex{true}}, result, input) =
-    next(inner(rf), result, @inbounds rf.xform.array[input])
+    next(inner(rf), result, @inbounds xform(rf).array[input])
 next(rf::R_{GetIndex{false}}, result, input) =
-    next(inner(rf), result, rf.xform.array[input])
+    next(inner(rf), result, xform(rf).array[input])
 
 Base.:(==)(xf1::GetIndex{inbounds,A},
            xf2::GetIndex{inbounds,A}) where {inbounds,A} =
@@ -1626,9 +1626,9 @@ outtype(::SetIndex, T) =
     error("Unexpected non-integer input type for SetIndex:\n", T)
 
 next(rf::R_{SetIndex{true}}, result, input::NTuple{2, Any}) =
-    next(inner(rf), result, (@inbounds rf.xform.array[input[1]] = input[2];))
+    next(inner(rf), result, (@inbounds xform(rf).array[input[1]] = input[2];))
 next(rf::R_{SetIndex{false}}, result, input::NTuple{2, Any}) =
-    next(inner(rf), result, (rf.xform.array[input[1]] = input[2];))
+    next(inner(rf), result, (xform(rf).array[input[1]] = input[2];))
 # Index is `input[1]` due to `TeeZip`'s definition.  Is it better to
 # flip, to be compatible with `Base.setindex!`?
 
@@ -1685,13 +1685,13 @@ end
 isexpansive(::Inject) = false
 outtype(xf::Inject, intype) = Tuple{intype, ieltype(xf.iterator)}
 start(rf::R_{Inject}, result) =
-    wrap(rf, iterate(rf.xform.iterator), start(inner(rf), result))
+    wrap(rf, iterate(xform(rf).iterator), start(inner(rf), result))
 next(rf::R_{Inject}, result, input) =
     wrapping(rf, result) do istate, iresult
         istate === nothing && return istate, ensure_reduced(iresult)
         y, s = istate
         iresult2 = next(inner(rf), iresult, (input, y))
-        return iterate(rf.xform.iterator, s), iresult2
+        return iterate(xform(rf).iterator, s), iresult2
     end
 
 
@@ -1731,9 +1731,9 @@ Enumerate(start = 1) = Enumerate(start, oneunit(start))
 isexpansive(::Enumerate) = false
 outtype(xf::Enumerate{T}, intype) where {T} = Tuple{T, intype}
 start(rf::R_{Enumerate}, result) =
-    wrap(rf, rf.xform.start, start(inner(rf), result))
+    wrap(rf, xform(rf).start, start(inner(rf), result))
 next(rf::R_{Enumerate}, result, input) =
     wrapping(rf, result) do i, iresult
         iresult2 = next(inner(rf), iresult, (i, input))
-        i + rf.xform.step, iresult2
+        i + xform(rf).step, iresult2
     end
