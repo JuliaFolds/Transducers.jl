@@ -150,7 +150,7 @@ function Base.show(io::IO, xf::Transducer)
     return
 end
 
-Base.show(io::IO, m::MIME"text/plain", rf::AbstractReduction) =
+Base.show(io::IO, m::MIME"text/plain", rf::Reduction) =
     _show_impl(io, m, rf)
 
 function _show_impl(io, mime, x)

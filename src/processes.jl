@@ -206,14 +206,14 @@ end
 
 struct MissingInit end
 
-provide_init(rf::AbstractReduction, init) = initvalue(init, InType(rf))
-function provide_init(rf::AbstractReduction, ::MissingInit)
+provide_init(rf::Reduction, init) = initvalue(init, InType(rf))
+function provide_init(rf::Reduction, ::MissingInit)
     T = finaltype(rf)
     op = innermost_rf(rf)
     return identityof(op, T)
 end
 
-innermost_rf(rf::AbstractReduction) = innermost_rf(inner(rf))
+innermost_rf(rf::Reduction) = innermost_rf(inner(rf))
 innermost_rf(f) = f
 innermost_rf(o::Completing) = innermost_rf(o.f)
 
@@ -221,7 +221,7 @@ innermost_rf(o::Completing) = innermost_rf(o.f)
 _start_init(rf, init) = start(rf, provide_init(rf, init))
 
 # TODO: should it be an internal?
-@inline function transduce(rf::AbstractReduction, init, coll)
+@inline function transduce(rf::Reduction, init, coll)
     # Inlining `transduce` and `__foldl__` were essential for the
     # `darkritual` below to work.
     return __foldl__(rf, _start_init(rf, init), coll)
@@ -460,14 +460,14 @@ end
 
 _map!(rf, coll, dest) = transduce(darkritual(rf, dest), nothing, coll)
 
-# Deep-copy `AbstractReduction` so that compiler can treat the all
+# Deep-copy `Reduction` so that compiler can treat the all
 # reducing function tree nodes as local variables (???).  Aslo, it
 # tells compiler that `dest` is a local variable so that it won't
 # fetch `dest` via `getproperty` in each iteration.  (This is too much
 # magic...  My reasoning of how it works could be completely wrong.
 # But at least it should not change the semantics of the function.)
 @inline darkritual(rf::Reduction, dest) =
-    if inner(rf) isa AbstractReduction
+    if inner(rf) isa Reduction
         Reduction{InType(rf)}(xform(rf), darkritual(inner(rf), dest))
     else
         @assert xform(rf).array === dest
