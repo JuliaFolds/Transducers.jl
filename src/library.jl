@@ -1356,25 +1356,28 @@ end
 # where `value` is the placeholder for the output value of the
 # transducer (here `Map(identity)`) outer to `TeeZip`.
 
-struct Splitter{R, L} <: AbstractReduction
+struct Splitter{intype, R, L} <: AbstractReduction{intype}
     inner::R
     lens::L
 end
 
-struct Joiner{F, T, intype} <: AbstractReduction
+Splitter(inner::R, lens::L) where {R, L} =
+    Splitter{InType(R), R, L}(inner, lens)
+
+struct Joiner{intype, F, T} <: AbstractReduction{intype}
     inner::F  # original inner reduction
     value::T  # original input
 
-    @inline function Joiner{F,T,intype}(inner) where {F,T,intype}
+    @inline function Joiner{intype,F,T}(inner) where {intype,F,T}
         _joiner_error(inner, intype)
         if isbitstype(T)
             return new(inner)
         else
-            return new{F,Union{T,Nothing},intype}(inner, nothing)
+            return new{intype,F,Union{T,Nothing}}(inner, nothing)
         end
     end
 
-    @inline function Joiner{F,T,intype}(inner, value) where {F,T,intype}
+    @inline function Joiner{intype,F,T}(inner, value) where {intype,F,T}
         _joiner_error(inner, intype)
         return new(inner, value)
     end
@@ -1392,16 +1395,13 @@ where
     inner = $inner
 """)
 
-# TODO: move intype to the type parameter of AbstractReduction
-InType(::Type{<:Splitter{R}}) where R = InType(R)
-InType(::Type{<:Joiner{F, T, intype}}) where {F, T, intype} =
-    intype
-
 finaltype(rf::Splitter) = finaltype(rf.inner)
-finaltype(rf::Joiner{<:AbstractReduction}) = finaltype(rf.inner)
-finaltype(rf::Joiner) = InType(rf)
-
-Setfield.constructor_of(::Type{T}) where {T <: Joiner} = T
+finaltype(rf::Joiner) =
+    if rf.inner isa AbstractReduction
+        finaltype(rf.inner)
+    else
+        InType(rf)
+    end
 
 # It's ugly that `Reduction` returns a non-`Reduction` type!  TODO: fix it
 function Reduction(xf::Composition{<:TeeZip}, f, intype::Type)
@@ -1432,7 +1432,7 @@ function _teezip_rf(xf, intype, downstream)
     else
         rf_ds = Reduction(xf_ds, f, intype_ds)
     end
-    joiner = Joiner{typeof(rf_ds), intype_orig, intype_ds}(rf_ds)
+    joiner = Joiner{intype_ds, typeof(rf_ds), intype_orig}(rf_ds)
     return Reduction(xf, joiner, intype)
 end
 

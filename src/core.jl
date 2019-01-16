@@ -77,7 +77,13 @@ appropriately defined for child types.
 """
 AbstractFilter
 
-abstract type AbstractReduction end
+abstract type AbstractReduction{intype} end
+
+InType(::T) where T = InType(T)
+InType(::Type{<:AbstractReduction{intype}}) where {intype} = intype
+InType(T::Type) = throw(MethodError(InType, (T,)))
+
+Setfield.constructor_of(::Type{T}) where {T <: AbstractReduction} = T
 
 # In clojure a reduction function is one of signature
 # whatever, input -> whatever
@@ -88,16 +94,10 @@ abstract type AbstractReduction end
 #   a transducer `xform` and an inner reduction function `inner`.
 #   `inner` can be either a `Reduction` or a function with arity-2 and arity-1 methods
 #
-struct Reduction{X <: Transducer, I, InType} <: AbstractReduction
+struct Reduction{X <: Transducer, I, intype} <: AbstractReduction{intype}
     xform::X
     inner::I
 end
-
-Setfield.constructor_of(::Type{T}) where {T <: Reduction} = T
-
-InType(::T) where T = InType(T)
-InType(::Type{Reduction{X, I, intype}}) where {X, I, intype} = intype
-InType(T::Type) = throw(MethodError(InType, (T,)))
 
 Transducer(rf::Reduction{<:Transducer, <:AbstractReduction}) =
     Composition(rf.xform, Transducer(rf.inner))
