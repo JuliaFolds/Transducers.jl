@@ -468,10 +468,10 @@ _map!(rf, coll, dest) = transduce(darkritual(rf, dest), nothing, coll)
 # But at least it should not change the semantics of the function.)
 @inline darkritual(rf::R, dest) where {R <: Reduction} =
     if inner(rf) isa AbstractReduction
-        R(rf.xform, darkritual(inner(rf), dest))
+        R(xform(rf), darkritual(inner(rf), dest))
     else
-        @assert rf.xform.array === dest
-        xf = typeof(rf.xform)(dest) :: SetIndex
+        @assert xform(rf).array === dest
+        xf = typeof(xform(rf))(dest) :: SetIndex
         R(xf, inner(rf))
     end
 @inline darkritual(rf::R, dest) where {R <: Joiner} =

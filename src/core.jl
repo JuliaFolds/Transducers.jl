@@ -86,6 +86,7 @@ InType(T::Type) = throw(MethodError(InType, (T,)))
 Setfield.constructor_of(::Type{T}) where {T <: AbstractReduction} = T
 
 inner(rf::AbstractReduction) = rf.inner
+xform(rf::AbstractReduction) = rf.xform
 
 # In clojure a reduction function is one of signature
 # whatever, input -> whatever
@@ -102,15 +103,15 @@ struct Reduction{X <: Transducer, I, intype} <: AbstractReduction{intype}
 end
 
 Transducer(rf::Reduction{<:Transducer, <:AbstractReduction}) =
-    Composition(rf.xform, Transducer(inner(rf)))
-Transducer(rf::Reduction) = rf.xform
+    Composition(xform(rf), Transducer(inner(rf)))
+Transducer(rf::Reduction) = xform(rf)
 
 """
     Transducers.R_{X}
 
 When defining a transducer type `X`, it is often required to dispatch
 on type `rf::R_{X}` (Reducing Function) which bundles the current
-transducer `rf.xform::X` and the inner reducing function
+transducer `xform(rf)::X` and the inner reducing function
 `inner(rf)::R_`.
 """
 const R_{X} = Reduction{<:X}
@@ -214,12 +215,12 @@ combine(rf::Reduction, a, b) =
     # Not using dispatch to avoid ambiguity
     if ownsstate(rf, a)
         # TODO: make sure this branch is compiled out
-        error("Stateful transducer ", rf.xform, " does not support `combine`")
+        error("Stateful transducer ", xform(rf), " does not support `combine`")
     elseif ownsstate(rf, b)
         error("""
         Some thing went wrong in two ways:
         * `combine(rf, a, b)` is called but type of `a` and `b` are different.
-        * `rf.xform = $(rf.xform)` is stateful and does not support `combine`.
+        * `xform(rf) = $(xform(rf))` is stateful and does not support `combine`.
         """)
     else
         combine(inner(rf), a, b)
@@ -353,20 +354,20 @@ finaltype(rf::Reduction) =
     if inner(rf) isa AbstractReduction
         finaltype(inner(rf))
     else
-        outtype(rf.xform, InType(rf))
+        outtype(xform(rf), InType(rf))
     end
 
 # isexpansive(::Any) = true
 isexpansive(::Transducer) = true
 isexpansive(::AbstractFilter) = false
-# isexpansive(rf::Reduction) = isexpansive(rf.xform) || isexpansive(inner(rf))
+# isexpansive(rf::Reduction) = isexpansive(xform(rf)) || isexpansive(inner(rf))
 isexpansive(xf::Composition) = isexpansive(xf.outer) || isexpansive(xf.inner)
 # Should it be a type-level trait?
 
 #=
 iscontractive(::Any) = false
 iscontractive(::AbstractFilter) = true
-iscontractive(rf::Reduction) = iscontractive(rf.xform) && iscontractive(inner(rf))
+iscontractive(rf::Reduction) = iscontractive(xform(rf)) && iscontractive(inner(rf))
 =#
 
 struct NoComplete <: Transducer end
@@ -530,7 +531,7 @@ end
 initvalue(x, ::Any) = x
 initvalue(init::Initializer, intype) = init.f(intype)
 
-_initvalue(rf::Reduction) = initvalue(rf.xform.init, InType(rf))
+_initvalue(rf::Reduction) = initvalue(xform(rf).init, InType(rf))
 
 inittypeof(::T, ::Type) where T = T
 function inittypeof(init::Initializer, intype::Type)

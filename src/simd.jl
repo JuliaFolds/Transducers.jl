@@ -11,12 +11,12 @@ next(rf::R_{UseSIMD}, result, input) = next(inner(rf), result, input)
 # Make sure UseSIMD is the outer-most transducer when UseSIMD is used
 # via Cat.
 skipcomplete(rf::R_{UseSIMD}) =
-    Reduction(rf.xform::UseSIMD,
+    Reduction(xform(rf)::UseSIMD,
               skipcomplete(inner(rf)),
               InType(rf))
 
 isivdep(::UseSIMD{ivdep}) where ivdep = ivdep
-isivdep(rf::Reduction) = isivdep(rf.xform)
+isivdep(rf::Reduction) = isivdep(xform(rf))
 
 _name_of_transducer_type(xf::UseSIMD) = prefixed_type_name(xf)
 
