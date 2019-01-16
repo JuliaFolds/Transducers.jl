@@ -213,7 +213,7 @@ function provide_init(rf::AbstractReduction, ::MissingInit)
     return identityof(op, T)
 end
 
-innermost_rf(rf::AbstractReduction) = innermost_rf(rf.inner)
+innermost_rf(rf::AbstractReduction) = innermost_rf(inner(rf))
 innermost_rf(f) = f
 innermost_rf(o::Completing) = innermost_rf(o.f)
 
@@ -467,17 +467,17 @@ _map!(rf, coll, dest) = transduce(darkritual(rf, dest), nothing, coll)
 # magic...  My reasoning of how it works could be completely wrong.
 # But at least it should not change the semantics of the function.)
 @inline darkritual(rf::R, dest) where {R <: Reduction} =
-    if rf.inner isa AbstractReduction
-        R(rf.xform, darkritual(rf.inner, dest))
+    if inner(rf) isa AbstractReduction
+        R(rf.xform, darkritual(inner(rf), dest))
     else
         @assert rf.xform.array === dest
         xf = typeof(rf.xform)(dest) :: SetIndex
-        R(xf, rf.inner)
+        R(xf, inner(rf))
     end
 @inline darkritual(rf::R, dest) where {R <: Joiner} =
-    R(darkritual(rf.inner, dest), rf.value)
+    R(darkritual(inner(rf), dest), rf.value)
 @inline darkritual(rf::R, dest) where {R <: Splitter} =
-    R(darkritual(rf.inner, dest), rf.lens)
+    R(darkritual(inner(rf), dest), rf.lens)
 
 function _prepare_map(xf, dest, src, simd)
     isexpansive(xf) && error("map! only supports non-expanding transducer")
