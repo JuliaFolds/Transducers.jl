@@ -88,6 +88,16 @@ Setfield.constructor_of(::Type{T}) where {T <: AbstractReduction} = T
 inner(rf::AbstractReduction) = rf.inner
 xform(rf::AbstractReduction) = rf.xform
 
+struct TypedTransducer{intype, X <: Transducer}
+    xform::X
+end
+TypedTransducer{intype}(xform::X) where {intype, X} =
+    TypedTransducer{intype, X}(xform)
+
+Setfield.constructor_of(::Type{T}) where {T <: TypedTransducer} = T
+
+InType(::TypedTransducer{intype}) where intype = intype
+
 # In clojure a reduction function is one of signature
 # whatever, input -> whatever
 #
@@ -97,14 +107,29 @@ xform(rf::AbstractReduction) = rf.xform
 #   a transducer `xform` and an inner reduction function `inner`.
 #   `inner` can be either a `Reduction` or a function with arity-2 and arity-1 methods
 #
-struct Reduction{intype, X <: Transducer, I} <: AbstractReduction{intype}
-    xform::X
-    inner::I
+struct Reduction{intype, T, F} <: AbstractReduction{intype}
+    xforms::T
+    bottom::F
 end
 
-Transducer(rf::Reduction{<:Any, <:Transducer, <:AbstractReduction}) =
-    Composition(xform(rf), Transducer(inner(rf)))
-Transducer(rf::Reduction) = xform(rf)
+Reduction(xforms, bottom) =
+    Reduction{InType(xforms[1]), typeof(xforms), typeof(bottom)}(xforms, bottom)
+
+inner(rf::Reduction) =
+    if length(rf.xforms) > 1
+        Reduction(Base.tail(rf.xforms), rf.bottom)
+    else
+        rf.bottom
+    end
+
+xform(rf::Reduction) = rf.xforms[1].xform
+
+Transducer(rf::Reduction) =
+    if inner(rf) isa AbstractReduction
+        Composition(xform(rf), Transducer(inner(rf)))
+    else
+        xform(rf)
+    end
 
 """
     Transducers.R_{X}
@@ -114,10 +139,16 @@ on type `rf::R_{X}` (Reducing Function) which bundles the current
 transducer `xform(rf)::X` and the inner reducing function
 `inner(rf)::R_`.
 """
-const R_{X} = Reduction{<:Any, <:X}
+const R_{X} = Reduction{<:Any, <:Tuple{<:TypedTransducer{<:Any, <:X}, Vararg}}
 
-@inline Reduction(xf::X, inner::I, ::Type{InType}) where {X, I, InType} =
-    Reduction{InType, X, I}(xf, inner)
+@inline Reduction{intype}(xf, inner::Reduction) where intype =
+    Reduction((TypedTransducer{intype}(xf), inner.xforms...), inner.bottom)
+
+@inline Reduction{intype}(xf, inner) where intype =
+    Reduction((TypedTransducer{intype}(xf),), inner)
+
+@inline Reduction(xf, inner, ::Type{intype}) where intype =
+    Reduction{intype}(xf, inner)
 
 @inline function Reduction(xf_::Composition, f, intype::Type)
     xf = _normalize(xf_)
