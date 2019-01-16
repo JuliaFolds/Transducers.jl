@@ -94,12 +94,12 @@ Setfield.constructor_of(::Type{T}) where {T <: AbstractReduction} = T
 #   a transducer `xform` and an inner reduction function `inner`.
 #   `inner` can be either a `Reduction` or a function with arity-2 and arity-1 methods
 #
-struct Reduction{X <: Transducer, I, intype} <: AbstractReduction{intype}
+struct Reduction{intype, X <: Transducer, I} <: AbstractReduction{intype}
     xform::X
     inner::I
 end
 
-Transducer(rf::Reduction{<:Transducer, <:AbstractReduction}) =
+Transducer(rf::Reduction{<:Any, <:Transducer, <:AbstractReduction}) =
     Composition(rf.xform, Transducer(rf.inner))
 Transducer(rf::Reduction) = rf.xform
 
@@ -110,15 +110,11 @@ When defining a transducer type `X`, it is often required to dispatch
 on type `rf::R_{X}` (Reducing Function) which bundles the current
 transducer `rf.xform::X` and the inner reducing function
 `rf.inner::R_`.
-
-```julia
-const R_{X} = Reduction{<:X}
-```
 """
-const R_{X} = Reduction{<:X}
+const R_{X} = Reduction{<:Any, <:X}
 
 @inline Reduction(xf::X, inner::I, ::Type{InType}) where {X, I, InType} =
-    Reduction{X, I, InType}(xf, inner)
+    Reduction{InType, X, I}(xf, inner)
 
 @inline function Reduction(xf_::Composition, f, intype::Type)
     xf = _normalize(xf_)
@@ -344,8 +340,12 @@ Output item type for the transducer `xf` when the input type is `intype`.
 outtype(::Any, ::Any) = Any
 outtype(::AbstractFilter, intype) = intype
 
-finaltype(rf::Reduction{<:Transducer, <:AbstractReduction}) = finaltype(rf.inner)
-finaltype(rf::Reduction) = outtype(rf.xform, InType(rf))
+finaltype(rf::Reduction) =
+    if rf.inner isa AbstractReduction
+        finaltype(rf.inner)
+    else
+        outtype(rf.xform, InType(rf))
+    end
 
 # isexpansive(::Any) = true
 isexpansive(::Transducer) = true
