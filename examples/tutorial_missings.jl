@@ -152,6 +152,7 @@ nothing  # hide
 # We use [`Initializer`](@ref) here to allocate the "output array"
 # into which the columns are added by `add_skipmissing!`.
 
+if VERSION >= v"1.1-"  # eachcol not in Julia 1.0  #src
 ans =  # hide
 mapfoldl(xf_sum_columns(xs[:, 1]), right, eachcol(xs))
 #-
@@ -196,6 +197,7 @@ reshape(result, (size(xs, 1), :))
     3  7  12  12      # hide
     0  6  13  13      # hide
 ]                     # hide
+end  # if VERSION >= v"1.1-"  #src
 
 # Note that we need [`Completing`](@ref) here since `append!` does not
 # have the unary method used for [`complete`](@ref

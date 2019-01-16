@@ -10,11 +10,8 @@ testfiles = [
     "test_examples_transducers.jl",
     "test_examples_words.jl",
     "test_examples_primes.jl",
+    "test_examples_tutorial_missings.jl",
 ]
-if VERSION >= v"1.1-"
-    push!(testfiles, "test_examples_tutorial_missings.jl")
-end
-push!(testfiles, "test_ir.jl")
 
 @testset "$file" for file in testfiles
     include(file)
