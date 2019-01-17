@@ -48,7 +48,7 @@ struct Map{F} <: Transducer
 end
 
 isexpansive(::Map) = false
-outtype(xf::Map, intype) = Union{Base.return_types(xf.f, (intype,))...}
+outtype(xf::Map, intype) = Base.promote_op(xf.f, intype)
 next(rf::R_{Map}, result, input) = next(rf.inner, result, rf.xform.f(input))
 
 """
@@ -73,7 +73,7 @@ struct MapSplat{F} <: Transducer
 end
 
 isexpansive(::MapSplat) = false
-outtype(xf::MapSplat, intype) = Union{Base.return_types(xf.f, intype)...}
+outtype(xf::MapSplat, intype) = Base._return_type(xf.f, intype)
 next(rf::R_{MapSplat}, result, input) =
     next(rf.inner, result, rf.xform.f(input...))
 
@@ -873,8 +873,7 @@ end
 
 isexpansive(::Keep) = false
 outtype(xf::Keep, intype) =
-    Core.Compiler.typesubtract(Union{Base.return_types(xf.f, (intype,))...},
-                               Nothing)
+    Core.Compiler.typesubtract(Base.promote_op(xf.f, intype), Nothing)
 
 function next(rf::R_{Keep}, result, input)
     iinput = rf.xform.f(input)
@@ -1066,7 +1065,7 @@ outtype(xf::Scan, intype) =
 
 function _type_scan_fixedpoint(f, A, X, limit = 10)
     for _ in 1:limit
-        Y = Union{A,Base.return_types(f, (A, X))...}
+        Y = Union{A, Base.promote_op(f, A, X)}
         A === Y && return Y
         A = Y
     end
@@ -1138,11 +1137,11 @@ function outtype(xf::ScanEmit, intype)
     U = _type_scan_fixedpoint((u, x) -> xf.f(u, x)[2],
                               inittypeof(xf.init, intype),
                               intype)
-    Y = Base._return_type((u, x) -> xf.f(u, x)[1], Tuple{U, intype})
+    Y = Base.promote_op((u, x) -> xf.f(u, x)[1], U, intype)
     if xf.onlast === nothing
         return Y
     end
-    return Union{Y, Base._return_type(xf.onlast, Tuple{U})}
+    return Union{Y, Base.promote_op(xf.onlast, U)}
 end
 
 start(rf::R_{ScanEmit}, result) =
@@ -1222,7 +1221,7 @@ Iterated(f, init::T) where T = Iterated(f, init, _type_fixedpoint(f, T))
 
 function _type_fixedpoint(f, X, limit = 10)
     for _ in 1:limit
-        Y = Union{X, Base.return_types(f, (X,))...}
+        Y = Union{X, Base.promote_op(f, X)}
         X === Y && return Y
         X = Y
     end
