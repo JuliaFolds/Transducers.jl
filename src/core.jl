@@ -205,7 +205,7 @@ not defined for `R_{X}`, this happens automatically.
 complete(f, result) = f(result)
 complete(rf::Reduction, result) =
     # Not using dispatch to avoid ambiguity
-    if ownsstate(rf, result)
+    if result isa PrivateState{typeof(rf)}
         complete(rf.inner, unwrap(rf, result)[2])
     else
         complete(rf.inner, result)
@@ -214,10 +214,10 @@ complete(rf::Reduction, result) =
 combine(f, a, b) = f(a, b)
 combine(rf::Reduction, a, b) =
     # Not using dispatch to avoid ambiguity
-    if ownsstate(rf, a)
+    if a isa PrivateState{typeof(rf)}
         # TODO: make sure this branch is compiled out
         error("Stateful transducer ", rf.xform, " does not support `combine`")
-    elseif ownsstate(rf, b)
+    elseif b isa PrivateState{typeof(rf)}
         error("""
         Some thing went wrong in two ways:
         * `combine(rf, a, b)` is called but type of `a` and `b` are different.
@@ -235,13 +235,6 @@ end
 
 PrivateState(rf::Reduction, state, result) =
     PrivateState{typeof(rf), typeof(state), typeof(result)}(state, result)
-
-ownsstate(::Any, ::Any) = false
-ownsstate(::R, ::PrivateState{T}) where {R, T} = R === T
-# Using `result isa PrivateState{typeof(rf)}` makes it impossible to
-# compile Extrema examples in ../examples/tutorial_missings.jl (it
-# took more than 10 min).  See also:
-# https://github.com/JuliaLang/julia/issues/30125
 
 """
     unwrap(rf, result)
