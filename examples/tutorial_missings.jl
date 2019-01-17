@@ -314,11 +314,6 @@ end  #src
 @assert ans === (2, 3.0) # hide
 @show ans  #src
 
-# !!! warning
-#
-#     As of writing, following code takes a very long time (a few
-#     minutes) to compile.
-
 # We now have transducers `xf_scanext(<)` and `xf_scanext(>)` for
 # argmax and argmin, respectively.  We can compute them concurrently
 # by `Zip`'ing them together:
