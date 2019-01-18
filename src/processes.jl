@@ -155,16 +155,16 @@ This API is modeled after $(_cljref("transduce")).
 
 # Arguments
 - `xf::Transducer`: A transducer.
-- `step`: A callable which accepts 1 and 2 arguments.  If it only
-  accepts 2 arguments, wrap it by [`Completing`](@ref) to add
-  [`complete`](@ref) protocol.
+- `step`: A callable which accepts 1 or 2 arguments.  If it only
+  accepts 2 arguments, wrap it with [`Completing`](@ref) to "add"
+  1-argument form (i.e., [`complete`](@ref) protocol).
 - `reducible`: A reducible object (array, dictionary, any iterator, etc.).
 - `init`: An initial value fed to the first argument to reducing step
   function `step`.
 - `simd`: If `true` or `:ivdep`, enable SIMD using `Base.@simd`.  If
   `:ivdep`, use `@simd ivdep for ... end` variant.  Read Julia manual
   of `Base.@simd` to understand when it is appropriate to use this
-  option.  For example, `simd = :ivdep` _must not_ used with stateful
+  option.  For example, `simd = :ivdep` _must not_ be used with stateful
   transducer like [`Scan`](@ref).  This option has no effect if
   `false` (default).
 
