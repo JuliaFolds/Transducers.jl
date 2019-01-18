@@ -338,7 +338,7 @@ next(rf::R_{Take}, result, input) =
             n -= 1
         end
         if n <= 0
-            iresult = ensure_reduced(iresult)
+            iresult = reduced(iresult)
         end
         return n, iresult
     end
@@ -435,7 +435,7 @@ struct TakeWhile{P} <: AbstractFilter
 end
 
 next(rf::R_{TakeWhile}, result, input) =
-    xform(rf).pred(input) ? next(inner(rf), result, input) : ensure_reduced(result)
+    xform(rf).pred(input) ? next(inner(rf), result, input) : reduced(result)
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/take-nth
 # https://clojuredocs.org/clojure.core/take-nth
@@ -1688,7 +1688,7 @@ start(rf::R_{Inject}, result) =
     wrap(rf, iterate(xform(rf).iterator), start(inner(rf), result))
 next(rf::R_{Inject}, result, input) =
     wrapping(rf, result) do istate, iresult
-        istate === nothing && return istate, ensure_reduced(iresult)
+        istate === nothing && return istate, reduced(iresult)
         y, s = istate
         iresult2 = next(inner(rf), iresult, (input, y))
         return iterate(xform(rf).iterator, s), iresult2
