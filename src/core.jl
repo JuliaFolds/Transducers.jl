@@ -10,8 +10,37 @@ Base.:(==)(x::Reduced, ::Any) = false
 isreduced(::Reduced) = true
 isreduced(::Any) = false
 
+"""
+    reduced([x = nothing])
+
+Stop transducible process with the final value `x` (default:
+`nothing`).  Return `x` as-is if it's already is a `reduced` value.
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> foldl(Enumerate(), "abcdef"; init=0) do y, (i, x)
+           if x == 'd'
+               return reduced(y)
+           end
+           return y + i
+       end
+6
+
+julia> foreach(Enumerate(), "abc") do (i, x)
+           println(i, ' ', x)
+           if x == 'b'
+               return reduced()
+           end
+       end
+1 a
+2 b
+```
+"""
 reduced(x::Reduced) = x
 reduced(x) = Reduced(x)
+reduced() = reduced(nothing)
 
 unreduced(x::Reduced) = x.value
 unreduced(x) = x
@@ -410,9 +439,11 @@ end
 start(rf::SideEffect, result) = start(rf.f, result)
 complete(::SideEffect, result) = result
 function next(rf::SideEffect, result, input)
-    rf.f(input)
+    y = rf.f(input)
+    y isa Reduced && return y
     return result
 end
+# TODO: Should `SideEffect` return `y` always?
 
 """
     right([l, ]r) -> r

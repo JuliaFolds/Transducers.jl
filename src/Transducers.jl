@@ -4,7 +4,7 @@ export Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, Zip,
     Replace, TakeWhile, TakeNth, Drop, DropLast, DropWhile, Keep, Distinct,
     Interpose, Dedupe, Partition, Iterated, Count,
     TakeLast, FlagFirst, MapSplat, ScanEmit, Enumerate, NotA, OfType,
-    transduce, eduction,
+    transduce, eduction, reduced,
     Completing, Initializer, right
 
 using ArgCheck

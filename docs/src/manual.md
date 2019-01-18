@@ -44,4 +44,5 @@ Transducers.Inject
 Completing
 Initializer
 right
+reduced
 ```

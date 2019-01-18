@@ -576,7 +576,14 @@ end
 as the former does not have to translate the transducer protocol to
 the iterator protocol.
 
-See: [`mapfoldl`](@ref).
+Statements in native `for` loop can be translated as follows:
+
+| `for`      | `foreach`                          |
+|:---------- |:---------------------------------- |
+| `break`    | [`return reduced()`](@ref reduced) |
+| `continue` | `return`                           |
+
+See: [`mapfoldl`](@ref), [`reduced`](@ref).
 
 # Examples
 ```jldoctest
@@ -587,10 +594,19 @@ julia> foreach(eduction(Filter(isodd), 1:4)) do input
        end
 input = 1
 input = 3
+
+julia> foreach(Filter(!ismissing), [1, missing, 2, 3]) do input
+           @show input
+           if iseven(input)
+               return reduced()
+           end
+       end
+input = 1
+input = 2
 ```
 """
 Base.foreach(eff, xform::Transducer, coll; kwargs...) =
-    transduce(xform, SideEffect(eff), nothing, coll; kwargs...)
+    unreduced(transduce(xform, SideEffect(eff), nothing, coll; kwargs...))
 Base.foreach(eff, ed::Eduction; kwargs...) =
     foreach(eff, Transducer(ed), ed.coll; kwargs...)
 
