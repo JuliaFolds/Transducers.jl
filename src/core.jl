@@ -110,13 +110,9 @@ InType(T::Type) = throw(MethodError(InType, (T,)))
 
 Setfield.constructor_of(::Type{T}) where {T <: Reduction} = T
 
-inner(rf::Reduction) =
-    if length(rf.xforms) > 1
-        Reduction(Base.tail(rf.xforms), rf.bottom)
-    else
-        rf.bottom
-    end
-
+# inner(rf::Reduction{<:Any, Tuple{}}) = error()
+@inline inner(rf::Reduction{<:Any, <:Tuple{Any}}) = rf.bottom
+@inline inner(rf::Reduction) = Reduction(tail(rf.xforms), rf.bottom)
 xform(rf::Reduction) = rf.xforms[1].xform
 
 Transducer(rf::Reduction) =

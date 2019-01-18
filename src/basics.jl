@@ -1,5 +1,8 @@
 # --- Utilities
 
+@inline Base.@pure argtail(x, rest...) = rest
+@inline Base.@pure tail(x::Tuple) = argtail(x...)
+
 valueof(::Val{x}) where x = x
 
 ieltype(T) =
