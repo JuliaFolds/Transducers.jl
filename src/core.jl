@@ -85,7 +85,7 @@ TypedTransducer{intype}(xform::X) where {intype, X} =
 
 Setfield.constructor_of(::Type{T}) where {T <: TypedTransducer} = T
 
-InType(::TypedTransducer{intype}) where intype = intype
+InType(::Type{<:TypedTransducer{intype}}) where intype = intype
 
 # In clojure a reduction function is one of signature
 # whatever, input -> whatever
@@ -101,8 +101,8 @@ struct Reduction{intype, T, F}
     bottom::F
 end
 
-Reduction(xforms, bottom) =
-    Reduction{InType(xforms[1]), typeof(xforms), typeof(bottom)}(xforms, bottom)
+@inline Reduction(xforms::T, bottom::F) where {X, T <: Tuple{X,Vararg}, F} =
+    Reduction{InType(X), T, F}(xforms, bottom)
 
 InType(::T) where T = InType(T)
 InType(::Type{<:Reduction{intype}}) where {intype} = intype
