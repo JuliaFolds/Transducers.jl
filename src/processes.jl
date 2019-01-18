@@ -62,7 +62,7 @@ end
 end
 
 @inline _getvalues(i) = ()
-@inline _getvalues(i, a, rest...) = (@inbounds a[i], _getvalues(i, rest...)...)
+@inline _getvalues(i, a, rest...) = ((@inbounds a[i]), _getvalues(i, rest...)...)
 
 # TODO: merge this with array implementation
 @static if VERSION >= v"1.1-"
