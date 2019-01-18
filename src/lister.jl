@@ -12,6 +12,8 @@ _unexported_public_api = (
     Transducer,
     AbstractFilter,
     R_,
+    inner,
+    xform,
     start,
     next,
     complete,

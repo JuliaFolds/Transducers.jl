@@ -114,7 +114,19 @@ InType(T::Type) = throw(MethodError(InType, (T,)))
 
 Setfield.constructor_of(::Type{T}) where {T <: AbstractReduction} = T
 
+"""
+    Transducers.inner(rf::R_)
+
+Return the inner reducing function of `rf`.
+"""
 inner(rf::AbstractReduction) = rf.inner
+
+"""
+    Transducers.xform(rf::R_{X}) -> xf :: X
+
+Return the transducer `xf` associated with `rf`.  Returned transducer
+`xf` is "atomic"; i.e., it is not a `Composition` transducer type.
+"""
 xform(rf::AbstractReduction) = rf.xform
 
 # In clojure a reduction function is one of signature

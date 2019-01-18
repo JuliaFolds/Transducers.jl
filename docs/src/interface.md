@@ -6,6 +6,8 @@
 Transducers.Transducer
 Transducers.AbstractFilter
 Transducers.R_
+Transducers.inner
+Transducers.xform
 Transducers.start
 Transducers.next
 Transducers.complete
