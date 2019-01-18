@@ -33,7 +33,7 @@ rf = Reduction(
 # output
 
 Reduction{▶ Float64}(
-    Splitter((@lens _.xforms[2].xform.value)),
+    Splitter((@lens _.xforms) ∘ ConstIndexLens{2}() ∘ (@lens _.xform.value)),
     Reduction{▶ Float64}(
         Count(1, 1),
         Reduction{▶ Int64}(
@@ -53,7 +53,7 @@ rf = Reduction(
 Reduction{▶ Float64}(
     Filter(isfinite),
     Reduction{▶ Float64}(
-        Splitter((@lens _.xforms[2].xform.value)),
+        Splitter((@lens _.xforms) ∘ ConstIndexLens{2}() ∘ (@lens _.xform.value)),
         Reduction{▶ Float64}(
             Count(1, 1),
             Reduction{▶ Int64}(
@@ -76,11 +76,11 @@ rf = Reduction(
 # output
 
 Reduction{▶ Float64}(
-    Splitter((@lens _.xforms[5].xform.value)),
+    Splitter((@lens _.xforms) ∘ ConstIndexLens{5}() ∘ (@lens _.xform.value)),
     Reduction{▶ Float64}(
         Count(1, 1),
         Reduction{▶ Int64}(
-            Splitter((@lens _.xforms[2].xform.value)),
+            Splitter((@lens _.xforms) ∘ ConstIndexLens{2}() ∘ (@lens _.xform.value)),
             Reduction{▶ Int64}(
                 FlagFirst(),
                 Reduction{▶ ⦃Bool, Int64⦄}(
@@ -101,13 +101,13 @@ rf = Reduction(
 # output
 
 Reduction{▶ Int64}(
-    Splitter((@lens _.xforms[6].xform.value)),
+    Splitter((@lens _.xforms) ∘ ConstIndexLens{6}() ∘ (@lens _.xform.value)),
     Reduction{▶ Int64}(
         Filter(isodd),
         Reduction{▶ Int64}(
             Map(identity),
             Reduction{▶ Int64}(
-                Splitter((@lens _.xforms[2].xform.value)),
+                Splitter((@lens _.xforms) ∘ ConstIndexLens{2}() ∘ (@lens _.xform.value)),
                 Reduction{▶ Int64}(
                     Map(identity),
                     Reduction{▶ Int64}(
@@ -126,13 +126,13 @@ rf = Reduction(
 # output
 
 Reduction{▶ Any}(
-    Splitter((@lens _.xforms[6].xform.value)),
+    Splitter((@lens _.xforms) ∘ ConstIndexLens{6}() ∘ (@lens _.xform.value)),
     Reduction{▶ Any}(
         Filter(isodd),
         Reduction{▶ Any}(
             Map(identity),
             Reduction{▶ Any}(
-                Splitter((@lens _.xforms[2].xform.value)),
+                Splitter((@lens _.xforms) ∘ ConstIndexLens{2}() ∘ (@lens _.xform.value)),
                 Reduction{▶ Any}(
                     Map(identity),
                     Reduction{▶ Any}(

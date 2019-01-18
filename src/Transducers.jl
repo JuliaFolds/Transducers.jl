@@ -10,7 +10,7 @@ export Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, Zip,
 using ArgCheck
 
 import Setfield
-using Setfield: @lens, set
+using Setfield: Lens, @lens, set
 
 include("basics.jl")
 include("core.jl")

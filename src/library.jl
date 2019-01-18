@@ -1361,9 +1361,12 @@ function Reduction(xf::TeeZip, f, intype::Type)
     @nospecialize
     dummy_bottom = nothing
     rf_split = Reduction(xf.xform, dummy_bottom, intype)
+    # TODO: make it type-stable?
+    lens = (@lens _.xforms) ∘
+        ConstIndexLens{length(rf_split.xforms) + 1}() ∘
+        @lens _.xform.value
     return Reduction(
-        (TypedTransducer{intype}(
-            Splitter(@lens _.xforms[length(rf_split.xforms) + 1].xform.value)),
+        (TypedTransducer{intype}(Splitter(lens)),
          rf_split.xforms...,
          TypedTransducer{finaltype(rf_split)}(Joiner{intype}())),
         f)

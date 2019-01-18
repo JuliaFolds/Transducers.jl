@@ -73,3 +73,22 @@ _thx_clj(name) =
 # https://github.com/JuliaLang/julia/pull/30575
 const _true_str = sprint(show, true; context=:typeinfo => Bool)
 const _false_str = sprint(show, false; context=:typeinfo => Bool)
+
+
+struct ConstIndexLens{I} <: Lens
+    function ConstIndexLens{I}() where I
+        @argcheck I isa Integer
+        return new()
+    end
+end
+
+Base.@propagate_inbounds Setfield.get(obj, ::ConstIndexLens{I}) where I = obj[I]
+
+@generated function Setfield.set(obj::Tuple, ::ConstIndexLens{I}, val) where I
+    args = map(1:length(obj.types)) do n
+        n == I ? :val : :(obj[$n])
+    end
+    quote
+        ($(args...),)
+    end
+end
