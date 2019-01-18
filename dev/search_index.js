@@ -77,7 +77,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Base.mapfoldl",
     "category": "function",
-    "text": "mapfoldl(xf, step, reducible; init, simd) :: T\ntransduce(xf, step, init, reducible; simd) :: Union{T, Reduced{T}}\n\nCompose transducer xf with reducing step function step and reduce itr using it.\n\nnote: Note\ntransduce differs from mapfoldl as Reduced{T} is returned if the transducer xf or step aborts the reduction.\n\nThis API is modeled after transduce in Clojure.\n\nArguments\n\nxf::Transducer: A transducer.\nstep: A callable which accepts 1 and 2 arguments.  If it only accepts 2 arguments, wrap it by Completing to add complete protocol.\nreducible: A reducible object (array, dictionary, any iterator, etc.).\ninit: An initial value fed to the first argument to reducing step function step.\nsimd: If true or :ivdep, enable SIMD using Base.@simd.  If :ivdep, use @simd ivdep for ... end variant.  Read Julia manual of Base.@simd to understand when it is appropriate to use this option.  For example, simd = :ivdep must not used with stateful transducer like Scan.  This option has no effect if false (default).\n\nExamples\n\njulia> using Transducers\n\njulia> function step_demo(state, input)\n           @show state, input\n           state + input\n       end;\n\njulia> function step_demo(state)\n           println(\"Finishing with state = \", state)\n           state\n       end;\n\njulia> mapfoldl(Filter(isodd), step_demo, 1:4, init=0.0)\n(state, input) = (0.0, 1)\n(state, input) = (1.0, 3)\nFinishing with state = 4.0\n4.0\n\n\n\n\n\n"
+    "text": "mapfoldl(xf, step, reducible; init, simd) :: T\ntransduce(xf, step, init, reducible; simd) :: Union{T, Reduced{T}}\n\nCompose transducer xf with reducing step function step and reduce itr using it.\n\nnote: Note\ntransduce differs from mapfoldl as Reduced{T} is returned if the transducer xf or step aborts the reduction.\n\nThis API is modeled after transduce in Clojure.\n\nArguments\n\nxf::Transducer: A transducer.\nstep: A callable which accepts 1 or 2 arguments.  If it only accepts 2 arguments, wrap it with Completing to \"add\" 1-argument form (i.e., complete protocol).\nreducible: A reducible object (array, dictionary, any iterator, etc.).\ninit: An initial value fed to the first argument to reducing step function step.\nsimd: If true or :ivdep, enable SIMD using Base.@simd.  If :ivdep, use @simd ivdep for ... end variant.  Read Julia manual of Base.@simd to understand when it is appropriate to use this option.  For example, simd = :ivdep must not be used with stateful transducer like Scan.  This option has no effect if false (default).\n\nExamples\n\njulia> using Transducers\n\njulia> function step_demo(state, input)\n           @show state, input\n           state + input\n       end;\n\njulia> function step_demo(state)\n           println(\"Finishing with state = \", state)\n           state\n       end;\n\njulia> mapfoldl(Filter(isodd), step_demo, 1:4, init=0.0)\n(state, input) = (0.0, 1)\n(state, input) = (1.0, 3)\nFinishing with state = 4.0\n4.0\n\n\n\n\n\n"
 },
 
 {
@@ -101,7 +101,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Base.foreach",
     "category": "function",
-    "text": "foreach(eff, xf::Transducer, reducible; simd)\nforeach(eff, ed::Eduction; simd)\n\nFeed the results of xf processing items in reducible into a unary function eff.  This is useful when the primary computation at the bottom is the side-effect.  It is also equivalent to foreach(eff, eduction(xf, coll)).  Note that\n\nforeach(eduction(xf, coll)) do x\n    ...\nend\n\ncan be more efficient than\n\nfor x in eduction(xf, coll)\n    ...\nend\n\nas the former does not have to translate the transducer protocol to the iterator protocol.\n\nSee: mapfoldl.\n\nExamples\n\njulia> using Transducers\n\njulia> foreach(eduction(Filter(isodd), 1:4)) do input\n           @show input\n       end\ninput = 1\ninput = 3\n\n\n\n\n\n"
+    "text": "foreach(eff, xf::Transducer, reducible; simd)\nforeach(eff, ed::Eduction; simd)\n\nFeed the results of xf processing items in reducible into a unary function eff.  This is useful when the primary computation at the bottom is the side-effect.  It is also equivalent to foreach(eff, eduction(xf, coll)).  Note that\n\nforeach(eduction(xf, coll)) do x\n    ...\nend\n\ncan be more efficient than\n\nfor x in eduction(xf, coll)\n    ...\nend\n\nas the former does not have to translate the transducer protocol to the iterator protocol.\n\nStatements in native for loop can be translated as follows:\n\nfor foreach\nbreak return reduced()\ncontinue return\n\nSee: mapfoldl, reduced.\n\nExamples\n\njulia> using Transducers\n\njulia> foreach(eduction(Filter(isodd), 1:4)) do input\n           @show input\n       end\ninput = 1\ninput = 3\n\njulia> foreach(Filter(!ismissing), [1, missing, 2, 3]) do input\n           @show input\n           if iseven(input)\n               return reduced()\n           end\n       end\ninput = 1\ninput = 2\n\n\n\n\n\n"
 },
 
 {
@@ -465,11 +465,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "manual/#Transducers.reduced",
+    "page": "Manual",
+    "title": "Transducers.reduced",
+    "category": "function",
+    "text": "reduced([x = nothing])\n\nStop transducible process with the final value x (default: nothing).  Return x as-is if it\'s already is a reduced value.\n\nExamples\n\njulia> using Transducers\n\njulia> foldl(Enumerate(), \"abcdef\"; init=0) do y, (i, x)\n           if x == \'d\'\n               return reduced(y)\n           end\n           return y + i\n       end\n6\n\njulia> foreach(Enumerate(), \"abc\") do (i, x)\n           println(i, \' \', x)\n           if x == \'b\'\n               return reduced()\n           end\n       end\n1 a\n2 b\n\n\n\n\n\n"
+},
+
+{
     "location": "manual/#Miscellaneous-1",
     "page": "Manual",
     "title": "Miscellaneous",
     "category": "section",
-    "text": "Completing\nInitializer\nright"
+    "text": "Completing\nInitializer\nright\nreduced"
 },
 
 {
@@ -509,7 +517,23 @@ var documenterSearchIndex = {"docs": [
     "page": "Interface",
     "title": "Transducers.R_",
     "category": "type",
-    "text": "Transducers.R_{X}\n\nWhen defining a transducer type X, it is often required to dispatch on type rf::R_{X} (Reducing Function) which bundles the current transducer rf.xform::X and the inner reducing function rf.inner::R_.\n\nconst R_{X} = Reduction{<:X}\n\n\n\n\n\n"
+    "text": "Transducers.R_{X}\n\nWhen defining a transducer type X, it is often required to dispatch on type rf::R_{X} (Reducing Function) which bundles the current transducer xform(rf)::X and the inner reducing function inner(rf)::R_.\n\n\n\n\n\n"
+},
+
+{
+    "location": "interface/#Transducers.inner",
+    "page": "Interface",
+    "title": "Transducers.inner",
+    "category": "function",
+    "text": "Transducers.inner(rf::R_)\n\nReturn the inner reducing function of rf.\n\n\n\n\n\n"
+},
+
+{
+    "location": "interface/#Transducers.xform",
+    "page": "Interface",
+    "title": "Transducers.xform",
+    "category": "function",
+    "text": "Transducers.xform(rf::R_{X}) -> xf :: X\n\nReturn the transducer xf associated with rf.  Returned transducer xf is \"atomic\"; i.e., it is not a Composition transducer type.\n\n\n\n\n\n"
 },
 
 {
@@ -517,7 +541,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Interface",
     "title": "Transducers.start",
     "category": "function",
-    "text": "Transducers.start(rf::R_{X}, state)\n\nThis is an optional interface for a transducer.  Default implementation just calls start of the inner reducing function; i.e.,\n\nstart(rf::Reduction, result) = start(rf.inner, result)\n\nIf the transducer X is stateful, it can \"bundle\" its private state with state (so that next function can be \"pure\").\n\nstart(rf::R_{X}, result) = wrap(rf, PRIVATE_STATE, start(rf.inner, result))\n\nSee Take, PartitionBy, etc. for real-world examples.\n\nSide notes: There is no related API in Clojure\'s Transducers. Transducers.jl uses it to implement stateful transducers using \"pure\" functions.  The idea is based on a slightly different approach taken in C++ Transducer library atria.\n\n\n\n\n\n"
+    "text": "Transducers.start(rf::R_{X}, state)\n\nThis is an optional interface for a transducer.  Default implementation just calls start of the inner reducing function; i.e.,\n\nstart(rf::Reduction, result) = start(inner(rf), result)\n\nIf the transducer X is stateful, it can \"bundle\" its private state with state (so that next function can be \"pure\").\n\nstart(rf::R_{X}, result) = wrap(rf, PRIVATE_STATE, start(inner(rf), result))\n\nSee Take, PartitionBy, etc. for real-world examples.\n\nSide notes: There is no related API in Clojure\'s Transducers. Transducers.jl uses it to implement stateful transducers using \"pure\" functions.  The idea is based on a slightly different approach taken in C++ Transducer library atria.\n\n\n\n\n\n"
 },
 
 {
@@ -525,7 +549,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Interface",
     "title": "Transducers.next",
     "category": "function",
-    "text": "Transducers.next(rf::R_{X}, state, input)\n\nThis is the only required interface.  It takes the following form (if start is not defined):\n\nnext(rf::R_{X}, result, input) =\n    # code calling next(rf.inner, result, possibly_modified_input)\n\nSee Map, Filter, Cat, etc. for real-world examples.\n\n\n\n\n\n"
+    "text": "Transducers.next(rf::R_{X}, state, input)\n\nThis is the only required interface.  It takes the following form (if start is not defined):\n\nnext(rf::R_{X}, result, input) =\n    # code calling next(inner(rf), result, possibly_modified_input)\n\nSee Map, Filter, Cat, etc. for real-world examples.\n\n\n\n\n\n"
 },
 
 {
@@ -549,7 +573,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Interface",
     "title": "Core interface for transducers",
     "category": "section",
-    "text": "Transducers.Transducer\nTransducers.AbstractFilter\nTransducers.R_\nTransducers.start\nTransducers.next\nTransducers.complete\nTransducers.outtype"
+    "text": "Transducers.Transducer\nTransducers.AbstractFilter\nTransducers.R_\nTransducers.inner\nTransducers.xform\nTransducers.start\nTransducers.next\nTransducers.complete\nTransducers.outtype"
 },
 
 {
@@ -557,7 +581,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Interface",
     "title": "Transducers.wrap",
     "category": "function",
-    "text": "wrap(rf::R_{X}, state, iresult)\n\nPack private state for reducing function rf (or rather the transducer X) with the result iresult returned from the inner reducing function rf.inner.  This packed result is typically passed to the outer reducing function.\n\nThis is intended to be used only in start.  Inside next, use wrapping.\n\nConsider a reducing step constructed as\n\nrf = Reduction(xf₁ |> xf₂ |> xf₃, f, intype)\n\nwhere each xfₙ is a stateful transducer and hence needs a private state stateₙ.  Then, calling start(rf, result)) is equivalent to\n\nwrap(rf,\n     state₁,                     # private state for xf₁\n     wrap(rf.inner,\n          state₂,                # private state for xf₂\n          wrap(rf.inner.inner,\n               state₃,           # private state for xf₃\n               result)))\n\nor equivalently\n\nresult₃ = result\nresult₂ = wrap(rf.inner.inner, state₃, result₃)\nresult₁ = wrap(rf.inner,       state₂, result₂)\nresult₀ = wrap(rf,             state₁, result₁)\n\nThe inner most step function receives the original result as the first argument while transducible processes such as mapfoldl only sees the outer-most \"tree\" result₀ during the reduction.  The whole tree is unwraped during the complete phase.\n\nSee wrapping, unwrap, and start.\n\n\n\n\n\n"
+    "text": "wrap(rf::R_{X}, state, iresult)\n\nPack private state for reducing function rf (or rather the transducer X) with the result iresult returned from the inner reducing function inner(rf).  This packed result is typically passed to the outer reducing function.\n\nThis is intended to be used only in start.  Inside next, use wrapping.\n\nConsider a reducing step constructed as\n\nrf = Reduction(xf₁ |> xf₂ |> xf₃, f, intype)\n\nwhere each xfₙ is a stateful transducer and hence needs a private state stateₙ.  Then, calling start(rf, result)) is equivalent to\n\nwrap(rf,\n     state₁,                     # private state for xf₁\n     wrap(inner(rf),\n          state₂,                # private state for xf₂\n          wrap(inner(rf).inner,\n               state₃,           # private state for xf₃\n               result)))\n\nor equivalently\n\nresult₃ = result\nresult₂ = wrap(inner(inner(rf)), state₃, result₃)\nresult₁ = wrap(inner(rf),        state₂, result₂)\nresult₀ = wrap(rf,               state₁, result₁)\n\nThe inner most step function receives the original result as the first argument while transducible processes such as mapfoldl only sees the outer-most \"tree\" result₀ during the reduction.  The whole tree is unwraped during the complete phase.\n\nSee wrapping, unwrap, and start.\n\n\n\n\n\n"
 },
 
 {
@@ -573,7 +597,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Interface",
     "title": "Transducers.wrapping",
     "category": "function",
-    "text": "wrapping(f, rf, result)\n\nFunction f must take two argument state and iresult, and return a tuple (state, iresult).  This is intended to be used only in next, possibly with a do block.\n\nnext(rf::R_{MyTransducer}, result, input) =\n    wrapping(rf, result) do my_state, iresult\n        # code calling `next(rf.inner, iresult, possibly_modified_input)`\n        return my_state, iresult  # possibly modified\n    end\n\nSee wrap, unwrap, and next.\n\n\n\n\n\n"
+    "text": "wrapping(f, rf, result)\n\nFunction f must take two argument state and iresult, and return a tuple (state, iresult).  This is intended to be used only in next, possibly with a do block.\n\nnext(rf::R_{MyTransducer}, result, input) =\n    wrapping(rf, result) do my_state, iresult\n        # code calling `next(inner(rf), iresult, possibly_modified_input)`\n        return my_state, iresult  # possibly modified\n    end\n\nSee wrap, unwrap, and next.\n\n\n\n\n\n"
 },
 
 {
@@ -597,7 +621,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Interface",
     "title": "Transducers.@return_if_reduced",
     "category": "macro",
-    "text": "@return_if_reduced complete(rf, val)\n\nIt transforms the given expression to:\n\nval isa Reduced && return ensure_reduced(complete(rf, unreduced(val)))\n\nThat is to say, if val is Reduced, unpack it, call complete, re-pack into Reduced, and then finally return it.\n\nExamples\n\njulia> using Transducers: @return_if_reduced\n\njulia> @macroexpand @return_if_reduced complete(rf, val)\n:(val isa Transducers.Reduced && return (Transducers.ensure_reduced)(complete(rf, (Transducers.unreduced)(val))))\n\n\n\n\n\n"
+    "text": "@return_if_reduced complete(rf, val)\n\nIt transforms the given expression to:\n\nval isa Reduced && return reduced(complete(rf, unreduced(val)))\n\nThat is to say, if val is Reduced, unpack it, call complete, re-pack into Reduced, and then finally return it.\n\nExamples\n\njulia> using Transducers: @return_if_reduced\n\njulia> @macroexpand @return_if_reduced complete(rf, val)\n:(val isa Transducers.Reduced && return (Transducers.reduced)(complete(rf, (Transducers.unreduced)(val))))\n\n\n\n\n\n"
 },
 
 {
@@ -733,7 +757,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Writing transducers",
     "title": "How to write transducers",
     "category": "section",
-    "text": "Transducers don\'t export public interface for implementing transducers (and reducible collections).  Let\'s import some handy ones:using Transducers\nusing Transducers: Transducer, R_, next"
+    "text": "Transducers don\'t export public interface for implementing transducers (and reducible collections).  Let\'s import some handy ones:using Transducers\nusing Transducers: Transducer, R_, next, inner, xform"
 },
 
 {
@@ -741,7 +765,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Writing transducers",
     "title": "Stateless transducer",
     "category": "section",
-    "text": "Let\'s write manually what Filter(x -> x isa Int) |> Map(x -> x + 1) would do:struct AddOneIfInt <: Transducer end\n\nfunction Transducers.next(rf::R_{AddOneIfInt}, result, input)\n    if input isa IntOutput input + 1 is passed to the \"inner\" reducing step:        next(rf.inner, result, input + 1)\n    elseFiltering out is done by \"doing nothing\"; return result-so-far as-is:        result\n    end\nendIneed, for integer collection, it increments input by one:addone_out1 = begin  # hide\ncollect(AddOneIfInt(), 1:5)\nend  # hideNon integer elements are filtered out:collect(AddOneIfInt(), Any[3, nothing, 2.0, missing, 5])Notice that output eltype is Any; it can be fixed by defining outtype:Transducers.outtype(::AddOneIfInt, _intype) = Int\n\naddone_out2 = begin  # hide\ncollect(AddOneIfInt(), 1:5)\nend  # hide"
+    "text": "Let\'s write manually what Filter(x -> x isa Int) |> Map(x -> x + 1) would do:struct AddOneIfInt <: Transducer end\n\nfunction Transducers.next(rf::R_{AddOneIfInt}, result, input)\n    if input isa IntOutput input + 1 is passed to the \"inner\" reducing step:        next(inner(rf), result, input + 1)\n    elseFiltering out is done by \"doing nothing\"; return result-so-far as-is:        result\n    end\nendIneed, for integer collection, it increments input by one:addone_out1 = begin  # hide\ncollect(AddOneIfInt(), 1:5)\nend  # hideNon integer elements are filtered out:collect(AddOneIfInt(), Any[3, nothing, 2.0, missing, 5])Notice that output eltype is Any; it can be fixed by defining outtype:Transducers.outtype(::AddOneIfInt, _intype) = Int\n\naddone_out2 = begin  # hide\ncollect(AddOneIfInt(), 1:5)\nend  # hide"
 },
 
 {
@@ -749,7 +773,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Writing transducers",
     "title": "Stateful transducer",
     "category": "section",
-    "text": "AddOneIfInt is a stateless transducer which is very easy to implement.  A stateful transducer needs a bit more code.using Transducers: start, complete, InType, wrap, unwrap, wrapping\nusing RandomLet\'s define a transducer that spits out a random past element from the buffer:struct RandomRecall <: Transducer\n    history::Int\n    seed::Int\nend\nRandomRecall() = RandomRecall(3, 0)\nnothing  # hideA stateful transducer needs to implement Transducers.start to \"allocate\" its private state.  Here, the private state is a buffer and a random number generator state rng:function Transducers.start(rf::R_{RandomRecall}, result)\n    buffer = InType(rf)[]\n    rng = MersenneTwister(rf.xform.seed)\n    private_state = (buffer, rng)\n    return wrap(rf, private_state, start(rf.inner, result))\nendStateful transducer needs to unwrap its private state inside Transducers.next and then re-wrap it.  There is a helper function Transducers.wrapping does that with the do block:function Transducers.next(rf::R_{RandomRecall}, result, input)\n    wrapping(rf, result) do (buffer, rng), iresultPickup a random element to be passed to the inner reducing function. Replace it with the new incoming one in the buffer:        if length(buffer) < rf.xform.history\n            push!(buffer, input)\n            iinput = rand(rng, buffer)\n        else\n            i = rand(rng, 1:length(buffer))\n            iinput = buffer[i]\n            buffer[i] = input\n        endCall the inner reducing function.  Note that iresult unwrapped by Transducers.wrapping must be passed to next:        iresult = next(rf.inner, iresult, iinput)\n        return (buffer, rng), iresult\n    end\nend\n\nTransducers.outtype(::RandomRecall, intype) = intypeIndeed, it picks up some random elements from the past elements:recall_out1 = begin  # hide\ncollect(RandomRecall(), 1:5)\nend  # hideWith slightly more complex transducer:collect(Filter(isodd) |> RandomRecall() |> Filter(x -> x > 10) |> Take(5), 1:100)Another overloadable API is Transducers.complete.  It is invoked at the end of each transducible process.  It is useful for, e.g., flushing buffer.function Transducers.complete(rf::R_{RandomRecall}, result)\n    (buffer, _), iresult = unwrap(rf, result)\n    for x in bufferNote that inner next can be called more than one time inside next and complete:        iresult = next(rf.inner, iresult, x)\n    endcomplete for inner reducing function must be called exactly once:    return complete(rf.inner, iresult)\nendThis then adds 3 (= RandomRecall().history) more elements to the output:recall_out2 = begin  # hide\ncollect(RandomRecall(), 1:5)\nend  # hideThis page was generated using Literate.jl."
+    "text": "AddOneIfInt is a stateless transducer which is very easy to implement.  A stateful transducer needs a bit more code.using Transducers: start, complete, InType, wrap, unwrap, wrapping\nusing RandomLet\'s define a transducer that spits out a random past element from the buffer:struct RandomRecall <: Transducer\n    history::Int\n    seed::Int\nend\nRandomRecall() = RandomRecall(3, 0)\nnothing  # hideA stateful transducer needs to implement Transducers.start to \"allocate\" its private state.  Here, the private state is a buffer and a random number generator state rng:function Transducers.start(rf::R_{RandomRecall}, result)\n    buffer = InType(rf)[]\n    rng = MersenneTwister(xform(rf).seed)\n    private_state = (buffer, rng)\n    return wrap(rf, private_state, start(inner(rf), result))\nendStateful transducer needs to unwrap its private state inside Transducers.next and then re-wrap it.  There is a helper function Transducers.wrapping does that with the do block:function Transducers.next(rf::R_{RandomRecall}, result, input)\n    wrapping(rf, result) do (buffer, rng), iresultPickup a random element to be passed to the inner reducing function. Replace it with the new incoming one in the buffer:        if length(buffer) < xform(rf).history\n            push!(buffer, input)\n            iinput = rand(rng, buffer)\n        else\n            i = rand(rng, 1:length(buffer))\n            iinput = buffer[i]\n            buffer[i] = input\n        endCall the inner reducing function.  Note that iresult unwrapped by Transducers.wrapping must be passed to next:        iresult = next(inner(rf), iresult, iinput)\n        return (buffer, rng), iresult\n    end\nend\n\nTransducers.outtype(::RandomRecall, intype) = intypeIndeed, it picks up some random elements from the past elements:recall_out1 = begin  # hide\ncollect(RandomRecall(), 1:5)\nend  # hideWith slightly more complex transducer:collect(Filter(isodd) |> RandomRecall() |> Filter(x -> x > 10) |> Take(5), 1:100)Another overloadable API is Transducers.complete.  It is invoked at the end of each transducible process.  It is useful for, e.g., flushing buffer.function Transducers.complete(rf::R_{RandomRecall}, result)\n    (buffer, _), iresult = unwrap(rf, result)\n    for x in bufferNote that inner next can be called more than one time inside next and complete:        iresult = next(inner(rf), iresult, x)\n    endcomplete for inner reducing function must be called exactly once:    return complete(inner(rf), iresult)\nendThis then adds 3 (= RandomRecall().history) more elements to the output:recall_out2 = begin  # hide\ncollect(RandomRecall(), 1:5)\nend  # hideThis page was generated using Literate.jl."
 },
 
 {
