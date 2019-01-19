@@ -209,13 +209,9 @@ struct MissingInit end
 provide_init(rf::AbstractReduction, init) = initvalue(init, InType(rf))
 function provide_init(rf::AbstractReduction, ::MissingInit)
     T = finaltype(rf)
-    op = innermost_rf(rf)
+    op = as(rf, BottomRF).inner
     return identityof(op, T)
 end
-
-innermost_rf(rf::AbstractReduction) = innermost_rf(inner(rf))
-innermost_rf(f) = f
-innermost_rf(o::Completing) = innermost_rf(o.f)
 
 # Materialize initial value and then call start.
 _start_init(rf, init) = start(rf, provide_init(rf, init))
@@ -467,7 +463,7 @@ _map!(rf, coll, dest) = transduce(darkritual(rf, dest), nothing, coll)
 # magic...  My reasoning of how it works could be completely wrong.
 # But at least it should not change the semantics of the function.)
 @inline darkritual(rf::R, dest) where {R <: Reduction} =
-    if inner(rf) isa AbstractReduction
+    if !(inner(rf) isa BottomRF)
         R(xform(rf), darkritual(inner(rf), dest))
     else
         @assert xform(rf).array === dest

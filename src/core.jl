@@ -129,6 +129,30 @@ Return the transducer `xf` associated with `rf`.  Returned transducer
 """
 xform(rf::AbstractReduction) = rf.xform
 
+struct BottomRF{intype, F} <: AbstractReduction{intype}
+    inner::F
+end
+
+BottomRF{intype}(f::F) where {intype, F} = BottomRF{intype, F}(f)
+
+ensurerf(rf::AbstractReduction, ::Type) = rf
+ensurerf(f, intype::Type) = BottomRF{intype}(f)
+
+# Not calling rf.inner(result, input) etc. directly since it can be
+# `Completing` etc.
+start(rf::BottomRF, result) = start(inner(rf), result)
+next(rf::BottomRF, result, input) = next(inner(rf), result, input)
+complete(rf::BottomRF, result) = complete(inner(rf), result)
+combine(rf::BottomRF, a, b) = combine(inner(rf), a, b)
+
+finaltype(::BottomRF{intype}) where intype = intype
+finaltype(rf::AbstractReduction) = finaltype(inner(rf))
+
+Transducer(::BottomRF) = IdentityTransducer()
+
+as(rf::T, ::Type{T}) where T = rf
+as(rf, T::Type) = as(inner(rf), T)
+
 # In clojure a reduction function is one of signature
 # whatever, input -> whatever
 #
@@ -143,9 +167,12 @@ struct Reduction{X <: Transducer, I, intype} <: AbstractReduction{intype}
     inner::I
 end
 
-Transducer(rf::Reduction{<:Transducer, <:AbstractReduction}) =
-    Composition(xform(rf), Transducer(inner(rf)))
-Transducer(rf::Reduction) = xform(rf)
+Transducer(rf::Reduction) =
+    if inner(rf) isa BottomRF
+        xform(rf)
+    else
+        Composition(xform(rf), Transducer(inner(rf)))
+    end
 
 """
     Transducers.R_{X}
@@ -157,8 +184,12 @@ transducer `xform(rf)::X` and the inner reducing function
 """
 const R_{X} = Reduction{<:X}
 
-@inline Reduction(xf::X, inner::I, ::Type{InType}) where {X, I, InType} =
-    Reduction{X, I, InType}(xf, inner)
+Reduction(xf::X, inner::I, ::Type{InType}) where {X, I, InType} =
+    if I <: AbstractReduction
+        Reduction{X, I, InType}(xf, inner)
+    else
+        Reduction(xf, ensurerf(inner, outtype(xf, InType)), InType)
+    end
 
 @inline function Reduction(xf_::Composition, f, intype::Type)
     xf = _normalize(xf_)
@@ -391,13 +422,6 @@ Output item type for the transducer `xf` when the input type is `intype`.
 outtype(::Any, ::Any) = Any
 outtype(::AbstractFilter, intype) = intype
 
-finaltype(rf::Reduction) =
-    if inner(rf) isa AbstractReduction
-        finaltype(inner(rf))
-    else
-        outtype(xform(rf), InType(rf))
-    end
-
 # isexpansive(::Any) = true
 isexpansive(::Transducer) = true
 isexpansive(::AbstractFilter) = false
@@ -433,6 +457,8 @@ start(rf::Completing, result) = start(rf.f, result)
 next(rf::Completing, result, input)  = next(rf.f, result, input)
 complete(::Completing, result) = result
 combine(rf::Completing, a, b) = combine(rf.f, a, b)
+
+identityof(rf::Completing, T) = identityof(rf.f, T)
 
 # If I expose `Reduction` as a user-interface, I should export
 # `skipcomplete` instead of the struct `Completing`.

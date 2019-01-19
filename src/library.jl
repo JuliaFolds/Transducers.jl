@@ -1395,14 +1395,6 @@ where
     inner = $inner
 """)
 
-finaltype(rf::Splitter) = finaltype(inner(rf))
-finaltype(rf::Joiner) =
-    if inner(rf) isa AbstractReduction
-        finaltype(inner(rf))
-    else
-        InType(rf)
-    end
-
 # It's ugly that `Reduction` returns a non-`Reduction` type!  TODO: fix it
 function Reduction(xf::Composition{<:TeeZip}, f, intype::Type)
     @nospecialize
@@ -1428,7 +1420,7 @@ function _teezip_rf(xf, intype, downstream)
     xf_ds, f, intype_orig = downstream
     intype_ds = Tuple{intype_orig, outtype(xf, intype)}
     if xf_ds === nothing
-        rf_ds = f
+        rf_ds = ensurerf(f, intype_ds)
     else
         rf_ds = Reduction(xf_ds, f, intype_ds)
     end
@@ -1483,11 +1475,7 @@ outtype(xf::TeeZip, intype) = Tuple{intype, outtype(xf.xform, intype)}
 
 function Transducer(rf::Splitter)
     xf_split, rf_ds = _rf_to_teezip(inner(rf))
-    if rf_ds isa AbstractReduction
-        return TeeZip(xf_split) |> Transducer(rf_ds)
-    else
-        return TeeZip(xf_split)
-    end
+    return TeeZip(xf_split) |> Transducer(rf_ds)
 end
 
 function _rf_to_teezip(rf::Reduction)
@@ -1621,7 +1609,7 @@ SetIndex{inbounds}(array::A) where {inbounds, A} = SetIndex{inbounds, A}(array)
 SetIndex(array) = SetIndex{false}(array)
 
 isexpansive(::SetIndex) = false
-outtype(xf::SetIndex, ::Type{<:Integer}) = eltype(xf.array)
+outtype(xf::SetIndex, ::Type{<:Tuple{Integer, <:Any}}) = eltype(xf.array)
 outtype(::SetIndex, T) =
     error("Unexpected non-integer input type for SetIndex:\n", T)
 

@@ -178,6 +178,7 @@ function _show_intype(io, rf)
 end
 
 _show_type(io, t) = show(io, t)
+_show_type(io, t::Type{Union{}}) = show(io, t)
 
 function _show_type(io, t::Type{<:Tuple})
     print(io, '⦃')
@@ -193,7 +194,7 @@ function _show_type(io, t::Type{<:Tuple})
     print(io, '⦄')
 end
 
-function _show_impl(io, mime, rf::Reduction)
+function _show_impl(io, mime, rf::AbstractReduction)
     indent = get(io, :indent, "")
     first_indent = get(io, :first_indent, indent)
     next_indent = indent * ' ' ^ 4
@@ -202,56 +203,38 @@ function _show_impl(io, mime, rf::Reduction)
                         :first_indent => next_indent)
 
     print(io, first_indent)
-    print(io, "Reduction")
+    print(io, Base.typename(typeof(rf)).name)
     _show_intype(io, rf)
     println(io, '(')
-    _show_impl(next_io, mime, xform(rf))
-    println(io, ",")
-    _show_impl(next_io, mime, inner(rf))
+    _show_multiline_args(next_io, mime, rf)
     print(io, ")")
     return
 end
 
-function _show_impl(io, mime, rf::Splitter)
-    indent = get(io, :indent, "")
-    first_indent = get(io, :first_indent, indent)
-    next_indent = indent * ' ' ^ 4
-    next_io = IOContext(io,
-                        :indent => next_indent,
-                        :first_indent => next_indent)
-
-    print(io, first_indent)
-    print(io, "Splitter")
-    _show_intype(io, rf)
-    println(io, '(')
-    _show_impl(next_io, mime, inner(rf))
+function _show_multiline_args(io, mime, rf::Reduction)
+    _show_impl(io, mime, xform(rf))
     println(io, ",")
-    _show_impl(next_io, mime, rf.lens)
-    print(io, ")")
-    return
+    _show_impl(io, mime, inner(rf))
 end
 
-function _show_impl(io, mime, rf::Joiner)
-    indent = get(io, :indent, "")
-    first_indent = get(io, :first_indent, indent)
-    next_indent = indent * ' ' ^ 4
-    next_io = IOContext(io,
-                        :indent => next_indent,
-                        :first_indent => next_indent)
+function _show_multiline_args(io, mime, rf::BottomRF)
+    _show_impl(io, mime, inner(rf))
+end
 
-    print(io, first_indent)
-    print(io, "Joiner")
-    _show_intype(io, rf)
-    println(io, '(')
-    _show_impl(next_io, mime, inner(rf))
+function _show_multiline_args(io, mime, rf::Splitter)
+    _show_impl(io, mime, inner(rf))
+    println(io, ",")
+    _show_impl(io, mime, rf.lens)
+end
+
+function _show_multiline_args(io, mime, rf::Joiner)
+    _show_impl(io, mime, inner(rf))
     println(io, ",")
     if isdefined(rf, :value)
-        _show_impl(next_io, mime, rf.value)
+        _show_impl(io, mime, rf.value)
     else
-        _show_impl(next_io, mime, Text("#undef"))
+        _show_impl(io, mime, Text("#undef"))
     end
-    print(io, ")")
-    return
 end
 
 @specialize

@@ -23,7 +23,17 @@ const DenseSubVector{T} =
     SubArray{T, 1, Vector{T}, Tuple{UnitRange{Int64}}, true}
 
 
+const _non_executable_transducer_msg = """
+Output type of the transducer is inferred to be a `Union{}`.  This
+probably means one or more of the composed transducers throw.
+"""
+
 function identityof(op, e)
+    e === Union{} && error("""
+$_non_executable_transducer_msg
+You can pass `init` argument to run the transducer forcefully and find
+out which one causes the problem.
+""")
     e === Any && error("""
 Input type to the reducing function `$op` cannot be inferred (it is
 inferred to be `$e`).
@@ -43,17 +53,6 @@ identityof(::typeof(min), e) = typemax(e)
 identityof(::typeof(max), e) = typemin(e)
 identityof(::typeof(append!), e) = empty(e)
 ridentityof(::typeof(append!), e) = ()
-
-const _non_executable_transducer_msg = """
-Output type of the transducer is inferred to be a `Union{}`.  This
-probably means one or more of the composed transducers throw.
-"""
-
-identityof(::Any, ::Type{Union{}}) = error("""
-$_non_executable_transducer_msg
-You can pass `init` argument to run the transducer forcefully and find
-out which one causes the problem.
-""")
 
 @inline _poptail(xs) = _poptail_impl(xs...)
 @inline _poptail_impl(a) = (), a
