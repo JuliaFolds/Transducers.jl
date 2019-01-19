@@ -106,6 +106,35 @@ end
     end
 end
 
+
+@testset "setinput" begin
+    xf = Zip(Count(), Map(identity), Map(x -> 2x)) |> MapSplat(*)
+    ed = eduction(xf, 1:10)
+
+    @testset for xs in iterator_variants(1:10)
+        @test setinput(ed, xs).coll isa typeof(xs)
+        @test collect(setinput(ed, xs)) == collect(ed)
+    end
+
+    @testset "changing eltype" begin
+        edchar = eduction(Zip(Map(identity), Count()), "abc")
+        @test eltype(edchar) === Tuple{Char, Int}
+        edf64 = setinput(edchar, Float64[])
+        @test eltype(edf64) === Tuple{Float64, Int}
+    end
+
+    @testset "inference" begin
+        @test (@inferred setinput(ed, [0])).coll isa Vector{Int}
+        @test (@inferred setinput(ed, view([0], 1:1))).coll isa SubArray{Int}
+
+        err = @test_error @inferred setinput(ed, Float64[])
+        msg = sprint(showerror, err)
+        @test occursin("return type", msg)
+        @test occursin("does not match inferred return type", msg)
+    end
+end
+
+
 # Custom container without unary push! method
 struct MinimalContainer
     internal

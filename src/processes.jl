@@ -378,6 +378,54 @@ eduction(xform, coll) = Eduction(xform, coll)
 # `skipmissing` so maybe this is better for more uniform API.
 
 """
+    setinput(ed::Eduction, coll)
+
+Set input collection of eduction `ed` to `coll`.  This is efficient
+than re-creating an `Eduction` with a new `coll` if `eltype` of old
+and new input collections are the same.
+
+# Examples
+```jldoctest setinput
+julia> using Transducers
+
+julia> ed = eduction(Map(x -> 2x), Float64[]);
+```
+
+Here, we created an `Eduction` with input container whose `eltype` is
+`Float64`.  It can be used later with different container.
+
+```jldoctest setinput
+julia> using Test
+
+julia> xs = ones(2, 3);
+
+julia> foldl(+, @inferred setinput(ed, xs))
+12.0
+```
+
+Note that we changed the container type from `Vector` to `Matrix`
+while using the same `eltype`.  In this case, `setinput` is inferrable
+and thus can be compiled away.  It is also possible to set container
+with different `eltype` although not inferrable in this case:
+
+```jldoctest setinput; filter = r"Transducers\\.Eduction.*"
+julia> xs = ones(Int, 2, 3);
+
+julia> foldl(+, setinput(ed, xs))
+12
+
+julia> foldl(+, @inferred setinput(ed, xs))
+ERROR: return type Transducers.Eduction{...} does not match inferred return type ...
+[...]
+```
+"""
+setinput(ed::Eduction, coll) =
+    _setinput(eltype(ed.coll), eltype(coll), ed, coll)
+
+_setinput(::Type{T}, ::Type{T}, ed, coll) where T = @set ed.coll = coll
+_setinput(::Type, ::Type, ed, coll) = eduction(Transducer(ed), coll)
+
+"""
     append!(xf::Transducer, dest, src)
 
 This API is modeled after $(_cljref("into")).
@@ -528,6 +576,11 @@ The first form is a shorthand for `mapfoldl(xf, Completing(step),
 reducible)`.  It is intended to be used with a `do` block.  It is also
 equivalent to `foldl(step, eduction(xf, itr))`.
 
+`foldl(step, ed)` is useful when calling transducers in a tight loop
+where setup cost for `foldl(step, xf, reducible)`, `mapfoldl(xf, step,
+reducible)`, etc. is not negligible.  See [`setinput`](@ref) for how
+to reset input collection of an `Eduction`.
+
 See: [`mapfoldl`](@ref).
 
 # Examples
@@ -585,7 +638,7 @@ Statements in native `for` loop can be translated as follows:
 | `break`    | [`return reduced()`](@ref reduced) |
 | `continue` | `return`                           |
 
-See: [`mapfoldl`](@ref), [`reduced`](@ref).
+See: [`mapfoldl`](@ref), [`reduced`](@ref), [`setinput`](@ref).
 
 # Examples
 ```jldoctest

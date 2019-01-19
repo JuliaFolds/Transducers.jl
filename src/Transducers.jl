@@ -4,13 +4,13 @@ export Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, Zip,
     Replace, TakeWhile, TakeNth, Drop, DropLast, DropWhile, Keep, Distinct,
     Interpose, Dedupe, Partition, Iterated, Count,
     TakeLast, FlagFirst, MapSplat, ScanEmit, Enumerate, NotA, OfType,
-    transduce, eduction, reduced,
+    transduce, eduction, reduced, setinput,
     Completing, Initializer, right
 
 using ArgCheck
 
 import Setfield
-using Setfield: @lens, set
+using Setfield: @lens, @set, set
 
 include("basics.jl")
 include("core.jl")
