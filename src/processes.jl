@@ -368,6 +368,12 @@ x = 5
 ```
 """
 eduction(xform, coll) = Eduction(xform, coll)
+# Note on `simd` keyword argument: `eduction` ATM does not support
+# `simd` argument which could be done in principle.  However, how
+# `foldl` and `foreach` with `Eduction` treat `simd` argument must be
+# tweaked if that happens.
+#
+# Note on API:
 # Exporting `Eduction` could also work.  But `Base` has, e.g.,
 # `skipmissing` so maybe this is better for more uniform API.
 
@@ -542,9 +548,9 @@ function Base.foldl(step, xform::Transducer, itr;
     mapfoldl(xform, Completing(step), itr; kw...)
 end
 
-function Base.foldl(step, ed::Eduction; kw...)
-    foldl(step, Transducer(ed), ed.coll; kw...)
-end
+Base.foldl(step, ed::Eduction; init=MissingInit(), kwargs...) =
+    unreduced(transduce(reform(ed.rf, Completing(step)), init, ed.coll;
+                        kwargs...))
 
 """
     foreach(eff, xf::Transducer, reducible; simd)
@@ -604,7 +610,8 @@ input = 2
 Base.foreach(eff, xform::Transducer, coll; kwargs...) =
     unreduced(transduce(xform, SideEffect(eff), nothing, coll; kwargs...))
 Base.foreach(eff, ed::Eduction; kwargs...) =
-    foreach(eff, Transducer(ed), ed.coll; kwargs...)
+    unreduced(transduce(reform(ed.rf, SideEffect(eff)), nothing, ed.coll;
+                        kwargs...))
 
 
 """

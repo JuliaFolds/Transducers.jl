@@ -218,6 +218,16 @@ outtype(xf::Composition, intype) = outtype(xf.inner, outtype(xf.outer, intype))
 @inline Base.:|>(f::Transducer, ::IdentityTransducer) = f
 
 """
+    reform(rf, f)
+
+Reset "bottom" reducing function of `rf` to `f`.
+"""
+reform(rf::Reduction, f) =
+    Reduction(xform(rf), reform(inner(rf), f), InType(rf))
+reform(rf::BottomRF, f) = BottomRF{InType(rf)}(reform(inner(rf), f))
+reform(::Any, f) = f
+
+"""
     Transducers.start(rf::R_{X}, state)
 
 This is an optional interface for a transducer.  Default

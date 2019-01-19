@@ -88,6 +88,22 @@ end
 
     ed = eduction(xf, 1:5)
     @test eltype(ed) === Int
+
+    @testset "inference" begin
+        xf = Zip(Count(), Map(identity), Map(x -> 2x)) |> MapSplat(*)
+        ed = eduction(xf, 1:10)
+        @test (@inferred foldl(+, ed)) === 6050
+    end
+
+    @testset "foreach" begin
+        ed = eduction(Map(identity), 1:10)
+        result = []
+        @test foreach(ed) do x
+            x > 5 && return reduced()
+            push!(result, x)
+        end === nothing
+        @test result == 1:5
+    end
 end
 
 # Custom container without unary push! method

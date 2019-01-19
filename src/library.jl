@@ -1366,6 +1366,8 @@ Splitter(inner::R, lens::L) where {R, L} =
 
 setinner(rf::Splitter, inner) = Splitter(inner, rf.lens)
 
+reform(rf::Splitter, f) = Splitter(reform(inner(rf), f), rf.lens)
+
 struct Joiner{intype, F, T} <: AbstractReduction{intype}
     inner::F  # original inner reduction
     value::T  # original input
@@ -1387,6 +1389,11 @@ end
 
 setinner(rf::Joiner{intype, <:Any, T}, inner) where {intype, T} =
     Joiner{intype, typeof(inner), T}(inner, rf.value)
+
+function reform(rf::Joiner{intype,<:Any,T}, f) where {intype, T}
+    newinner = reform(inner(rf), f)
+    Joiner{intype, typeof(newinner), T}(newinner, rf.value)
+end
 
 @inline _joiner_error(::Any, ::Any) = nothing
 @inline _joiner_error(inner::Reduction, intype) =
