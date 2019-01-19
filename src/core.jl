@@ -167,6 +167,9 @@ struct Reduction{X <: Transducer, I, intype} <: AbstractReduction{intype}
     inner::I
 end
 
+prependxf(rf::AbstractReduction, xf) = Reduction(xf, rf, InType(rf))
+setinner(rf::Reduction, inner) = Reduction(xform(rf), inner, InType(rf))
+
 Transducer(rf::Reduction) =
     if inner(rf) isa BottomRF
         xform(rf)

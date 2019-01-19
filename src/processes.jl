@@ -198,10 +198,9 @@ See [`mapfoldl`](@ref).
 """
 transduce
 
-function transduce(xform::Transducer, f, init, coll;
-                   simd = false)
-    rf = Reduction(maybe_usesimd(xform, simd), f, eltype(coll))
-    return transduce(rf, init, coll)
+function transduce(xform::Transducer, f, init, coll; kwargs...)
+    rf = Reduction(xform, f, eltype(coll))
+    return transduce(rf, init, coll; kwargs...)
 end
 
 struct MissingInit end
@@ -217,9 +216,10 @@ end
 _start_init(rf, init) = start(rf, provide_init(rf, init))
 
 # TODO: should it be an internal?
-@inline function transduce(rf::AbstractReduction, init, coll)
+@inline function transduce(rf0::AbstractReduction, init, coll; simd=false)
     # Inlining `transduce` and `__foldl__` were essential for the
     # `darkritual` below to work.
+    rf = maybe_usesimd(rf0, simd)
     return __foldl__(rf, _start_init(rf, init), coll)
 end
 
@@ -276,7 +276,7 @@ function Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
                         init = MissingInit(),
                         simd = false,
                         kwargs...)
-    rf = Reduction(maybe_usesimd(xform, simd), step, eltype(itr))
+    rf = maybe_usesimd(Reduction(xform, step, eltype(itr)), simd)
     return unreduced(__reduce__(rf, init, itr; kwargs...))
 end
 
@@ -480,12 +480,12 @@ function _prepare_map(xf, dest, src, simd)
     # TODO: support Dict
     indices = eachindex(dest, src)
 
-    rf = Reduction(
-        maybe_usesimd(
+    rf = maybe_usesimd(
+        Reduction(
             TeeZip(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
-            simd),
-        (::Vararg) -> nothing,
-        eltype(indices))
+            (::Vararg) -> nothing,
+            eltype(indices)),
+        simd)
 
     return rf, indices, dest
 end

@@ -58,73 +58,96 @@ Insert `UseSIMD` to `xform` if appropriate.
 julia> using Transducers
        using Transducers: maybe_usesimd
 
-julia> maybe_usesimd(Map(identity), false)
-Map(identity)
+julia> maybe_usesimd(eduction(Map(identity), 1:1).rf, false)
+Reduction{▶ Int64}(
+    Map(identity),
+    BottomRF{▶ Int64}(
+        Completing{typeof(push!)}(push!)))
 
-julia> maybe_usesimd(Map(identity), true)
-Transducers.UseSIMD{false}() |>
-    Map(identity)
+julia> maybe_usesimd(eduction(Map(identity), 1:1).rf, true)
+Reduction{▶ Int64}(
+    Transducers.UseSIMD{false}(),
+    Reduction{▶ Int64}(
+        Map(identity),
+        BottomRF{▶ Int64}(
+            Completing{typeof(push!)}(push!))))
 
-julia> maybe_usesimd(Cat(), true)
-Cat() |>
-    Transducers.UseSIMD{false}()
+julia> maybe_usesimd(eduction(Cat(), 1:1).rf, true)
+Reduction{▶ Int64}(
+    Cat(),
+    Reduction{▶ Int64}(
+        Transducers.UseSIMD{false}(),
+        BottomRF{▶ Int64}(
+            Completing{typeof(push!)}(push!))))
 
-julia> maybe_usesimd(Map(sin) |> Cat() |> Map(cos), :ivdep)
-Map(sin) |>
-    Cat() |>
-    Transducers.UseSIMD{true}() |>
-    Map(cos)
+julia> maybe_usesimd(eduction(Map(sin) |> Cat() |> Map(cos), 1:1).rf, :ivdep)
+Reduction{▶ Int64}(
+    Map(sin),
+    Reduction{▶ Float64}(
+        Cat(),
+        Reduction{▶ Float64}(
+            Transducers.UseSIMD{true}(),
+            Reduction{▶ Float64}(
+                Map(cos),
+                BottomRF{▶ Float64}(
+                    Completing{typeof(push!)}(push!))))))
 
-julia> maybe_usesimd(Map(sin) |> Cat() |> Map(cos) |> Cat() |> Map(tan), true)
-Map(sin) |>
-    Cat() |>
-    Map(cos) |>
-    Cat() |>
-    Transducers.UseSIMD{false}() |>
-    Map(tan)
+julia> maybe_usesimd(eduction(Map(sin) |> Cat() |> Map(cos) |> Cat() |> Map(tan), 1:1).rf, true)
+Reduction{▶ Int64}(
+    Map(sin),
+    Reduction{▶ Float64}(
+        Cat(),
+        Reduction{▶ Float64}(
+            Map(cos),
+            Reduction{▶ Float64}(
+                Cat(),
+                Reduction{▶ Float64}(
+                    Transducers.UseSIMD{false}(),
+                    Reduction{▶ Float64}(
+                        Map(tan),
+                        BottomRF{▶ Float64}(
+                            Completing{typeof(push!)}(push!))))))))
 ```
 """
-maybe_usesimd(xform::Transducer, simd::Union{Bool,Symbol}) =
+maybe_usesimd(rf::AbstractReduction, simd::Union{Bool,Symbol}) =
     if simd === true
-        usesimd(xform, UseSIMD{false}())
+        usesimd(rf, UseSIMD{false}())
     elseif simd === :ivdep
-        usesimd(xform, UseSIMD{true}())
+        usesimd(rf, UseSIMD{true}())
     elseif simd === false
-        xform
+        rf
     else
         error("Unknown `simd` argument: ", simd)
     end
 
 """
-    usesimd(xform::Transducer, xfsimd::UseSIMD)
+    usesimd(rf::Reduction, xfsimd::UseSIMD)
 
-Wrap the inner-most loop of Transducer `xform` with `UseSIMD{ivdep}`.
-It's almost equivalent to `UseSIMD{ivdep}() |> xform` except that
-`UseSIMD{ivdep}()` is inserted after the inner-most `Cat` if `xform`
-includes `Cat`.
+Wrap the inner-most loop of reducing function `rf` with `xfsimd`.
+`xfsimd` is inserted after the inner-most `Cat` if `rf` includes
+`Cat`.
 """
-function usesimd(xform::Transducer, xfsimd::UseSIMD)
-    xf, used = _usesimd(xform, xfsimd)
+function usesimd(rf0::AbstractReduction, xfsimd::UseSIMD)
+    rf, used = _usesimd(rf0, xfsimd)
     if used
-        return xf
+        return rf
     else
-        return xfsimd |> xf
+        return prependxf(rf, xfsimd)
     end
 end
 
-_usesimd(xf, ::Any) = xf, false
-_usesimd(xf::Cat, xfsimd) = xf |> xfsimd, true
+_usesimd(rf::BottomRF, ::Any) = rf, false
 
-function _usesimd(xf::Composition, xfsimd)
-    inner, used = _usesimd(xf.inner, xfsimd)
-    return xf.outer |> inner, used
+function _usesimd(rf::AbstractReduction, xfsimd)
+    rf_inner, used = _usesimd(inner(rf), xfsimd)
+    return setinner(rf, rf_inner), used
 end
 
-function _usesimd(xf::Composition{<:Cat}, xfsimd)
-    inner, used = _usesimd(xf.inner, xfsimd)
+function _usesimd(rf::R_{Cat}, xfsimd)
+    rf_inner, used = _usesimd(inner(rf), xfsimd)
     if used
-        return xf.outer |> inner, true
+        return setinner(rf, rf_inner), true
     else
-        return xf.outer |> xfsimd |> inner, true
+        return setinner(rf, prependxf(rf_inner, xfsimd)), true
     end
 end
