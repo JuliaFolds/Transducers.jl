@@ -34,6 +34,15 @@ true
 
 julia> unreduced(result)
 15
+
+julia> result = transduce(Map(identity), Completing(step_demo), 0, 1:4)
+10
+
+julia> result isa Reduced
+false
+
+julia> unreduced(result)
+10
 ```
 """
 struct Reduced{T}
