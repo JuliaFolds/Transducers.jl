@@ -93,7 +93,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Base.foldl",
     "category": "function",
-    "text": "foldl(step, xf::Transducer, reducible; init, simd)\nfoldl(step, ed::Eduction; init, simd)\n\nThe first form is a shorthand for mapfoldl(xf, Completing(step), reducible).  It is intended to be used with a do block.  It is also equivalent to foldl(step, eduction(xf, itr)).\n\nSee: mapfoldl.\n\nExamples\n\njulia> using Transducers\n\njulia> foldl(Filter(isodd), 1:4, init=0.0) do state, input\n           @show state, input\n           state + input\n       end\n(state, input) = (0.0, 1)\n(state, input) = (1.0, 3)\n4.0\n\n\n\n\n\n"
+    "text": "foldl(step, xf::Transducer, reducible; init, simd)\nfoldl(step, ed::Eduction; init, simd)\n\nThe first form is a shorthand for mapfoldl(xf, Completing(step), reducible).  It is intended to be used with a do block.  It is also equivalent to foldl(step, eduction(xf, itr)).\n\nfoldl(step, ed) is useful when calling transducers in a tight loop where setup cost for foldl(step, xf, reducible), mapfoldl(xf, step, reducible), etc. is not negligible.  See setinput for how to reset input collection of an Eduction.\n\nSee: mapfoldl.\n\nExamples\n\njulia> using Transducers\n\njulia> foldl(Filter(isodd), 1:4, init=0.0) do state, input\n           @show state, input\n           state + input\n       end\n(state, input) = (0.0, 1)\n(state, input) = (1.0, 3)\n4.0\n\n\n\n\n\n"
 },
 
 {
@@ -101,7 +101,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Base.foreach",
     "category": "function",
-    "text": "foreach(eff, xf::Transducer, reducible; simd)\nforeach(eff, ed::Eduction; simd)\n\nFeed the results of xf processing items in reducible into a unary function eff.  This is useful when the primary computation at the bottom is the side-effect.  It is also equivalent to foreach(eff, eduction(xf, coll)).  Note that\n\nforeach(eduction(xf, coll)) do x\n    ...\nend\n\ncan be more efficient than\n\nfor x in eduction(xf, coll)\n    ...\nend\n\nas the former does not have to translate the transducer protocol to the iterator protocol.\n\nStatements in native for loop can be translated as follows:\n\nfor foreach\nbreak return reduced()\ncontinue return\n\nSee: mapfoldl, reduced.\n\nExamples\n\njulia> using Transducers\n\njulia> foreach(eduction(Filter(isodd), 1:4)) do input\n           @show input\n       end\ninput = 1\ninput = 3\n\njulia> foreach(Filter(!ismissing), [1, missing, 2, 3]) do input\n           @show input\n           if iseven(input)\n               return reduced()\n           end\n       end\ninput = 1\ninput = 2\n\n\n\n\n\n"
+    "text": "foreach(eff, xf::Transducer, reducible; simd)\nforeach(eff, ed::Eduction; simd)\n\nFeed the results of xf processing items in reducible into a unary function eff.  This is useful when the primary computation at the bottom is the side-effect.  It is also equivalent to foreach(eff, eduction(xf, coll)).  Note that\n\nforeach(eduction(xf, coll)) do x\n    ...\nend\n\ncan be more efficient than\n\nfor x in eduction(xf, coll)\n    ...\nend\n\nas the former does not have to translate the transducer protocol to the iterator protocol.\n\nStatements in native for loop can be translated as follows:\n\nfor foreach\nbreak return reduced()\ncontinue return\n\nSee: mapfoldl, reduced, setinput.\n\nExamples\n\njulia> using Transducers\n\njulia> foreach(eduction(Filter(isodd), 1:4)) do input\n           @show input\n       end\ninput = 1\ninput = 3\n\njulia> foreach(Filter(!ismissing), [1, missing, 2, 3]) do input\n           @show input\n           if iseven(input)\n               return reduced()\n           end\n       end\ninput = 1\ninput = 2\n\n\n\n\n\n"
 },
 
 {
@@ -441,6 +441,38 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "manual/#Transducers.Reduced",
+    "page": "Manual",
+    "title": "Transducers.Reduced",
+    "category": "type",
+    "text": "Reduced\n\nThe type signaling transducible processes to abort.\n\nnote: Note\nCall reduced function for aborting the transducible process since reduced makes sure x is not doubly wrapped.  Reduced is meant to be used as x isa Reduced for checking if the result from transduce is due to early termination.\n\nSee reduced, unreduced.\n\nExamples\n\njulia> using Transducers\n\njulia> function step_demo(y, x)\n           if x > 5\n               return reduced(y)\n           else\n               return y + x\n           end\n       end;\n\njulia> result = transduce(Map(identity), Completing(step_demo), 0, 1:10)\nReduced{Int64}(15)\n\njulia> result isa Reduced\ntrue\n\njulia> unreduced(result)\n15\n\njulia> result = transduce(Map(identity), Completing(step_demo), 0, 1:4)\n10\n\njulia> result isa Reduced\nfalse\n\njulia> unreduced(result)\n10\n\n\n\n\n\n"
+},
+
+{
+    "location": "manual/#Transducers.reduced",
+    "page": "Manual",
+    "title": "Transducers.reduced",
+    "category": "function",
+    "text": "reduced([x = nothing])\n\nStop transducible process with the final value x (default: nothing).  Return x as-is if it\'s already is a reduced value.\n\nSee Reduced, unreduced.\n\nThis API is modeled after ensure-reduced in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> foldl(Enumerate(), \"abcdef\"; init=0) do y, (i, x)\n           if x == \'d\'\n               return reduced(y)\n           end\n           return y + i\n       end\n6\n\njulia> foreach(Enumerate(), \"abc\") do (i, x)\n           println(i, \' \', x)\n           if x == \'b\'\n               return reduced()\n           end\n       end\n1 a\n2 b\n\n\n\n\n\n"
+},
+
+{
+    "location": "manual/#Transducers.unreduced",
+    "page": "Manual",
+    "title": "Transducers.unreduced",
+    "category": "function",
+    "text": "unreduced(x)\n\nUnwrap x if it is a Reduced; do nothing otherwise.\n\nSee Reduced, reduced.\n\nThis API is modeled after unreduced in Clojure.\n\n\n\n\n\n"
+},
+
+{
+    "location": "manual/#Early-termination-1",
+    "page": "Manual",
+    "title": "Early termination",
+    "category": "section",
+    "text": "Reduced\nreduced\nunreduced"
+},
+
+{
     "location": "manual/#Transducers.Completing",
     "page": "Manual",
     "title": "Transducers.Completing",
@@ -465,11 +497,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "manual/#Transducers.reduced",
+    "location": "manual/#Transducers.setinput",
     "page": "Manual",
-    "title": "Transducers.reduced",
+    "title": "Transducers.setinput",
     "category": "function",
-    "text": "reduced([x = nothing])\n\nStop transducible process with the final value x (default: nothing).  Return x as-is if it\'s already is a reduced value.\n\nExamples\n\njulia> using Transducers\n\njulia> foldl(Enumerate(), \"abcdef\"; init=0) do y, (i, x)\n           if x == \'d\'\n               return reduced(y)\n           end\n           return y + i\n       end\n6\n\njulia> foreach(Enumerate(), \"abc\") do (i, x)\n           println(i, \' \', x)\n           if x == \'b\'\n               return reduced()\n           end\n       end\n1 a\n2 b\n\n\n\n\n\n"
+    "text": "setinput(ed::Eduction, coll)\n\nSet input collection of eduction ed to coll.  This is efficient than re-creating an Eduction with a new coll if eltype of old and new input collections are the same.\n\nExamples\n\njulia> using Transducers\n\njulia> ed = eduction(Map(x -> 2x), Float64[]);\n\nHere, we created an Eduction with input container whose eltype is Float64.  It can be used later with different container.\n\njulia> using Test\n\njulia> xs = ones(2, 3);\n\njulia> foldl(+, @inferred setinput(ed, xs))\n12.0\n\nNote that we changed the container type from Vector to Matrix while using the same eltype.  In this case, setinput is inferrable and thus can be compiled away.  It is also possible to set container with different eltype although not inferrable in this case:\n\njulia> xs = ones(Int, 2, 3);\n\njulia> foldl(+, setinput(ed, xs))\n12\n\njulia> foldl(+, @inferred setinput(ed, xs))\nERROR: return type Transducers.Eduction{...} does not match inferred return type ...\n[...]\n\n\n\n\n\n"
 },
 
 {
@@ -477,7 +509,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Miscellaneous",
     "category": "section",
-    "text": "Completing\nInitializer\nright\nreduced"
+    "text": "Completing\nInitializer\nright\nsetinput"
 },
 
 {
@@ -825,11 +857,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "internals/#Transducers.maybe_usesimd-Tuple{Transducers.Transducer,Union{Bool, Symbol}}",
+    "location": "internals/#Transducers.maybe_usesimd-Tuple{Transducers.AbstractReduction,Union{Bool, Symbol}}",
     "page": "Internals",
     "title": "Transducers.maybe_usesimd",
     "category": "method",
-    "text": "maybe_usesimd(xform, simd)\n\nInsert UseSIMD to xform if appropriate.\n\nArguments\n\nxform::Transducer\nsimd: false, true, or :ivdep.\n\nExamples\n\njulia> using Transducers\n       using Transducers: maybe_usesimd\n\njulia> maybe_usesimd(Map(identity), false)\nMap(identity)\n\njulia> maybe_usesimd(Map(identity), true)\nTransducers.UseSIMD{false}() |>\n    Map(identity)\n\njulia> maybe_usesimd(Cat(), true)\nCat() |>\n    Transducers.UseSIMD{false}()\n\njulia> maybe_usesimd(Map(sin) |> Cat() |> Map(cos), :ivdep)\nMap(sin) |>\n    Cat() |>\n    Transducers.UseSIMD{true}() |>\n    Map(cos)\n\njulia> maybe_usesimd(Map(sin) |> Cat() |> Map(cos) |> Cat() |> Map(tan), true)\nMap(sin) |>\n    Cat() |>\n    Map(cos) |>\n    Cat() |>\n    Transducers.UseSIMD{false}() |>\n    Map(tan)\n\n\n\n\n\n"
+    "text": "maybe_usesimd(xform, simd)\n\nInsert UseSIMD to xform if appropriate.\n\nArguments\n\nxform::Transducer\nsimd: false, true, or :ivdep.\n\nExamples\n\njulia> using Transducers\n       using Transducers: maybe_usesimd\n\njulia> maybe_usesimd(eduction(Map(identity), 1:1).rf, false)\nReduction{▶ Int64}(\n    Map(identity),\n    BottomRF{▶ Int64}(\n        Completing{typeof(push!)}(push!)))\n\njulia> maybe_usesimd(eduction(Map(identity), 1:1).rf, true)\nReduction{▶ Int64}(\n    Transducers.UseSIMD{false}(),\n    Reduction{▶ Int64}(\n        Map(identity),\n        BottomRF{▶ Int64}(\n            Completing{typeof(push!)}(push!))))\n\njulia> maybe_usesimd(eduction(Cat(), 1:1).rf, true)\nReduction{▶ Int64}(\n    Cat(),\n    Reduction{▶ Int64}(\n        Transducers.UseSIMD{false}(),\n        BottomRF{▶ Int64}(\n            Completing{typeof(push!)}(push!))))\n\njulia> maybe_usesimd(eduction(Map(sin) |> Cat() |> Map(cos), 1:1).rf, :ivdep)\nReduction{▶ Int64}(\n    Map(sin),\n    Reduction{▶ Float64}(\n        Cat(),\n        Reduction{▶ Float64}(\n            Transducers.UseSIMD{true}(),\n            Reduction{▶ Float64}(\n                Map(cos),\n                BottomRF{▶ Float64}(\n                    Completing{typeof(push!)}(push!))))))\n\njulia> maybe_usesimd(eduction(Map(sin) |> Cat() |> Map(cos) |> Cat() |> Map(tan), 1:1).rf, true)\nReduction{▶ Int64}(\n    Map(sin),\n    Reduction{▶ Float64}(\n        Cat(),\n        Reduction{▶ Float64}(\n            Map(cos),\n            Reduction{▶ Float64}(\n                Cat(),\n                Reduction{▶ Float64}(\n                    Transducers.UseSIMD{false}(),\n                    Reduction{▶ Float64}(\n                        Map(tan),\n                        BottomRF{▶ Float64}(\n                            Completing{typeof(push!)}(push!))))))))\n\n\n\n\n\n"
+},
+
+{
+    "location": "internals/#Transducers.reform-Tuple{Transducers.Reduction,Any}",
+    "page": "Internals",
+    "title": "Transducers.reform",
+    "category": "method",
+    "text": "reform(rf, f)\n\nReset \"bottom\" reducing function of rf to f.\n\n\n\n\n\n"
 },
 
 {
@@ -841,11 +881,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "internals/#Transducers.usesimd-Tuple{Transducers.Transducer,Transducers.UseSIMD}",
+    "location": "internals/#Transducers.usesimd-Tuple{Transducers.AbstractReduction,Transducers.UseSIMD}",
     "page": "Internals",
     "title": "Transducers.usesimd",
     "category": "method",
-    "text": "usesimd(xform::Transducer, xfsimd::UseSIMD)\n\nWrap the inner-most loop of Transducer xform with UseSIMD{ivdep}. It\'s almost equivalent to UseSIMD{ivdep}() |> xform except that UseSIMD{ivdep}() is inserted after the inner-most Cat if xform includes Cat.\n\n\n\n\n\n"
+    "text": "usesimd(rf::Reduction, xfsimd::UseSIMD)\n\nWrap the inner-most loop of reducing function rf with xfsimd. xfsimd is inserted after the inner-most Cat if rf includes Cat.\n\n\n\n\n\n"
 },
 
 {
@@ -893,7 +933,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Show method for reducing functions",
     "title": "Show method for reducing functions",
     "category": "section",
-    "text": "DocTestSetup = quote\n    using Transducers\n    using Transducers: Reduction, TeeZip\n    using Setfield: @set!\nendReduction(\n    Filter(isfinite) |> Map(sin),\n    +,\n    Float64)\n\n# output\n\nReduction{▶ Float64}(\n    Filter(isfinite),\n    Reduction{▶ Float64}(\n        Map(sin),\n        +))rf = Reduction(\n    TeeZip(Count()),\n    right,\n    Float64)\n@set! rf.inner.inner.value = 1.25\n\n# output\n\nSplitter{▶ Float64}(\n    Reduction{▶ Float64}(\n        Count(1, 1),\n        Joiner{▶ ⦃Float64, Int64⦄}(\n            Transducers.right,\n            1.25)),\n    (@lens _.inner.value))rf = Reduction(\n    Filter(isfinite) |> TeeZip(Count()) |> Enumerate() |> MapSplat(*),\n    right,\n    Float64)\n@set! rf.inner.inner.inner.value = 1.25\n\n# output\n\nReduction{▶ Float64}(\n    Filter(isfinite),\n    Splitter{▶ Float64}(\n        Reduction{▶ Float64}(\n            Count(1, 1),\n            Joiner{▶ ⦃Float64, Int64⦄}(\n                Reduction{▶ ⦃Float64, Int64⦄}(\n                    Enumerate(1, 1),\n                    Reduction{▶ ⦃Int64, ⦃Float64, Int64⦄⦄}(\n                        MapSplat(*),\n                        Transducers.right)),\n                1.25)),\n        (@lens _.inner.value)))rf = Reduction(\n    TeeZip(Count() |> TeeZip(FlagFirst())),\n    right,\n    Float64)\n@set! rf.inner.inner.inner.inner.value = 123456789\n@set! rf.inner.inner.inner.inner.inner.value = 1.25\n\n# output\n\nSplitter{▶ Float64}(\n    Reduction{▶ Float64}(\n        Count(1, 1),\n        Splitter{▶ Int64}(\n            Reduction{▶ Int64}(\n                FlagFirst(),\n                Joiner{▶ ⦃Int64, ⦃Bool, Int64⦄⦄}(\n                    Joiner{▶ ⦃Float64, ⦃Int64, ⦃Bool, Int64⦄⦄⦄}(\n                        Transducers.right,\n                        1.25),\n                    123456789)),\n            (@lens _.inner.value))),\n    (@lens _.inner.inner.inner.inner.value))rf = Reduction(\n    TeeZip(Filter(isodd) |> Map(identity) |> TeeZip(Map(identity))),\n    right,\n    Int64)\n@set! rf.inner.inner.inner.inner.inner.value = 123456789\n@set! rf.inner.inner.inner.inner.inner.inner.value= 123456789\n\n# output\n\nSplitter{▶ Int64}(\n    Reduction{▶ Int64}(\n        Filter(isodd),\n        Reduction{▶ Int64}(\n            Map(identity),\n            Splitter{▶ Int64}(\n                Reduction{▶ Int64}(\n                    Map(identity),\n                    Joiner{▶ ⦃Int64, Int64⦄}(\n                        Joiner{▶ ⦃Int64, ⦃Int64, Int64⦄⦄}(\n                            Transducers.right,\n                            123456789),\n                        123456789)),\n                (@lens _.inner.value)))),\n    (@lens _.inner.inner.inner.inner.inner.value))rf = Reduction(\n    TeeZip(Filter(isodd) |> Map(identity) |> TeeZip(Map(identity))),\n    right,\n    Any)\n\n# output\n\nSplitter{▶ Any}(\n    Reduction{▶ Any}(\n        Filter(isodd),\n        Reduction{▶ Any}(\n            Map(identity),\n            Splitter{▶ Any}(\n                Reduction{▶ Any}(\n                    Map(identity),\n                    Joiner{▶ ⦃Any, Any⦄}(\n                        Joiner{▶ ⦃Any, ⦃Any, Any⦄⦄}(\n                            Transducers.right,\n                            nothing),\n                        nothing)),\n                (@lens _.inner.value)))),\n    (@lens _.inner.inner.inner.inner.inner.value))DocTestSetup = nothing"
+    "text": "DocTestSetup = quote\n    using Transducers\n    using Transducers: Reduction, TeeZip\n    using Setfield: @set!\nendReduction(\n    Filter(isfinite) |> Map(sin),\n    +,\n    Float64)\n\n# output\n\nReduction{▶ Float64}(\n    Filter(isfinite),\n    Reduction{▶ Float64}(\n        Map(sin),\n        BottomRF{▶ Float64}(\n            +)))rf = Reduction(\n    TeeZip(Count()),\n    right,\n    Float64)\n@set! rf.inner.inner.value = 1.25\n\n# output\n\nSplitter{▶ Float64}(\n    Reduction{▶ Float64}(\n        Count(1, 1),\n        Joiner{▶ ⦃Float64, Int64⦄}(\n            BottomRF{▶ ⦃Float64, Int64⦄}(\n                Transducers.right),\n            1.25)),\n    (@lens _.inner.value))rf = Reduction(Map(error), right, Int64)\n\n# output\n\nReduction{▶ Int64}(\n    Map(error),\n    BottomRF{▶ Union{}}(\n        Transducers.right))rf = Reduction(\n    Filter(isfinite) |> TeeZip(Count()) |> MapSplat(*),\n    right,\n    Float64)\n@set! rf.inner.inner.inner.value = 1.25\n\n# output\n\nReduction{▶ Float64}(\n    Filter(isfinite),\n    Splitter{▶ Float64}(\n        Reduction{▶ Float64}(\n            Count(1, 1),\n            Joiner{▶ ⦃Float64, Int64⦄}(\n                Reduction{▶ ⦃Float64, Int64⦄}(\n                    MapSplat(*),\n                    BottomRF{▶ Float64}(\n                        Transducers.right)),\n                1.25)),\n        (@lens _.inner.value)))rf = Reduction(\n    TeeZip(Count() |> TeeZip(FlagFirst())),\n    right,\n    Float64)\n@set! rf.inner.inner.inner.inner.value = 123456789\n@set! rf.inner.inner.inner.inner.inner.value = 1.25\n\n# output\n\nSplitter{▶ Float64}(\n    Reduction{▶ Float64}(\n        Count(1, 1),\n        Splitter{▶ Int64}(\n            Reduction{▶ Int64}(\n                FlagFirst(),\n                Joiner{▶ ⦃Int64, ⦃Bool, Int64⦄⦄}(\n                    Joiner{▶ ⦃Float64, ⦃Int64, ⦃Bool, Int64⦄⦄⦄}(\n                        BottomRF{▶ ⦃Float64, ⦃Int64, ⦃Bool, Int64⦄⦄⦄}(\n                            Transducers.right),\n                        1.25),\n                    123456789)),\n            (@lens _.inner.value))),\n    (@lens _.inner.inner.inner.inner.value))rf = Reduction(\n    TeeZip(Filter(isodd) |> Map(identity) |> TeeZip(Map(identity))),\n    right,\n    Int64)\n@set! rf.inner.inner.inner.inner.inner.value = 123456789\n@set! rf.inner.inner.inner.inner.inner.inner.value= 123456789\n\n# output\n\nSplitter{▶ Int64}(\n    Reduction{▶ Int64}(\n        Filter(isodd),\n        Reduction{▶ Int64}(\n            Map(identity),\n            Splitter{▶ Int64}(\n                Reduction{▶ Int64}(\n                    Map(identity),\n                    Joiner{▶ ⦃Int64, Int64⦄}(\n                        Joiner{▶ ⦃Int64, ⦃Int64, Int64⦄⦄}(\n                            BottomRF{▶ ⦃Int64, ⦃Int64, Int64⦄⦄}(\n                                Transducers.right),\n                            123456789),\n                        123456789)),\n                (@lens _.inner.value)))),\n    (@lens _.inner.inner.inner.inner.inner.value))rf = Reduction(\n    TeeZip(Filter(isodd) |> Map(identity) |> TeeZip(Map(identity))),\n    right,\n    Any)\n\n# output\n\nSplitter{▶ Any}(\n    Reduction{▶ Any}(\n        Filter(isodd),\n        Reduction{▶ Any}(\n            Map(identity),\n            Splitter{▶ Any}(\n                Reduction{▶ Any}(\n                    Map(identity),\n                    Joiner{▶ ⦃Any, Any⦄}(\n                        Joiner{▶ ⦃Any, ⦃Any, Any⦄⦄}(\n                            BottomRF{▶ ⦃Any, ⦃Any, Any⦄⦄}(\n                                Transducers.right),\n                            nothing),\n                        nothing)),\n                (@lens _.inner.value)))),\n    (@lens _.inner.inner.inner.inner.inner.value))DocTestSetup = nothing"
 },
 
 ]}
