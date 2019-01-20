@@ -38,12 +38,19 @@ Transducers.SetIndex
 Transducers.Inject
 ```
 
+## Early termination
+
+```@docs
+Reduced
+reduced
+unreduced
+```
+
 ## Miscellaneous
 
 ```@docs
 Completing
 Initializer
 right
-reduced
 setinput
 ```

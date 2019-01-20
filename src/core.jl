@@ -1,5 +1,41 @@
 # --- Types
 
+"""
+    Reduced
+
+The type signaling transducible processes to abort.
+
+!!! note
+    Call [`reduced`](@ref) function for aborting the transducible
+    process since [`reduced`](@ref) makes sure `x` is not doubly
+    wrapped.  `Reduced` is meant to be used as `x isa Reduced` for
+    checking if the result from [`transduce`](@ref) is due to early
+    termination.
+
+See [`reduced`](@ref), [`unreduced`](@ref).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> function step_demo(y, x)
+           if x > 5
+               return reduced(y)
+           else
+               return y + x
+           end
+       end;
+
+julia> result = transduce(Map(identity), Completing(step_demo), 0, 1:10)
+Reduced{Int64}(15)
+
+julia> result isa Reduced
+true
+
+julia> unreduced(result)
+15
+```
+"""
 struct Reduced{T}
     value::T
 end
@@ -15,6 +51,10 @@ isreduced(::Any) = false
 
 Stop transducible process with the final value `x` (default:
 `nothing`).  Return `x` as-is if it's already is a `reduced` value.
+
+See [`Reduced`](@ref), [`unreduced`](@ref).
+
+$(_thx_clj("ensure-reduced"))
 
 # Examples
 ```jldoctest
@@ -42,6 +82,15 @@ reduced(x::Reduced) = x
 reduced(x) = Reduced(x)
 reduced() = reduced(nothing)
 
+"""
+    unreduced(x)
+
+Unwrap `x` if it is a `Reduced`; do nothing otherwise.
+
+See [`Reduced`](@ref), [`reduced`](@ref).
+
+$(_thx_clj("unreduced"))
+"""
 unreduced(x::Reduced) = x.value
 unreduced(x) = x
 
