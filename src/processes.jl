@@ -1,5 +1,8 @@
 # --- Transducible processes
 
+@inline reducingfunction(xf::Transducer, step, intype::Type; simd=false) =
+    maybe_usesimd(Reduction(xf, step, intype), simd)
+
 """
     __foldl__(rf, init, reducible::T)
 
@@ -276,7 +279,7 @@ function Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
                         init = MissingInit(),
                         simd = false,
                         kwargs...)
-    rf = maybe_usesimd(Reduction(xform, step, eltype(itr)), simd)
+    rf = reducingfunction(xform, step, eltype(itr); simd=simd)
     return unreduced(__reduce__(rf, init, itr; kwargs...))
 end
 
@@ -534,12 +537,11 @@ function _prepare_map(xf, dest, src, simd)
     # TODO: support Dict
     indices = eachindex(dest, src)
 
-    rf = maybe_usesimd(
-        Reduction(
-            TeeZip(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
-            (::Vararg) -> nothing,
-            eltype(indices)),
-        simd)
+    rf = reducingfunction(
+        TeeZip(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
+        (::Vararg) -> nothing,
+        eltype(indices);
+        simd = simd)
 
     return rf, indices, dest
 end
