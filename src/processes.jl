@@ -210,7 +210,7 @@ struct MissingInit end
 
 provide_init(rf::AbstractReduction, init) = initvalue(init, InType(rf))
 function provide_init(rf::AbstractReduction, ::MissingInit)
-    T = finaltype(rf)
+    T = FinalType(rf)
     op = as(rf, BottomRF).inner
     return identityof(op, T)
 end
@@ -298,12 +298,8 @@ transduce(xform::Transducer, f, init, ed::Eduction) =
 
 Base.IteratorSize(::Type{<:Eduction}) = Base.SizeUnknown()
 
-Base.IteratorEltype(::Type{<:Eduction}) = Base.EltypeUnknown()
-# eltype(::Type{<:Eduction}) can't be implemented (or it's tricky
-# especially for TeeZip) so it's EltypeUnknown for now.
-#
-# ...though it's easy when there is a value:
-Base.eltype(ed::Eduction) = finaltype(ed.rf)
+Base.IteratorEltype(::Type{<:Eduction}) = Base.HasEltype()
+Base.eltype(::Type{<:Eduction{F}}) where F = FinalType(F)
 
 function Base.iterate(ts::Eduction, state = nothing)
     if state === nothing
@@ -311,7 +307,7 @@ function Base.iterate(ts::Eduction, state = nothing)
         cret === nothing && return nothing
         input, cstate = cret
 
-        buffer = finaltype(ts.rf)[]
+        buffer = FinalType(ts.rf)[]
         result = start(ts.rf, buffer)
 
         cdone = false
@@ -470,7 +466,7 @@ julia> collect(Interpose(missing), 1:3)
 """
 function Base.collect(xf::Transducer, coll)
     rf = Reduction(xf, Completing(push!), eltype(coll))
-    to = finaltype(rf)[]
+    to = FinalType(rf)[]
     return unreduced(transduce(rf, to, coll))
 end
 # Base.collect(xf, coll) = append!([], xf, coll)

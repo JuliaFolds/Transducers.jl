@@ -102,7 +102,20 @@ end
             x > 5 && return reduced()
             push!(result, x)
         end === nothing
-        @test result == 1:5
+    end
+
+    @testset "eltype" begin
+        for (xf, desiredtype) in [
+                (Map(identity), Int),
+                (Filter(isodd), Int),
+                (Map(x -> 1/x), float(Int)),
+                ]
+            ed = eduction(xf, 1:10)
+            @test Base.IteratorEltype(typeof(ed)) ==
+                Base.IteratorEltype(ed) ==
+                Base.HasEltype()
+            @test eltype(typeof(ed)) == eltype(ed) == desiredtype
+        end
     end
 end
 

@@ -164,11 +164,13 @@ appropriately defined for child types.
 """
 AbstractFilter
 
-abstract type AbstractReduction{intype} end
+abstract type AbstractReduction{intype, innertype} end
 
 InType(::T) where T = InType(T)
 InType(::Type{<:AbstractReduction{intype}}) where {intype} = intype
 InType(T::Type) = throw(MethodError(InType, (T,)))
+
+InnerType(::Type{<:AbstractReduction{<:Any, T}}) where T = T
 
 Setfield.constructor_of(::Type{T}) where {T <: AbstractReduction} = T
 
@@ -187,7 +189,7 @@ Return the transducer `xf` associated with `rf`.  Returned transducer
 """
 xform(rf::AbstractReduction) = rf.xform
 
-struct BottomRF{intype, F} <: AbstractReduction{intype}
+struct BottomRF{intype, F} <: AbstractReduction{intype, F}
     inner::F
 end
 
@@ -203,8 +205,9 @@ next(rf::BottomRF, result, input) = next(inner(rf), result, input)
 complete(rf::BottomRF, result) = complete(inner(rf), result)
 combine(rf::BottomRF, a, b) = combine(inner(rf), a, b)
 
-finaltype(::BottomRF{intype}) where intype = intype
-finaltype(rf::AbstractReduction) = finaltype(inner(rf))
+FinalType(::T) where {T <: AbstractReduction} = FinalType(T)
+FinalType(::Type{<:BottomRF{intype}}) where intype = intype
+FinalType(::Type{T}) where {T <: AbstractReduction} = FinalType(InnerType(T))
 
 Transducer(::BottomRF) = IdentityTransducer()
 
@@ -220,7 +223,7 @@ as(rf, T::Type) = as(inner(rf), T)
 #   a transducer `xform` and an inner reduction function `inner`.
 #   `inner` can be either a `Reduction` or a function with arity-2 and arity-1 methods
 #
-struct Reduction{X <: Transducer, I, intype} <: AbstractReduction{intype}
+struct Reduction{X <: Transducer, I, intype} <: AbstractReduction{intype, I}
     xform::X
     inner::I
 end

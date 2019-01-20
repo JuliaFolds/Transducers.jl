@@ -1356,7 +1356,7 @@ end
 # where `value` is the placeholder for the output value of the
 # transducer (here `Map(identity)`) outer to `TeeZip`.
 
-struct Splitter{intype, R, L} <: AbstractReduction{intype}
+struct Splitter{intype, R, L} <: AbstractReduction{intype, R}
     inner::R
     lens::L
 end
@@ -1368,7 +1368,7 @@ setinner(rf::Splitter, inner) = Splitter(inner, rf.lens)
 
 reform(rf::Splitter, f) = Splitter(reform(inner(rf), f), rf.lens)
 
-struct Joiner{intype, F, T} <: AbstractReduction{intype}
+struct Joiner{intype, F, T} <: AbstractReduction{intype, F}
     inner::F  # original inner reduction
     value::T  # original input
 
