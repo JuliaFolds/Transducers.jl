@@ -304,6 +304,10 @@ outtype(::OfType{T}, intype) where T = Base.typeintersect(T, intype)
 @inline _next_oftype(T, inner, result, input) =
     input isa T ? next(inner, result, input) : result
 
+# Workaround StackOverflowError in Julia 1.0
+# https://travis-ci.com/tkf/Transducers.jl/jobs/171732596
+if VERSION >= v"1.1-"
+
 @inline _next_oftype(T, inner, result, input::Tuple) =
     _next_oftype_t(T, inner, result, (), input...)
 
@@ -341,6 +345,8 @@ end
 end
 # Not using `Base.tail(input)` for a Tuple-of-(possibly)-Union seems
 # to be a nice strategy for achieving type-stability.
+
+end  # if
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/take
 # https://clojuredocs.org/clojure.core/take
