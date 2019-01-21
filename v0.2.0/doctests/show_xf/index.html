@@ -31,4 +31,8 @@ TeeZip(
         ) |&gt;
         MapSplat(*)
 ) |&gt;
+    MapSplat(+)
+
+julia&gt; TeeZip(OfType(Float64)) |&gt; MapSplat(+)
+TeeZip(OfType(Float64)) |&gt;
     MapSplat(+)</code></pre><footer><hr/><a class="previous" href="../../internals/"><span class="direction">Previous</span><span class="title">Internals</span></a><a class="next" href="../show_rf/"><span class="direction">Next</span><span class="title">Show method for reducing functions</span></a></footer></article></body></html>
