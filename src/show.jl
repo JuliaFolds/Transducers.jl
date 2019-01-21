@@ -108,6 +108,8 @@ _show_field(io, ::Nothing, v) = show(io, v)
 _show_field(io, mime, v) = show(io, mime, v)
 _show_field(io, ::MIME"text/plain", v::Array) = show(io, v)
 
+show_args(io, mime, xf::Union{OfType{T}, NotA{T}}) where T = show(io, T)
+
 function _show_impl(io, mime, xform::Transducer)
     @nospecialize io, xform
     indent = get(io, :indent, "")

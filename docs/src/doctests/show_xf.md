@@ -41,6 +41,10 @@ TeeZip(
         MapSplat(*)
 ) |>
     MapSplat(+)
+
+julia> TeeZip(OfType(Float64)) |> MapSplat(+)
+TeeZip(OfType(Float64)) |>
+    MapSplat(+)
 ```
 
 ```@meta
