@@ -1426,7 +1426,7 @@ struct Joiner{intype, F, T} <: AbstractReduction{intype, F}
 
     @inline function Joiner{intype,F,T}(inner) where {intype,F,T}
         _joiner_error(inner, intype)
-        if isbitstype(T)
+        if isbitstype(T) || Base.isbitsunion(T)
             return new(inner)
         else
             return new{intype,F,Union{T,Nothing}}(inner, nothing)
