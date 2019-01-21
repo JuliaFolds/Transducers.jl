@@ -30,7 +30,9 @@ argext_init(should_update) = Initializer(TT -> init_helper(should_update, TT))
 xf_scanext(should_update) = Scan(argext_step(should_update),
                                  argext_init(should_update))
 
-xf_argmax = Zip(Count(), NotA(Missing)) |> xf_scanext(<)
+xf_argmax = Enumerate() |>
+    OfType(Tuple{Integer, Number}) |>
+    xf_scanext(<)
 
 suite = BenchmarkGroup()
 
