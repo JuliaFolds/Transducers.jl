@@ -436,6 +436,58 @@ end
     end
 end
 
+@testset "OfType" begin
+    @testset "outtype" begin
+        @test eltype(eduction(OfType(Int), Int[])) === Int
+        @test eltype(eduction(OfType(Int), Union{Int,Missing}[])) === Int
+        @test eltype(eduction(OfType(Number), Union{Int,Missing}[])) === Int
+        @test eltype(eduction(OfType(Integer), Union{Int,Missing}[])) === Int
+        @test eltype(eduction(
+            OfType(Tuple{Int,Int}),
+            Tuple{Union{Int,Missing}, Int}[]
+        )) === Tuple{Int,Int}
+        @test eltype(eduction(
+            OfType(Tuple{Vararg{Int}}),
+            Tuple{Union{Int,Missing}, Int}[]
+        )) === Tuple{Int,Int}
+        @test eltype(eduction(
+            OfType(Tuple{Vararg{Number}}),
+            Tuple{Union{Int,Missing}, Int}[]
+        )) === Tuple{Int,Int}
+    end
+    @testset "_next_oftype for non-tuple" begin
+        @testset for xs in iterator_variants([0.0, 1.0, missing])
+            @test collect(OfType(Float64), xs) == [0.0, 1.0]
+            @test collect(OfType(Number), xs) == [0.0, 1.0]
+        end
+        @testset for xs in iterator_variants(["a", :b])
+            @test collect(OfType(Symbol), xs) == [:b]
+            @test collect(OfType(AbstractString), xs) == ["a"]
+        end
+    end
+    @testset "_next_oftype for 2-tuple" begin
+        @testset for xs in iterator_variants([(0.0, missing),
+                                              (missing, 0.0),
+                                              (1.0, 2.0)])
+            @test collect(OfType(Tuple{Float64,Float64}), xs) == [(1.0, 2.0)]
+            @test collect(OfType(Tuple{Number,Float64}), xs) == [(1.0, 2.0)]
+            @test collect(OfType(Tuple{Float64,Number}), xs) == [(1.0, 2.0)]
+            @test collect(OfType(Tuple{Vararg{Float64}}), xs) == [(1.0, 2.0)]
+            @test collect(OfType(Tuple{Vararg{Number}}), xs) == [(1.0, 2.0)]
+        end
+    end
+    @testset "_next_oftype_t" begin
+        @testset "$(typeof(xs))" for xs in iterator_variants([
+                [Tuple(i == j ? missing : i for i in 1:10) for j in 1:10]
+                Tuple(1:10)
+                ])
+            desired = [Tuple(1:10)]
+            @test collect(OfType(Tuple{Vararg{Int}}), xs) == desired
+            @test collect(OfType(Tuple{Vararg{Number}}), xs) == desired
+        end
+    end
+end
+
 @testset "Invalid arguments" begin
     @test_throws ArgumentError Take(-1)
     @test_throws ArgumentError TakeLast(-1)

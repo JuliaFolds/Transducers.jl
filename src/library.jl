@@ -291,10 +291,56 @@ julia> collect(Filter(!ismissing), [1, missing, 2])  # see the eltype below
 struct OfType{T} <: AbstractFilter end
 OfType(T::Type) = OfType{T}()
 
-outtype(::OfType{T}, _intype) where T = T
+outtype(::OfType{T}, intype) where T = Base.typeintersect(T, intype)
 
-next(rf::R_{OfType{T}}, result, input) where T =
-    input isa T ? next(inner(rf), result, input) : result
+@inline next(rf::R_{OfType{T}}, result, input) where T =
+    _next_oftype(T, inner(rf), result, input)
+
+# Following implementation yields semantically correct results for all
+# cases.  However, as of writing (Julia 1.2.0-DEV), it seems those
+# specializations are valuable for type-stability and performance.
+# Hopefully compiler becomes smarter so that I can get rid of the code
+# below.
+@inline _next_oftype(T, inner, result, input) =
+    input isa T ? next(inner, result, input) : result
+
+@inline _next_oftype(T, inner, result, input::Tuple) =
+    _next_oftype_t(T, inner, result, (), input...)
+
+# Following specialization is required for improving performance of
+# ../benchmark/bench_missing_dot.jl.  Note that a mere type-stability
+# of `transduce(rf, 0.0, zip(xs, ys))` can actually be achieved by the
+# function `_next_oftype_t` below for generic tuple.  I don't know why
+# the following manual expansion is better than `_next_oftype_t` when
+# both are type stable.
+@inline function _next_oftype(::Type{T}, inner, result,
+                              (i1, i2)::Tuple{Any, Any}) where {T <: Tuple}
+    if i1 isa nthtype(Val(1), T)
+        if i2 isa nthtype(Val(2), T)
+            return next(inner, result, (i1, i2))
+        end
+    end
+    return result
+end
+
+@inline _next_oftype_t(::Type, inner, result, filtered::Tuple) =
+    next(inner, result, filtered)
+
+@inline function _next_oftype_t(
+        ::Type{T}, inner, result, filtered::Tuple,
+        i1, input...) where {T <: Tuple}
+    if i1 isa nthtype(Val(1), T)
+        return _next_oftype_t(
+            Base.tuple_type_tail(T),
+            inner,
+            result,
+            (filtered..., i1),
+            input...)
+    end
+    return result
+end
+# Not using `Base.tail(input)` for a Tuple-of-(possibly)-Union seems
+# to be a nice strategy for achieving type-stability.
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/take
 # https://clojuredocs.org/clojure.core/take

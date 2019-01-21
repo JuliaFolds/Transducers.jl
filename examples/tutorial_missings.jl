@@ -48,12 +48,6 @@ mapfoldl(MapSplat(*), +, zip(xs, ys))
 xf_mdot = MapSplat(*) |> NotA(Missing)
 mapfoldl(xf_mdot, +, zip(xs, ys))
 
-#src Make sure this comment is correct:
-#src
-#src # (You may think filtering out missing values after computing the
-#src # multiplication.  However, it looks like the Julia compiler optimizes
-#src # out the "dead code" and makes it efficient.)
-
 # ## Covariance
 #
 # Transducer `xf_mdot` above can also be used to compute the

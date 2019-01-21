@@ -61,6 +61,12 @@ ridentityof(::typeof(append!), e) = ()
     return (a, head...), tail
 end
 
+Base.@pure nthtype(::Val{1}, ::Type{T}) where {T <: Tuple} =
+    Base.tuple_type_head(T)
+
+Base.@pure nthtype(::Val{n}, ::Type{T}) where {n, T <: Tuple} =
+    nthtype(Val(n - 1), Base.tuple_type_tail(T))
+
 _cljapiurl(name) =
     "https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/$name"
 _cljref(name) =
