@@ -58,6 +58,11 @@ macro test_broken_if(cond, ex)
 end
 
 function slow_test(f, title, limit)
+    if lowercase(get(ENV, "TRANSDUCERS_JL_TEST_SKIP_SLOW", "false")) == "true"
+        @info "Skipping $title"
+        return
+    end
+
     @info "Running $title. Limit: $limit min."
 
     code = """
@@ -85,4 +90,5 @@ function slow_test(f, title, limit)
             sleep(0.1)
         end
     end
+    return
 end
