@@ -1,5 +1,9 @@
 using BenchmarkTools
 SUITE = BenchmarkGroup()
-SUITE["filter_map_reduce"] = include("bench_filter_map_reduce.jl")
-SUITE["filter_map_map!"] = include("bench_filter_map_map!.jl")
-SUITE["partition_by"] = include("bench_partition_by.jl")
+for file in readdir(@__DIR__)
+    file == "bench_words.jl" && continue
+    if startswith(file, "bench_") && endswith(file, ".jl")
+        SUITE[file[length("bench_") + 1:end - length(".jl")]] =
+            include(file)
+    end
+end
