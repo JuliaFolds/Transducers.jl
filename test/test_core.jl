@@ -22,6 +22,17 @@ end
 end
 
 @testset "Initializer" begin
+    @testset "mapfoldl" begin
+        @testset for xs in iterator_variants(1:3)
+            init(T::Type{<:Tuple}) = T[]
+            @test mapfoldl(
+                Zip(Map(identity), Map(string)),
+                push!,
+                xs,
+                init = Initializer(init)
+            ) == [(1, "1"), (2, "2"), (3, "3")]
+        end
+    end
     @testset "Scan" begin
         @testset for xs in iterator_variants(1:10)
             @test_broken_if(
