@@ -311,22 +311,6 @@ if VERSION >= v"1.1-"
 @inline _next_oftype(T, inner, result, input::Tuple) =
     _next_oftype_t(T, inner, result, (), input...)
 
-# Following specialization is required for improving performance of
-# ../benchmark/bench_missing_dot.jl.  Note that a mere type-stability
-# of `transduce(rf, 0.0, zip(xs, ys))` can actually be achieved by the
-# function `_next_oftype_t` below for generic tuple.  I don't know why
-# the following manual expansion is better than `_next_oftype_t` when
-# both are type stable.
-@inline function _next_oftype(::Type{T}, inner, result,
-                              (i1, i2)::Tuple{Any, Any}) where {T <: Tuple}
-    if i1 isa nthtype(Val(1), T)
-        if i2 isa nthtype(Val(2), T)
-            return next(inner, result, (i1, i2))
-        end
-    end
-    return result
-end
-
 @inline _next_oftype_t(::Type, inner, result, filtered::Tuple) =
     next(inner, result, filtered)
 
