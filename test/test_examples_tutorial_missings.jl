@@ -1,42 +1,11 @@
 module TestExamplesTutorialMissings
 include("../examples/tutorial_missings.jl")
-
-using Test
+include("preamble.jl")
 
 @testset "outtype of xf_sum_columns" begin
     @test eltype(eduction(xf_sum_columns(Float64[]), Any[])) ===
         Vector{Float64}
     @test eltype(eduction(xf_sum_columns(Float64[]), Any[])) <: Vector
-end
-
-function slow_test(f, title, limit)
-    @info "Running $title. Limit: $limit min."
-
-    code = """
-    sleep(60)
-    println("1 minute passed...")
-    flush(stdout)
-    for i in 2:$limit
-        sleep(60)
-        println("\$i minutes passed...")
-        flush(stdout)
-    end
-    """
-    # TODO: maybe terminate the parent process
-
-    cmd = `$(Base.julia_cmd()) --startup-file=no -e $code`
-    proc = run(pipeline(cmd, stdout=stdout), wait=false)
-
-    try
-        @time f()
-    finally
-        ch = Channel(ch -> wait(proc); csize=1)
-        for _ in 1:10
-            isready(ch) && break
-            kill(proc)
-            sleep(0.1)
-        end
-    end
 end
 
 @testset "slow compilation" begin
