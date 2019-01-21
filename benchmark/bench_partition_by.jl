@@ -1,3 +1,5 @@
+module BenchPartitionBy
+
 using Statistics
 using BenchmarkTools
 using Transducers
@@ -26,24 +28,24 @@ function manual_partition_by(xs)
     return acc
 end
 
-let suite = BenchmarkGroup()
+suite = BenchmarkGroup()
 
-    xf = PartitionBy(x -> x > 0) |>
-        Filter(xs -> mean(abs, xs) < 1.0) |>
-        Map(prod)
+xf = PartitionBy(x -> x > 0) |>
+    Filter(xs -> mean(abs, xs) < 1.0) |>
+    Map(prod)
 
-    n = 10^5
+n = 10^5
 
-    let xs = randn(100)
-        @assert manual_partition_by(xs) == mapfoldl(xf, +, xs, init=0.0)
-    end
-
-    suite["xf"] = @benchmarkable(
-        mapfoldl($xf, +,  xs, init=0.0),
-        setup=(xs = randn($n)))
-    suite["man"] = @benchmarkable(
-        manual_partition_by(xs),
-        setup=(xs = randn($n)))
-
-    suite
+let xs = randn(100)
+    @assert manual_partition_by(xs) == mapfoldl(xf, +, xs, init=0.0)
 end
+
+suite["xf"] = @benchmarkable(
+    mapfoldl($xf, +,  xs, init=0.0),
+    setup=(xs = randn($n)))
+suite["man"] = @benchmarkable(
+    manual_partition_by(xs),
+    setup=(xs = randn($n)))
+
+end  # module
+BenchPartitionBy.suite
