@@ -43,10 +43,18 @@ ys = [10, 14, missing, 12]
 mapfoldl(MapSplat(*), +, zip(xs, ys))
 
 # However, it is very simple to ignore any missing values using
-# [`NotA`](@ref):
+# [`OfType`](@ref):
 
-xf_mdot = MapSplat(*) |> NotA(Missing)
+xf_mdot = OfType(Tuple{Vararg{Number}}) |> MapSplat(*)
 mapfoldl(xf_mdot, +, zip(xs, ys))
+
+# Here, `Tuple{Vararg{Number}}` is a type that matches with a tuple of
+# any length with numbers.  It does not match with a tuple if it has a
+# `missing`.
+
+@assert (1, 0.5) isa Tuple{Vararg{Number}}
+@assert (1, 0.5, 2im) isa Tuple{Vararg{Number}}
+@assert !((1, missing) isa Tuple{Vararg{Number}})
 
 # ## Covariance
 #
@@ -54,21 +62,30 @@ mapfoldl(xf_mdot, +, zip(xs, ys))
 # covariance.  First, we need the number of pairs of elements in `xs`
 # and `ys` that _both_ of them are not `missing`:
 
-nonmissings = mapfoldl(xf_mdot |> Count(), right, zip(xs, ys); init=0)
+nonmissings = mapfoldl(OfType(Tuple{Vararg{Number}}) |> Count(),
+                       right,
+                       zip(xs, ys);
+                       init = 0)
+nonmissings  # hide
 #-
 @assert nonmissings == 2  # hide
 
 # We do this by using [`Count`](@ref) and [`right`](@ref).  `Count`
 # ignores input and count the number of times the input is provided.
-# Since `xf_mdot` provides the inputs to the downstream transducer,
-# this correctly counts the number of non-missing pairs.  Function
-# `right` is simply defined as `right(l, r) = r` (and `right(r) = r`).
-# Thus, the whole `mapfoldl` returns the last output of `Count`.  In
-# case `Count` never gets called (i.e., there are no non-missing
-# pairs), we pass `init=0`.
+# Since `OfType(Tuple{Vararg{Number}})` provides the inputs to the
+# downstream transducer only if there is no `missing` values, this
+# correctly counts the number of non-missing pairs.  Function `right`
+# is simply defined as `right(l, r) = r` (and `right(r) = r`).  Thus,
+# the whole `mapfoldl` returns the last output of `Count`.  In case
+# `Count` never gets called (i.e., there are no non-missing pairs), we
+# pass `init=0`.
 
 ans =  # hide
-mapfoldl(xf_mdot |> Count(), right, zip(Int[], Int[]); init=0)
+mapfoldl(OfType(Tuple{Vararg{Number}}) |> Count(),
+         right,
+         zip(Int[], Int[]);
+         init = 0)
+ans  # hide
 #-
 @assert ans == 0  # hide
 
@@ -96,20 +113,14 @@ function add_skipmissing!(ys, xs)
     firstindex(ys) == 1 || error("firstindex(ys) != 1")
 
 # For filtering out missing values from `xs` while tracking indices,
-# we use [`Zip`](@ref).  To iterate over the output of the transducer,
-# [`foreach`](@ref) is used instead of [`mapfoldl`](@ref) since
-# mutating an array is better expressed as a side-effect than a fold.
+# we use [`Enumerate`](@ref) and [`Filter`](@ref).  To iterate over
+# the output of the transducer, [`foreach`](@ref) is used instead of
+# [`mapfoldl`](@ref) since mutating an array is better expressed as a
+# side-effect than a fold.
 
-    foreach(Zip(Count(), NotA(Missing)), xs) do (i, xi)
+    foreach(Enumerate() |> Filter(!(ismissing ∘ last)), xs) do (i, xi)
         @inbounds ys[i] += xi
     end
-
-# !!! warning
-#
-#     Note the difference between `Zip(Count(), NotA(Missing))` and
-#     `Zip(NotA(Missing), Count())` in Transducers.jl.  The former
-#     enumerates all the elements in `xs` while the latter enumerates
-#     _only_ non-missing values.
 
 # We then return the mutated value to behave like the rest of Julia
 # functions (`push!`, `mul!`, etc.):
@@ -202,17 +213,10 @@ end  # if VERSION >= v"1.1-"  #src
 # ## Argmax
 #
 # Another useful operation to do ignoring missing values is
-# `argmax`/`argmin`.  It can be implemented using `Zip(Count(),
-# NotA(Missing))` (see also `add_skipmissing!` above) composed with
-# [`ScanEmit`](@ref):
-
-xf_argmax(xf_filter = NotA(Missing)) =
-    Zip(Count(), xf_filter) |> ScanEmit(argmax_step, (0, typemin(Int)))
-##                                                     |
-##                                              initial state (see below)
-nothing  # hide
-
-# where `argmax_step` passed to `ScanEmit` is defined as:
+# `argmax`/`argmin`.  It can be implemented using `Enumerate() |>
+# Filter(!(ismissing ∘ last))` (see also `add_skipmissing!` above)
+# composed with [`ScanEmit`](@ref).  We first need to define a
+# function to be called by `ScanEmit`:
 
 ##                     ,--- current state
 ##                     |
@@ -228,6 +232,15 @@ function argmax_step((argmax, max), (index, value))
 end
 nothing  # hide
 
+# This function is passed to `ScanEmit` with the initial state:
+
+xf_argmax = Enumerate() |> Filter(!(ismissing ∘ last)) |>
+    ScanEmit(argmax_step, (0, typemin(Int)))
+##                          |
+##                   initial state
+nothing  # hide
+
+
 # As [`ScanEmit`](@ref) is one of the most complex (and powerful)
 # transducer, it may require some comments on how above code works:
 #
@@ -235,9 +248,9 @@ nothing  # hide
 #   `xf_argmax`.  This is the first value passed to the first argument
 #   `(argmax, max)` of `argmax_step`.
 #
-# * The upstream transducer `Zip(Count(), xf_filter)` provides
-#   `(index, value)`-pair which becomes the input (the second
-#   argument) of `argmax_step`.
+# * The upstream transducer `Enumerate()` provides `(index,
+#   value)`-pair which becomes the input (the second argument) of
+#   `argmax_step`.
 #
 # * Function `argmax_step` must return a pair.  The first item becomes
 #   the output of `ScanEmit`.  In this case that's the index of the
@@ -249,17 +262,12 @@ nothing  # hide
 # We have the argmax function by extracting the last output of
 # `xf_argmax`:
 
-mapfoldl(xf_argmax(), right, [1, 3, missing, 2])
+mapfoldl(xf_argmax, right, [1, 3, missing, 2])
 
 # Side note: We use `typemin(Int)` as the initial value of `max` for
 # simplicity.  In practice, it should be
 # `typemin(eltype(input_array))`.  See the next section for how to do
 # it using `Initializer`.
-
-# We can use filter other than `NotA(Missing)`.  For example, to find
-# the index of the largest odd value:
-
-mapfoldl(xf_argmax(Filter(isodd)), right, [1, 4, 3, 2])
 
 # ## Extrema
 #
@@ -302,22 +310,28 @@ nothing  # hide
 
 @time begin  #src
 ans = # hide
-mapfoldl(Zip(Count(), NotA(Missing)) |> xf_scanext(<), right, [1.0, 3.0, missing, 2.0])
+mapfoldl(
+    Enumerate() |> OfType(Tuple{Integer, Number}) |> xf_scanext(<),
+    right, [1.0, 3.0, missing, 2.0])
 end  #src
 #-
 @assert ans === (2, 3.0) # hide
 @show ans  #src
 
+# We use `OfType(Tuple{Integer, Number})` instead of
+# `Filter(!(ismissing ∘ last))` as `typemin` used in `xf_scanext`
+# requires to know that the input type does not include `missing`.
+
 # We now have transducers `xf_scanext(<)` and `xf_scanext(>)` for
 # argmax and argmin, respectively.  We can compute them concurrently
-# by `Zip`'ing them together:
+# by [`Zip`](@ref)'ing them together:
 
-xf_fullextrema(xf_filter = NotA(Missing)) =
-    Zip(Count(), xf_filter) |> Zip(xf_scanext(>), xf_scanext(<))
+xf_fullextrema = Enumerate() |> OfType(Tuple{Integer, Number}) |>
+    Zip(xf_scanext(>), xf_scanext(<))
 
 @time begin  #src
 ans = # hide
-mapfoldl(xf_fullextrema(), right, [1.0, 3.0, -1.0, missing, 2.0])
+mapfoldl(xf_fullextrema, right, [1.0, 3.0, -1.0, missing, 2.0])
 end  #src
 #-
 @assert ans === ((3, -1.0), (2, 3.0))  # hide
@@ -326,14 +340,14 @@ end  #src
 # This transducer produces a tuple `((argmin, min), (argmax, max))`.
 # To output only indices, append an appropriate `Map`:
 
-xf_argextrema(xf_filter = NotA(Missing)) =
-    xf_fullextrema(xf_filter) |> Map() do ((argmin, min), (argmax, max))
+xf_argextrema =
+    xf_fullextrema |> Map() do ((argmin, min), (argmax, max))
         (argmin, argmax)
     end
 
 @time begin  #src
 ans = # hide
-mapfoldl(xf_argextrema(), right, [1.0, 3.0, -1.0, missing, 2.0])
+mapfoldl(xf_argextrema, right, [1.0, 3.0, -1.0, missing, 2.0])
 end  #src
 #-
 @assert ans === (3, 2)  # hide
