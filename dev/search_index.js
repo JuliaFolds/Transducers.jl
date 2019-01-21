@@ -193,14 +193,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "manual/#Transducers.Distinct",
-    "page": "Manual",
-    "title": "Transducers.Distinct",
-    "category": "type",
-    "text": "Distinct()\n\nPass only unseen item to the inner reducing step.\n\nThis API is modeled after distinct in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Distinct(), [1, 1, 2, 1, 3, 3, 2])\n3-element Array{Int64,1}:\n 1\n 2\n 3\n\n\n\n\n\n"
-},
-
-{
     "location": "manual/#Transducers.Drop",
     "page": "Manual",
     "title": "Transducers.Drop",
@@ -382,6 +374,14 @@ var documenterSearchIndex = {"docs": [
     "title": "Transducers.TakeWhile",
     "category": "type",
     "text": "TakeWhile(pred)\n\nTake items while pred returns true.  Abort the reduction when pred returns false for the first time.\n\nThis API is modeled after take-while in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(TakeWhile(x -> x < 3), [1, 2, 3, 1, 2])\n2-element Array{Int64,1}:\n 1\n 2\n\n\n\n\n\n"
+},
+
+{
+    "location": "manual/#Transducers.Unique",
+    "page": "Manual",
+    "title": "Transducers.Unique",
+    "category": "type",
+    "text": "Unique()\n\nPass only unseen item to the inner reducing step.\n\nThis API is modeled after distinct in Clojure.\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Unique(), [1, 1, 2, 1, 3, 3, 2])\n3-element Array{Int64,1}:\n 1\n 2\n 3\n\n\n\n\n\n"
 },
 
 {
@@ -917,7 +917,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Show method for transducers",
     "title": "Show method for transducers",
     "category": "section",
-    "text": "DocTestSetup = quote\n    using Transducers\n    using Transducers: TeeZip\nendjulia> Map(sin) |> Map(cos) |> Map(tan)\nMap(sin) |>\n    Map(cos) |>\n    Map(tan)\n\njulia> TeeZip(Map(sin) |> TeeZip(Map(tan)))\nTeeZip(\n    Map(sin) |>\n        TeeZip(Map(tan))\n)\n\njulia> TeeZip(Map(sin) |> TeeZip(Map(tan) |> Filter(isfinite)) |> MapSplat(*))\nTeeZip(\n    Map(sin) |>\n        TeeZip(\n            Map(tan) |>\n                Filter(isfinite)\n        ) |>\n        MapSplat(*)\n)\n\njulia> TeeZip(Map(sin) |>\n              TeeZip(Map(tan) |> Filter(isfinite)) |>\n              MapSplat(*)) |> MapSplat(+)\nTeeZip(\n    Map(sin) |>\n        TeeZip(\n            Map(tan) |>\n                Filter(isfinite)\n        ) |>\n        MapSplat(*)\n) |>\n    MapSplat(+)DocTestSetup = nothing"
+    "text": "DocTestSetup = quote\n    using Transducers\n    using Transducers: TeeZip\nendjulia> Map(sin) |> Map(cos) |> Map(tan)\nMap(sin) |>\n    Map(cos) |>\n    Map(tan)\n\njulia> TeeZip(Map(sin) |> TeeZip(Map(tan)))\nTeeZip(\n    Map(sin) |>\n        TeeZip(Map(tan))\n)\n\njulia> TeeZip(Map(sin) |> TeeZip(Map(tan) |> Filter(isfinite)) |> MapSplat(*))\nTeeZip(\n    Map(sin) |>\n        TeeZip(\n            Map(tan) |>\n                Filter(isfinite)\n        ) |>\n        MapSplat(*)\n)\n\njulia> TeeZip(Map(sin) |>\n              TeeZip(Map(tan) |> Filter(isfinite)) |>\n              MapSplat(*)) |> MapSplat(+)\nTeeZip(\n    Map(sin) |>\n        TeeZip(\n            Map(tan) |>\n                Filter(isfinite)\n        ) |>\n        MapSplat(*)\n) |>\n    MapSplat(+)\n\njulia> TeeZip(OfType(Float64)) |> MapSplat(+)\nTeeZip(OfType(Float64)) |>\n    MapSplat(+)DocTestSetup = nothing"
 },
 
 {
