@@ -300,9 +300,9 @@ end
 end
 
 # https://clojuredocs.org/clojure.core/distinct
-@testset "Distinct" begin
+@testset "Unique" begin
     @testset for xs in iterator_variants([1, 1, 2, 1, 3, 2])
-        @test collect(Distinct(), xs) == [1, 2, 3]
+        @test collect(Unique(), xs) == [1, 2, 3]
     end
 end
 

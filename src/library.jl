@@ -936,7 +936,7 @@ end
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/distinct
 # https://clojuredocs.org/clojure.core/distinct
 """
-    Distinct()
+    Unique()
 
 Pass only unseen item to the inner reducing step.
 
@@ -946,22 +946,22 @@ $(_thx_clj("distinct"))
 ```jldoctest
 julia> using Transducers
 
-julia> collect(Distinct(), [1, 1, 2, 1, 3, 3, 2])
+julia> collect(Unique(), [1, 1, 2, 1, 3, 3, 2])
 3-element Array{Int64,1}:
  1
  2
  3
 ```
 """
-struct Distinct <: AbstractFilter
+struct Unique <: AbstractFilter
 end
 
-function start(rf::R_{Distinct}, result)
+function start(rf::R_{Unique}, result)
     seen = Set(InType(rf)[])
     return wrap(rf, seen, start(inner(rf), result))
 end
 
-function next(rf::R_{Distinct}, result, input)
+function next(rf::R_{Unique}, result, input)
     wrapping(rf, result) do seen, iresult
         if input in seen
             return seen, iresult
