@@ -22,6 +22,12 @@ Aiming to satisfy high-performance needs of Julia users,
 Transducers.jl uses a formulation that is _pure_ [^pure] and aiding
 type-stability.
 
+## Installation
+
+```
+]add Transducers
+```
+
 ## Examples
 
 If you are familiar with

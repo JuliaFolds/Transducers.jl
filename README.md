@@ -33,7 +33,7 @@ See more in the [documentation](https://tkf.github.io/Transducers.jl/dev).
 ## Installation
 
 ```
-]add https://github.com/tkf/Transducers.jl
+]add Transducers
 ```
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
