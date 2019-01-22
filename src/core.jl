@@ -299,11 +299,14 @@ start(rf::Reduction, result) = start(inner(rf), result)
 ```
 
 If the transducer `X` is stateful, it can "bundle" its private state
-with `state` (so that `next` function can be "pure").
+with `wrap`:
 
 ```julia
 start(rf::R_{X}, result) = wrap(rf, PRIVATE_STATE, start(inner(rf), result))
 ```
+
+where `PRIVATE_STATE` is an initial value for the private state that
+can be used inside [`next`](@ref) via [`wrapping`](@ref).
 
 See [`Take`](@ref), [`PartitionBy`](@ref), etc. for real-world examples.
 
