@@ -17,6 +17,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "#Installation-1",
+    "page": "Home",
+    "title": "Installation",
+    "category": "section",
+    "text": "]add Transducers"
+},
+
+{
     "location": "#Examples-1",
     "page": "Home",
     "title": "Examples",
@@ -573,7 +581,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Interface",
     "title": "Transducers.start",
     "category": "function",
-    "text": "Transducers.start(rf::R_{X}, state)\n\nThis is an optional interface for a transducer.  Default implementation just calls start of the inner reducing function; i.e.,\n\nstart(rf::Reduction, result) = start(inner(rf), result)\n\nIf the transducer X is stateful, it can \"bundle\" its private state with state (so that next function can be \"pure\").\n\nstart(rf::R_{X}, result) = wrap(rf, PRIVATE_STATE, start(inner(rf), result))\n\nSee Take, PartitionBy, etc. for real-world examples.\n\nSide notes: There is no related API in Clojure\'s Transducers. Transducers.jl uses it to implement stateful transducers using \"pure\" functions.  The idea is based on a slightly different approach taken in C++ Transducer library atria.\n\n\n\n\n\n"
+    "text": "Transducers.start(rf::R_{X}, state)\n\nThis is an optional interface for a transducer.  Default implementation just calls start of the inner reducing function; i.e.,\n\nstart(rf::Reduction, result) = start(inner(rf), result)\n\nIf the transducer X is stateful, it can \"bundle\" its private state with wrap:\n\nstart(rf::R_{X}, result) = wrap(rf, PRIVATE_STATE, start(inner(rf), result))\n\nwhere PRIVATE_STATE is an initial value for the private state that can be used inside next via wrapping.\n\nSee Take, PartitionBy, etc. for real-world examples.\n\nSide notes: There is no related API in Clojure\'s Transducers. Transducers.jl uses it to implement stateful transducers using \"pure\" functions.  The idea is based on a slightly different approach taken in C++ Transducer library atria.\n\n\n\n\n\n"
 },
 
 {
