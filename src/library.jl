@@ -1429,7 +1429,7 @@ struct Joiner{intype, F, T} <: AbstractReduction{intype, F}
         if isbitstype(T) || Base.isbitsunion(T)
             return new(inner)
         else
-            return new{intype,F,Union{T,Nothing}}(inner, nothing)
+            return new{intype,F,Any}(inner, nothing)
         end
     end
 
