@@ -10,6 +10,8 @@ export Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, Zip,
 # Deprecated:
 export Distinct
 
+using Base.Broadcast: Broadcasted
+
 using ArgCheck
 
 import Setfield

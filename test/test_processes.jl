@@ -74,7 +74,8 @@ include("preamble.jl")
             ys = @~ xs.^2
             @test collect(Map(identity), ys) == copy(ys)
             eltype(xs) === Any && continue
-            @test_broken mapfoldl(Filter(isodd), +, ys) == 10
+            @test_broken_if VERSION < v"1.1" mapfoldl(Filter(isodd), +, ys) == 10
+            @test mapfoldl(Filter(isodd), +, ys; init=0) == 10
         end
     end
 end

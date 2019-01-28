@@ -202,7 +202,7 @@ See [`mapfoldl`](@ref).
 transduce
 
 function transduce(xform::Transducer, f, init, coll; kwargs...)
-    rf = Reduction(xform, f, eltype(coll))
+    rf = Reduction(xform, f, ieltype(coll))
     return transduce(rf, init, coll; kwargs...)
 end
 

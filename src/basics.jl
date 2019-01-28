@@ -9,6 +9,8 @@ ieltype(T) =
         Any
     end
 
+ieltype(bc::Broadcasted) = Base.promote_op(bc.f, eltype.(bc.args)...)
+
 avaltype(x) = avaltype(typeof(x))
 avaltype(T::Type) = valtype(T)
 avaltype(T::Type{<:Union{AbstractArray,AbstractString}}) = eltype(T)
