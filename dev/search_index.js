@@ -857,6 +857,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "internals/#Transducers.air-Tuple{Any}",
+    "page": "Internals",
+    "title": "Transducers.air",
+    "category": "method",
+    "text": "air.(broadcasting_expression) :: Broadcasted\n\nBroadcast without materialization.\n\nThe idea is taken from @dawbarton\'s _lazy function: https://discourse.julialang.org/t/19641/20.\n\n\n\n\n\n"
+},
+
+{
     "location": "internals/#Transducers.foldl_nocomplete-Tuple{Any,Any,Any}",
     "page": "Internals",
     "title": "Transducers.foldl_nocomplete",
@@ -902,6 +910,14 @@ var documenterSearchIndex = {"docs": [
     "title": "Transducers.@simd_if",
     "category": "macro",
     "text": "@simd_if rf for ... end\n\nWrap for-loop with @simd if the outer most transducer of the reducing function rf is UseSIMD.\n\n\n\n\n\n"
+},
+
+{
+    "location": "internals/#Transducers.@~-Tuple{Any}",
+    "page": "Internals",
+    "title": "Transducers.@~",
+    "category": "macro",
+    "text": "(@~ broadcasting_expression) :: Broadcasted\n\n\n\n\n\n"
 },
 
 {
