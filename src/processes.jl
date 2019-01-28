@@ -53,11 +53,13 @@ function __foldl__(rf, init, coll)
 end
 
 # TODO: use IndexStyle
-@inline function __foldl__(rf, init, arr::AbstractArray)
+@inline function __foldl__(rf, init, arr::Union{AbstractArray, Broadcasted})
     isempty(arr) && return complete(rf, init)
-    val = next(rf, init, @inbounds arr[firstindex(arr)])
+    idxs = eachindex(arr)
+    val = next(rf, init, @inbounds arr[idxs[firstindex(idxs)]])
     @return_if_reduced complete(rf, val)
-    @simd_if rf for i in firstindex(arr) + 1:lastindex(arr)
+    @simd_if rf for k in firstindex(idxs) + 1:lastindex(idxs)
+        i = @inbounds idxs[k]
         val = next(rf, val, @inbounds arr[i])
         @return_if_reduced complete(rf, val)
     end
