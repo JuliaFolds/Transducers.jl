@@ -68,6 +68,15 @@ include("preamble.jl")
             @test mapfoldl(MapSplat(*), +, xs) == sum(Base.splat(*), xs)
         end
     end
+
+    @testset "broadcast" begin
+        @testset for xs in iterator_variants(1:3)
+            ys = @~ xs.^2
+            @test collect(Map(identity), ys) == copy(ys)
+            eltype(xs) === Any && continue
+            @test_broken mapfoldl(Filter(isodd), +, ys) == 10
+        end
+    end
 end
 
 
