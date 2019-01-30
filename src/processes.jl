@@ -601,7 +601,7 @@ function Base.foldl(step, xform::Transducer, itr;
     mapfoldl(xform, Completing(step), itr; kw...)
 end
 
-Base.foldl(step, ed::Eduction; init=MissingInit(), kwargs...) =
+@inline Base.foldl(step, ed::Eduction; init=MissingInit(), kwargs...) =
     unreduced(transduce(reform(ed.rf, Completing(step)), init, ed.coll;
                         kwargs...))
 
