@@ -45,7 +45,7 @@ let xs = random_missings()
 end
 
 suite["xf"] = @benchmarkable(
-    foldl(right, ed),
+    foldl(right, ed; init=$(argext_init(<))),
     setup=(ed = eduction(xf_argmax, random_missings())))
 
 rf = Transducers.reducingfunction(
