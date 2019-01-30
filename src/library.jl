@@ -1316,11 +1316,9 @@ julia> collect(Zip(Map(identity), Count()), -3:-1)
 
 julia> using Dates
 
-julia> collect(Zip(Map(identity), Count(Day(1))) |> Map(xs -> *(xs...)), 1:3)
-3-element Array{Day,1}:
- 1 day
- 4 days
- 9 days
+julia> collect(Zip(Map(identity), Count(Day(1))) |> Map(xs -> *(xs...)), 1:3) ==
+       [Day(1), Day(4), Day(9)]
+true
 ```
 """
 struct Count{T} <: Transducer
