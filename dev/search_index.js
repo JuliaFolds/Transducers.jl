@@ -189,7 +189,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Manual",
     "title": "Transducers.Count",
     "category": "type",
-    "text": "Count([start[, step]])\n\nGenerate a sequence start, start + step, start + step + step, and so on.\n\nNote that input is ignored.  To use the input in the downstream reduction steps, use Zip.\n\nstart defaults to 1 and step defaults to oneunit(start).\n\nSee also: Iterators.countfrom. Enumerate\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Zip(Map(identity), Count()), -3:-1)\n3-element Array{Tuple{Int64,Int64},1}:\n (-3, 1)\n (-2, 2)\n (-1, 3)\n\njulia> using Dates\n\njulia> collect(Zip(Map(identity), Count(Day(1))) |> Map(xs -> *(xs...)), 1:3)\n3-element Array{Day,1}:\n 1 day\n 4 days\n 9 days\n\n\n\n\n\n"
+    "text": "Count([start[, step]])\n\nGenerate a sequence start, start + step, start + step + step, and so on.\n\nNote that input is ignored.  To use the input in the downstream reduction steps, use Zip.\n\nstart defaults to 1 and step defaults to oneunit(start).\n\nSee also: Iterators.countfrom. Enumerate\n\nExamples\n\njulia> using Transducers\n\njulia> collect(Zip(Map(identity), Count()), -3:-1)\n3-element Array{Tuple{Int64,Int64},1}:\n (-3, 1)\n (-2, 2)\n (-1, 3)\n\njulia> using Dates\n\njulia> collect(Zip(Map(identity), Count(Day(1))) |> Map(xs -> *(xs...)), 1:3) ==\n       [Day(1), Day(4), Day(9)]\ntrue\n\n\n\n\n\n"
 },
 
 {
