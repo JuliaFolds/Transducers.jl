@@ -48,7 +48,6 @@ transducers_makedocs(;
         repo = "https://github.com/tkf/Transducers.jl/blob/{commit}{path}#L{line}",
         sitename = "Transducers.jl",
         authors = "Takafumi Arakaki",
-        assets = [],
         root = @__DIR__,
         strict = true,
         kwargs...)

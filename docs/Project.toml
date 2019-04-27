@@ -4,6 +4,6 @@ Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
 Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
 
 [compat]
-Documenter = "0.21"
+Documenter = "0.22"
 Literate = "1"
 Setfield = "0.3.2"
