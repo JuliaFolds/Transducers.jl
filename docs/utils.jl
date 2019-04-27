@@ -49,5 +49,5 @@ transducers_makedocs(;
         sitename = "Transducers.jl",
         authors = "Takafumi Arakaki",
         root = @__DIR__,
-        strict = true,
+        strict = VERSION < v"1.2-",
         kwargs...)
