@@ -23,7 +23,7 @@ function Transducers.__foldl__(rf, val, vov::VecOfVec)
     for vector in vov.vectors
         for x in vector
             val = next(rf, val, x)
-            @return_if_reduced complete(rf, val)
+            @return_if_reduced val
         end
     end
     return complete(rf, val)

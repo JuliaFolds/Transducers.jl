@@ -17,7 +17,7 @@ For a simple iterable type `MyType`, a valid implementation is:
 function __foldl__(rf, val, itr::MyType)
     for x in itr
         val = next(rf, val, x)
-        @return_if_reduced complete(rf, val)
+        @return_if_reduced val
     end
     return complete(rf, val)
 end
@@ -43,11 +43,11 @@ function __foldl__(rf, init, coll)
     # optimization to cover a good amount of cases anyway.
     x, state = ret
     val = next(rf, init, x)
-    @return_if_reduced complete(rf, val)
+    @return_if_reduced val
     while (ret = iterate(coll, state)) !== nothing
         x, state = ret
         val = next(rf, val, x)
-        @return_if_reduced complete(rf, val)
+        @return_if_reduced val
     end
     return complete(rf, val)
 end
@@ -57,11 +57,11 @@ end
     isempty(arr) && return complete(rf, init)
     idxs = eachindex(arr)
     val = next(rf, init, @inbounds arr[idxs[firstindex(idxs)]])
-    @return_if_reduced complete(rf, val)
+    @return_if_reduced val
     @simd_if rf for k in firstindex(idxs) + 1:lastindex(idxs)
         i = @inbounds idxs[k]
         val = next(rf, val, @inbounds arr[i])
-        @return_if_reduced complete(rf, val)
+        @return_if_reduced val
     end
     return complete(rf, val)
 end
@@ -77,10 +77,10 @@ end
         isempty(zs) && return complete(rf, init)
         idxs = eachindex(zs.is...)
         val = next(rf, init, _getvalues(firstindex(idxs), zs.is...))
-        @return_if_reduced complete(rf, val)
+        @return_if_reduced val
         @simd_if rf for i in firstindex(idxs) + 1:lastindex(idxs)
             val = next(rf, val, _getvalues(i, zs.is...))
-            @return_if_reduced complete(rf, val)
+            @return_if_reduced val
         end
         return complete(rf, val)
     end
@@ -112,7 +112,7 @@ end
     # inner-most non-tuple iterators should use @simd_if.
     @simd_if rf for input in iterator
         val_ = next(rf, val, (input, outer...))
-        @return_if_reduced complete(rf, val_)
+        @return_if_reduced val_
         val = val_
     end
     return val
@@ -121,7 +121,7 @@ end
 function __simple_foldl__(rf, val, itr)
     for x in itr
         val = next(rf, val, x)
-        @return_if_reduced complete(rf, val)
+        @return_if_reduced val
     end
     return complete(rf, val)
 end

@@ -104,36 +104,37 @@ unreduced(x::Reduced) = x.value
 unreduced(x) = x
 
 """
-    @return_if_reduced complete(rf, val)
+    @return_if_reduced val
 
 It transforms the given expression to:
 
 ```julia
-val isa Reduced && return reduced(complete(rf, unreduced(val)))
+val isa Reduced && return val
 ```
-
-That is to say, if `val` is `Reduced`, unpack it, call `complete`,
-re-pack into `Reduced`, and then finally return it.
 
 # Examples
 ```jldoctest:
 julia> using Transducers: @return_if_reduced
 
-julia> @macroexpand @return_if_reduced complete(rf, val)
-:(val isa Transducers.Reduced && return (Transducers.reduced)(complete(rf, (Transducers.unreduced)(val))))
+julia> @macroexpand @return_if_reduced val
+:(val isa Transducers.Reduced && return val)
 ```
 """
 macro return_if_reduced(ex)
-    if !(ex.head == :call && length(ex.args) == 3)
-        error(
-            "`@return_if_reduced` only accepts an expression of the form",
-            " `complete(rf, val)`.",
-            " Given:\n",
-            ex,
-        )
+    if ex isa Expr && ex.head == :call && length(ex.args) == 3
+        val = esc(ex)
+        return quote
+            if $(esc(ex.args[1])) === complete
+                error("""
+                Calling `@return_if_reduced complete(rf, val)` is now an error.
+                Please use `@return_if_reduced val`.
+                """)
+            end
+            $val isa Reduced && return $val
+        end
     end
-    complete, rf, val = esc.(ex.args)
-    :($val isa Reduced && return reduced($complete($rf, unreduced($val))))
+    val = esc(ex)
+    :($val isa Reduced && return $val)
 end
 
 abstract type Transducer end
@@ -427,6 +428,13 @@ to the outer reducing function.
 This is intended to be used only in [`start`](@ref).  Inside
 [`next`](@ref), use [`wrapping`](@ref).
 
+!!! note "Implementation detail"
+
+    If `iresult` is a [`Reduced`](@ref), `wrap` actually _un_wraps all
+    internal state `iresult` recursively.  However, this is an
+    implementation detail that should not matter when writing
+    transducers.
+
 Consider a reducing step constructed as
 
     rf = Reduction(xf₁ |> xf₂ |> xf₃, f, intype)
@@ -455,14 +463,17 @@ result₀ = wrap(rf,               state₁, result₁)
 
 The inner most step function receives the original `result` as the
 first argument while transducible processes such as [`mapfoldl`](@ref)
-only sees the outer-most "tree" `result₀` during the reduction.  The
-whole tree is [`unwrap`](@ref)ed during the [`complete`](@ref) phase.
+only sees the outer-most "tree" `result₀` during the reduction.
 
 See [`wrapping`](@ref), [`unwrap`](@ref), and [`start`](@ref).
 """
 wrap(rf::T, state, iresult) where {T} = PrivateState(rf, state, iresult)
-wrap(rf, state, iresult::Reduced) =
-    Reduced(PrivateState(rf, state, unreduced(iresult)))
+wrap(rf, state, iresult::Reduced) = unwrap_all(iresult) :: Reduced
+#
+# Note: `unwrap_all` is required since any transducer in arbitrary
+# location of the `Reduction` chain can create a `Reduced`.
+#
+# But `unwrap_all`ing in `wrap` sounds counter intuitive.  Maybe rename?
 
 """
     wrapping(f, rf, result)

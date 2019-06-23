@@ -87,6 +87,39 @@ end
         @test eltype(eduction(
             ScanEmit(tuple, Initializer(_ -> rand(Int))), Int[])) === Int
     end
+
+    @testset "Do not call `complete` when reduced" begin
+        xs = 1:8
+        xf = ScanEmit(Initializer(_ -> []), identity) do u, x
+            push!(u, x)
+            if x % 3 == 0
+                return u, []
+            else
+                return nothing, u
+            end
+        end |> NotA(Nothing)
+
+        @testset "foreach" begin
+            called_with = []
+            @test foreach(xf, xs) do chunk
+                push!(called_with, copy(chunk))
+                5 ∈ chunk && reduced(true)
+            end == true
+            @test called_with == [1:3, 4:6]
+        end
+
+        @testset "foreach" begin
+            called_with = []
+            history = []
+            @test foldl(xf, xs; init=false) do state, chunk
+                push!(history, state)
+                push!(called_with, copy(chunk))
+                5 ∈ chunk && reduced(true)
+            end == true
+            @test called_with == [1:3, 4:6]
+            @test history == [false, false]
+        end
+    end
 end
 
 @testset "TeeZip" begin
@@ -197,6 +230,12 @@ end
 @testset "TakeWhile" begin
     @testset for xs in iterator_variants(1:5)
         @test collect(TakeWhile(x -> x < 3), xs) == 1:2
+    end
+    @testset "Combination with stateful transducers" begin
+        @testset for xs in iterator_variants(1:5)
+            @test collect(TakeWhile(x -> x ≤ 4) |> TakeLast(2), xs) == 3:4
+            @test collect(TakeLast(4) |> TakeWhile(x -> x ≤ 3), xs) == 2:3
+        end
     end
 end
 
@@ -419,6 +458,10 @@ end
         @testset for xs in iterator_variants(1:3)
             @test collect(Inject(xs) |> Take(2), xs) == collect(zip(1:2, 1:2))
             @test collect(Take(2) |> Inject(xs), xs) == collect(zip(1:2, 1:2))
+            @test collect(Inject(xs) |> TakeLast(2), xs) == collect(zip(2:3, 2:3))
+            @test collect(TakeLast(2) |> Inject(xs), xs) == collect(zip(2:3, 1:2))
+            @test collect(Inject(1:1) |> TakeLast(2), xs) == collect(zip(1:1, 1:1))
+            @test collect(TakeLast(2) |> Inject(1:1), xs) == collect(zip(2:2, 1:1))
         end
     end
 end

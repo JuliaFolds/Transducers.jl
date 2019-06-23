@@ -390,7 +390,7 @@ next(rf::R_{Take}, result, input) =
             n -= 1
         end
         if n <= 0
-            iresult = reduced(iresult)
+            iresult = reduced(complete(inner(rf), iresult))
         end
         return n, iresult
     end
@@ -447,16 +447,16 @@ function complete(rf::R_{TakeLast}, result)
     if c <= 0  # buffer is not full (or c is just wrapping)
         for i in 1:(c + length(buffer))
             iresult = next(inner(rf), iresult, @inbounds buffer[i])
-            @return_if_reduced complete(inner(rf), iresult)
+            @return_if_reduced iresult
         end
     else
         for i in c+1:length(buffer)
             iresult = next(inner(rf), iresult, @inbounds buffer[i])
-            @return_if_reduced complete(inner(rf), iresult)
+            @return_if_reduced iresult
         end
         for i in 1:c
             iresult = next(inner(rf), iresult, @inbounds buffer[i])
-            @return_if_reduced complete(inner(rf), iresult)
+            @return_if_reduced iresult
         end
     end
     return complete(inner(rf), iresult)
@@ -490,7 +490,7 @@ next(rf::R_{TakeWhile}, result, input) =
     if xform(rf).pred(input)
         next(inner(rf), result, input)
     else
-        reduced(result)
+        reduced(complete(inner(rf), result))
     end
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/take-nth
@@ -830,7 +830,7 @@ function complete(rf::R_{Partition}, result)
         iinput = @view iinput[s + 1:end]
         iinput :: DenseSubVector
         iresult = next(inner(rf), iresult, iinput)
-        @return_if_reduced complete(inner(rf), iresult)
+        @return_if_reduced iresult
     end
     return complete(inner(rf), iresult)
 end
@@ -893,7 +893,7 @@ function complete(rf::R_{PartitionBy}, ps)
     (iinput, _), iresult = unwrap(rf, ps)
     if !isempty(iinput)
         iresult = next(inner(rf), iresult, iinput)
-        @return_if_reduced complete(inner(rf), iresult)
+        @return_if_reduced iresult
     end
     return complete(inner(rf), iresult)
 end
@@ -1215,7 +1215,7 @@ function complete(rf::R_{ScanEmit}, result)
     u, iresult = unwrap(rf, result)
     if xform(rf).onlast !== nothing
         iresult = next(inner(rf), iresult, xform(rf).onlast(u))
-        @return_if_reduced complete(inner(rf), iresult)
+        @return_if_reduced iresult
     end
     return complete(inner(rf), iresult)
 end
@@ -1742,7 +1742,7 @@ start(rf::R_{Inject}, result) =
     wrap(rf, iterate(xform(rf).iterator), start(inner(rf), result))
 next(rf::R_{Inject}, result, input) =
     wrapping(rf, result) do istate, iresult
-        istate === nothing && return istate, reduced(iresult)
+        istate === nothing && return istate, reduced(complete(inner(rf), iresult))
         y, s = istate
         iresult2 = next(inner(rf), iresult, (input, y))
         return iterate(xform(rf).iterator, s), iresult2
