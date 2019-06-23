@@ -487,7 +487,11 @@ struct TakeWhile{P} <: AbstractFilter
 end
 
 next(rf::R_{TakeWhile}, result, input) =
-    xform(rf).pred(input) ? next(inner(rf), result, input) : reduced(result)
+    if xform(rf).pred(input)
+        next(inner(rf), result, input)
+    else
+        reduced(result)
+    end
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/take-nth
 # https://clojuredocs.org/clojure.core/take-nth
