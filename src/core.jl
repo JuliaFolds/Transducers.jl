@@ -110,17 +110,27 @@ It transforms the given expression to:
 
 ```julia
 val isa Reduced && return val
+val
 ```
 
 # Examples
-```jldoctest:
+```jldoctest; filter = [r"#[0-9]+#", r"#=.*?=#"]
 julia> using Transducers: @return_if_reduced
 
-julia> @macroexpand @return_if_reduced val
-:(val isa Transducers.Reduced && return val)
+julia> @macroexpand @return_if_reduced f(x)
+quote
+    #158#val = f(x)
+    #= ... =#
+    begin
+        #158#val isa Transducers.Reduced && return #158#val
+        #= ... =#
+        #158#val
+    end
+end
 ```
 """
 macro return_if_reduced(ex)
+    code = :(val isa Reduced && return val; val)
     if ex isa Expr && ex.head == :call && length(ex.args) == 3
         val = esc(ex)
         return quote
@@ -130,11 +140,12 @@ macro return_if_reduced(ex)
                 Please use `@return_if_reduced val`.
                 """)
             end
-            $val isa Reduced && return $val
+            val = $val
+            $code
         end
     end
     val = esc(ex)
-    :($val isa Reduced && return $val)
+    :(val = $val; $code)
 end
 
 abstract type Transducer end

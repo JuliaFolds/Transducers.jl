@@ -1230,6 +1230,103 @@ function combine(rf::R_{ScanEmit}, a, b)
 end
 
 """
+    AdHocXF(f, init, [onlast])
+
+# Examples
+```jldoctest
+julia> using Transducers
+       using Transducers: AdHocXF, @return_if_reduced
+       using Setfield: @set!
+
+julia> flushlast(rf, result) = rf(@return_if_reduced rf(result, result.state));
+
+julia> xf = AdHocXF(Initializer(_ -> nothing), flushlast) do rf, result, input
+           m = match(r"^name:(.*)", input)
+           if m === nothing
+               push!(result.state.lines, input)
+               return result
+           else
+               chunk = result.state
+               @set! result.state = (name=strip(m.captures[1]), lines=String[])
+               push!(result.state.lines, input)
+               if chunk === nothing
+                   return result
+               else
+                   return rf(result, chunk)
+               end
+           end
+       end;
+
+julia> collect(xf, split(\"\"\"
+       name: Map
+       type: onetoone
+       name: Cat
+       type: expansive
+       name: Filter
+       type: contractive
+       name: Cat |> Filter
+       type: chaotic
+       \"\"\", "\\n"; keepempty=false))
+4-element Array{Any,1}:
+ (name = "Map", lines = ["name: Map", "type: onetoone"])
+ (name = "Cat", lines = ["name: Cat", "type: expansive"])
+ (name = "Filter", lines = ["name: Filter", "type: contractive"])
+ (name = "Cat |> Filter", lines = ["name: Cat |> Filter", "type: chaotic"])
+```
+"""
+struct AdHocXF{F, T, L} <: Transducer
+    f::F
+    init::T
+    onlast::L
+end
+
+AdHocXF(f, init) = AdHocXF(f, init, nothing)
+
+struct ResultShim{S, R}
+    state::S
+    result::R
+end
+
+struct RFShim{F}
+    rf::F
+end
+
+_setresult(shim, result::Reduced) = Reduced(@set shim.result = unreduced(result))
+_setresult(shim, result) = @set shim.result = result
+
+(f::RFShim)(shim::ResultShim) =
+    _setresult(shim, complete(f.rf, shim.result))
+(f::RFShim)(shim::ResultShim, input) =
+    _setresult(shim, next(f.rf, shim.result, input))
+
+start(rf::R_{AdHocXF}, result) =
+    wrap(rf, _initvalue(rf), start(inner(rf), result))
+
+next(rf::R_{AdHocXF}, result, input) =
+    wrapping(rf, result) do state, iresult
+        shim = xform(rf).f(RFShim(inner(rf)), ResultShim(state, iresult), input)
+        if shim isa Reduced
+            return unreduced(shim).state, Reduced(unreduced(shim).result)
+        else
+            return shim.state, shim.result
+        end
+    end
+
+function complete(rf::R_{AdHocXF}, result)
+    state, iresult = unwrap(rf, result)
+    onlast = xform(rf).onlast
+    if onlast !== nothing
+        shim = onlast(RFShim(inner(rf)), ResultShim(state, iresult))
+        if shim isa Reduced
+            return Reduced(unreduced(shim).result)
+        else
+            return shim.result
+        end
+    end
+    return complete(inner(rf), iresult)
+end
+
+"""
     Iterated(f, init[, T::Type])
 
 Generate a sequence `init`, `f(init)`, `f(f(init))`, `f(f(f(init)))`,
