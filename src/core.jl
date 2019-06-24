@@ -82,7 +82,7 @@ julia> foreach(Enumerate(), "abc") do (i, x)
            if x == 'b'
                return reduced()
            end
-       end
+       end;
 1 a
 2 b
 ```
@@ -575,12 +575,7 @@ end
 
 start(rf::SideEffect, result) = start(rf.f, result)
 complete(::SideEffect, result) = result
-function next(rf::SideEffect, result, input)
-    y = rf.f(input)
-    y isa Reduced && return y
-    return result
-end
-# TODO: Should `SideEffect` return `y` always?
+next(rf::SideEffect, _, input) = rf.f(input)
 
 """
     right([l, ]r) -> r
