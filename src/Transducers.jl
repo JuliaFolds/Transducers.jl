@@ -17,6 +17,7 @@ using ArgCheck
 import Setfield
 using Setfield: @lens, @set, set
 
+include("showutils.jl")
 include("basics.jl")
 include("core.jl")
 include("library.jl")
