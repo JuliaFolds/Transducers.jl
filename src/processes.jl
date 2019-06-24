@@ -692,7 +692,7 @@ julia> foreach(Filter(!ismissing), [1, missing, 2, 3]) do input
        end
 input = 1
 input = 2
-Reduced{Nothing}(nothing)
+Reduced(nothing)
 ```
 
 It is often useful to append [`|> unreduced`](@ref unreduced) to

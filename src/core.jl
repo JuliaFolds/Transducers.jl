@@ -27,7 +27,7 @@ julia> function step_demo(y, x)
        end;
 
 julia> result = transduce(Map(identity), Completing(step_demo), 0, 1:10)
-Reduced{Int64}(15)
+Reduced(15)
 
 julia> result isa Reduced
 true
@@ -51,6 +51,8 @@ end
 
 Base.:(==)(x::Reduced, y::Reduced) = x.value == y.value
 Base.:(==)(x::Reduced, ::Any) = false
+
+Base.show(io::IO, x::Reduced) = _default_show(io, x)
 
 isreduced(::Reduced) = true
 isreduced(::Any) = false
@@ -705,8 +707,4 @@ function inittypeof(init::Initializer, intype::Type)
     return typeof(init.f(intype))  # T==Union{} hits this code pass
 end
 
-function Base.show(io::IO, init::Initializer)
-    print(io, "Initializer(")
-    show(io, init.f)
-    print(io, ')')
-end
+Base.show(io::IO, init::Initializer) = _default_show(io, init)
