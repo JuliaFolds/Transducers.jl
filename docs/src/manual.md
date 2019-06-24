@@ -44,6 +44,7 @@ Transducers.Inject
 Reduced
 reduced
 unreduced
+ifunreduced
 ```
 
 ## Miscellaneous

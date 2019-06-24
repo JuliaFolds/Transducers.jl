@@ -104,7 +104,7 @@ end
             @test foreach(xf, xs) do chunk
                 push!(called_with, copy(chunk))
                 5 ∈ chunk && reduced(true)
-            end == true
+            end == reduced(true)
             @test called_with == [1:3, 4:6]
         end
 

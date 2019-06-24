@@ -111,7 +111,7 @@ end
         @test foreach(ed) do x
             x > 5 && return reduced()
             push!(result, x)
-        end === nothing
+        end === reduced()
     end
 
     @testset "eltype" begin

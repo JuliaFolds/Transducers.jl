@@ -631,14 +631,47 @@ end
 as the former does not have to translate the transducer protocol to
 the iterator protocol.
 
-Statements in native `for` loop can be translated as follows:
+`foreach` supports all constructs in the native `for` loop as well as
+the enhancements [^julia_issue_22891] to `break` with a value (`break
+D(x)` below) and append the `else` clause (`E(x)` below).
 
-| `for`      | `foreach`                          |
-|:---------- |:---------------------------------- |
-| `break`    | [`return reduced()`](@ref reduced) |
-| `continue` | `return`                           |
+[^julia_issue_22891]: See also: [break with value + loop else clauses
+    (JuliaLang/julia#22891)](https://github.com/JuliaLang/julia/issues/22891)
 
-See: [`mapfoldl`](@ref), [`reduced`](@ref), [`setinput`](@ref).
+This native `for` loop
+
+```julia
+ans = for x in xs
+    A(x)
+    B(x) && break
+    C(x) && break D(x)
+else
+    E(x)
+end
+```
+
+can be written as
+
+```julia
+ans = foreach(Map(identity), xs) do x
+    A(x)
+    B(x) && return reduced()
+    C(x) && return reduced(D(x))
+    x  # required for passing `x` to `E(x)` below
+end |> ifunreduced() do x
+    E(x)
+end
+```
+
+See: [`mapfoldl`](@ref), [`reduced`](@ref), [`ifunreduced`](@ref).
+
+!!! compat "Transducers.jl 0.3"
+
+    `foreach` is changed to return what the `do` block (`eff`
+    function) returns as-is in version 0.3.  This was required for
+    supporting "for-else" (`|> ifunreduced`).  Previously, it only
+    supported break-with-value and always applied `unreduced` before
+    it returns.
 
 # Examples
 ```jldoctest
@@ -649,6 +682,7 @@ julia> foreach(eduction(Filter(isodd), 1:4)) do input
        end
 input = 1
 input = 3
+3
 
 julia> foreach(Filter(!ismissing), [1, missing, 2, 3]) do input
            @show input
@@ -658,13 +692,105 @@ julia> foreach(Filter(!ismissing), [1, missing, 2, 3]) do input
        end
 input = 1
 input = 2
+Reduced{Nothing}(nothing)
+```
+
+It is often useful to append [`|> unreduced`](@ref unreduced) to
+unwrap `Reduced` in the final result (note that `|>` here is the
+standard function application, not the transducer composition).
+
+```jldoctest; setup = :(using Transducers)
+julia> foreach(Filter(!ismissing), [1, missing, 2, 3]) do input
+           reduced("got \$input")
+       end |> unreduced
+"got 1"
+```
+
+Combination of break-with-value and for-else is useful for triggering
+action after (e.g.) some kind of membership testing failed:
+
+```jldoctest; setup = :(using Transducers)
+julia> has2(xs) = foreach(Filter(!ismissing), xs) do input
+           input == 2 && reduced(true)
+       end |> ifunreduced() do input
+           @show input
+           false
+       end;
+
+julia> has2([1, missing, 2, 3])
+true
+
+julia> has2([1, missing])
+input = false
+false
+```
+
+However, note the output `input = false` in the last example.  This is
+because how `&&` works in Julia
+
+```jldoctest
+julia> false && "otherwise"
+false
+```
+
+Thus, pure membership testing functions like `has2` above can be
+written in a more concise manner:
+
+```jldoctest; setup = :(using Transducers)
+julia> simpler_has2(xs) = foreach(Filter(!ismissing), xs) do input
+           input == 2 && reduced(true)
+       end |> unreduced;
+
+julia> simpler_has2([1, missing, 2, 3])
+true
+
+julia> simpler_has2([1, missing])
+false
 ```
 """
 Base.foreach(eff, xform::Transducer, coll; kwargs...) =
-    unreduced(transduce(xform, SideEffect(eff), nothing, coll; kwargs...))
+    transduce(xform, SideEffect(eff), nothing, coll; kwargs...)
 Base.foreach(eff, ed::Eduction; kwargs...) =
-    unreduced(transduce(reform(ed.rf, SideEffect(eff)), nothing, ed.coll;
-                        kwargs...))
+    transduce(reform(ed.rf, SideEffect(eff)), nothing, ed.coll;
+              kwargs...)
+
+"""
+    ifunreduced(f, [x])
+
+Equivalent to [`unreduced(x)`](@ref unreduced) if `x` is a
+[`Reduced`](@ref); otherwise run `f(x)`.  Return a curried version if
+`x` is not provided.
+
+See: [`foreach`](@ref).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> 1 |> ifunreduced() do x
+           println("called with x = ", x)
+       end
+called with x = 1
+
+julia> reduced(1) |> ifunreduced() do x
+           println("called with x = ", x)
+       end
+1
+```
+
+Notice that nothing is printed in the last example.
+
+# Implementation
+
+```julia
+ifunreduced(f) = x -> ifunreduced(f, x)
+ifunreduced(f, x::Reduced) = unreduced(x)
+ifunreduced(f, x) = f(x)
+```
+"""
+ifunreduced(f) = x -> ifunreduced(f, x)
+ifunreduced(f, x::Reduced) = unreduced(x)
+ifunreduced(f, x) = f(x)
 
 
 """
@@ -695,7 +821,7 @@ true
 
 julia> foreach(PartitionBy(isequal(1)), ch3) do input
            @show input
-       end
+       end;
 input = [1, 1]
 input = [2, 3, 4, 5]
 input = [1]
