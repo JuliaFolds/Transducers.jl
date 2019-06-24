@@ -59,7 +59,7 @@ isreduced(::Any) = false
     reduced([x = nothing])
 
 Stop transducible process with the final value `x` (default:
-`nothing`).  Return `x` as-is if it's already is a `reduced` value.
+`nothing`).  Return `x` as-is if it already is a `reduced` value.
 
 See [`Reduced`](@ref), [`unreduced`](@ref).
 
