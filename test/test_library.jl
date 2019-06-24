@@ -108,7 +108,7 @@ end
             @test called_with == [1:3, 4:6]
         end
 
-        @testset "foreach" begin
+        @testset "foldl" begin
             called_with = []
             history = []
             @test foldl(xf, xs; init=false) do state, chunk
