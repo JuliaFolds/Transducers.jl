@@ -52,6 +52,7 @@ ifunreduced
 ```@docs
 Completing
 Initializer
+CopyInit
 right
 setinput
 ```

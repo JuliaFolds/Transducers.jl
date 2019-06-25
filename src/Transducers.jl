@@ -5,7 +5,7 @@ export Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, Zip,
     Interpose, Dedupe, Partition, Iterated, Count,
     TakeLast, FlagFirst, MapSplat, ScanEmit, Enumerate, NotA, OfType,
     transduce, eduction, setinput, Reduced, reduced, unreduced, ifunreduced,
-    Completing, Initializer, right
+    Completing, Initializer, CopyInit, right
 
 # Deprecated:
 export Distinct

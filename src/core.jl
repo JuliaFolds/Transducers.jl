@@ -708,3 +708,43 @@ function inittypeof(init::Initializer, intype::Type)
 end
 
 Base.show(io::IO, init::Initializer) = _default_show(io, init)
+
+
+"""
+    CopyInit(value)
+
+This is equivalent to `Initializer(_ -> deepcopy(value))`.
+
+See [`Initializer`](@ref).
+
+!!! compat "Transducers.jl 0.3"
+
+    New in version 0.3.
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> init = CopyInit([]);
+
+julia> foldl(push!, Map(identity), 1:3; init=init)
+3-element Array{Any,1}:
+ 1
+ 2
+ 3
+
+julia> foldl(push!, Map(identity), 1:3; init=init)  # `init` can be reused
+3-element Array{Any,1}:
+ 1
+ 2
+ 3
+```
+"""
+struct CopyInit{T}
+    value::T
+end
+
+initvalue(init::CopyInit, ::Any) = deepcopy(init.value)
+inittypeof(::CopyInit{T}, ::Type) where T = T
+
+Base.show(io::IO, init::CopyInit) = _default_show(io, init)
