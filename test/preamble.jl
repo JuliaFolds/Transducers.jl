@@ -19,7 +19,18 @@ function iterator_variants(xs)
     push!(iters, Base.Generator(identity, xs))
     if !issparse(xs) && !any(ismissing, xs)
         # Currently not optimal at all, but it should work.
-        push!(iters, sparse(xs))
+        if VERSION ≤ v"1.3-"
+            push!(iters, sparse(xs))
+        else
+            # If `SparseArrays` does not support it (e.g.,
+            # `sparse([""])` is not supported in Julia 1.3), don't
+            # bother.  However, don't stop testing it if it is
+            # re-supported again at some point.  So at least try:
+            try
+                push!(iters, sparse(xs))
+            catch
+            end
+        end
     end
     return iters
 end
