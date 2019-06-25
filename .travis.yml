@@ -5,9 +5,11 @@ os:
 julia:
   - 1.0
   - 1.1
+  - 1.2
   - nightly
 matrix:
   allow_failures:
+    - julia: 1.2
     - julia: nightly
   fast_finish: true
 notifications:
