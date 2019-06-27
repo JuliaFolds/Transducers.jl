@@ -50,6 +50,7 @@ ifunreduced
 ## Miscellaneous
 
 ```@docs
+reducingfunction
 Completing
 Initializer
 CopyInit

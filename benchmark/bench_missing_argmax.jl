@@ -48,7 +48,7 @@ suite["xf"] = @benchmarkable(
     foldl(right, ed; init=$(argext_init(<))),
     setup=(ed = eduction(xf_argmax, random_missings())))
 
-rf = Transducers.reducingfunction(
+rf = Transducers._reducingfunction(
     xf_argmax,
     right,
     Union{Missing, Float64};

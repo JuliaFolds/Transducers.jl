@@ -67,7 +67,7 @@ suite["xf"] = @benchmarkable(
 
 # This is a bit "cheating" since it's using non-public API.  It is
 # just to show the lower-bound of Transducers.jl runtime:
-rf_nota = Transducers.reducingfunction(
+rf_nota = Transducers._reducingfunction(
     MapSplat(*) |> NotA(Missing),
     +,
     Tuple{Union{Missing, Float64},
@@ -78,7 +78,7 @@ suite["rf_nota"] = @benchmarkable(
     transduce($rf_nota, 0.0, zs),
     setup=(zs = zip(random_missings.(($n, $n))...)))
 
-rf_oftype = Transducers.reducingfunction(
+rf_oftype = Transducers._reducingfunction(
     OfType(Tuple{Vararg{Number}}) |> MapSplat(*),
     +,
     Tuple{Union{Missing, Float64},

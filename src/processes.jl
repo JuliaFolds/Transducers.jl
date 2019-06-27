@@ -1,6 +1,100 @@
 # --- Transducible processes
 
-@inline reducingfunction(xf::Transducer, step, intype::Type; simd=false) =
+"""
+    reducingfunction(xf, step; simd)
+
+Apply transducer `xf` to the reducing function `step` to create a new
+reducing function.
+
+!!! compat "Transducers.jl 0.3"
+
+    New in version 0.3.
+
+!!! warning
+
+    Be careful using `reducingfunction` with stateful transducers like
+    [`Scan`](@ref) with mutable `init` (e.g., `Scan(push!, [])`).  See
+    more in Examples below.
+
+# Arguments
+- `xf::Transducer`: A transducer.
+- `step`: A callable which accepts 1 and 2 arguments.  If it only
+  accepts 2 arguments, wrap it with [`Completing`](@ref) to "add"
+  1-argument form (i.e., [`complete`](@ref) protocol).
+
+# Keyword Arguments
+- `simd`: `false`, `true`, or `:ivdep`. See [`maybe_usesimd`](@ref).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> rf = reducingfunction(Map(x -> x + 1), *);
+
+julia> rf(10, 2) === 10 * (2 + 1)
+true
+```
+
+## Warning: Be careful when using `reducingfunction` with stateful transducers
+
+Stateful `Transducer`s themselves in Transducers.jl are not inherently
+broken with `reducingfunction`.  However, it can produce incorrect
+results when combined with mutable states:
+
+```jldoctest reducingfunction; setup = :(using Transducers)
+julia> scan_state = [];
+
+julia> rf_bad = reducingfunction(Scan(push!, scan_state) |> Cat(), string);
+
+julia> transduce(rf_bad, "", 1:3)
+"112123"
+```
+
+The first run works.  However, observe that the vector `scan_state` is
+not empty anymore:
+
+```jldoctest reducingfunction
+julia> scan_state
+3-element Array{Any,1}:
+ 1
+ 2
+ 3
+```
+
+Thus, the second run produces an incorrect result:
+
+```jldoctest reducingfunction
+julia> transduce(rf_bad, "", 1:3)
+"123112312123123"
+```
+
+One way to solve this issue is to use [`CopyInit`](@ref) or
+[`Initializer`](@ref).
+
+```jldoctest reducingfunction
+julia> scan_state = CopyInit([])
+CopyInit(Any[])
+
+julia> rf_good = reducingfunction(Scan(push!, scan_state) |> Cat(), string);
+
+julia> transduce(rf_good, "", 1:3)
+"112123"
+
+julia> scan_state
+CopyInit(Any[])
+
+julia> transduce(rf_good, "", 1:3)
+"112123"
+```
+"""
+@inline reducingfunction(xf::Transducer, step; kwargs...) =
+    _reducingfunction(xf, step, Any; kwargs...)
+#
+# TODO: Use some singleton object instead of `intype = Any` to
+#       completely eliminate the inference (or just stop using
+#       inference API).
+
+@inline _reducingfunction(xf::Transducer, step, intype::Type; simd=false) =
     maybe_usesimd(Reduction(xf, step, intype), simd)
 
 """
@@ -160,7 +254,7 @@ This API is modeled after $(_cljref("transduce")).
 
 # Arguments
 - `xf::Transducer`: A transducer.
-- `step`: A callable which accepts 1 or 2 arguments.  If it only
+- `step`: A callable which accepts 1 and 2 arguments.  If it only
   accepts 2 arguments, wrap it with [`Completing`](@ref) to "add"
   1-argument form (i.e., [`complete`](@ref) protocol).
 - `reducible`: A reducible object (array, dictionary, any iterator, etc.).
@@ -281,7 +375,7 @@ function Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
                         init = MissingInit(),
                         simd = false,
                         kwargs...)
-    rf = reducingfunction(xform, step, eltype(itr); simd=simd)
+    rf = _reducingfunction(xform, step, eltype(itr); simd=simd)
     return unreduced(__reduce__(rf, init, itr; kwargs...))
 end
 
@@ -535,7 +629,7 @@ function _prepare_map(xf, dest, src, simd)
     # TODO: support Dict
     indices = eachindex(dest, src)
 
-    rf = reducingfunction(
+    rf = _reducingfunction(
         TeeZip(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
         (::Vararg) -> nothing,
         eltype(indices);

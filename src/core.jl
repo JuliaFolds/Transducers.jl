@@ -242,6 +242,8 @@ struct Reduction{X <: Transducer, I, intype} <: AbstractReduction{intype, I}
     inner::I
 end
 
+@inline (rf::Reduction)(state, input) = next(rf, state, input)
+
 prependxf(rf::AbstractReduction, xf) = Reduction(xf, rf, InType(rf))
 setinner(rf::Reduction, inner) = Reduction(xform(rf), inner, InType(rf))
 
