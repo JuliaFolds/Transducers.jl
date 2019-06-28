@@ -110,7 +110,11 @@ Reduction{▶ Int64}(
 ```
 """
 maybe_usesimd(rf::AbstractReduction, simd::Union{Bool,Symbol}) =
-    if simd === true
+    if has(rf, UseSIMD)
+        # An optimization; shortcut everything if SIMD is already
+        # enabled.
+        rf
+    elseif simd === true
         usesimd(rf, UseSIMD{false}())
     elseif simd === :ivdep
         usesimd(rf, UseSIMD{true}())

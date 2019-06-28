@@ -212,6 +212,8 @@ Return the transducer `xf` associated with `rf`.  Returned transducer
 """
 xform(rf::AbstractReduction) = rf.xform
 
+has(rf::AbstractReduction, T::Type{<:Transducer}) = has(Transducer(rf), T)
+
 struct BottomRF{intype, F} <: AbstractReduction{intype, F}
     inner::F
 end
