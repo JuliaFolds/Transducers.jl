@@ -1,19 +1,8 @@
 module TestTransducers
 using Test
 
-testfiles = [
-    "test_core.jl",
-    "test_library.jl",
-    "test_processes.jl",
-    "test_show.jl",
-    "test_simd.jl",
-    "test_examples_transducers.jl",
-    "test_examples_words.jl",
-    "test_examples_primes.jl",
-    "test_examples_tutorial_missings.jl",
-]
-
-@testset "$file" for file in testfiles
+@testset "$file" for file in sort([file for file in readdir(@__DIR__) if
+                                   match(r"^test_.*\.jl$", file) !== nothing])
     include(file)
 end
 

@@ -49,7 +49,7 @@ end
 
 @testset "Cat SIMD" begin
     coll = [Float64[]]
-    rf = Reduction(maybe_usesimd(Cat(), true), +, eltype(coll))
+    rf = maybe_usesimd(Reduction(Cat(), +, eltype(coll)), true)
     ir = llvm_ir(transduce, (rf, 0.0, coll))
     @test_broken_if(
         VERSION < v"1.1-",
@@ -81,15 +81,16 @@ unsafe_setter(ys) =
 
         # Manually "expand" `foreach` internal (so that I can observe
         # SIMD in the IR).
-        rf = Reduction(maybe_usesimd(xf, true),
+        rf = Reduction(xf,
                        SideEffect(unsafe_setter(ys)),
                        eltype(xs))
+        rf = maybe_usesimd(rf, true)
         fill!(ys, 0)
         transduce(rf, nothing, xs)
         @test ys == 2xs
 
         ir = llvm_ir(transduce, (rf, nothing, xs))
-        @test nmatches(r"fmul <4 x double>", ir) >= 4
+        @test_broken nmatches(r"fmul <4 x double>", ir) >= 4
     end
 end
 
