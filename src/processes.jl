@@ -126,22 +126,28 @@ See also: [`@return_if_reduced`](@ref).
 """
 __foldl__
 
+const FOLDL_RECURSION_LIMIT = Val(10)
+# const FOLDL_RECURSION_LIMIT = nothing
+_dec(::Nothing) = nothing
+_dec(::Val{n}) where n = Val(n - 1)
+
 function __foldl__(rf, init, coll)
     ret = iterate(coll)
     ret === nothing && return complete(rf, init)
-
-    # Some transducers like PartitionBy do a special type-unstable
-    # thing in the first iteration.  Let's try to make the main loop
-    # type-stable by hoisting it out.  It won't work when they are
-    # wrapped by filter-like Transducers but it may be a good
-    # optimization to cover a good amount of cases anyway.
     x, state = ret
     val = next(rf, init, x)
     @return_if_reduced val
-    while (ret = iterate(coll, state)) !== nothing
+    return _foldl_iter(rf, val, coll, state, FOLDL_RECURSION_LIMIT)
+end
+
+@inline function _foldl_iter(rf, val::T, iter, state, counter) where T
+    while (ret = iterate(iter, state)) !== nothing
         x, state = ret
-        val = next(rf, val, x)
-        @return_if_reduced val
+        y = next(rf, val, x)
+        @return_if_reduced y
+        counter === Val(0) || y isa T ||
+            return _foldl_iter(rf, y, iter, state, _dec(counter))
+        val = y
     end
     return complete(rf, val)
 end
