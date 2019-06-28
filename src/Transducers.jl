@@ -13,6 +13,7 @@ export Distinct
 using Base.Broadcast: Broadcasted
 
 using ArgCheck
+using Requires
 
 import Setfield
 using Setfield: @lens, @set, set
@@ -28,5 +29,14 @@ include("lister.jl")
 include("show.jl")
 include("comprehensions.jl")
 include("deprecated.jl")
+
+include("interop.jl")
+
+function __init__()
+    @require LazyArrays="5078a376-72f3-5289-bfd5-ec5146d43c02" begin
+        __foldl__(rf, acc, coll::LazyArrays.Vcat) =
+            _foldl_lazy_vcat(rf, acc, coll)
+    end
+end
 
 end # module
