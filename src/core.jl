@@ -106,14 +106,23 @@ unreduced(x::Reduced) = x.value
 unreduced(x) = x
 
 """
-    @return_if_reduced val
+    @return_if_reduced expr
 
 It transforms the given expression to:
 
 ```julia
+val = expr
 val isa Reduced && return val
 val
 ```
+
+!!! compat "Transducers.jl 0.3"
+
+    In v0.2, the calling convention was `@return_if_reduced
+    complete(rf, val)` and it was transformed to `val isa Reduced &&
+    return reduced(complete(rf, unreduced(val)))`.  For the rationale
+    behind the change, see [this commit
+    message](https://github.com/tkf/Transducers.jl/commit/74f8961fea97b746cb097b27aa5a5761e9bf4dae).
 
 # Examples
 ```jldoctest; filter = [r"#[0-9]+#", r"#=.*?=#"]
