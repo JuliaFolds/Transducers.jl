@@ -59,6 +59,7 @@ end
 unsafe_setter(ys) =
     function((i, x),)
         @inbounds ys[i] = x
+        return
     end
 
 @testset "foreach SIMD" begin
@@ -90,7 +91,7 @@ unsafe_setter(ys) =
         @test ys == 2xs
 
         ir = llvm_ir(transduce, (rf, nothing, xs))
-        @test_broken nmatches(r"fmul <4 x double>", ir) >= 4
+        @test nmatches(r"fmul <4 x double>", ir) >= 4
     end
 end
 
