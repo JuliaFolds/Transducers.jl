@@ -1,6 +1,6 @@
 module Transducers
 
-export Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, Zip,
+export Transducer, Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, Zip,
     Replace, TakeWhile, TakeNth, Drop, DropLast, DropWhile, Keep, Unique,
     Interpose, Dedupe, Partition, Iterated, Count,
     TakeLast, FlagFirst, MapSplat, ScanEmit, Enumerate, NotA, OfType,
@@ -26,6 +26,7 @@ include("processes.jl")
 include("air.jl")
 include("lister.jl")
 include("show.jl")
+include("comprehensions.jl")
 include("deprecated.jl")
 
 end # module
