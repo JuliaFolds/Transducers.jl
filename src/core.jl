@@ -546,6 +546,27 @@ unwrap_all(result) = result
 unwrap_all(ps::Reduced) = Reduced(unwrap_all(unreduced(ps)))
 
 """
+    needintype(xf::Transducer) :: Bool
+    needintype(T::Type{<:Transducer}) :: Bool
+
+Return `false` if `start(xf::T, _)` does not need `intype`.  Abstract
+`Transducer` defaults to return `true`.  This is because it is
+impossible to know if a user-defined transducer needs `intype`
+(typically via `initvalue`).
+"""
+needintype(::T) where {T <: Transducer} = needintype(T)
+needintype(::Type{<:Transducer}) = true
+needintype(::Type{Composition{XO, XI}}) where {XO, XI} =
+    needintype(XO) || needintype(XI)
+
+function default_needintype_with_init(T::Type{<:Transducer})
+    I = fieldtype(T, :init)
+    return I <: AbstractInitializer
+    # Maybe I need to do this?
+    # return !isconcretetype(I) || I <: AbstractInitializer
+end
+
+"""
     outtype(xf::Transducer, intype)
 
 Output item type for the transducer `xf` when the input type is `intype`.

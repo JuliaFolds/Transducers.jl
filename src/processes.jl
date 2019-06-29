@@ -563,9 +563,15 @@ julia> collect(Interpose(missing), 1:3)
 ```
 """
 function Base.collect(xf::Transducer, coll)
-    rf = Reduction(xf, Completing(push!), eltype(coll))
-    to = FinalType(rf)[]
-    return unreduced(transduce(rf, to, coll))
+    if needintype(xf)
+        rf = Reduction(xf, Completing(push!), eltype(coll))
+        to = FinalType(rf)[]
+    else
+        rf = reducingfunction(xf, Completing(push!!))
+        to = Union{}[]
+    end
+    result = unreduced(transduce(rf, to, coll))
+    return result
 end
 # Base.collect(xf, coll) = append!([], xf, coll)
 

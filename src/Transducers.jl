@@ -18,6 +18,7 @@ using Requires
 import Setfield
 using Setfield: @lens, @set, set
 
+include("bangbang.jl")
 include("showutils.jl")
 include("basics.jl")
 include("core.jl")
@@ -31,6 +32,8 @@ include("comprehensions.jl")
 include("deprecated.jl")
 
 include("interop.jl")
+
+include("evals.jl")
 
 function __init__()
     @require LazyArrays="5078a376-72f3-5289-bfd5-ec5146d43c02" begin

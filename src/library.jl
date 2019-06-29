@@ -99,7 +99,7 @@ julia> collect(Replace(Dict('a' => 'A')), "abc")
  'c'
 
 julia> collect(Replace([:a, :b, :c]), 0:4)
-5-element Array{Union{Int64, Symbol},1}:
+5-element Array{Any,1}:
  0
   :a
   :b
@@ -107,7 +107,7 @@ julia> collect(Replace([:a, :b, :c]), 0:4)
  4
 
 julia> collect(Replace("abc"), 0:4)
-5-element Array{Union{Char, Int64},1}:
+5-element Array{Any,1}:
  0
   'a'
   'b'
@@ -243,11 +243,6 @@ julia> collect(NotA(Missing), [1, missing, 2])
 2-element Array{Int64,1}:
  1
  2
-
-julia> collect(Filter(!ismissing), [1, missing, 2])  # see the eltype below
-2-element Array{Union{Missing, Int64},1}:
- 1
- 2
 ```
 """
 struct NotA{T} <: AbstractFilter end
@@ -279,11 +274,6 @@ julia> using Transducers
 
 julia> collect(OfType(Int), [1, missing, 2])
 2-element Array{Int64,1}:
- 1
- 2
-
-julia> collect(Filter(!ismissing), [1, missing, 2])  # see the eltype below
-2-element Array{Union{Missing, Int64},1}:
  1
  2
 ```
