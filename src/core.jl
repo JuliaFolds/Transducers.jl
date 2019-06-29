@@ -159,6 +159,22 @@ macro return_if_reduced(ex)
     :(val = $val; $code)
 end
 
+struct NoType end
+const NOTYPE = NoType()
+const Typeish{T} = Union{Type{T}, NoType}
+
+astype(::NoType) = Any
+astype(T::Type) = T
+
+function Base.show(io::IO, ::NoType)
+    if !get(io, :limit, false)
+        # Don't show full name in REPL etc.:
+        print(io, "Transducers.")
+    end
+    print(io, "NOTYPE")
+end
+
+
 abstract type Transducer end
 abstract type AbstractFilter <: Transducer end
 
@@ -190,6 +206,7 @@ AbstractFilter
 abstract type AbstractReduction{intype, innertype} end
 
 InType(::T) where T = InType(T)
+InType(NOTYPE::NoType) = NOTYPE
 InType(::Type{<:AbstractReduction{intype}}) where {intype} = intype
 InType(T::Type) = throw(MethodError(InType, (T,)))
 
@@ -220,8 +237,8 @@ end
 
 BottomRF{intype}(f::F) where {intype, F} = BottomRF{intype, F}(f)
 
-ensurerf(rf::AbstractReduction, ::Type) = rf
-ensurerf(f, intype::Type) = BottomRF{intype}(f)
+ensurerf(rf::AbstractReduction, ::Typeish) = rf
+ensurerf(f, intype::Typeish) = BottomRF{intype}(f)
 
 # Not calling rf.inner(result, input) etc. directly since it can be
 # `Completing` etc.
@@ -275,19 +292,19 @@ transducer `xform(rf)::X` and the inner reducing function
 """
 const R_{X} = Reduction{<:X}
 
-Reduction(xf::X, inner::I, ::Type{InType}) where {X, I, InType} =
+Reduction(xf::X, inner::I, InType::Typeish) where {X, I} =
     if I <: AbstractReduction
         Reduction{X, I, InType}(xf, inner)
     else
-        Reduction(xf, ensurerf(inner, outtype(xf, InType)), InType)
+        Reduction(xf, ensurerf(inner, _outtype(xf, InType)), InType)
     end
 
-@inline function Reduction(xf_::Composition, f, intype::Type)
+@inline function Reduction(xf_::Composition, f, intype::Typeish)
     xf = _normalize(xf_)
     # @assert !(xf.outer isa Composition)
     return Reduction(
         xf.outer,
-        Reduction(xf.inner, f, outtype(xf.outer, intype)),
+        Reduction(xf.inner, f, _outtype(xf.outer, intype)),
         intype)
 end
 
@@ -536,6 +553,9 @@ Output item type for the transducer `xf` when the input type is `intype`.
 outtype(::Any, ::Any) = Any
 outtype(::AbstractFilter, intype) = intype
 
+_outtype(::Any, ::NoType) = NOTYPE
+_outtype(xf, intype) = outtype(xf, intype)
+
 # isexpansive(::Any) = true
 isexpansive(::Transducer) = true
 isexpansive(::AbstractFilter) = false
@@ -707,7 +727,7 @@ struct Initializer{F}
 end
 
 initvalue(x, ::Any) = x
-initvalue(init::Initializer, intype) = init.f(intype)
+initvalue(init::Initializer, intype) = init.f(astype(intype))
 
 _initvalue(rf::Reduction) = initvalue(xform(rf).init, InType(rf))
 

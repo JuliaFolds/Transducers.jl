@@ -88,13 +88,9 @@ julia> transduce(rf_good, "", 1:3)
 ```
 """
 @inline reducingfunction(xf::Transducer, step; kwargs...) =
-    _reducingfunction(xf, step, Any; kwargs...)
-#
-# TODO: Use some singleton object instead of `intype = Any` to
-#       completely eliminate the inference (or just stop using
-#       inference API).
+    _reducingfunction(xf, step, NOTYPE; kwargs...)
 
-@inline _reducingfunction(xf::Transducer, step, intype::Type; simd=false) =
+@inline _reducingfunction(xf::Transducer, step, intype::Typeish; simd=false) =
     maybe_usesimd(Reduction(xf, step, intype), simd)
 
 """
