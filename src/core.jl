@@ -817,3 +817,45 @@ Base.show(io::IO, init::CopyInit) = _default_show(io, init)
     foldlargs(op,
               @return_if_reduced(op(x1, x2)),
               xs...)
+
+"""
+    @default_finaltype(xf::Transducer, coll)
+
+Infer the type of the object that would be fed into the second
+argument `input` of the bottom reducing function `rf(acc, input)`.
+
+See: `Base.@default_eltype`
+"""
+macro default_finaltype(xf, coll)
+    quote
+        # `eltype(coll)` does not work when `coll` is an iterator;
+        # that's why we are using `Base.@default_eltype`:
+        intype = Base.@default_eltype($(esc(coll)))
+        Core.Compiler.return_type(
+            _getoutput,
+            Tuple{typeof($(esc(xf))), intype},
+        ) |> _real_state_type
+    end
+end
+
+# # How `@default_finaltype` works
+#
+# When `xf` has a filter-like transducer, the inference would say that
+# the output of `next(reducingfunction(xf, right), ..., x)` is
+# `Union{Nothing, THE_DESIRED_TYPE}` because `nothing` is the default
+# "identity" of `right`.  So, we set the initial value of `acc` as a
+# dummy singleton `_FakeState()` and strip it off from the inferred
+# `Union{_FakeState, THE_DESIRED_TYPE}` to get `THE_DESIRED_TYPE`.
+#
+# Note that using `_FakeState` is important for supporting cases like
+# `Union{Nothing, Int}` being the correct output type of `xf`.
+
+struct _FakeState end
+
+function _getoutput(xf, x)
+    rf = reducingfunction(xf, right)
+    return unreduced(next(rf, _start_init(rf, _FakeState()), x))
+end
+
+_real_state_type(T) = T
+_real_state_type(::Type{Union{T, _FakeState}}) where T = T
