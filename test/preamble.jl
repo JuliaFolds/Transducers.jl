@@ -68,6 +68,15 @@ macro test_broken_if(cond, ex)
     esc(ex)
 end
 
+
+macro test_inferred(ex)
+    ex = quote
+        $Test.@test (($Test.@inferred $ex); true)
+    end
+    esc(ex)
+end
+
+
 function slow_test(f, title, limit)
     if lowercase(get(ENV, "TRANSDUCERS_JL_TEST_SKIP_SLOW", "false")) == "true"
         @info "Skipping $title"

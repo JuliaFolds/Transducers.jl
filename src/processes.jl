@@ -571,6 +571,10 @@ function Base.collect(xf::Transducer, coll)
         to = Union{}[]
     end
     result = unreduced(transduce(rf, to, coll))
+    if result isa Vector{Union{}}
+        et = @default_finaltype(xf, coll)
+        return et[]
+    end
     return result
 end
 # Base.collect(xf, coll) = append!([], xf, coll)
