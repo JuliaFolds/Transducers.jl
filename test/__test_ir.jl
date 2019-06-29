@@ -101,13 +101,17 @@ end
         Filter(xs -> mean(abs, xs) < 1.0) |>
         Map(prod)
 
+    # Union coming from
+    okunion = r"UNION\{NOTHING, *TUPLE\{INT64, *INT64\}\}"
+
     coll = Float64[]
     rf = Reduction(xf, +, eltype(coll))
     val = start(rf, 0.0)
-    @test anyunions(julia_ir(__foldl__, (rf, val, coll))) == []
+    ir = julia_ir(__foldl__, (rf, val, coll))
+    @test anyunions(replace(ir, okunion => "")) == []
 
     # If Julia becomes clever enough to make `__simple_foldl__`
     # type-stable, there is no need to maintain current complex code:
     simple_ir = julia_ir(__simple_foldl__, (rf, val, coll))
-    @test !isempty(anyunions(simple_ir))
+    @test !isempty(anyunions(replace(simple_ir, okunion => "")))
 end
