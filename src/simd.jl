@@ -58,55 +58,61 @@ Insert `UseSIMD` to `xform` if appropriate.
 julia> using Transducers
        using Transducers: maybe_usesimd
 
-julia> maybe_usesimd(eduction(Map(identity), 1:1).rf, false)
-Reduction{▶ Int64}(
+julia> maybe_usesimd(reducingfunction(Map(identity), right), false)
+Reduction{▶ NOTYPE}(
     Map(identity),
-    BottomRF{▶ Int64}(
-        Completing{typeof(push!)}(push!)))
+    BottomRF{▶ NOTYPE}(
+        Transducers.right))
 
-julia> maybe_usesimd(eduction(Map(identity), 1:1).rf, true)
-Reduction{▶ Int64}(
+julia> maybe_usesimd(reducingfunction(Map(identity), right), true)
+Reduction{▶ NOTYPE}(
     Transducers.UseSIMD{false}(),
-    Reduction{▶ Int64}(
+    Reduction{▶ NOTYPE}(
         Map(identity),
-        BottomRF{▶ Int64}(
-            Completing{typeof(push!)}(push!))))
+        BottomRF{▶ NOTYPE}(
+            Transducers.right)))
 
-julia> maybe_usesimd(eduction(Cat(), 1:1).rf, true)
-Reduction{▶ Int64}(
+julia> maybe_usesimd(reducingfunction(Cat(), right), true)
+Reduction{▶ NOTYPE}(
     Cat(),
-    Reduction{▶ Int64}(
+    Reduction{▶ NOTYPE}(
         Transducers.UseSIMD{false}(),
-        BottomRF{▶ Int64}(
-            Completing{typeof(push!)}(push!))))
+        BottomRF{▶ NOTYPE}(
+            Transducers.right)))
 
-julia> maybe_usesimd(eduction(Map(sin) |> Cat() |> Map(cos), 1:1).rf, :ivdep)
-Reduction{▶ Int64}(
+julia> maybe_usesimd(reducingfunction(Map(sin) |> Cat() |> Map(cos), right), :ivdep)
+Reduction{▶ NOTYPE}(
     Map(sin),
-    Reduction{▶ Float64}(
+    Reduction{▶ NOTYPE}(
         Cat(),
-        Reduction{▶ Float64}(
+        Reduction{▶ NOTYPE}(
             Transducers.UseSIMD{true}(),
-            Reduction{▶ Float64}(
+            Reduction{▶ NOTYPE}(
                 Map(cos),
-                BottomRF{▶ Float64}(
-                    Completing{typeof(push!)}(push!))))))
+                BottomRF{▶ NOTYPE}(
+                    Transducers.right)))))
 
-julia> maybe_usesimd(eduction(Map(sin) |> Cat() |> Map(cos) |> Cat() |> Map(tan), 1:1).rf, true)
-Reduction{▶ Int64}(
+julia> maybe_usesimd(
+           reducingfunction(
+               Map(sin) |> Cat() |> Map(cos) |> Cat() |> Map(tan),
+               right,
+           ),
+           true,
+       )
+Reduction{▶ NOTYPE}(
     Map(sin),
-    Reduction{▶ Float64}(
+    Reduction{▶ NOTYPE}(
         Cat(),
-        Reduction{▶ Float64}(
+        Reduction{▶ NOTYPE}(
             Map(cos),
-            Reduction{▶ Float64}(
+            Reduction{▶ NOTYPE}(
                 Cat(),
-                Reduction{▶ Float64}(
+                Reduction{▶ NOTYPE}(
                     Transducers.UseSIMD{false}(),
-                    Reduction{▶ Float64}(
+                    Reduction{▶ NOTYPE}(
                         Map(tan),
-                        BottomRF{▶ Float64}(
-                            Completing{typeof(push!)}(push!))))))))
+                        BottomRF{▶ NOTYPE}(
+                            Transducers.right)))))))
 ```
 """
 maybe_usesimd(rf::AbstractReduction, simd::Union{Bool,Symbol}) =

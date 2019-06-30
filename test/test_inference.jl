@@ -33,4 +33,11 @@ end
     end
 end
 
+@testset "eduction" begin
+    @testset for xs in collections
+        @test_inferred eduction(Map(exp), xs)
+        @test_inferred eduction(Map(exp) |> Filter(x -> x > 0), xs)
+    end
+end
+
 end  # module

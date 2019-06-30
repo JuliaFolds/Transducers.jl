@@ -9,7 +9,7 @@ using Transducers: has, reform
 end
 
 @testset "reform" begin
-    f = Completing(push!)  # bottom reducing function for eduction
+    f = Completing(Transducers.push!!)  # bottom reducing function for eduction
     @testset for xf in [
             Count(),
             Map(identity) |> Count(),

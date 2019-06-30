@@ -30,6 +30,7 @@ include("preamble.jl")
         @test foldl(+, xf, iter, init=32.) === 32.
 
         ed = eduction(xf, iter)
+        ed = infer_input_types(ed)
         @test foldl(+, ed) === 0
         @test foldl(+, ed, init=32.) === 32.
 
@@ -97,6 +98,7 @@ end
     end
 
     ed = eduction(xf, 1:5)
+    ed = infer_input_types(ed)
     @test eltype(ed) === Int
 
     @testset "inference" begin
@@ -121,6 +123,7 @@ end
                 (Map(x -> 1/x), float(Int)),
                 ]
             ed = eduction(xf, 1:10)
+            ed = infer_input_types(ed)
             @test Base.IteratorEltype(typeof(ed)) ==
                 Base.IteratorEltype(ed) ==
                 Base.HasEltype()
@@ -133,6 +136,7 @@ end
 @testset "setinput" begin
     xf = Zip(Count(), Map(identity), Map(x -> 2x)) |> MapSplat(*)
     ed = eduction(xf, 1:10)
+    ed = infer_input_types(ed)
 
     @testset for xs in iterator_variants(1:10)
         @test setinput(ed, xs).coll isa typeof(xs)

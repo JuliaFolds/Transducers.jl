@@ -385,7 +385,17 @@ struct Eduction{F, C}
 end
 
 Eduction(xform::Transducer, coll) =
-    Eduction(Reduction(xform, Completing(push!), ieltype(coll)), coll)
+    Eduction(rf_for(xform, Completing(push!!), Union{}[], ieltype(coll)), coll)
+
+infer_input_types(ed::Eduction) =
+    if FinalType(ed.rf) isa Type
+        ed
+    else
+        Eduction(Reduction(Transducer(ed.rf),
+                           as(ed.rf, BottomRF).inner,
+                           ieltype(ed.coll)),
+                 ed.coll)
+    end
 
 Transducer(ed::Eduction) = Transducer(ed.rf)
 
@@ -394,8 +404,9 @@ transduce(xform::Transducer, f, init, ed::Eduction) =
 
 Base.IteratorSize(::Type{<:Eduction}) = Base.SizeUnknown()
 
-Base.IteratorEltype(::Type{<:Eduction}) = Base.HasEltype()
-Base.eltype(::Type{<:Eduction{F}}) where F = FinalType(F)
+Base.IteratorEltype(::Type{<:Eduction{F}}) where {F} =
+    F === NOTYPE ? Base.EltypeUnknown() : Base.HasEltype()
+Base.eltype(::Type{<:Eduction{F}}) where F = astype(FinalType(F))
 
 function Base.iterate(ts::Eduction, state = nothing)
     if state === nothing
@@ -403,18 +414,17 @@ function Base.iterate(ts::Eduction, state = nothing)
         cret === nothing && return nothing
         input, cstate = cret
 
-        buffer = FinalType(ts.rf)[]
-        result = start(ts.rf, buffer)
+        result = start(ts.rf, Union{}[])
 
         cdone = false
         rdone = false
         @goto step
         # Assuming the initial `result` can never be `Reduced`.
     else
-        cstate, cdone, result, buffer, rdone = state
+        cstate, cdone, result, rdone = state
     end
     if !cdone && !rdone
-        while isempty(buffer)
+        while isempty(unwrap_all(result))
             cret = iterate(ts.coll, cstate)
             if cret === nothing
                 cdone = true
@@ -434,9 +444,10 @@ function Base.iterate(ts::Eduction, state = nothing)
             end
         end
     end
+    buffer = unwrap_all(result)
     isempty(buffer) && return nothing
     y = popfirst!(buffer)
-    next_state = (cstate, cdone, result, buffer, rdone)
+    next_state = (cstate, cdone, result, rdone)
     return (y, next_state)
 end
 
@@ -475,43 +486,25 @@ eduction(xform, coll) = Eduction(xform, coll)
 """
     setinput(ed::Eduction, coll)
 
-Set input collection of eduction `ed` to `coll`.  This is efficient
-than re-creating an `Eduction` with a new `coll` if `eltype` of old
-and new input collections are the same.
+Set input collection of eduction `ed` to `coll`.
+
+!!! compat "Transducers.jl 0.3"
+
+    Previously, `setinput` combined with `eduction` was a recommended
+    way to use transducers in a type stable manner.  As of v0.3, all
+    the `foldl`-like functions and `eduction` are type stable for many
+    cases.  This workaround is no more necessary.
 
 # Examples
-```jldoctest setinput
+```jldoctest
 julia> using Transducers
 
 julia> ed = eduction(Map(x -> 2x), Float64[]);
-```
-
-Here, we created an `Eduction` with input container whose `eltype` is
-`Float64`.  It can be used later with different container.
-
-```jldoctest setinput
-julia> using Test
 
 julia> xs = ones(2, 3);
 
-julia> foldl(+, @inferred setinput(ed, xs))
-12.0
-```
-
-Note that we changed the container type from `Vector` to `Matrix`
-while using the same `eltype`.  In this case, `setinput` is inferrable
-and thus can be compiled away.  It is also possible to set container
-with different `eltype` although not inferrable in this case:
-
-```jldoctest setinput; filter = r"Transducers\\.Eduction.*"
-julia> xs = ones(Int, 2, 3);
-
 julia> foldl(+, setinput(ed, xs))
-12
-
-julia> foldl(+, @inferred setinput(ed, xs))
-ERROR: return type Transducers.Eduction{...} does not match inferred return type ...
-[...]
+12.0
 ```
 """
 setinput(ed::Eduction, coll) =
@@ -680,11 +673,6 @@ The first form is a shorthand for `mapfoldl(xf, Completing(step),
 reducible)`.  It is intended to be used with a `do` block.  It is also
 equivalent to `foldl(step, eduction(xf, itr))`.
 
-`foldl(step, ed)` is useful when calling transducers in a tight loop
-where setup cost for `foldl(step, xf, reducible)`, `mapfoldl(xf, step,
-reducible)`, etc. is not negligible.  See [`setinput`](@ref) for how
-to reset input collection of an `Eduction`.
-
 See: [`mapfoldl`](@ref).
 
 # Examples
@@ -706,8 +694,13 @@ function Base.foldl(step, xform::Transducer, itr;
 end
 
 @inline Base.foldl(step, ed::Eduction; init=MissingInit(), kwargs...) =
-    unreduced(transduce(reform(ed.rf, Completing(step)), init, ed.coll;
-                        kwargs...))
+    if FinalType(ed.rf) === NOTYPE
+        xf = Transducer(ed.rf)
+        unreduced(transduce(xf, Completing(step), init, ed.coll; kwargs...))
+    else
+        rf = reform(ed.rf, Completing(step))
+        unreduced(transduce(rf, init, ed.coll; kwargs...))
+    end
 
 """
     foreach(eff, xf::Transducer, reducible; simd)
