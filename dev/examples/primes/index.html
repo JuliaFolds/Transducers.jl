@@ -10,7 +10,7 @@ sieve(xf, x) =
 
 prime_xf = ScanEmit(sieve, Map(identity)) |&gt; Filter(!isnothing)
 
-collect(prime_xf, 2:10)</code></pre><pre><code class="language-none">4-element Array{Union{Nothing, Int64},1}:
+collect(prime_xf, 2:10)</code></pre><pre><code class="language-none">4-element Array{Int64,1}:
  2
  3
  5
