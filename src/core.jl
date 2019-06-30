@@ -649,6 +649,8 @@ identityof(::typeof(right), ::Any) = nothing
 # context anyway so I guess it's fine.
 
 
+abstract type AbstractInitializer end
+
 """
     Initializer(f)
 
@@ -722,7 +724,7 @@ julia> mapfoldl(Map(identity), push!, "abc"; init=Initializer(T -> T[]))
  'c'
 ```
 """
-struct Initializer{F}
+struct Initializer{F} <: AbstractInitializer
     f::F
 end
 
@@ -732,15 +734,22 @@ initvalue(init::Initializer, intype) = init.f(astype(intype))
 _initvalue(rf::Reduction) = initvalue(xform(rf).init, InType(rf))
 
 inittypeof(::T, ::Type) where T = T
-function inittypeof(init::Initializer, intype::Type)
+function inittypeof(init::AbstractInitializer, intype::Type)
     # Maybe I should just call it?  But that would be a bit of waste
     # when `init.f` allocates...
-    T = Base.promote_op(init.f, Type{intype})
+    T = Base.promote_op(initvalue, typeof(init), Type{intype})
     isconcretetype(T) && return T
-    return typeof(init.f(intype))  # T==Union{} hits this code pass
+    return typeof(initvalue(init, intype))  # T==Union{} hits this code pass
 end
 
 Base.show(io::IO, init::Initializer) = _default_show(io, init)
+
+
+struct DefaultIdentityInitializer{T} <: AbstractInitializer
+    op::T
+end
+
+initvalue(init::DefaultIdentityInitializer, intype) = identityof(init.op, intype)
 
 
 """
@@ -773,7 +782,7 @@ julia> foldl(push!, Map(identity), 1:3; init=init)  # `init` can be reused
  3
 ```
 """
-struct CopyInit{T}
+struct CopyInit{T} <: AbstractInitializer
     value::T
 end
 

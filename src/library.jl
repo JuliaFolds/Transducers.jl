@@ -1108,9 +1108,8 @@ struct Scan{F, T} <: Transducer
     init::T
 end
 
-Scan(f) = Scan(f, nothing)
+Scan(f) = Scan(f, DefaultIdentityInitializer(f))
 
-_lefttype(xf::Scan{<:Any, Nothing}, intype) = typeof(identityof(xf.f, intype))
 _lefttype(xf::Scan, intype) = inittypeof(xf.init, intype)
 
 # Maybe this is fine:
@@ -1130,11 +1129,7 @@ function _type_scan_fixedpoint(f, A, X, limit = 10)
 end
 
 function start(rf::R_{Scan}, result)
-    if xform(rf).init === nothing
-        init = identityof(xform(rf).f, InType(rf))
-    else
-        init = _initvalue(rf)
-    end
+    init = _initvalue(rf)
     return wrap(rf, init, start(inner(rf), result))
 end
 
