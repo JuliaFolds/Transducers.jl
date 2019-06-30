@@ -53,12 +53,12 @@ end
     end
 
     @testset "outtype" begin
-        @test eltype(eduction(Scan(+), 1:10)) === Int
-        @test eltype(eduction(Scan(+, 0.0), 1:10)) === Float64
-        @test eltype(eduction(Scan(+, missing), 1:10)) === Missing
-        @test eltype(eduction(Scan(+, Initializer(_ -> rand())), Int[])) ===
+        @test outtype(Scan(+), Int) === Int
+        @test outtype(Scan(+, 0.0), Int) === Float64
+        @test outtype(Scan(+, missing), Int) === Missing
+        @test outtype(Scan(+, Initializer(_ -> rand())), Int) ===
             Float64
-        @test eltype(eduction(Scan(+, Initializer(_ -> rand(Int))), Int[])) ===
+        @test outtype(Scan(+, Initializer(_ -> rand(Int))), Int) ===
             Int
     end
 end
@@ -76,16 +76,16 @@ end
     end
 
     @testset "outtype" begin
-        @test eltype(eduction(ScanEmit(tuple, 0), 1:10)) === Int
-        @test eltype(eduction(ScanEmit(tuple, 0.0), 1:10)) ===
+        @test outtype(ScanEmit(tuple, 0), Int) === Int
+        @test outtype(ScanEmit(tuple, 0.0), Int) ===
             Union{Float64, Int64}
-        @test eltype(eduction(
-            ScanEmit(tuple, missing), 1:10)) === Union{Missing, Int64}
-        @test eltype(eduction(
-            ScanEmit(tuple, Initializer(_ -> rand())), Int[])) ===
+        @test outtype(
+            ScanEmit(tuple, missing), Int) === Union{Missing, Int64}
+        @test outtype(
+            ScanEmit(tuple, Initializer(_ -> rand())), Int) ===
                 Union{Float64, Int64}
-        @test eltype(eduction(
-            ScanEmit(tuple, Initializer(_ -> rand(Int))), Int[])) === Int
+        @test outtype(
+            ScanEmit(tuple, Initializer(_ -> rand(Int))), Int) === Int
     end
 
     @testset "Do not call `complete` when reduced" begin
@@ -481,22 +481,22 @@ end
 
 @testset "OfType" begin
     @testset "outtype" begin
-        @test eltype(eduction(OfType(Int), Int[])) === Int
-        @test eltype(eduction(OfType(Int), Union{Int,Missing}[])) === Int
-        @test eltype(eduction(OfType(Number), Union{Int,Missing}[])) === Int
-        @test eltype(eduction(OfType(Integer), Union{Int,Missing}[])) === Int
-        @test eltype(eduction(
+        @test outtype(OfType(Int), Int) === Int
+        @test outtype(OfType(Int), Union{Int,Missing}) === Int
+        @test outtype(OfType(Number), Union{Int,Missing}) === Int
+        @test outtype(OfType(Integer), Union{Int,Missing}) === Int
+        @test outtype(
             OfType(Tuple{Int,Int}),
-            Tuple{Union{Int,Missing}, Int}[]
-        )) === Tuple{Int,Int}
-        @test eltype(eduction(
+            Tuple{Union{Int,Missing}, Int}
+        ) === Tuple{Int,Int}
+        @test outtype(
             OfType(Tuple{Vararg{Int}}),
-            Tuple{Union{Int,Missing}, Int}[]
-        )) === Tuple{Int,Int}
-        @test eltype(eduction(
+            Tuple{Union{Int,Missing}, Int}
+        ) === Tuple{Int,Int}
+        @test outtype(
             OfType(Tuple{Vararg{Number}}),
-            Tuple{Union{Int,Missing}, Int}[]
-        )) === Tuple{Int,Int}
+            Tuple{Union{Int,Missing}, Int}
+        ) === Tuple{Int,Int}
     end
     @testset "_next_oftype for non-tuple" begin
         @testset for xs in iterator_variants([0.0, 1.0, missing])
