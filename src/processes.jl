@@ -106,8 +106,7 @@ For a simple iterable type `MyType`, a valid implementation is:
 ```julia
 function __foldl__(rf, val, itr::MyType)
     for x in itr
-        val = next(rf, val, x)
-        @return_if_reduced val
+        val = @next(rf, val, x)
     end
     return complete(rf, val)
 end
@@ -118,7 +117,7 @@ thus there is no need for defining it.  In general, defining
 `__foldl__` is useful only when there is a better way to go over items
 in `reducible` than `Base.iterate`.
 
-See also: [`@return_if_reduced`](@ref).
+See also: [`@next`](@ref).
 """
 __foldl__
 
@@ -131,16 +130,14 @@ function __foldl__(rf, init, coll)
     ret = iterate(coll)
     ret === nothing && return complete(rf, init)
     x, state = ret
-    val = next(rf, init, x)
-    @return_if_reduced val
+    val = @next(rf, init, x)
     return _foldl_iter(rf, val, coll, state, FOLDL_RECURSION_LIMIT)
 end
 
 @inline function _foldl_iter(rf, val::T, iter, state, counter) where T
     while (ret = iterate(iter, state)) !== nothing
         x, state = ret
-        y = next(rf, val, x)
-        @return_if_reduced y
+        y = @next(rf, val, x)
         counter === Val(0) || y isa T ||
             return _foldl_iter(rf, y, iter, state, _dec(counter))
         val = y
@@ -152,12 +149,10 @@ end
 @inline function __foldl__(rf, init, arr::Union{AbstractArray, Broadcasted})
     isempty(arr) && return complete(rf, init)
     idxs = eachindex(arr)
-    val = next(rf, init, @inbounds arr[idxs[firstindex(idxs)]])
-    @return_if_reduced val
+    val = @next(rf, init, @inbounds arr[idxs[firstindex(idxs)]])
     @simd_if rf for k in firstindex(idxs) + 1:lastindex(idxs)
         i = @inbounds idxs[k]
-        val = next(rf, val, @inbounds arr[i])
-        @return_if_reduced val
+        val = @next(rf, val, @inbounds arr[i])
     end
     return complete(rf, val)
 end
@@ -172,11 +167,9 @@ end
             zs::Iterators.Zip{<:Tuple{Vararg{AbstractArray}}})
         isempty(zs) && return complete(rf, init)
         idxs = eachindex(zs.is...)
-        val = next(rf, init, _getvalues(firstindex(idxs), zs.is...))
-        @return_if_reduced val
+        val = @next(rf, init, _getvalues(firstindex(idxs), zs.is...))
         @simd_if rf for i in firstindex(idxs) + 1:lastindex(idxs)
-            val = next(rf, val, _getvalues(i, zs.is...))
-            @return_if_reduced val
+            val = @next(rf, val, _getvalues(i, zs.is...))
         end
         return complete(rf, val)
     end
@@ -207,17 +200,14 @@ end
     # TODO: Handle the case inner iterators are tuples.  In such case,
     # inner-most non-tuple iterators should use @simd_if.
     @simd_if rf for input in iterator
-        val_ = next(rf, val, (input, outer...))
-        @return_if_reduced val_
-        val = val_
+        val = @next(rf, val, (input, outer...))
     end
     return val
 end
 
 function __simple_foldl__(rf, val, itr)
     for x in itr
-        val = next(rf, val, x)
-        @return_if_reduced val
+        val = @next(rf, val, x)
     end
     return complete(rf, val)
 end

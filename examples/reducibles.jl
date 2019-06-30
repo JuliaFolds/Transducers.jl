@@ -8,13 +8,11 @@ struct VecOfVec{T}
     vectors::Vector{Vector{T}}
 end
 
-# We need [`next`](@ref Transducers.next) and [`complete`](@ref
-# Transducers.complete) to invoke the reducing function `rf` and
-# [`@return_if_reduced`](@ref Transducers.@return_if_reduced) to
-# support early termination.
+# We need [`@next`](@ref Transducers.@next) and [`complete`](@ref
+# Transducers.complete) to invoke the reducing function `rf`.
 
 using Transducers
-using Transducers: next, complete, @return_if_reduced
+using Transducers: @next, complete
 
 # Supporting [`mapfoldl`](@ref) and similar only requires
 # [`Transducers.__foldl__`](@ref):
@@ -22,8 +20,7 @@ using Transducers: next, complete, @return_if_reduced
 function Transducers.__foldl__(rf, val, vov::VecOfVec)
     for vector in vov.vectors
         for x in vector
-            val = next(rf, val, x)
-            @return_if_reduced val
+            val = @next(rf, val, x)
         end
     end
     return complete(rf, val)
@@ -38,8 +35,11 @@ Base.eltype(::VecOfVec{T}) where {T} = T
 vov = VecOfVec(collect.([1:n for n in 1:3]))
 collect(Map(identity), vov)
 
-# [`Transducers.@return_if_reduced`](@ref) above is used to support
-# terminating transducer like [`Take`](@ref).
+# Macro `@next` is used instead of function [`next`](@ref
+# Transducers.next) to avoid the boilerplate for supporting early
+# termination (see the details in in [`@next`](@ref Transducers.@next)
+# documentation).  In practice, using `@next` means that your
+# `__foldl__` supports early termination:
 
 collect(Take(3), vov)
 

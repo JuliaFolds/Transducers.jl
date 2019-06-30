@@ -116,6 +116,8 @@ val isa Reduced && return val
 val
 ```
 
+See also [`@next`](@ref).
+
 !!! compat "Transducers.jl 0.3"
 
     In v0.2, the calling convention was `@return_if_reduced
@@ -157,6 +159,30 @@ macro return_if_reduced(ex)
     end
     val = esc(ex)
     :(val = $val; $code)
+end
+
+"""
+    @next(rf, state, input)
+
+It is expanded to
+
+```julia
+result = next(rf, state, input)
+result isa Reduced && return result
+result
+```
+
+This is usually the best way to call `next` as checking for `Reduced`
+is required to support early termination.
+
+See also: [`next`](@ref), [`Reduced`](@ref), [`@return_if_reduced`](@ref).
+"""
+macro next(rf, state, input)
+    quote
+        result = next($(esc.((rf, state, input))...))
+        result isa Reduced && return result
+        result
+    end
 end
 
 struct NoType end
@@ -373,6 +399,9 @@ This is the only required interface.  It takes the following form
 next(rf::R_{X}, result, input) =
     # code calling next(inner(rf), result, possibly_modified_input)
 ```
+
+When calling `next`, it is almost always a better idea to use the
+macro form [`@next`](@ref).  See the details in its documentation.
 
 See [`Map`](@ref), [`Filter`](@ref), [`Cat`](@ref), etc. for
 real-world examples.

@@ -436,17 +436,14 @@ function complete(rf::R_{TakeLast}, result)
     (c, buffer), iresult = unwrap(rf, result)
     if c <= 0  # buffer is not full (or c is just wrapping)
         for i in 1:(c + length(buffer))
-            iresult = next(inner(rf), iresult, @inbounds buffer[i])
-            @return_if_reduced iresult
+            iresult = @next(inner(rf), iresult, @inbounds buffer[i])
         end
     else
         for i in c+1:length(buffer)
-            iresult = next(inner(rf), iresult, @inbounds buffer[i])
-            @return_if_reduced iresult
+            iresult = @next(inner(rf), iresult, @inbounds buffer[i])
         end
         for i in 1:c
-            iresult = next(inner(rf), iresult, @inbounds buffer[i])
-            @return_if_reduced iresult
+            iresult = @next(inner(rf), iresult, @inbounds buffer[i])
         end
     end
     return complete(inner(rf), iresult)
@@ -819,8 +816,7 @@ function complete(rf::R_{Partition}, result)
         iinput = @view buf[i:i + xform(rf).size - 1] # unsafe_view? @inbounds?
         iinput = @view iinput[s + 1:end]
         iinput :: DenseSubVector
-        iresult = next(inner(rf), iresult, iinput)
-        @return_if_reduced iresult
+        iresult = @next(inner(rf), iresult, iinput)
     end
     return complete(inner(rf), iresult)
 end
@@ -882,8 +878,7 @@ end
 function complete(rf::R_{PartitionBy}, ps)
     (iinput, _), iresult = unwrap(rf, ps)
     if !isempty(iinput)
-        iresult = next(inner(rf), iresult, iinput)
-        @return_if_reduced iresult
+        iresult = @next(inner(rf), iresult, iinput)
     end
     return complete(inner(rf), iresult)
 end
@@ -1199,8 +1194,7 @@ end
 function complete(rf::R_{ScanEmit}, result)
     u, iresult = unwrap(rf, result)
     if xform(rf).onlast !== nothing
-        iresult = next(inner(rf), iresult, xform(rf).onlast(u))
-        @return_if_reduced iresult
+        iresult = @next(inner(rf), iresult, xform(rf).onlast(u))
     end
     return complete(inner(rf), iresult)
 end
@@ -1220,10 +1214,10 @@ end
 # Examples
 ```jldoctest
 julia> using Transducers
-       using Transducers: AdHocXF, @return_if_reduced
+       using Transducers: AdHocXF, @next
        using Setfield: @set!
 
-julia> flushlast(rf, result) = rf(@return_if_reduced rf(result, result.state));
+julia> flushlast(rf, result) = rf(@next(rf, result, result.state));
 
 julia> xf = AdHocXF(Initializer(_ -> nothing), flushlast) do rf, result, input
            m = match(r"^name:(.*)", input)

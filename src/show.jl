@@ -9,12 +9,10 @@ function __foldl__(rf, val, xff::TransducerFolder)
     @nospecialize
     xf = _normalize(xff.xform)
     while xf isa Composition
-        val = next(rf, val, xf.outer)
-        @return_if_reduced val
+        val = @next(rf, val, xf.outer)
         xf = xf.inner
     end
-    val = next(rf, val, xf)
-    @return_if_reduced val
+    val = @next(rf, val, xf)
     return complete(rf, val)
 end
 
