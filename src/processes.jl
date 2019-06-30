@@ -220,7 +220,7 @@ may be able to emit a good code.  This function exists only for
 performance tuning.
 """
 function simple_transduce(xform, f, init, coll)
-    rf = Reduction(xform, f, eltype(coll))
+    rf = rf_for(xform, f, init, eltype(coll))
     return __simple_foldl__(rf, _start_init(rf, init), coll)
 end
 
@@ -290,9 +290,17 @@ See [`mapfoldl`](@ref).
 transduce
 
 function transduce(xform::Transducer, f, init, coll; kwargs...)
-    rf = Reduction(xform, f, ieltype(coll))
+    rf = rf_for(xform, f, init, ieltype(coll))
     return transduce(rf, init, coll; kwargs...)
 end
+
+_needintype(xf, init) =
+    init isa MissingInit ||
+    (init isa Initializer && !(init isa CopyInit)) ||
+    needintype(xf)
+
+rf_for(xf, step, init, intype) =
+    Reduction(xf, step, _needintype(xf, init) ? intype : NOTYPE)
 
 struct MissingInit end
 
