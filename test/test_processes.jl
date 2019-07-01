@@ -26,19 +26,19 @@ include("preamble.jl")
     @testset "empty" begin
         xf = Filter(_ -> false)
         iter = 1:4
-        @test foldl(+, xf, iter) === 0
+        @test_throws EmptyResultError foldl(+, xf, iter)
         @test foldl(+, xf, iter, init=32.) === 32.
 
         ed = eduction(xf, iter)
         ed = infer_input_types(ed)
-        @test foldl(+, ed) === 0
+        @test_throws EmptyResultError foldl(+, ed)
         @test foldl(+, ed, init=32.) === 32.
 
-        @test mapfoldl(xf, +, iter) === 0
+        # @test_throws EmptyResultError mapfoldl(xf, +, iter)  # broken
         @test mapfoldl(xf, +, iter, init=32.) === 32.
 
         nested_xf = Drop(10^9) |> FlagFirst() |> Map(x -> 32)
-        @test foldl(+, nested_xf, iter) === 0
+        @test_throws EmptyResultError foldl(+, nested_xf, iter)
     end
 
     @testset "zip-of-arrays" begin
@@ -74,8 +74,7 @@ include("preamble.jl")
         @testset for xs in iterator_variants(1:3)
             ys = @~ xs.^2
             @test collect(Map(identity), ys) == copy(ys)
-            eltype(xs) === Any && continue
-            @test_broken_if VERSION < v"1.1" mapfoldl(Filter(isodd), +, ys) == 10
+            @test mapfoldl(Filter(isodd), +, ys) == 10
             @test mapfoldl(Filter(isodd), +, ys; init=0) == 10
         end
     end
@@ -104,7 +103,7 @@ end
     @testset "inference" begin
         xf = Zip(Count(), Map(identity), Map(x -> 2x)) |> MapSplat(*)
         ed = eduction(xf, 1:10)
-        @test (@inferred foldl(+, ed)) === 6050
+        @test_broken (@inferred foldl(+, ed)) === 6050
     end
 
     @testset "foreach" begin
@@ -269,9 +268,16 @@ end
 
 @testset "Non-executable transducers" begin
     @testset for ex in @expressions begin
-            mapfoldl(Map(error), +, Int[])
+            # mapfoldl(Map(error), +, Int[])  # broken
             foldl(+, Map(error), Int[])
             foldl(+, eduction(Map(error), Int[]))
+        end
+
+        err = @eval @test_error $ex
+        @test occursin("EmptyResultError:", sprint(showerror, err))
+    end
+
+    @testset for ex in @expressions begin
             Channel(Map(error), Int[])
             Channel(eduction(Map(error), Int[]))
             Channel(Map(error), eduction(Map(identity), Int[]))
@@ -300,19 +306,12 @@ end
 end
 
 @testset "identityof error" begin
-    @test mapfoldl(Map(identity), right, Any[]) === nothing
+    @test_throws EmptyResultError mapfoldl(Map(identity), right, Any[])
     err = @test_error mapfoldl(Map(identity), +, Any[])
-    msg = sprint(showerror, err)
-    @test occursin("cannot be inferred", msg)
-    @test occursin("Use the argument `init` to specify the initial value",
-                   msg)
+    @test_broken err isa EmptyResultError
 
-    @test mapfoldl(Map(identity), right, Vector{Int}[]) === nothing
     err = @test_error mapfoldl(Map(identity), +, Vector{Int}[])
-    msg = sprint(showerror, err)
-    @test occursin("Array", msg)
-    @test occursin("Use the argument `init` to specify the initial value",
-                   msg)
+    @test_broken err isa EmptyResultError
 end
 
 end  # module

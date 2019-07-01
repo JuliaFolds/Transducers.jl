@@ -674,8 +674,12 @@ right(r) = r
 
 This function is meant to be used as `step` argument for
 [`mapfoldl`](@ref) etc. for extracting the last output of the
-transducers.  Note that `init` for `right` is set to `nothing` if not
-provided.
+transducers.
+
+!!! compat "Transducers.jl 0.3"
+
+    Initial value must be manually specified.  In 0.2, it was
+    automatically set to `nothing`.
 
 # Examples
 ```jldoctest
@@ -684,15 +688,14 @@ julia> using Transducers
 julia> mapfoldl(Take(5), right, 1:10)
 5
 
-julia> mapfoldl(Drop(5), right, 1:3) === nothing
-true
-
 julia> mapfoldl(Drop(5), right, 1:3; init=0)  # using `init` as the default value
 0
 ```
 """
 right(l, r) = r
 right(r) = r
+
+UniversalIdentity.@def right
 
 identityof(::typeof(right), ::Any) = nothing
 # This is just a right identity but `right` is useful for left-fold
@@ -888,3 +891,55 @@ end
 
 _real_state_type(T) = T
 _real_state_type(::Type{Union{T, _FakeState}}) where T = T
+
+
+"""
+    DefaultId(op)
+
+`DefaultId` is like `UniversalIdentity.Id` but **strictly** internal
+to Transducers.jl.  It is used for checking if the bottom reducing
+function is never called.
+"""
+struct DefaultId{OP} <: SpecificIdentity{OP} end
+# struct OptId{OP} <: SpecificIdentity{OP} end
+
+DefaultId(::OP) where OP = DefaultId{OP}()
+
+struct MissingInit end
+
+struct MissingInitError <: Exception
+    op
+end
+
+function Base.showerror(io::IO, e::MissingInitError)
+    println(io, "No default identity element for ", e.op)
+    # TODO: improve error message
+end
+
+struct EmptyResultError <: Exception
+    rf
+end
+
+function Base.showerror(io::IO, e::EmptyResultError)
+    println(
+        io,
+        "EmptyResultError: ",
+        "Reducing function `", _realbottomrf(e.rf), "` is never called. ")
+    print(
+        io,
+        "The input collection is empty or the items are all filtered out ",
+        "by some transducer(s). ",
+        "It is recommended to specify `init` to avoid this kind of errors.")
+    # TODO: improve error message
+end
+
+_realbottomrf(op) = op
+_realbottomrf(rf::AbstractReduction) = _realbottomrf(as(rf, BottomRF).inner)
+_realbottomrf(rf::Completing) = rf.f
+
+provide_init(rf, init) = initvalue(init, FinalType(rf))
+function provide_init(rf, ::MissingInit)
+    op = _realbottomrf(rf)
+    hasidentity(op) && return DefaultId(op)
+    throw(MissingInitError(op))
+end

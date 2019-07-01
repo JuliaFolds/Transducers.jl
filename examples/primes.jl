@@ -10,7 +10,7 @@ end                               # hide
 using Transducers
 
 sieve(xf, x) =
-    if mapreduce(xf, right, (x,)) === nothing
+    if mapreduce(xf, right, (x,), init=nothing) === nothing
         nothing, xf
     else
         x, xf |> Filter(n -> n % x != 0)

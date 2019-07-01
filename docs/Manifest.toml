@@ -166,7 +166,7 @@ uuid = "0796e94c-ce3b-5d07-9a54-7f471281c624"
 version = "0.5.4"
 
 [[Transducers]]
-deps = ["ArgCheck", "BangBang", "Markdown", "Requires", "Setfield"]
+deps = ["ArgCheck", "BangBang", "Markdown", "Requires", "Setfield", "UniversalIdentity"]
 path = ".."
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 version = "0.3.0-DEV"
@@ -177,3 +177,10 @@ uuid = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
 [[Unicode]]
 uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
+
+[[UniversalIdentity]]
+git-tree-sha1 = "b9e1703a9600e86b7295aaaff6d1466a4a5c0506"
+repo-rev = "master"
+repo-url = "https://github.com/tkf/UniversalIdentity.jl"
+uuid = "b8f959e8-97da-11e9-3356-bb6559ac5c1b"
+version = "0.1.0"

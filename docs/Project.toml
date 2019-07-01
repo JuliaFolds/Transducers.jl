@@ -4,6 +4,7 @@ Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
 Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
 Transducers = "28d57a85-8fef-5791-bfe6-a80928e7c999"
+UniversalIdentity = "b8f959e8-97da-11e9-3356-bb6559ac5c1b"
 
 [compat]
 Documenter = "0.22"

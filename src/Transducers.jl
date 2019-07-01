@@ -15,6 +15,8 @@ using Base.Broadcast: Broadcasted
 using ArgCheck
 using BangBang: push!!
 using Requires
+using UniversalIdentity: UniversalIdentity, Identity, SpecificIdentity, Id,
+    hasidentity
 
 import Setfield
 using Setfield: @lens, @set, set

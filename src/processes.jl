@@ -302,15 +302,6 @@ _needintype(xf, init) =
 rf_for(xf, step, init, intype) =
     Reduction(xf, step, _needintype(xf, init) ? intype : NOTYPE)
 
-struct MissingInit end
-
-provide_init(rf::AbstractReduction, init) = initvalue(init, FinalType(rf))
-function provide_init(rf::AbstractReduction, ::MissingInit)
-    T = FinalType(rf)
-    op = as(rf, BottomRF).inner
-    return identityof(op, T)
-end
-
 # Materialize initial value and then call start.
 _start_init(rf, init) = start(rf, provide_init(rf, init))
 
@@ -319,7 +310,12 @@ _start_init(rf, init) = start(rf, provide_init(rf, init))
     # Inlining `transduce` and `__foldl__` were essential for the
     # `darkritual` below to work.
     rf = maybe_usesimd(rf0, simd)
-    return __foldl__(rf, _start_init(rf, init), coll)
+    result = __foldl__(rf, _start_init(rf, init), coll)
+    if unwrap_all(unreduced(result)) isa DefaultId
+        throw(EmptyResultError(rf0))
+        # Should I check if `init` is a `MissingInit`?
+    end
+    return result
 end
 
 function Base.mapfoldl(xform::Transducer, step, itr;
