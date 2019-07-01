@@ -886,7 +886,7 @@ struct _FakeState end
 
 function _getoutput(xf, x)
     rf = reducingfunction(xf, right)
-    return unreduced(next(rf, _start_init(rf, _FakeState()), x))
+    return unreduced(complete(rf, next(rf, _start_init(rf, _FakeState()), x)))
 end
 
 _real_state_type(T) = T

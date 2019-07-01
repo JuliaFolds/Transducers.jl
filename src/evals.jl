@@ -8,11 +8,7 @@ for name in names(@__MODULE__)
     if :init ∈ fieldnames(T)
         @eval needintype(T::Type{<:$T}) = default_needintype_with_init(T)
     elseif T ∈ [
-        TakeLast,
-        DropLast,
-        Partition,
-        PartitionBy,
-        Unique,
+        Zip,
     ]
         # Use the default `needintype(T) = true` for these transducers.
         # TODO: use `push!!`-based solutions in them.

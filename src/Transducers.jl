@@ -13,7 +13,7 @@ export Distinct
 using Base.Broadcast: Broadcasted
 
 using ArgCheck
-using BangBang: push!!
+using BangBang: push!!, empty!!, setindex!!
 using Requires
 using UniversalIdentity: UniversalIdentity, Identity, SpecificIdentity, Id,
     hasidentity

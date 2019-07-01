@@ -416,18 +416,19 @@ end
 
 function start(rf::R_{TakeLast}, result)
     n = xform(rf).n
-    return wrap(rf, (-n, Vector{InType(rf)}(undef, n)), start(inner(rf), result))
+    return wrap(rf, (-n, Union{}[]), start(inner(rf), result))
 end
 
 next(rf::R_{TakeLast}, result, input) =
-    wrapping(rf, result) do (c, buffer), iresult
+    wrapping(rf, result) do (c, buffer0), iresult
         c += 1
-        n = length(buffer)
+        n = xform(rf).n
         if c <= 0
-            buffer[c + n] = input
+            buffer = push!!(buffer0, input)
             (c, buffer), iresult
         else
-            buffer[c] = input
+            @assert length(buffer0) == n
+            buffer = setindex!!(buffer0, input, c)
             (c < n ? c : 0, buffer), iresult
         end
     end
@@ -435,7 +436,7 @@ next(rf::R_{TakeLast}, result, input) =
 function complete(rf::R_{TakeLast}, result)
     (c, buffer), iresult = unwrap(rf, result)
     if c <= 0  # buffer is not full (or c is just wrapping)
-        for i in 1:(c + length(buffer))
+        for i in 1:length(buffer)
             iresult = @next(inner(rf), iresult, @inbounds buffer[i])
         end
     else
@@ -581,11 +582,11 @@ julia> collect(DropLast(2), 1:5)
  2
  3
 
-julia> collect(DropLast(2), 1:1)
-0-element Array{Int64,1}
+julia> collect(DropLast(2), 1:1) == []
+true
 
-julia> collect(DropLast(2), 1:0)
-0-element Array{Int64,1}
+julia> collect(DropLast(2), 1:0) == []
+true
 ```
 """
 struct DropLast <: AbstractFilter
@@ -599,25 +600,26 @@ end
 
 function start(rf::R_{DropLast}, result)
     n = xform(rf).n + 1
-    return wrap(rf, (-n, Vector{InType(rf)}(undef, n)), start(inner(rf), result))
+    return wrap(rf, (-n, Union{}[]), start(inner(rf), result))
 end
 
 next(rf::R_{DropLast}, result, input) =
-    wrapping(rf, result) do (c, buffer), iresult
+    wrapping(rf, result) do (c, buffer0), iresult
         c += 1
-        n = length(buffer)
+        n = xform(rf).n + 1
         if c <= 0
-            buffer[c + n] = input
+            buffer = push!!(buffer0, input)
             if c == 0
+                @assert length(buffer) == n
                 (c, buffer), next(inner(rf), iresult, buffer[1])
             else
                 (c, buffer), iresult
             end
         elseif c >= n
-            buffer[c] = input
+            buffer = setindex!!(buffer0, input, c)
             (0, buffer), next(inner(rf), iresult, buffer[1])
         else
-            buffer[c] = input
+            buffer = setindex!!(buffer0, input, c)
             (c, buffer), next(inner(rf), iresult, buffer[c + 1])
         end
     end
@@ -750,8 +752,7 @@ isexpansive(::Partition) = false
 outtype(::Partition, intype) = DenseSubVector{intype}
 
 function start(rf::R_{Partition}, result)
-    buf = Vector{InType(rf)}()
-    sizehint!(buf, xform(rf).size)
+    buf = Union{}[]
     return wrap(rf, (0, 0, buf), start(inner(rf), result))
 end
 
@@ -761,12 +762,12 @@ function next(rf::R_{Partition}, result, input)
     end
 end
 
-function _window_next(rf, i, s, buf, iresult, input)
+function _window_next(rf, i, s, buf0, iresult, input)
     i += 1
     @assert 1 <= i <= xform(rf).size
-    len = length(buf)
+    len = length(buf0)
     if s == 0 && len < xform(rf).size
-        push!(buf, input)
+        buf = push!!(buf0, input)
         if i == xform(rf).size
             # This is the first time `length(buf) == xform(rf).size` is
             # true.
@@ -782,10 +783,10 @@ function _window_next(rf, i, s, buf, iresult, input)
         end
         return (i, s, buf), iresult
     elseif len < 2 * xform(rf).size - 1
-        push!(buf, input)
+        buf = push!!(buf0, input)
     else
         # TODO: optimize for size < step case
-        buf[i + xform(rf).size - 1] = input
+        buf = setindex!!(buf0, input, i + xform(rf).size - 1)
     end
     if i == xform(rf).size
         # Wrapping the window.  Next window will be i=1.
@@ -857,7 +858,7 @@ isexpansive(::PartitionBy) = false
 outtype(::PartitionBy, intype) = Vector{intype}
 
 function start(rf::R_{PartitionBy}, result)
-    iinput = InType(rf)[]
+    iinput = Union{}[]
     return wrap(rf, (iinput, Unseen()), start(inner(rf), result))
 end
 
@@ -865,11 +866,13 @@ end
     wrapping(rf, result) do (iinput, pval), iresult
         val = xform(rf).f(input)
         if pval isa Unseen || val == pval
-            push!(iinput, input)
+            iinput = push!!(iinput, input)
         else
             iresult = next(inner(rf), iresult, iinput)
-            empty!(iinput)
-            isreduced(iresult) || push!(iinput, input)
+            iinput = empty!!(iinput)
+            if !isreduced(iresult)
+                iinput = push!!(iinput, input)
+            end
         end
         return (iinput, val), iresult
     end
@@ -946,7 +949,7 @@ struct Unique <: AbstractFilter
 end
 
 function start(rf::R_{Unique}, result)
-    seen = Set(InType(rf)[])
+    seen = Set(Union{}[])
     return wrap(rf, seen, start(inner(rf), result))
 end
 
@@ -955,8 +958,8 @@ function next(rf::R_{Unique}, result, input)
         if input in seen
             return seen, iresult
         else
-            push!(seen, input)
-            return seen, next(inner(rf), iresult, input)
+            seen′ = push!!(seen, input)
+            return seen′, next(inner(rf), iresult, input)
         end
     end
 end
