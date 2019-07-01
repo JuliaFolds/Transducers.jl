@@ -901,9 +901,15 @@ to Transducers.jl.  It is used for checking if the bottom reducing
 function is never called.
 """
 struct DefaultId{OP} <: SpecificIdentity{OP} end
-# struct OptId{OP} <: SpecificIdentity{OP} end
-
 DefaultId(::OP) where OP = DefaultId{OP}()
+
+struct OptId{OP} <: SpecificIdentity{OP} end
+OptId(::OP) where OP = OptId{OP}()
+
+InferableId{OP} = Union{DefaultId{OP}, OptId{OP}}
+
+_nonidtype(::Any) = nothing
+_nonidtype(::Type{Union{S, T}}) where {T, S <: InferableId} = T
 
 struct MissingInit end
 

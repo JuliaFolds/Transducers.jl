@@ -294,28 +294,62 @@ function transduce(xform::Transducer, f, init, coll; kwargs...)
     return transduce(rf, init, coll; kwargs...)
 end
 
-_needintype(xf, init) =
-    init isa MissingInit ||
+_needintype(xf, step, init) =
+    (init isa MissingInit && !hasidentity(_realbottomrf(step))) ||
     (init isa Initializer && !(init isa CopyInit)) ||
     needintype(xf)
 
 rf_for(xf, step, init, intype) =
-    Reduction(xf, step, _needintype(xf, init) ? intype : NOTYPE)
+    Reduction(xf, step, _needintype(xf, step, init) ? intype : NOTYPE)
 
 # Materialize initial value and then call start.
 _start_init(rf, init) = start(rf, provide_init(rf, init))
+
+_unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
 
 # TODO: should it be an internal?
 @inline function transduce(rf0::AbstractReduction, init, coll; simd=false)
     # Inlining `transduce` and `__foldl__` were essential for the
     # `darkritual` below to work.
     rf = maybe_usesimd(rf0, simd)
-    result = __foldl__(rf, _start_init(rf, init), coll)
-    if unwrap_all(unreduced(result)) isa DefaultId
+    state = _start_init(rf, init)
+    result = __foldl__(rf, state, coll)
+    if unreduced(result) isa DefaultId
         throw(EmptyResultError(rf0))
         # Should I check if `init` is a `MissingInit`?
     end
-    return result
+    # At this point, `return result` is the semantically correct thing
+    # to do.  What follows are some convoluted instructions to
+    # convince the compiler that this function is type-stable (in some
+    # cases).  Note that return type would be inference-dependent only
+    # if `init` is a `OptId` type.  In the default case where `init
+    # isa DefaultId`, the real code pass is the `throw` above.
+
+    # Unpacking as `ur_result` and re-packing it later somehow helps
+    # the compiler to correctly eliminate a possibility in a `Union`.
+    ur_result = unreduced(result)
+    if ur_result isa InferableId
+        # Using `rf0` instead of `rf` helps the compiler.  Note that
+        # this means that we are relying on that enabling SIMD does
+        # not change the return type.
+        realtype = _nonidtype(Core.Compiler.return_type(
+            _unreduced__foldl__,
+            typeof((rf0, state, coll)),
+        ))
+        if realtype isa Type
+            realvalue = convert(realtype, ur_result)
+            if result isa Reduced
+                return Reduced(realvalue)
+            else
+                return realvalue
+            end
+        end
+    end
+    if result isa Reduced
+        return Reduced(ur_result)
+    else
+        return ur_result
+    end
 end
 
 function Base.mapfoldl(xform::Transducer, step, itr;

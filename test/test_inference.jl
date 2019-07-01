@@ -1,6 +1,7 @@
 module TestInference
 
 include("preamble.jl")
+using Transducers: _nonidtype, DefaultId
 
 collections = [
     1:1,
@@ -11,10 +12,23 @@ collections = [
 
 constant(x) = (_...) -> x
 
+@testset "_nonidtype" begin
+    # This is required for "foldl without init" tests below work:
+    @test _nonidtype(Float64) === Float64
+    @test _nonidtype(Union{DefaultId{typeof(+)}, Float64}) === Float64
+end
+
 @testset "foldl" begin
     @testset for xs in collections
         @test_inferred foldl(+, Map(exp), xs; init=0.0)
         @test_inferred foldl(+, Map(exp) |> Filter(x -> x > 0), xs; init=0.0)
+    end
+    @testset for xs in [
+        1:1,
+        Base.Generator(identity, 1:1),
+    ]
+        @test_inferred foldl(+, Map(exp), xs)
+        @test_inferred foldl(+, Map(exp) |> Filter(x -> x > 0), xs)
     end
 end
 
