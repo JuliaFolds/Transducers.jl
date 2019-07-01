@@ -13,12 +13,12 @@ export Distinct
 using Base.Broadcast: Broadcasted
 
 using ArgCheck
+using BangBang: push!!
 using Requires
 
 import Setfield
 using Setfield: @lens, @set, set
 
-include("bangbang.jl")
 include("showutils.jl")
 include("basics.jl")
 include("core.jl")
