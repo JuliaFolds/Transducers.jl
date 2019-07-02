@@ -949,3 +949,27 @@ function provide_init(rf, ::MissingInit)
     hasidentity(op) && return DefaultId(op)
     throw(MissingInitError(op))
 end
+
+struct IdentityNotDefinedError <: Exception
+    op
+    idfactory
+end
+
+function Base.showerror(io::IO, e::IdentityNotDefinedError)
+    Id = e.idfactory
+    op = e.op
+    print(io, "IdentityNotDefinedError: ")
+    print(io, strip("""
+    `init = $Id` is specified but the identity element `Id(op)` is not defined for
+        op = $op
+    Note that `op` must be a well known binary operations like `+` or `*`.
+    See UniversalIdentity.jl documentation for more information.
+    """))
+end
+
+# Handle `init=Id` and `init=OptId`
+function provide_init(rf, idfactory::Union{typeof(Id), Type{OptId}})
+    op = _realbottomrf(rf)
+    hasidentity(op) && return idfactory(op)
+    throw(IdentityNotDefinedError(op, idfactory))
+end
