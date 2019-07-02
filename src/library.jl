@@ -1039,7 +1039,7 @@ next(rf::R_{Dedupe}, result, input) =
     end
 
 """
-    Scan(f, [init])
+    Scan(f, [init = Id])
 
 Accumulate input with binary function `f` and pass the accumulated
 result so far to the inner reduction step.
@@ -1096,7 +1096,7 @@ struct Scan{F, T} <: Transducer
     init::T
 end
 
-Scan(f) = Scan(f, DefaultIdentityInitializer(f))
+Scan(f) = Scan(f, makeid(f, Id))
 
 _lefttype(xf::Scan, intype) = inittypeof(xf.init, intype)
 

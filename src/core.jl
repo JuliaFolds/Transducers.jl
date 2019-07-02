@@ -798,13 +798,6 @@ end
 Base.show(io::IO, init::Initializer) = _default_show(io, init)
 
 
-struct DefaultIdentityInitializer{T} <: AbstractInitializer
-    op::T
-end
-
-initvalue(init::DefaultIdentityInitializer, intype) = identityof(init.op, intype)
-
-
 """
     CopyInit(value)
 
@@ -973,6 +966,11 @@ end
 # Handle `init=Id` and `init=OptId`
 function provide_init(rf, idfactory::Union{typeof(Id), typeof(OptId)})
     op = _realbottomrf(rf)
+    return makeid(op, idfactory)
+end
+
+makeid(op, init) = init
+function makeid(op, idfactory::Union{typeof(Id), typeof(OptId)})
     hasidentity(op) && return idfactory(op)
     throw(IdentityNotDefinedError(op, idfactory))
 end

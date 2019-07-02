@@ -53,7 +53,7 @@ end
     end
 
     @testset "outtype" begin
-        @test outtype(Scan(+), Int) === Int
+        @test outtype(Scan(+), Int) == Union{Int, typeof(Id(+))}
         @test outtype(Scan(+, 0.0), Int) === Float64
         @test outtype(Scan(+, missing), Int) === Missing
         @test outtype(Scan(+, Initializer(_ -> rand())), Int) ===

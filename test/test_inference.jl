@@ -31,6 +31,7 @@ end
     ]
         @test_inferred foldl(+, Map(exp), xs)
         @test_inferred foldl(+, Map(exp) |> Filter(x -> x > 0), xs)
+        @test_inferred foldl(+, Map(exp) |> Scan(+), xs)
     end
 end
 
