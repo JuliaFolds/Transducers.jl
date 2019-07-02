@@ -195,7 +195,7 @@ uuid = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [[UniversalIdentity]]
-git-tree-sha1 = "b9e1703a9600e86b7295aaaff6d1466a4a5c0506"
+git-tree-sha1 = "f34fe4b7984d62076dc9e5b7b11593b3648dc0a5"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/UniversalIdentity.jl"
 uuid = "b8f959e8-97da-11e9-3356-bb6559ac5c1b"
