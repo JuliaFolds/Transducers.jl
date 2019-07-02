@@ -1,7 +1,7 @@
 module TestInference
 
 include("preamble.jl")
-using Transducers: _nonidtype, DefaultId
+using Transducers: _nonidtype, DefaultId, OptId
 
 collections = [
     1:1,
@@ -21,7 +21,9 @@ end
 @testset "foldl" begin
     @testset for xs in collections
         @test_inferred foldl(+, Map(exp), xs; init=0.0)
+        @test_inferred foldl(+, Map(exp), xs; init=OptId)
         @test_inferred foldl(+, Map(exp) |> Filter(x -> x > 0), xs; init=0.0)
+        @test_inferred foldl(+, Map(exp) |> Filter(x -> x > 0), xs; init=OptId)
     end
     @testset for xs in [
         1:1,

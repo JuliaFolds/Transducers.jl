@@ -903,10 +903,13 @@ function is never called.
 struct DefaultId{OP} <: SpecificIdentity{OP} end
 DefaultId(::OP) where OP = DefaultId{OP}()
 
-struct OptId{OP} <: SpecificIdentity{OP} end
-OptId(::OP) where OP = OptId{OP}()
+struct OptIdOf{OP} <: SpecificIdentity{OP} end
+OptId(::OP) where OP = OptIdOf{OP}()
+# It seems that compiler can infer more when passing around a
+# `Function` than a `Type` (since a `Function` is a singleton?).
+# That's why `OptId` is defined as a factory function.
 
-InferableId{OP} = Union{DefaultId{OP}, OptId{OP}}
+InferableId{OP} = Union{DefaultId{OP}, OptIdOf{OP}}
 
 _nonidtype(::Any) = nothing
 _nonidtype(::Type{Union{S, T}}) where {T, S <: InferableId} = T
@@ -968,7 +971,7 @@ function Base.showerror(io::IO, e::IdentityNotDefinedError)
 end
 
 # Handle `init=Id` and `init=OptId`
-function provide_init(rf, idfactory::Union{typeof(Id), Type{OptId}})
+function provide_init(rf, idfactory::Union{typeof(Id), typeof(OptId)})
     op = _realbottomrf(rf)
     hasidentity(op) && return idfactory(op)
     throw(IdentityNotDefinedError(op, idfactory))
