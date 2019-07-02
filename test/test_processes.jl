@@ -305,6 +305,13 @@ end
     end
 end
 
+@testset "IdentityNotDefinedError" begin
+    @test_throws(
+        IdentityNotDefinedError,
+        foldl((x, y) -> x + y, Map(identity), 1:1; init=Id),
+    )
+end
+
 @testset "identityof error" begin
     @test_throws EmptyResultError mapfoldl(Map(identity), right, Any[])
     err = @test_error mapfoldl(Map(identity), +, Any[])

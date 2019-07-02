@@ -5,7 +5,8 @@ using Statistics: mean
 using Transducers
 using Transducers: Transducer, simple_transduce, Reduced, isexpansive,
     TeeZip, GetIndex, SetIndex, Inject, @~, outtype, infer_input_types,
-    EmptyResultError
+    EmptyResultError, IdentityNotDefinedError
+using UniversalIdentity: Id
 
 inc(x) = x + oneunit(x)
 
