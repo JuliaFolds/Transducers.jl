@@ -251,7 +251,13 @@ This API is modeled after $(_cljref("transduce")).
   1-argument form (i.e., [`complete`](@ref) protocol).
 - `reducible`: A reducible object (array, dictionary, any iterator, etc.).
 - `init`: An initial value fed to the first argument to reducing step
-  function `step`.
+  function `step`.  This argument can be omitted for well know binary
+  operations like `+` or `*`.  Supported binary operations are listed
+  in UniversalIdentity.jl documentation.  When `Id` (not the result of
+  `Id`, such as `Id(*)`) is given, it is automatically "instantiated"
+  as `Id(step)` (where `step` is appropriately unwrapped if `step` is
+  a `Completing`).  See [Empty result handling](@ref) in the manual
+  for more information.
 - `simd`: If `true` or `:ivdep`, enable SIMD using `Base.@simd`.  If
   `:ivdep`, use `@simd ivdep for ... end` variant.  Read Julia manual
   of `Base.@simd` to understand when it is appropriate to use this
@@ -703,7 +709,7 @@ The first form is a shorthand for `mapfoldl(xf, Completing(step),
 reducible)`.  It is intended to be used with a `do` block.  It is also
 equivalent to `foldl(step, eduction(xf, itr))`.
 
-See: [`mapfoldl`](@ref).
+See: [`mapfoldl`](@ref), [Empty result handling](@ref).
 
 # Examples
 ```jldoctest

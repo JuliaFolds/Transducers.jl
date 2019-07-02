@@ -5,6 +5,7 @@ using Transducers
 
 EXAMPLE_PAGES = [
     "Tutorial: Missing values" => "examples/tutorial_missings.md",
+    "Empty result handling" => "examples/empty_result_handling.md",
     "Parallel word count" => "examples/words.md",
     "Prime sieve" => "examples/primes.md",
     "Writing transducers" => "examples/transducers.md",
@@ -31,9 +32,23 @@ function transducers_literate(;
     end
 end
 
-transducers_makedocs(;
+function transducers_makedocs(;
         examples = EXAMPLE_PAGES,
-        kwargs...) =
+        kwargs...)
+    if isempty(examples)
+        # Make some dummy examples
+        dummypage = joinpath("examples", "dummy.md")
+        path = joinpath(@__DIR__, "src", dummypage)
+        mkpath(dirname(path))
+        write(
+            path,
+            """
+            # Dummy page
+            ## Empty result handling
+            """
+        )
+        examples = dummypage
+    end
     makedocs(;
         modules = [Transducers],
         pages = [
@@ -51,3 +66,4 @@ transducers_makedocs(;
         root = @__DIR__,
         strict = VERSION < v"1.2-",
         kwargs...)
+end
