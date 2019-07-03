@@ -1870,3 +1870,154 @@ next(rf::R_{Enumerate}, result, input) =
         iresult2 = next(inner(rf), iresult, (i, input))
         i + xform(rf).step, iresult2
     end
+
+"""
+    GroupBy(key, rf, [init])
+    GroupBy(key, xf, step, [init])
+
+Group the input stream by a function `key` and then fan-out each group
+of key-value pairs to the reducing function `rf`.  For example, if
+`GroupBy` is composed as follows
+
+    Map(upstream) |> GroupBy(key, rf, init) |> Map(downstream)
+
+then the "function signatures" would be:
+
+    upstream(_) :: V
+    key(::V) :: K
+    rf(::Y, ::Pair{K, V}) ::Y
+    downstream(::Dict{K, Y})
+
+That is to say,
+
+* Ouput of the `upstream` is fed into the function `key` that produces
+  the group key (of type `K`).
+
+* For each new group key, a new transducible process is started with
+  the initial state `init :: Y` (which is shared by all transducible
+  processes).
+
+* After one "nested" reducing function `rf` is called, the
+  intermediate result dictionary (of type `Dict{K, Y}`) accumulating
+  the previous results is then fed into the `downstream`.
+
+See also `groupreduce` in
+[SplitApplyCombine.jl](https://github.com/JuliaData/SplitApplyCombine.jl).
+
+!!! compat "Transducers.jl 0.3"
+
+    New in version 0.3.
+
+# Examples
+```jldoctest
+julia> using Transducers
+       using BangBang  # for `push!!`
+
+julia> foldl(right, GroupBy(string, Map(last), push!!), [1, 2, 1, 2, 3])
+Dict{String,Array{Int64,1}} with 3 entries:
+  "1" => [1, 1]
+  "2" => [2, 2]
+  "3" => [3]
+```
+
+Note that the reduction stops if one of the group returns a
+[`reduced`](@ref).  This can be used, for example, to find if there is
+a group with a sum grater than 3 and stop the computation as soon as
+it is find:
+
+```jldoctest; setup = :(using Transducers)
+julia> result = transduce(
+           GroupBy(
+               string,
+               Map(last) |> Scan(+),
+               (_, x) -> x > 3 ? reduced(x) : x,
+               nothing,
+           ),
+           right,
+           nothing,
+           [1, 2, 1, 2, 3],
+       );
+
+julia> result isa Reduced
+true
+
+julia> unreduced(result)
+Dict{String,Int64} with 2 entries:
+  "1" => 2
+  "2" => 4
+```
+"""
+struct GroupBy{K, R, T} <: Transducer
+    key::K
+    rf::R
+    init::T
+end
+
+function GroupBy(key, xf::Transducer, step, init = MissingInit())
+    rf = reducingfunction(xf, step)
+    if init isa MissingInit
+        return GroupBy(key, rf)
+    else
+        return GroupBy(key, rf, makeid(_realbottomrf(step), init))
+    end
+end
+
+function GroupBy(key, rf)
+    op = _realbottomrf(rf)
+    hasidentity(op) || throw(MissingInitError(op))
+    return GroupBy(key, rf, DefaultId(op))
+end
+
+# "Bangbang" version of `set!(f, dict, key)` interface I proposed in
+# https://github.com/JuliaLang/julia/pull/31367#issuecomment-504561329
+# TODO: specialize for `Dict` to minimize hashing
+function dictset!!(f, d0, key)
+    if haskey(d0, key)
+        y = f(Some(d0[key]))
+    else
+        y = f(nothing)
+    end
+    if y === nothing
+        d = delete!!(d0, key)
+    else
+        d = setindex!!(d0, something(y), key)
+    end
+    return d, y
+end
+
+function start(rf::R_{GroupBy}, result)
+    gstate = Dict{Union{},Union{}}()
+    gresult = Dict{Union{},Union{}}()
+    return wrap(rf, (gstate, gresult), start(inner(rf), result))
+end
+
+@inline function next(rf::R_{GroupBy}, result, input)
+    wrapping(rf, result) do (gstate, gresult), iresult
+        key = xform(rf).key(input)
+        gstate, somegr = dictset!!(gstate, key) do value
+            if value === nothing
+                gr0 = start(xform(rf).rf, initvalue(xform(rf).init, NOTYPE))
+            else
+                gr0 = something(value)
+            end
+            gr = next(xform(rf).rf, gr0, key => input)
+            return Some(gr)
+        end
+        gr = something(somegr)
+        bresult = unwrap_all(unreduced(gr))
+        if bresult !== DefaultId(_realbottomrf(xform(rf).rf))
+            gresult = setindex!!(gresult, bresult, key)
+        end
+        iresult = next(inner(rf), iresult, gresult)
+        if gr isa Reduced && !(iresult isa Reduced)
+            return (gstate, gresult), reduced(complete(inner(rf), iresult))
+        else
+            return (gstate, gresult), iresult
+        end
+    end
+end
+# It may be useful to avoid computing hash twice by storing `key =>
+# (gr, unreduced(gr))` in a single dictionary.  A read-only view of
+# `key => unreduced(gr)` can be passed to the downstream transducer.
+# This view dictionary has to check `DefaultId` in `getindex` etc. to
+# pretend that it's not there.

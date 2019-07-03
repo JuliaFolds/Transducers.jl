@@ -1,6 +1,7 @@
 module TestLibrary
 include("preamble.jl")
 using Dates
+using BangBang: push!!
 
 @testset "Cat" begin
     # Inner transducer is stateful:
@@ -529,6 +530,22 @@ end
             @test collect(OfType(Tuple{Vararg{Number}}), xs) == desired
         end
     end
+end
+
+@testset "GroupBy" begin
+    @test foldl(right, GroupBy(string, Map(last), push!!), [1, 2, 1, 2, 3]) ==
+        Dict("1" => [1, 1], "2" => [2, 2], "3" => [3])
+
+    @test foldl(
+        right,
+        GroupBy(
+            identity,
+            Map(last) |> Scan(+),
+            (_, x) -> x > 3 ? reduced(x) : x,
+            nothing,
+        ),
+        [1, 2, 1, 2, 3],
+    ) == Dict(2 => 4, 1 => 2)
 end
 
 @testset "Invalid arguments" begin
