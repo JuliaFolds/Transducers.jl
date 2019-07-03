@@ -448,14 +448,21 @@ combine(rf::Reduction, a, b) =
         combine(inner(rf), a, b)
     end
 
+function privatestate end
+
 struct PrivateState{T, S, R}
     state::S
     result::R
+
+    # Rename constructor to make sure that it is always constructed
+    # through the factory function:
+    global privatestate(rf::T, state::S, result::R) where {T <: Reduction, S, R} =
+        new{T, S, R}(state, result)
 end
 # TODO: make it a tuple-like so that I can return it as-is
 
-PrivateState(rf::Reduction, state, result) =
-    PrivateState{typeof(rf), typeof(state), typeof(result)}(state, result)
+@inline psstate(ps) = ps.state
+@inline psresult(ps) = ps.result
 
 ownsstate(::Any, ::Any) = false
 ownsstate(::R, ::PrivateState{T}) where {R, T} = R === T
@@ -477,7 +484,7 @@ unwrap(rf, wrap(rf, state, iresult)) == (state, iresult)
 This is intended to be used only in [`complete`](@ref).  Inside
 [`next`](@ref), use [`wrapping`](@ref).
 """
-unwrap(::T, ps::PrivateState{T}) where {T} = (ps.state, ps.result)
+unwrap(::T, ps::PrivateState{T}) where {T} = (psstate(ps), psresult(ps))
 
 unwrap(::T1, ::PrivateState{T2}) where {T1, T2} =
     error("""
@@ -539,7 +546,7 @@ only sees the outer-most "tree" `result₀` during the reduction.
 
 See [`wrapping`](@ref), [`unwrap`](@ref), and [`start`](@ref).
 """
-wrap(rf::T, state, iresult) where {T} = PrivateState(rf, state, iresult)
+wrap(rf::T, state, iresult) where {T} = privatestate(rf, state, iresult)
 wrap(rf, state, iresult::Reduced) = unwrap_all(iresult) :: Reduced
 #
 # Note: `unwrap_all` is required since any transducer in arbitrary
@@ -570,7 +577,7 @@ See [`wrap`](@ref), [`unwrap`](@ref), and [`next`](@ref).
     return wrap(rf, state1, iresult1)
 end
 
-unwrap_all(ps::PrivateState) = unwrap_all(ps.result)
+unwrap_all(ps::PrivateState) = unwrap_all(psresult(ps))
 unwrap_all(result) = result
 unwrap_all(ps::Reduced) = Reduced(unwrap_all(unreduced(ps)))
 
