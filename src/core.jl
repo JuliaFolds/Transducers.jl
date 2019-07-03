@@ -450,19 +450,27 @@ combine(rf::Reduction, a, b) =
 
 function privatestate end
 
-struct PrivateState{T, S, R}
-    state::S
-    result::R
+struct _R{T} end
+const PrivateState{T <: Reduction} = Tuple{_R{T}, Any, Any, Vararg{Any}}
 
-    # Rename constructor to make sure that it is always constructed
-    # through the factory function:
-    global privatestate(rf::T, state::S, result::R) where {T <: Reduction, S, R} =
-        new{T, S, R}(state, result)
+privatestate(rf::T, state, result) where {T <: Reduction} =
+    if result isa PrivateState
+        (_R{T}(), state, result...) :: PrivateState{T}
+    else
+        (_R{T}(), state, result)
+    end :: PrivateState{T}
+
+@inline psstate(ps) = ps[2]
+@inline function psresult(ps)
+    iresult = Base.tail(Base.tail(ps))
+    if iresult isa PrivateState
+        return iresult
+    elseif length(iresult) == 1
+        return iresult[1]
+    else
+        error("Malformed PrivateState")
+    end
 end
-# TODO: make it a tuple-like so that I can return it as-is
-
-@inline psstate(ps) = ps.state
-@inline psresult(ps) = ps.result
 
 ownsstate(::Any, ::Any) = false
 ownsstate(::R, ::PrivateState{T}) where {R, T} = R === T
