@@ -8,7 +8,7 @@ version = "1.0.1"
 
 [[BangBang]]
 deps = ["Future", "LinearAlgebra", "Requires", "Setfield"]
-git-tree-sha1 = "3031ad388c88b3a9bd93efdcc5387a2dc17b0f72"
+git-tree-sha1 = "422e0ff4e0e398bec364aaeb81be1e7a148ced49"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/BangBang.jl"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
