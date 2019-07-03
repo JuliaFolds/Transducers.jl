@@ -30,32 +30,6 @@ Output type of the transducer is inferred to be a `Union{}`.  This
 probably means one or more of the composed transducers throw.
 """
 
-function identityof(op, e)
-    e === Union{} && error("""
-$_non_executable_transducer_msg
-You can pass `init` argument to run the transducer forcefully and find
-out which one causes the problem.
-""")
-    e === Any && error("""
-Input type to the reducing function `$op` cannot be inferred (it is
-inferred to be `$e`).
-Use the argument `init` to specify the initial value (if this error
-is caused via `mapfoldl` and alike).
-""")
-    e <: Array && error("""
-Input type to the reducing function `$op` is inferred to be `$e`.
-However, there is no sensible initial value of an `Array` w.r.t. `$op`.
-Use the argument `init` to specify the initial value (if this error
-is caused via `mapfoldl` and alike).
-""")
-    return Base.reduce_empty(op, e)
-end
-
-identityof(::typeof(min), e) = typemax(e)
-identityof(::typeof(max), e) = typemin(e)
-identityof(::typeof(append!), e) = empty(e)
-ridentityof(::typeof(append!), e) = ()
-
 @inline _poptail(xs) = _poptail_impl(xs...)
 @inline _poptail_impl(a) = (), a
 @inline function _poptail_impl(a, xs...)

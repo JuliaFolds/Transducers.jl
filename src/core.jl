@@ -642,8 +642,6 @@ next(rf::Completing, result, input)  = next(rf.f, result, input)
 complete(::Completing, result) = result
 combine(rf::Completing, a, b) = combine(rf.f, a, b)
 
-identityof(rf::Completing, T) = identityof(rf.f, T)
-
 # If I expose `Reduction` as a user-interface, I should export
 # `skipcomplete` instead of the struct `Completing`.
 skipcomplete(rf::Reduction) = Reduction(NoComplete(), rf, InType(rf))
