@@ -32,6 +32,9 @@ end
         @test_inferred foldl(+, Map(exp), xs)
         @test_inferred foldl(+, Map(exp) |> Filter(x -> x > 0), xs)
         @test_inferred foldl(+, Map(exp) |> Scan(+), xs)
+        @test_inferred foldl(+, TakeLast(1), xs)
+        @test_inferred foldl(+, PartitionBy(identity) |> Map(first), xs)
+        @test_inferred foldl(+, Unique(), xs)
     end
 end
 
