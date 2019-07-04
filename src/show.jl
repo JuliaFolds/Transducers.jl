@@ -229,18 +229,10 @@ end
 
 function _show_multiline_args(io, mime, rf::Splitter)
     _show_impl(io, mime, inner(rf))
-    println(io, ",")
-    _show_impl(io, mime, rf.lens)
 end
 
 function _show_multiline_args(io, mime, rf::Joiner)
     _show_impl(io, mime, inner(rf))
-    println(io, ",")
-    if isdefined(rf, :value)
-        _show_impl(io, mime, rf.value)
-    else
-        _show_impl(io, mime, Text("#undef"))
-    end
 end
 
 @specialize

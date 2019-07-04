@@ -1263,7 +1263,7 @@ julia> collect(xf, split(\"\"\"
        name: Cat |> Filter
        type: chaotic
        \"\"\", "\\n"; keepempty=false))
-4-element Array{Any,1}:
+4-element Array{NamedTuple{(:name, :lines),Tuple{SubString{String},Array{String,1}}},1}:
  (name = "Map", lines = ["name: Map", "type: onetoone"])
  (name = "Cat", lines = ["name: Cat", "type: expansive"])
  (name = "Filter", lines = ["name: Filter", "type: contractive"])
@@ -1499,79 +1499,40 @@ end
 #                     Joiner(
 #                         Reduction(
 #                             MapSplat(*),
-#                             rf),
-#                         value)))))
-#
-# where `value` is the placeholder for the output value of the
-# transducer (here `Map(identity)`) outer to `TeeZip`.
+#                             rf))))))
 
-struct Splitter{intype, R, L} <: AbstractReduction{intype, R}
+struct Splitter{intype, R} <: AbstractReduction{intype, R}
     inner::R
-    lens::L
 end
 
-Splitter(inner::R, lens::L) where {R, L} =
-    Splitter{InType(R), R, L}(inner, lens)
+Splitter(inner::R) where R = Splitter{InType(R), R}(inner)
+setinner(rf::Splitter, inner) = Splitter(inner)
+reform(rf::Splitter, f) = Splitter(reform(inner(rf), f))
 
-setinner(rf::Splitter, inner) = Splitter(inner, rf.lens)
-
-reform(rf::Splitter, f) = Splitter(reform(inner(rf), f), rf.lens)
-
-struct Joiner{intype, F, T} <: AbstractReduction{intype, F}
+struct Joiner{intype, F} <: AbstractReduction{intype, F}
     inner::F  # original inner reduction
-    value::T  # original input
-
-    @inline function Joiner{intype,F,T}(inner) where {intype,F,T}
-        _joiner_error(inner, intype)
-        if isbitstype(T) || Base.isbitsunion(T)
-            return new(inner)
-        else
-            return new{intype,F,Union{T,Nothing}}(inner, nothing)
-        end
-    end
-
-    @inline function Joiner{intype,F,T}(inner, value) where {intype,F,T}
-        _joiner_error(inner, intype)
-        return new(inner, value)
-    end
 end
 
-setinner(rf::Joiner{intype, <:Any, T}, inner) where {intype, T} =
-    Joiner{intype, typeof(inner), T}(inner, rf.value)
-
-function reform(rf::Joiner{intype,<:Any,T}, f) where {intype, T}
-    newinner = reform(inner(rf), f)
-    Joiner{intype, typeof(newinner), T}(newinner, rf.value)
-end
-
-@inline _joiner_error(::Any, ::Any) = nothing
-@inline _joiner_error(inner::Reduction, intype) =
-    _joiner_error(inner, intype, InType(inner))
-@inline _joiner_error(inner, ::Type{T}, ::Type{T}) where T = nothing
-@noinline _joiner_error(inner, intype, intype_inner) = error("""
-`intype` specified for `Joiner` and inner reducing function does not match.
-    intype = $intype
-    InType(inner) = $intype_inner
-where
-    inner = $inner
-""")
+Joiner(inner::R) where R = Joiner{InType(R), R}(inner)
+setinner(rf::Joiner, inner) = Joiner(inner)
+reform(rf::Joiner, f) = Joiner(reform(inner(rf), f))
 
 # It's ugly that `Reduction` returns a non-`Reduction` type!  TODO: fix it
-function Reduction(xf::Composition{<:TeeZip}, f, intype::Type)
+function Reduction(xf::Composition{<:TeeZip}, f, intype::Typeish)
     @nospecialize
     rf = _teezip_rf(xf.outer.xform, intype, (xf.inner, f, intype))
-    return Splitter(rf, _teezip_lens(rf))
+    return Splitter(rf)
 end
 
-function Reduction(xf::TeeZip, f, intype::Type)
+function Reduction(xf::TeeZip, f, intype::Typeish)
     @nospecialize
     rf = _teezip_rf(xf.xform, intype, (nothing, f, intype))
-    return Splitter(rf, _teezip_lens(rf))
+    return Splitter(rf)
 end
 
 function _teezip_rf(xf::Composition, intype, downstream)
     @nospecialize
-    intype_inner = outtype(xf.outer, intype)
+    intype_inner = _outtype(xf.outer, intype)
     rf_inner = _teezip_rf(xf.inner, intype_inner, downstream)
     return Reduction(xf.outer, rf_inner, intype)
 end
@@ -1579,57 +1540,59 @@ end
 function _teezip_rf(xf, intype, downstream)
     @nospecialize
     xf_ds, f, intype_orig = downstream
-    intype_ds = Tuple{intype_orig, outtype(xf, intype)}
+    if intype_orig === NOTYPE
+        intype_ds = NOTYPE
+    else
+        intype_ds = Tuple{intype_orig, outtype(xf, intype)}
+    end
     if xf_ds === nothing
         rf_ds = ensurerf(f, intype_ds)
     else
         rf_ds = Reduction(xf_ds, f, intype_ds)
     end
-    joiner = Joiner{intype_ds, typeof(rf_ds), intype_orig}(rf_ds)
+    joiner = Joiner{intype_ds, typeof(rf_ds)}(rf_ds)
     return Reduction(xf, joiner, intype)
 end
 
-"""
-    _teezip_lens(rf) :: Lens
+const SplitterState = PrivateState{<:Splitter}
+const JoinerState = PrivateState{<:Joiner}
 
-Return a lens to the `.value` field of the first "unbalanced"
+"""
+    _set_joiner_value(ps::PrivateState, x) :: PrivateState
+
+Set `.state` field of the `PrivateState` of the first "unbalanced"
 `Joiner`.  A `Joiner` matched with preceding `Splitter` would be
-treated as a regular reducing function node.  Thus, reducing function
-`rf` must have one more `Joiner` than `Splitter`.
+treated as a regular reducing function node.  Thus, private state `ps`
+must have one more `Joiner` than `Splitter`.
 """
-_teezip_lens
+@inline _set_joiner_value(ps, x) = _set_joiner_value(ps, x, Val(0))
+@inline _set_joiner_value(ps::JoinerState, x, ::Val{0}) =
+    setpsstate(ps, x)
+@inline _set_joiner_value(ps::JoinerState, x, ::Val{c}) where c =
+    setpsresult(ps, _set_joiner_value(psresult(ps), x, Val(c - 1)))
+@inline _set_joiner_value(ps::SplitterState, x, ::Val{c}) where c =
+    setpsresult(ps, _set_joiner_value(psresult(ps), x, Val(c + 1)))
+@inline _set_joiner_value(ps, x, VC) =
+    setpsresult(ps, _set_joiner_value(psresult(ps), x, VC))
+#
+# Writing above with a single function was much easier to read.
+# However, it didn't work with the compiler (which tries to
+# dynamically allocate type variable somehow).
 
-# begin/end is not necessary for @nospecialize/@specialize; it's just
-# for visually marking the lines applying @nospecialize.
-@nospecialize
-begin
-
-    _teezip_lens(rf) = _joiner_lens(rf)[1] ∘ (@lens _.value)
-
-    _joiner_lens(rf::Joiner) = (@lens _), inner(rf)
-    function _joiner_lens(rf::Reduction)
-        lens, rf_ds = _joiner_lens(inner(rf))
-        return (@lens _.inner) ∘ lens, rf_ds
-    end
-    function _joiner_lens(rf::Splitter)
-        lens_nested, rf_nested = _joiner_lens(inner(rf))
-        lens, rf_ds = _joiner_lens(rf_nested)
-        return (@lens _.inner) ∘ lens_nested ∘ (@lens _.inner) ∘ lens, rf_ds
-        # The first/left `_.inner` is for `Splitter` and the
-        # middle/second `_.inner` is for `Joiner`.
-    end
-
-end
-@specialize
-
-start(rf::Splitter, result) = start(inner(rf), result)
+start(rf::Splitter, result) = wrap(rf, nothing, start(inner(rf), result))
+complete(rf::Splitter, result) = complete(inner(rf), unwrap(rf, result)[2])
 next(rf::Splitter, result, input) =
-    next(set(inner(rf), rf.lens, input), result, input)
-complete(rf::Splitter, result) = complete(inner(rf), result)
+    wrapping(rf, result) do _, iresult
+        nothing, next(inner(rf), _set_joiner_value(iresult, input), input)
+    end
 
-start(rf::Joiner, result) = start(inner(rf), result)
-next(rf::Joiner, result, input) = next(inner(rf), result, (rf.value, input))
-complete(rf::Joiner, result) = complete(inner(rf), result)
+start(rf::Joiner, result) = wrap(rf, nothing, start(inner(rf), result))
+complete(rf::Joiner, result) = complete(inner(rf), unwrap(rf, result)[2])
+next(rf::Joiner, result, input) =
+    wrapping(rf, result) do state, iresult
+        state, next(inner(rf), iresult, (state, input))
+    end
+# Putting `state` back to make it type stable.
 
 isexpansive(xf::TeeZip) = isexpansive(xf.xform)
 outtype(xf::TeeZip, intype) = Tuple{intype, outtype(xf.xform, intype)}

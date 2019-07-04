@@ -133,8 +133,14 @@ end
             collect(zip(1:2:5, 2:2:6))
     end
 
-    ed = eduction(TeeZip(Filter(isodd) |> Map(x -> x + 1.0)), 1:5)
-    @test eltype(ed) === Tuple{Int,Float64}
+    ed = eduction(TeeZip(Filter(isodd) |> Map(x -> x + 1.0)) |>
+                  Map(last) |>
+                  Scan(+,
+                       with_logger(NullLogger()) do
+                           Initializer(T -> zero(T))
+                       end),
+                  1:5)
+    @test eltype(ed) === Float64
 
     xf = Map(inc) |> TeeZip(Filter(isodd)) |> Map(first)
     @testset for xs in iterator_variants(1:6)
