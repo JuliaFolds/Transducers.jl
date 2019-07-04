@@ -152,11 +152,11 @@ xs = [
 function xf_sum_columns(prototype)
     T = Base.nonmissingtype(eltype(prototype)) # subtract Missing from type
     dims = size(prototype)
-    return Scan(add_skipmissing!, Initializer(_ -> zeros(T, dims)))
+    return Scan(add_skipmissing!, CopyInit(zeros(T, dims)))
 end
 nothing  # hide
 
-# We use [`Initializer`](@ref) here to allocate the "output array"
+# We use [`CopyInit`](@ref) here to allocate the "output array"
 # into which the columns are added by `add_skipmissing!`.
 
 if VERSION >= v"1.1-"  # eachcol not in Julia 1.0  #src
@@ -266,8 +266,8 @@ mapfoldl(xf_argmax, right, [1, 3, missing, 2])
 
 # Side note: We use `typemin(Int)` as the initial value of `max` for
 # simplicity.  In practice, it should be
-# `typemin(eltype(input_array))`.  See the next section for how to do
-# it using `Initializer`.
+# `typemin(eltype(input_array))`.  A more generic solution is to use
+# `Init(>)` from Initials.jl (see the next section).
 
 # ## Extrema
 #
@@ -276,34 +276,23 @@ mapfoldl(xf_argmax, right, [1, 3, missing, 2])
 # as well, we can simply use [`Scan`](@ref).  Also, while we are at
 # it, let's support both argmax and argmin.  To this end, we
 # parametrize the function passed to `Scan` by the comparison function
-# `>` and `<`.  Following function `argext_step` takes the function
-# `>` or `<` and return a function appropriate for `Scan.`
+# `>` and `<`.  Another problem with `xf_argmax` is that it does not
+# handle non-`Int` input types.  To properly handle different input
+# types, we initialize `Scan`'s state with `nothing` and special-case
+# the first invocation to return the input as-is.  Following function
+# `argext_step` takes the function `>` or `<` and return a function
+# appropriate for `Scan.`
 
 argext_step(should_update) =
-    ((oldindex, oldvalue), (index, value)) ->
-        should_update(oldvalue, value) ? (index, value) : (oldindex, oldvalue)
+    (old, (index, value)) ->
+        if old === nothing || should_update(old[2], value)
+            (index, value)
+        else
+            old
+        end
 nothing  # hide
 
-# Another problem with `xf_argmax` is that it does not handle
-# non-`Int` input types.  To properly handle different input types, we
-# use [`Initializer`](@ref).  `Initializer` needs a function that maps
-# an input _type_ to the initial state.  We first define a helper
-# function
-
-init_helper(::typeof(>), ::Type{Tuple{F, S}}) where {F, S} = (zero(F), typemax(S))
-init_helper(::typeof(<), ::Type{Tuple{F, S}}) where {F, S} = (zero(F), typemin(S))
-nothing  # hide
-
-# ...which is partially evaluated before passed to `Initializer`:
-
-argext_init(should_update) = Initializer(TT -> init_helper(should_update, TT))
-nothing  # hide
-
-# Finally we construct a `Scan` transducer using `argext_step` and
-# `argext_init`:
-
-xf_scanext(should_update) = Scan(argext_step(should_update),
-                                 argext_init(should_update))
+xf_scanext(should_update) = Scan(argext_step(should_update), nothing)
 nothing  # hide
 
 # Passing `<` gives us the argmax transducer:

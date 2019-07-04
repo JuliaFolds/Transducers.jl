@@ -176,7 +176,7 @@ countwords(s; kwargs...) =
     mapreduce(Map(Char) |> countxf,
               mergecont!,
               transcode(UInt8, s);
-              init = Initializer(_ -> Dict{String,Int}()),
+              init = CopyInit(Dict{String,Int}()),
               kwargs...)
 nothing  # hide
 
@@ -185,7 +185,7 @@ nothing  # hide
 # That's why there is `Map(Char) |>` before `countxf`.  Of course,
 # this is not valid for UTF-8 in general.
 #
-# Side note 2: We use [`Initializer`](@ref) to create a fresh initial
+# Side note 2: We use [`CopyInit`](@ref) to create a fresh initial
 # state for each sub-reduce to avoid overwriting mutable data between
 # threads.
 
