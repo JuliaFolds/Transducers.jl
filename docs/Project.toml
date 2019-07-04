@@ -1,10 +1,10 @@
 [deps]
 BangBang = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+Initials = "f5763212-9e0f-11e9-37f1-074a78aac78e"
 Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
 Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
 Transducers = "28d57a85-8fef-5791-bfe6-a80928e7c999"
-UniversalIdentity = "b8f959e8-97da-11e9-3356-bb6559ac5c1b"
 
 [compat]
 Documenter = "0.22"

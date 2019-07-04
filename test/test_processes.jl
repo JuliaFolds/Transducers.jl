@@ -308,7 +308,7 @@ end
 @testset "IdentityNotDefinedError" begin
     @test_throws(
         IdentityNotDefinedError,
-        foldl((x, y) -> x + y, Map(identity), 1:1; init=Id),
+        foldl((x, y) -> x + y, Map(identity), 1:1; init=Init),
     )
 end
 

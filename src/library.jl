@@ -1039,7 +1039,7 @@ next(rf::R_{Dedupe}, result, input) =
     end
 
 """
-    Scan(f, [init = Id])
+    Scan(f, [init = Init])
 
 Accumulate input with binary function `f` and pass the accumulated
 result so far to the inner reduction step.
@@ -1096,7 +1096,7 @@ struct Scan{F, T} <: Transducer
     init::T
 end
 
-Scan(f) = Scan(f, makeid(f, Id))
+Scan(f) = Scan(f, makeid(f, Init))
 
 _lefttype(xf::Scan, intype) = inittypeof(xf.init, intype)
 
@@ -1964,8 +1964,8 @@ end
 
 function GroupBy(key, rf)
     op = _realbottomrf(rf)
-    hasidentity(op) || throw(MissingInitError(op))
-    return GroupBy(key, rf, DefaultId(op))
+    hasinitial(op) || throw(MissingInitError(op))
+    return GroupBy(key, rf, DefaultInit(op))
 end
 
 # "Bangbang" version of `set!(f, dict, key)` interface I proposed in
@@ -2005,7 +2005,7 @@ end
         end
         gr = something(somegr)
         bresult = unwrap_all(unreduced(gr))
-        if bresult !== DefaultId(_realbottomrf(xform(rf).rf))
+        if bresult !== DefaultInit(_realbottomrf(xform(rf).rf))
             gresult = setindex!!(gresult, bresult, key)
         end
         iresult = next(inner(rf), iresult, gresult)
@@ -2019,5 +2019,5 @@ end
 # It may be useful to avoid computing hash twice by storing `key =>
 # (gr, unreduced(gr))` in a single dictionary.  A read-only view of
 # `key => unreduced(gr)` can be passed to the downstream transducer.
-# This view dictionary has to check `DefaultId` in `getindex` etc. to
+# This view dictionary has to check `DefaultInit` in `getindex` etc. to
 # pretend that it's not there.

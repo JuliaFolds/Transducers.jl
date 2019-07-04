@@ -15,8 +15,8 @@ using Base.Broadcast: Broadcasted
 using ArgCheck
 using BangBang: push!!, empty!!, setindex!!
 using Requires
-using UniversalIdentity: UniversalIdentity, Identity, SpecificIdentity, Id,
-    hasidentity
+using Initials: Initials, Initial, SpecificInitial, Init,
+    hasinitial
 
 import Setfield
 using Setfield: @lens, @set, set

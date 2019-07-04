@@ -48,8 +48,8 @@ is_anonymous(n) = n == :anonymous || startswith(string(n), '#')
 
 _is_default_arg(xf, name::Symbol, value) = is_default_arg(xf, Val(name), value)
 is_default_arg(xf, name, value) = false
-is_default_arg(xf::Scan, ::Val{:init}, value) = value === Id(xf.f)
-is_default_arg(xf::GroupBy, ::Val{:init}, value) = value isa DefaultId
+is_default_arg(xf::Scan, ::Val{:init}, value) = value === Init(xf.f)
+is_default_arg(xf::GroupBy, ::Val{:init}, value) = value isa DefaultInit
 
 _name_of_transducer_type(xf) = nameof(typeof(xf))
 

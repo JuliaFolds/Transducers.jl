@@ -6,7 +6,7 @@ using Transducers
 using Transducers: Transducer, simple_transduce, Reduced, isexpansive,
     TeeZip, GetIndex, SetIndex, Inject, @~, outtype, infer_input_types,
     EmptyResultError, IdentityNotDefinedError
-using UniversalIdentity: Id
+using Initials: Init
 
 inc(x) = x + oneunit(x)
 

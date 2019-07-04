@@ -253,9 +253,9 @@ This API is modeled after $(_cljref("transduce")).
 - `init`: An initial value fed to the first argument to reducing step
   function `step`.  This argument can be omitted for well know binary
   operations like `+` or `*`.  Supported binary operations are listed
-  in UniversalIdentity.jl documentation.  When `Id` (not the result of
-  `Id`, such as `Id(*)`) is given, it is automatically "instantiated"
-  as `Id(step)` (where `step` is appropriately unwrapped if `step` is
+  in Initials.jl documentation.  When `Init` (not the result of
+  `Init`, such as `Init(*)`) is given, it is automatically "instantiated"
+  as `Init(step)` (where `step` is appropriately unwrapped if `step` is
   a `Completing`).  See [Empty result handling](@ref) in the manual
   for more information.
 - `simd`: If `true` or `:ivdep`, enable SIMD using `Base.@simd`.  If
@@ -301,7 +301,7 @@ function transduce(xform::Transducer, f, init, coll; kwargs...)
 end
 
 _needintype(xf, step, init) =
-    (init isa MissingInit && !hasidentity(_realbottomrf(step))) ||
+    (init isa MissingInit && !hasinitial(_realbottomrf(step))) ||
     (init isa Initializer && !(init isa CopyInit)) ||
     needintype(xf)
 
@@ -320,7 +320,7 @@ _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
     rf = maybe_usesimd(rf0, simd)
     state = _start_init(rf, init)
     result = __foldl__(rf, state, coll)
-    if unreduced(result) isa DefaultId
+    if unreduced(result) isa DefaultInit
         throw(EmptyResultError(rf0))
         # Should I check if `init` is a `MissingInit`?
     end
@@ -328,13 +328,13 @@ _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
     # to do.  What follows are some convoluted instructions to
     # convince the compiler that this function is type-stable (in some
     # cases).  Note that return type would be inference-dependent only
-    # if `init` is a `OptId` type.  In the default case where `init
-    # isa DefaultId`, the real code pass is the `throw` above.
+    # if `init` is a `OptInit` type.  In the default case where `init
+    # isa DefaultInit`, the real code pass is the `throw` above.
 
     # Unpacking as `ur_result` and re-packing it later somehow helps
     # the compiler to correctly eliminate a possibility in a `Union`.
     ur_result = unreduced(result)
-    if ur_result isa InferableId
+    if ur_result isa InferableInit
         # Using `rf0` instead of `rf` helps the compiler.  Note that
         # this means that we are relying on that enabling SIMD does
         # not change the return type.

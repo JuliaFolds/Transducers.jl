@@ -700,7 +700,7 @@ julia> mapfoldl(Drop(5), right, 1:3; init=0)  # using `init` as the default valu
 right(l, r) = r
 right(r) = r
 
-UniversalIdentity.@def right
+Initials.@def right
 
 identityof(::typeof(right), ::Any) = nothing
 # This is just a right identity but `right` is useful for left-fold
@@ -892,25 +892,25 @@ _real_state_type(::Type{Union{T, _FakeState}}) where T = T
 
 
 """
-    DefaultId(op)
+    DefaultInit(op)
 
-`DefaultId` is like `UniversalIdentity.Id` but **strictly** internal
+`DefaultInit` is like `Initials.Init` but **strictly** internal
 to Transducers.jl.  It is used for checking if the bottom reducing
 function is never called.
 """
-struct DefaultId{OP} <: SpecificIdentity{OP} end
-DefaultId(::OP) where OP = DefaultId{OP}()
+struct DefaultInit{OP} <: SpecificInitial{OP} end
+DefaultInit(::OP) where OP = DefaultInit{OP}()
 
-struct OptIdOf{OP} <: SpecificIdentity{OP} end
-OptId(::OP) where OP = OptIdOf{OP}()
+struct OptInitOf{OP} <: SpecificInitial{OP} end
+OptInit(::OP) where OP = OptInitOf{OP}()
 # It seems that compiler can infer more when passing around a
 # `Function` than a `Type` (since a `Function` is a singleton?).
-# That's why `OptId` is defined as a factory function.
+# That's why `OptInit` is defined as a factory function.
 
-InferableId{OP} = Union{DefaultId{OP}, OptIdOf{OP}}
+InferableInit{OP} = Union{DefaultInit{OP}, OptInitOf{OP}}
 
 _nonidtype(::Any) = nothing
-_nonidtype(::Type{Union{S, T}}) where {T, S <: InferableId} = T
+_nonidtype(::Type{Union{S, T}}) where {T, S <: InferableInit} = T
 
 struct MissingInit end
 
@@ -947,7 +947,7 @@ _realbottomrf(rf::Completing) = rf.f
 provide_init(rf, init) = initvalue(init, FinalType(rf))
 function provide_init(rf, ::MissingInit)
     op = _realbottomrf(rf)
-    hasidentity(op) && return DefaultId(op)
+    hasinitial(op) && return DefaultInit(op)
     throw(MissingInitError(op))
 end
 
@@ -957,25 +957,25 @@ struct IdentityNotDefinedError <: Exception
 end
 
 function Base.showerror(io::IO, e::IdentityNotDefinedError)
-    Id = e.idfactory
+    Init = e.idfactory
     op = e.op
     print(io, "IdentityNotDefinedError: ")
     print(io, strip("""
-    `init = $Id` is specified but the identity element `Id(op)` is not defined for
+    `init = $Init` is specified but the identity element `Init(op)` is not defined for
         op = $op
     Note that `op` must be a well known binary operations like `+` or `*`.
-    See UniversalIdentity.jl documentation for more information.
+    See Initials.jl documentation for more information.
     """))
 end
 
-# Handle `init=Id` and `init=OptId`
-function provide_init(rf, idfactory::Union{typeof(Id), typeof(OptId)})
+# Handle `init=Init` and `init=OptInit`
+function provide_init(rf, idfactory::Union{typeof(Init), typeof(OptInit)})
     op = _realbottomrf(rf)
     return makeid(op, idfactory)
 end
 
 makeid(op, init) = init
-function makeid(op, idfactory::Union{typeof(Id), typeof(OptId)})
-    hasidentity(op) && return idfactory(op)
+function makeid(op, idfactory::Union{typeof(Init), typeof(OptInit)})
+    hasinitial(op) && return idfactory(op)
     throw(IdentityNotDefinedError(op, idfactory))
 end
