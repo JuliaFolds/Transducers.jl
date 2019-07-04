@@ -189,7 +189,7 @@ uuid = "0796e94c-ce3b-5d07-9a54-7f471281c624"
 version = "0.5.4"
 
 [[Transducers]]
-deps = ["ArgCheck", "BangBang", "Markdown", "Requires", "Setfield"]
+deps = ["ArgCheck", "BangBang", "Initials", "Markdown", "Requires", "Setfield"]
 path = ".."
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 version = "0.3.0-DEV"
