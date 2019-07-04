@@ -7,6 +7,8 @@ export JULIA_PROJECT="$(dirname ${BASH_SOURCE[0]})"
 set -ex
 ${JULIA} -e 'using Pkg; Pkg.instantiate();
              Pkg.develop(PackageSpec(path=pwd()))'
+
+export JULIA_LOAD_PATH="@"
 exec ${JULIA} "${BASH_SOURCE[0]}" "$@"
 =#
 
