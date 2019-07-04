@@ -428,7 +428,7 @@ If `start(rf::R_{X}, state)` is defined, `complete` **must** unwarp
     Relying on this fallback implementation is now deprecated.
 """
 complete(f, result) = f(result)
-complete(rf::Reduction, result) =
+complete(rf::AbstractReduction, result) =
     # Not using dispatch to avoid ambiguity
     if ownsstate(rf, result)
         Base.depwarn(
@@ -459,7 +459,8 @@ combine(rf::Reduction, a, b) =
         combine(inner(rf), a, b)
     end
 
-function privatestate end
+privatestate(::T, state, result) where {T <: AbstractReduction} =
+    privatestate(T, state, result)
 
 struct PrivateState{T, S, R}
     state::S
@@ -467,13 +468,22 @@ struct PrivateState{T, S, R}
 
     # Rename constructor to make sure that it is always constructed
     # through the factory function:
-    global privatestate(rf::T, state::S, result::R) where {T <: Reduction, S, R} =
+    global privatestate(::Type{T}, state::S, result::R) where {
+        T <: AbstractReduction,
+        S,
+        R,
+    } =
         new{T, S, R}(state, result)
 end
 # TODO: make it a tuple-like so that I can return it as-is
 
+Setfield.constructor_of(::Type{<:PrivateState{T}}) where T =
+    (state, result) -> privatestate(T, state, result)
+
 @inline psstate(ps) = ps.state
 @inline psresult(ps) = ps.result
+@inline setpsstate(ps, x) = @set ps.state = x
+@inline setpsresult(ps, x) = @set ps.result = x
 
 ownsstate(::Any, ::Any) = false
 ownsstate(::R, ::PrivateState{T}) where {R, T} = R === T
@@ -597,9 +607,12 @@ impossible to know if a user-defined transducer needs `intype`
 (typically via `initvalue`).
 """
 needintype(::T) where {T <: Transducer} = needintype(T)
-needintype(::Type{<:Transducer}) = true
 needintype(::Type{Composition{XO, XI}}) where {XO, XI} =
     needintype(XO) || needintype(XI)
+
+# This definition is not used in the builtin transducers.  It will be
+# used only for the transducers defined outside Transducers.jl:
+needintype(::Type{<:Transducer}) = true
 
 function default_needintype_with_init(T::Type{<:Transducer})
     I = fieldtype(T, :init)

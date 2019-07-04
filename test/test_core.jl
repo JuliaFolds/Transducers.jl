@@ -10,7 +10,7 @@ end
 
 @testset "needintype" begin
     @test !needintype(Map)
-    @test needintype(TeeZip)
+    @test !needintype(TeeZip)
     @test !needintype(Scan(+, 0))
     with_logger(NullLogger()) do
         @test needintype(Scan(+, Initializer(T -> zero(T))))

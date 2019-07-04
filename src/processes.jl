@@ -657,9 +657,9 @@ _map!(rf, coll, dest) = transduce(darkritual(rf), nothing, coll)
 @inline darkritual(rf::R) where {R <: Reduction} =
     R(darkritual(xform(rf)), darkritual(inner(rf)))
 @inline darkritual(rf::R) where {R <: Joiner} =
-    R(darkritual(inner(rf)), rf.value)
+    R(darkritual(inner(rf)))
 @inline darkritual(rf::R) where {R <: Splitter} =
-    R(darkritual(inner(rf)), rf.lens)
+    R(darkritual(inner(rf)))
 
 function _prepare_map(xf, dest, src, simd)
     isexpansive(xf) && error("map! only supports non-expanding transducer")
@@ -669,7 +669,7 @@ function _prepare_map(xf, dest, src, simd)
     rf = _reducingfunction(
         TeeZip(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
         (::Vararg) -> nothing,
-        eltype(indices);
+        needintype(xf) ? eltype(indices) : NOTYPE;
         simd = simd)
 
     return rf, indices, dest
