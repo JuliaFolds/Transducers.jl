@@ -18,7 +18,7 @@ reduction steps, use [`Zip`](@ref).
 """
 
 _use_initializer = """
-An [`Initializer`](@ref) object can be passed to `init` for creating
+Pass [`OnInit`](@ref) or [`CopyInit`](@ref) object to `init` for creating
 a dedicated (possibly mutable) state for each fold.
 """
 
@@ -1222,7 +1222,7 @@ julia> using Transducers
 
 julia> flushlast(rf, result) = rf(@next(rf, result, result.state));
 
-julia> xf = AdHocXF(Initializer(_ -> nothing), flushlast) do rf, result, input
+julia> xf = AdHocXF(nothing, flushlast) do rf, result, input
            m = match(r"^name:(.*)", input)
            if m === nothing
                push!(result.state.lines, input)

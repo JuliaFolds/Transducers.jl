@@ -7,6 +7,7 @@ using Transducers: Transducer, simple_transduce, Reduced, isexpansive,
     TeeZip, GetIndex, SetIndex, Inject, @~, outtype, infer_input_types,
     EmptyResultError, IdentityNotDefinedError, AbortIf
 using Initials: Init
+using Logging: NullLogger, with_logger
 
 inc(x) = x + oneunit(x)
 

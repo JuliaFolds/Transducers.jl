@@ -717,11 +717,54 @@ processes (e.g., [`mapfoldl`](@ref)) and "stateful" transducers (e.g.,
 [`Scan`](@ref)).  Factory function `f` takes the input type to the
 transducer or the reducing function.
 
-`Initializer` must be used whenever using in-place reduction with
-[`mapreduce`](@ref).
+!!! compat "Transducers.jl 0.3"
+
+    `Initializer` is deprecated since Transducers 0.3.  Please use
+    [`OnInit`](@ref).
+"""
+struct Initializer{F} <: AbstractInitializer
+    f::F
+
+    Initializer{F}(f) where F = new{F}(f)
+end
+
+function Initializer(f)
+    Base.depwarn(
+        """
+        `Initializer(T -> ...)` is deprecated.  Please use `OnInit(() -> ...)`.
+        """,
+        :Initializer)
+    return Initializer{typeof(f)}(f)
+end
+
+initvalue(x, ::Any) = x
+initvalue(init::Initializer, intype) = init.f(astype(intype))
+
+_initvalue(rf::Reduction) = initvalue(xform(rf).init, InType(rf))
+
+inittypeof(::T, ::Type) where T = T
+function inittypeof(init::AbstractInitializer, intype::Type)
+    # Maybe I should just call it?  But that would be a bit of waste
+    # when `init.f` allocates...
+    T = Base.promote_op(initvalue, typeof(init), Type{intype})
+    isconcretetype(T) && return T
+    return typeof(initvalue(init, intype))  # T==Union{} hits this code pass
+end
+
+Base.show(io::IO, init::Initializer) = _default_show(io, init)
+
+"""
+    OnInit(f)
+
+Call a callable `f` to create an initial value.
+
+See also [`CopyInit`](@ref).
+
+`OnInit` or `CopyInit` must be used whenever using in-place reduction
+with [`mapreduce`](@ref).
 
 # Examples
-```jldoctest Initializer
+```jldoctest OnInit
 julia> using Transducers
 
 julia> xf1 = Scan(push!, [])
@@ -741,7 +784,7 @@ Notice that the array is stored in `xf1` and mutated in-place.  As a
 result, second run of `mapfoldl` contains the results from the first
 run:
 
-```jldoctest Initializer
+```jldoctest OnInit
 julia> mapfoldl(xf1, right, 10:11)
 5-element Array{Any,1}:
   1
@@ -751,62 +794,66 @@ julia> mapfoldl(xf1, right, 10:11)
  11
 ```
 
-This may not be desired.  To avoid this behavior, create an
-`Initializer` object which takes a factory function to create a new
-initial value.
+This may not be desired.  To avoid this behavior, create an `OnInit`
+object which takes a factory function to create a new initial value.
 
-```jldoctest Initializer; filter = r"#+[0-9]+"
-julia> xf2 = Scan(push!, Initializer(T -> T[]))
-Scan(push!, Initializer(##9#10()))
+```jldoctest OnInit; filter = r"#+[0-9]+"
+julia> xf2 = Scan(push!, OnInit(() -> []))
+Scan(push!, OnInit(##9#10()))
 
 julia> mapfoldl(xf2, right, 1:3)
-3-element Array{Int64,1}:
+3-element Array{Any,1}:
  1
  2
  3
 
 julia> mapfoldl(xf2, right, [10.0, 11.0])
-2-element Array{Float64,1}:
+2-element Array{Any,1}:
  10.0
  11.0
 ```
 
 Keyword argument `init` for transducible processes also accept an
-`Initializer`:
+`OnInit`:
 
-```jldoctest Initializer
-julia> mapfoldl(Map(identity), push!, "abc"; init=Initializer(T -> T[]))
+```jldoctest OnInit
+julia> foldl(push!, Map(identity), "abc"; init=OnInit(() -> []))
+3-element Array{Any,1}:
+ 'a'
+ 'b'
+ 'c'
+```
+
+To create a copy of a mutable object, [`CopyInit`](@ref) is easier to
+use.
+
+However, more powerful and generic pattern is to use `push!!` from
+BangBang.jl and initialize `init` with `Union{}[]` so that it
+automatically finds the minimal element type.
+
+```jldoctest OnInit
+julia> using BangBang
+
+julia> foldl(push!!, Map(identity), "abc"; init=Union{}[])
 3-element Array{Char,1}:
  'a'
  'b'
  'c'
 ```
 """
-struct Initializer{F} <: AbstractInitializer
+struct OnInit{F} <: AbstractInitializer
     f::F
 end
 
-initvalue(x, ::Any) = x
-initvalue(init::Initializer, intype) = init.f(astype(intype))
+initvalue(init::OnInit, ::Any) = init.f()
+inittypeof(::OnInit, ::Type) = Any
 
-_initvalue(rf::Reduction) = initvalue(xform(rf).init, InType(rf))
-
-inittypeof(::T, ::Type) where T = T
-function inittypeof(init::AbstractInitializer, intype::Type)
-    # Maybe I should just call it?  But that would be a bit of waste
-    # when `init.f` allocates...
-    T = Base.promote_op(initvalue, typeof(init), Type{intype})
-    isconcretetype(T) && return T
-    return typeof(initvalue(init, intype))  # T==Union{} hits this code pass
-end
-
-Base.show(io::IO, init::Initializer) = _default_show(io, init)
-
+Base.show(io::IO, init::OnInit) = _default_show(io, init)
 
 """
     CopyInit(value)
 
-This is equivalent to `Initializer(_ -> deepcopy(value))`.
+This is equivalent to `OnInit(() -> deepcopy(value))`.
 
 See [`Initializer`](@ref).
 

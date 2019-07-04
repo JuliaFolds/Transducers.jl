@@ -57,10 +57,12 @@ end
         @test outtype(Scan(+), Int) == Union{Int, typeof(Init(+))}
         @test outtype(Scan(+, 0.0), Int) === Float64
         @test outtype(Scan(+, missing), Int) === Missing
+with_logger(NullLogger()) do
         @test outtype(Scan(+, Initializer(_ -> rand())), Int) ===
             Float64
         @test outtype(Scan(+, Initializer(_ -> rand(Int))), Int) ===
             Int
+end
     end
 end
 
@@ -82,16 +84,18 @@ end
             Union{Float64, Int64}
         @test outtype(
             ScanEmit(tuple, missing), Int) === Union{Missing, Int64}
+with_logger(NullLogger()) do
         @test outtype(
             ScanEmit(tuple, Initializer(_ -> rand())), Int) ===
                 Union{Float64, Int64}
         @test outtype(
             ScanEmit(tuple, Initializer(_ -> rand(Int))), Int) === Int
+end
     end
 
     @testset "Do not call `complete` when reduced" begin
         xs = 1:8
-        xf = ScanEmit(Initializer(_ -> []), identity) do u, x
+        xf = ScanEmit(CopyInit([]), identity) do u, x
             push!(u, x)
             if x % 3 == 0
                 return u, []

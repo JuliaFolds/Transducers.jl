@@ -22,6 +22,7 @@ end
 end
 
 @testset "Initializer" begin
+with_logger(NullLogger()) do
     @testset "mapfoldl" begin
         @testset for xs in iterator_variants(1:3)
             init(T::Type{<:Tuple}) = T[]
@@ -58,6 +59,20 @@ end
                 collect(Iterated(inc, Initializer(T -> 5one(T))) |> Map(first),
                         xs) ==
                     (1:10) .+ (5 - 1))
+        end
+    end
+end
+end
+
+@testset "OnInit" begin
+    @testset "mapfoldl" begin
+        @testset for xs in iterator_variants(1:3)
+            @test mapfoldl(
+                Zip(Map(identity), Map(string)),
+                push!,
+                xs,
+                init = OnInit(() -> [])
+            ) == [(1, "1"), (2, "2"), (3, "3")]
         end
     end
 end
