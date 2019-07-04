@@ -2,7 +2,7 @@ module Transducers
 
 export Transducer, Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, Zip,
     Replace, TakeWhile, TakeNth, Drop, DropLast, DropWhile, Keep, Unique,
-    Interpose, Dedupe, Partition, Iterated, Count, GroupBy,
+    Interpose, Dedupe, Partition, Iterated, Count, GroupBy, ReduceIf,
     TakeLast, FlagFirst, MapSplat, ScanEmit, Enumerate, NotA, OfType,
     transduce, eduction, setinput, Reduced, reduced, unreduced, ifunreduced,
     Completing, Initializer, CopyInit, right, reducingfunction

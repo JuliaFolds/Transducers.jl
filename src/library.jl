@@ -1873,7 +1873,7 @@ next(rf::R_{Enumerate}, result, input) =
 
 """
     GroupBy(key, rf, [init])
-    GroupBy(key, xf, step, [init])
+    GroupBy(key, xf::Transducer, [step = right, [init]])
 
 Group the input stream by a function `key` and then fan-out each group
 of key-value pairs to the reducing function `rf`.  For example, if
@@ -1929,9 +1929,7 @@ it is find:
 julia> result = transduce(
            GroupBy(
                string,
-               Map(last) |> Scan(+),
-               (_, x) -> x > 3 ? reduced(x) : x,
-               nothing,
+               Map(last) |> Scan(+) |> ReduceIf(x -> x > 3),
            ),
            right,
            nothing,
@@ -1953,7 +1951,7 @@ struct GroupBy{K, R, T} <: Transducer
     init::T
 end
 
-function GroupBy(key, xf::Transducer, step, init = MissingInit())
+function GroupBy(key, xf::Transducer, step = right, init = MissingInit())
     rf = reducingfunction(xf, step)
     if init isa MissingInit
         return GroupBy(key, rf)
@@ -2021,3 +2019,44 @@ end
 # `key => unreduced(gr)` can be passed to the downstream transducer.
 # This view dictionary has to check `DefaultInit` in `getindex` etc. to
 # pretend that it's not there.
+
+
+"""
+    ReduceIf(pred)
+
+Stop fold when `pred(x)` returns `true` for the output `x` of the
+upstream transducer.
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> foldl(right, ReduceIf(x -> x == 3), 1:10)
+3
+```
+"""
+struct ReduceIf{P} <: AbstractFilter
+    pred::P
+end
+
+function next(rf::R_{ReduceIf}, result0, input)
+    shouldreduce = xform(rf).pred(input)
+    result = next(inner(rf), result0, input)
+    if shouldreduce
+        return reduced(complete(inner(rf), result))
+    end
+    return result
+end
+
+# More immediate version of `ReduceIf`.  Not sure if this is useful so
+# not exporting it ATM.
+struct AbortIf{P} <: AbstractFilter
+    pred::P
+end
+
+next(rf::R_{AbortIf}, result, input) =
+    if xform(rf).pred(input)
+        return reduced(complete(inner(rf), result))
+    else
+        return next(inner(rf), result, input)
+    end

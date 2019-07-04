@@ -548,6 +548,16 @@ end
     ) == Dict(2 => 4, 1 => 2)
 end
 
+@testset "ReduceIf" begin
+    @test foldl(right, ReduceIf(x -> x == 3), 1:10) === 3
+    @test foldl(right, ReduceIf(x -> x == 3), 1:2) === 2
+end
+
+@testset "AbortIf" begin
+    @test foldl(right, AbortIf(x -> x == 3), 1:10) === 2
+    @test foldl(right, AbortIf(x -> x == 3), 1:1) === 1
+end
+
 @testset "Invalid arguments" begin
     @test_throws ArgumentError Take(-1)
     @test_throws ArgumentError TakeLast(-1)
