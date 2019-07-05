@@ -644,7 +644,7 @@ function Base.map!(xf::Transducer, dest::AbstractArray, src::AbstractArray;
     return dest
 end
 
-_map!(rf, coll, dest) = transduce(darkritual(rf, dest), nothing, coll)
+_map!(rf, coll, dest) = transduce(darkritual(rf), nothing, coll)
 
 # Deep-copy `AbstractReduction` so that compiler can treat the all
 # reducing function tree nodes as local variables (???).  Aslo, it
@@ -652,18 +652,14 @@ _map!(rf, coll, dest) = transduce(darkritual(rf, dest), nothing, coll)
 # fetch `dest` via `getproperty` in each iteration.  (This is too much
 # magic...  My reasoning of how it works could be completely wrong.
 # But at least it should not change the semantics of the function.)
-@inline darkritual(rf::R, dest) where {R <: Reduction} =
-    if !(inner(rf) isa BottomRF)
-        R(xform(rf), darkritual(inner(rf), dest))
-    else
-        @assert xform(rf).array === dest
-        xf = typeof(xform(rf))(dest) :: SetIndex
-        R(xf, inner(rf))
-    end
-@inline darkritual(rf::R, dest) where {R <: Joiner} =
-    R(darkritual(inner(rf), dest), rf.value)
-@inline darkritual(rf::R, dest) where {R <: Splitter} =
-    R(darkritual(inner(rf), dest), rf.lens)
+@inline darkritual(x) = x
+@inline darkritual(xf::SetIndex) = typeof(xf)(xf.array)
+@inline darkritual(rf::R) where {R <: Reduction} =
+    R(darkritual(xform(rf)), darkritual(inner(rf)))
+@inline darkritual(rf::R) where {R <: Joiner} =
+    R(darkritual(inner(rf)), rf.value)
+@inline darkritual(rf::R) where {R <: Splitter} =
+    R(darkritual(inner(rf)), rf.lens)
 
 function _prepare_map(xf, dest, src, simd)
     isexpansive(xf) && error("map! only supports non-expanding transducer")
