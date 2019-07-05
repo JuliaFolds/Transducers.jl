@@ -150,6 +150,7 @@ outtype(::Cat, intype) = ieltype(intype)
 # why `start` for `Cat` has to bail out immediately; i.e., it's not a
 # bug that `start(inner(rf), iresult)` is not called here:
 start(rf::R_{Cat}, result) = wrap(rf, Unseen(), result)
+complete(rf::R_{Cat}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 next(rf::R_{Cat}, result, input) =
     wrapping(rf, result) do istate0, iresult
@@ -372,6 +373,7 @@ struct Take <: AbstractFilter
 end
 
 start(rf::R_{Take}, result) = wrap(rf, xform(rf).n, start(inner(rf), result))
+complete(rf::R_{Take}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 next(rf::R_{Take}, result, input) =
     wrapping(rf, result) do n, iresult
@@ -511,6 +513,7 @@ struct TakeNth <: AbstractFilter
 end
 
 start(rf::R_{TakeNth}, result) = wrap(rf, xform(rf).n, start(inner(rf), result))
+complete(rf::R_{TakeNth}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 next(rf::R_{TakeNth}, result, input) =
     wrapping(rf, result) do c, iresult
@@ -552,6 +555,7 @@ struct Drop <: AbstractFilter
 end
 
 start(rf::R_{Drop}, result) = wrap(rf, 0, start(inner(rf), result))
+complete(rf::R_{Drop}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 next(rf::R_{Drop}, result, input) =
     wrapping(rf, result) do c, iresult
@@ -603,6 +607,8 @@ function start(rf::R_{DropLast}, result)
     return wrap(rf, (-n, Union{}[]), start(inner(rf), result))
 end
 
+complete(rf::R_{DropLast}, result) = complete(inner(rf), unwrap(rf, result)[2])
+
 next(rf::R_{DropLast}, result, input) =
     wrapping(rf, result) do (c, buffer0), iresult
         c += 1
@@ -652,6 +658,7 @@ struct DropWhile{F} <: AbstractFilter
 end
 
 start(rf::R_{DropWhile}, result) = wrap(rf, true, start(inner(rf), result))
+complete(rf::R_{DropWhile}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 next(rf::R_{DropWhile}, result, input) =
     wrapping(rf, result) do dropping, iresult
@@ -689,6 +696,7 @@ isexpansive(::FlagFirst) = false
 outtype(::FlagFirst, intype) = Tuple{Bool,intype}
 
 start(rf::R_{FlagFirst}, result) = wrap(rf, true, start(inner(rf), result))
+complete(rf::R_{FlagFirst}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 next(rf::R_{FlagFirst}, result, input) =
     wrapping(rf, result) do isfirst, iresult
@@ -953,6 +961,8 @@ function start(rf::R_{Unique}, result)
     return wrap(rf, seen, start(inner(rf), result))
 end
 
+complete(rf::R_{Unique}, result) = complete(inner(rf), unwrap(rf, result)[2])
+
 function next(rf::R_{Unique}, result, input)
     wrapping(rf, result) do seen, iresult
         if input in seen
@@ -993,6 +1003,7 @@ end
 outtype(xf::Interpose, intype) = Union{typeof(xf.sep), intype}
 
 start(rf::R_{Interpose}, result) = wrap(rf, Val(true), start(inner(rf), result))
+complete(rf::R_{Interpose}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 next(rf::R_{Interpose}, result, input) =
     wrapping(rf, result) do isfirst, iresult
@@ -1028,6 +1039,7 @@ struct Dedupe <: AbstractFilter
 end
 
 start(rf::R_{Dedupe}, result) = wrap(rf, Unseen(), start(inner(rf), result))
+complete(rf::R_{Dedupe}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 next(rf::R_{Dedupe}, result, input) =
     wrapping(rf, result) do prev, iresult
@@ -1120,6 +1132,8 @@ function start(rf::R_{Scan}, result)
     init = _initvalue(rf)
     return wrap(rf, init, start(inner(rf), result))
 end
+
+complete(rf::R_{Scan}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 function next(rf::R_{Scan}, result, input)
     wrapping(rf, result) do acc, iresult
@@ -1368,6 +1382,7 @@ isexpansive(::Iterated) = false
 outtype(xf::Iterated, intype) = inittypeof(xf.init, intype)
 start(rf::R_{Iterated}, result) =
     wrap(rf, _initvalue(rf), start(inner(rf), result))
+complete(rf::R_{Iterated}, result) = complete(inner(rf), unwrap(rf, result)[2])
 next(rf::R_{Iterated}, result, ::Any) =
     wrapping(rf, result) do istate, iresult
         return xform(rf).f(istate), next(inner(rf), iresult, istate)
@@ -1414,6 +1429,7 @@ Count(start = 1) = Count(start, oneunit(start))
 isexpansive(::Count) = false
 outtype(xf::Count{T}, ::Any) where T = T
 start(rf::R_{Count}, result) = wrap(rf, xform(rf).start, start(inner(rf), result))
+complete(rf::R_{Count}, result) = complete(inner(rf), unwrap(rf, result)[2])
 next(rf::R_{Count}, result, ::Any) =
     wrapping(rf, result) do istate, iresult
         return istate + xform(rf).step, next(inner(rf), iresult, istate)
@@ -1819,6 +1835,7 @@ isexpansive(::Inject) = false
 outtype(xf::Inject, intype) = Tuple{intype, ieltype(xf.iterator)}
 start(rf::R_{Inject}, result) =
     wrap(rf, iterate(xform(rf).iterator), start(inner(rf), result))
+complete(rf::R_{Inject}, result) = complete(inner(rf), unwrap(rf, result)[2])
 next(rf::R_{Inject}, result, input) =
     wrapping(rf, result) do istate, iresult
         istate === nothing && return istate, reduced(complete(inner(rf), iresult))
@@ -1865,6 +1882,7 @@ isexpansive(::Enumerate) = false
 outtype(xf::Enumerate{T}, intype) where {T} = Tuple{T, intype}
 start(rf::R_{Enumerate}, result) =
     wrap(rf, xform(rf).start, start(inner(rf), result))
+complete(rf::R_{Enumerate}, result) = complete(inner(rf), unwrap(rf, result)[2])
 next(rf::R_{Enumerate}, result, input) =
     wrapping(rf, result) do i, iresult
         iresult2 = next(inner(rf), iresult, (i, input))
@@ -1988,6 +2006,8 @@ function start(rf::R_{GroupBy}, result)
     gresult = Dict{Union{},Union{}}()
     return wrap(rf, (gstate, gresult), start(inner(rf), result))
 end
+
+complete(rf::R_{GroupBy}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 @inline function next(rf::R_{GroupBy}, result, input)
     wrapping(rf, result) do (gstate, gresult), iresult
