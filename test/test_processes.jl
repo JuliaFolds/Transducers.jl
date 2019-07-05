@@ -94,6 +94,7 @@ end
         @test collect(xf, xs) == 1:2:5
         @test collect(eduction(xf, xs)) == 1:2:5
         @test collect(Map(x -> 2x), eduction(xf, xs)) == 2(1:2:5)
+        @test collect(eduction(AbortIf(iseven) |> TakeLast(1), xs)) == 1:1
     end
 
     ed = eduction(xf, 1:5)

@@ -477,7 +477,7 @@ function Base.iterate(ts::Eduction, state = nothing)
             result = next(ts.rf, result, input)
             if isreduced(result)
                 rdone = true
-                result = complete(ts.rf, unreduced(result))
+                result = unreduced(result)
                 break
             end
         end
