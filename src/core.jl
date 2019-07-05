@@ -418,15 +418,26 @@ some internal state, this is the last chance to "flush" the result.
 
 See [`PartitionBy`](@ref), etc. for real-world examples.
 
-If **both** `complete(rf::R_{X}, state)` **and** `start(rf::R_{X},
-state)` are defined, `complete` **must** unwarp `state` before
-returning `state` to the outer reducing function.  If `complete` is
-not defined for `R_{X}`, this happens automatically.
+If `start(rf::R_{X}, state)` is defined, `complete` **must** unwarp
+`state` before returning `state` to the outer reducing function.
+
+!!! compat "Transducers.jl 0.3"
+
+    In Transducers.jl 0.2, `complete` had a fallback implementation
+    to automatically call `unwrap` when `wrap` is called in `start`.
+    Relying on this fallback implementation is now deprecated.
 """
 complete(f, result) = f(result)
 complete(rf::Reduction, result) =
     # Not using dispatch to avoid ambiguity
     if ownsstate(rf, result)
+        Base.depwarn(
+            string(
+                "`complete` for ", typeof(xform(rf)), " is not defined.",
+                " Automatic implementation of `complete` method will be",
+                " disabled in the future."
+            ),
+            :complete)
         complete(inner(rf), unwrap(rf, result)[2])
     else
         complete(inner(rf), result)
