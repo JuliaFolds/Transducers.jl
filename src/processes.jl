@@ -90,7 +90,8 @@ julia> transduce(rf_good, "", 1:3)
 @inline reducingfunction(xf::Transducer, step; kwargs...) =
     _reducingfunction(xf, step, NOTYPE; kwargs...)
 
-@inline _reducingfunction(xf::Transducer, step, intype::Typeish; simd=false) =
+@inline _reducingfunction(xf::Transducer, step, intype::Typeish;
+                          simd::SIMDFlag = Val(false)) =
     maybe_usesimd(Reduction(xf, step, intype), simd)
 
 """
@@ -314,7 +315,8 @@ _start_init(rf, init) = start(rf, provide_init(rf, init))
 _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
 
 # TODO: should it be an internal?
-@inline function transduce(rf0::AbstractReduction, init, coll; simd=false)
+@inline function transduce(rf0::AbstractReduction, init, coll;
+                           simd::SIMDFlag = Val(false))
     # Inlining `transduce` and `__foldl__` were essential for the
     # `darkritual` below to work.
     rf = maybe_usesimd(rf0, simd)
@@ -359,7 +361,7 @@ _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
 end
 
 function Base.mapfoldl(xform::Transducer, step, itr;
-                       simd = false,
+                       simd::SIMDFlag = Val(false),
                        init = MissingInit())
     unreduced(transduce(xform, step, init, itr; simd=simd))
 end
@@ -409,7 +411,7 @@ end
 # AbstractArray for disambiguation
 function Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
                         init = MissingInit(),
-                        simd = false,
+                        simd::SIMDFlag = Val(false),
                         kwargs...)
     rf = _reducingfunction(xform, step, eltype(itr); simd=simd)
     return unreduced(__reduce__(rf, init, itr; kwargs...))
@@ -637,7 +639,7 @@ true
 ```
 """
 function Base.map!(xf::Transducer, dest::AbstractArray, src::AbstractArray;
-                   simd = false)
+                   simd::SIMDFlag = Val(false))
     _map!(_prepare_map(xf, dest, src, simd)...)
     return dest
 end

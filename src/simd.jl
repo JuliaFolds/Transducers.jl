@@ -43,6 +43,7 @@ macro simd_if(rf, loop)
     return esc(ex)
 end
 
+const SIMDFlag = Union{Bool, Symbol, Val{true}, Val{false}, Val{:ivdep}}
 
 """
     maybe_usesimd(xform, simd)
@@ -115,16 +116,16 @@ Reduction{▶ NOTYPE}(
                             Transducers.right)))))))
 ```
 """
-maybe_usesimd(rf::AbstractReduction, simd::Union{Bool,Symbol}) =
+maybe_usesimd(rf::AbstractReduction, simd::SIMDFlag) =
     if has(rf, UseSIMD)
         # An optimization; shortcut everything if SIMD is already
         # enabled.
         rf
-    elseif simd === true
+    elseif simd === Val(true) || simd === true
         usesimd(rf, UseSIMD{false}())
-    elseif simd === :ivdep
+    elseif simd === Val(:ivdep) || simd === :ivdep
         usesimd(rf, UseSIMD{true}())
-    elseif simd === false
+    elseif simd === Val(false) || simd === false
         rf
     else
         error("Unknown `simd` argument: ", simd)
