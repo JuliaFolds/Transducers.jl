@@ -558,12 +558,7 @@ only sees the outer-most "tree" `result₀` during the reduction.
 See [`wrapping`](@ref), [`unwrap`](@ref), and [`start`](@ref).
 """
 wrap(rf::T, state, iresult) where {T} = privatestate(rf, state, iresult)
-wrap(rf, state, iresult::Reduced) = unwrap_all(iresult) :: Reduced
-#
-# Note: `unwrap_all` is required since any transducer in arbitrary
-# location of the `Reduction` chain can create a `Reduced`.
-#
-# But `unwrap_all`ing in `wrap` sounds counter intuitive.  Maybe rename?
+wrap(rf, state, iresult::Reduced) = iresult
 
 """
     wrapping(f, rf, result)
