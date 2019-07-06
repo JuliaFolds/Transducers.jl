@@ -49,7 +49,8 @@ end
 
 isexpansive(::Map) = false
 outtype(xf::Map, intype) = Union{Base.return_types(xf.f, (intype,))...}
-next(rf::R_{Map}, result, input) = next(inner(rf), result, xform(rf).f(input))
+@inline next(rf::R_{Map}, result, input) =
+    next(inner(rf), result, xform(rf).f(input))
 
 """
     MapSplat(f)
@@ -1430,8 +1431,9 @@ isexpansive(::Count) = false
 outtype(xf::Count{T}, ::Any) where T = T
 start(rf::R_{Count}, result) = wrap(rf, xform(rf).start, start(inner(rf), result))
 complete(rf::R_{Count}, result) = complete(inner(rf), unwrap(rf, result)[2])
-next(rf::R_{Count}, result, ::Any) =
+@inline next(rf::R_{Count}, result, ::Any) =
     wrapping(rf, result) do istate, iresult
+        Base.@_inline_meta
         return istate + xform(rf).step, next(inner(rf), iresult, istate)
     end
 
@@ -1554,8 +1556,13 @@ function _teezip_rf(xf, intype, downstream)
     return Reduction(xf, joiner, intype)
 end
 
-const SplitterState = PrivateState{<:Splitter}
-const JoinerState = PrivateState{<:Joiner}
+struct SplitterMarker end
+struct JoinerValue{T}
+    value::T
+end
+
+const SplitterState = PrivateState{<:Any, SplitterMarker}
+const JoinerState = PrivateState{<:Any, <:JoinerValue}
 
 """
     _set_joiner_value(ps::PrivateState, x) :: PrivateState
@@ -1567,7 +1574,7 @@ must have one more `Joiner` than `Splitter`.
 """
 @inline _set_joiner_value(ps, x) = _set_joiner_value(ps, x, Val(0))
 @inline _set_joiner_value(ps::JoinerState, x, ::Val{0}) =
-    setpsstate(ps, x)
+    setpsstate(ps, JoinerValue(x))
 @inline _set_joiner_value(ps::JoinerState, x, ::Val{c}) where c =
     setpsresult(ps, _set_joiner_value(psresult(ps), x, Val(c - 1)))
 @inline _set_joiner_value(ps::SplitterState, x, ::Val{c}) where c =
@@ -1579,18 +1586,22 @@ must have one more `Joiner` than `Splitter`.
 # However, it didn't work with the compiler (which tries to
 # dynamically allocate type variable somehow).
 
-start(rf::Splitter, result) = wrap(rf, nothing, start(inner(rf), result))
+start(rf::Splitter, result) =
+    wrap(rf, SplitterMarker(), start(inner(rf), result))
 complete(rf::Splitter, result) = complete(inner(rf), unwrap(rf, result)[2])
-next(rf::Splitter, result, input) =
-    wrapping(rf, result) do _, iresult
-        nothing, next(inner(rf), _set_joiner_value(iresult, input), input)
+@inline next(rf::Splitter, result, input) =
+    wrapping(rf, result) do state, iresult
+        Base.@_inline_meta
+        state, next(inner(rf), _set_joiner_value(iresult, input), input)
     end
 
-start(rf::Joiner, result) = wrap(rf, nothing, start(inner(rf), result))
+start(rf::Joiner, result) =
+    wrap(rf, JoinerValue(nothing), start(inner(rf), result))
 complete(rf::Joiner, result) = complete(inner(rf), unwrap(rf, result)[2])
-next(rf::Joiner, result, input) =
+@inline next(rf::Joiner, result, input) =
     wrapping(rf, result) do state, iresult
-        state, next(inner(rf), iresult, (state, input))
+        Base.@_inline_meta
+        state, next(inner(rf), iresult, (state.value, input))
     end
 # Putting `state` back to make it type stable.
 

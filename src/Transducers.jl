@@ -19,7 +19,7 @@ using Initials: Initials, Initial, SpecificInitial, Init,
     hasinitial
 
 import Setfield
-using Setfield: @lens, @set, set
+using Setfield: @lens, @set, set, modify
 
 include("showutils.jl")
 include("basics.jl")

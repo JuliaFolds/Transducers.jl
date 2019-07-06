@@ -462,31 +462,38 @@ combine(rf::Reduction, a, b) =
 privatestate(::T, state, result) where {T <: AbstractReduction} =
     privatestate(T, state, result)
 
-struct PrivateState{T, S, R}
-    state::S
-    result::R
+privatestate(::Type{T}, state, result) where {T <: AbstractReduction} =
+    privatestate(tag(T), state, result)
 
-    # Rename constructor to make sure that it is always constructed
-    # through the factory function:
-    global privatestate(::Type{T}, state::S, result::R) where {
-        T <: AbstractReduction,
-        S,
-        R,
-    } =
-        new{T, S, R}(state, result)
+# See ForwardDiff.tagcount
+const TAGCOUNT = Threads.Atomic{UInt}(0)
+@generated function tagcount(::Type)
+    :($(Threads.atomic_add!(TAGCOUNT, UInt(1))))
 end
-# TODO: make it a tuple-like so that I can return it as-is
+struct Tag{T} end
+tag(T) = Tag{tagcount(T)}
 
-Setfield.constructor_of(::Type{<:PrivateState{T}}) where T =
-    (state, result) -> privatestate(T, state, result)
+const PrivateState{TAG <: Tag, S} = Tuple{TAG, S, Vararg{Any}}
+privatestate(tag::Type{<:Tag}, state, result::PrivateState) =
+    (tag(), state, result...)
+privatestate(tag::Type{<:Tag}, state, result) =
+    (tag(), state, result)
 
-@inline psstate(ps) = ps.state
-@inline psresult(ps) = ps.result
-@inline setpsstate(ps, x) = @set ps.state = x
-@inline setpsresult(ps, x) = @set ps.result = x
+# reduced(ps::PrivateState) = modify(reduced, ps, @lens _[$(length(ps))])
+@inline reduced(ps::PrivateState) = _psreduced((), ps...)
+@inline _psreduced(newps, x, xs...) = _psreduced((newps..., x), xs...)
+@inline _psreduced(newps, x) = (newps..., reduced(x))
+
+@inline psstate(ps) = ps[2]
+@inline psresult(ps) = Base.tail(Base.tail(ps))
+@inline psresult(ps::Tuple{Tag, Any, Any}) = ps[3]
+# @inline setpsstate(ps, x) = @set ps[$2] = x
+@inline setpsstate(ps, x) = (ps[1], x, Base.tail(Base.tail(ps))...)
+@inline setpsresult(ps, x::PrivateState) = (ps[1], ps[2], x...)
+@inline setpsresult(ps, x) = (ps[1], ps[2], x)
 
 ownsstate(::Any, ::Any) = false
-ownsstate(::R, ::PrivateState{T}) where {R, T} = R === T
+ownsstate(::R, ::PrivateState{T}) where {R, T} = tag(R) === T
 # Using `result isa PrivateState{typeof(rf)}` makes it impossible to
 # compile Extrema examples in ../examples/tutorial_missings.jl (it
 # took more than 10 min).  See also:
@@ -505,15 +512,20 @@ unwrap(rf, wrap(rf, state, iresult)) == (state, iresult)
 This is intended to be used only in [`complete`](@ref).  Inside
 [`next`](@ref), use [`wrapping`](@ref).
 """
-unwrap(::T, ps::PrivateState{T}) where {T} = (psstate(ps), psresult(ps))
+unwrap(::RF, ps::PrivateState{TAG}) where {RF, TAG} =
+    if TAG === tag(RF)
+        (psstate(ps), psresult(ps))
+    else
+        error("nope: TAG=$TAG tag(RF)=$(tag(RF))")
+    end
 
-unwrap(::T1, ::PrivateState{T2}) where {T1, T2} =
-    error("""
-    `unwrap(rf1, ps)` is used for
-    typeof(rf1) = $T1
-    while `ps` is created by wrap(rf2, ...) where
-    typeof(rf2) = $T2
-    """)
+# unwrap(::T1, ::PrivateState{T2}) where {T1, T2} =
+#     error("""
+#     `unwrap(rf1, ps)` is used for
+#     typeof(rf1) = $T1
+#     while `ps` is created by wrap(rf2, ...) where
+#     typeof(rf2) = $T2
+#     """)
 
 # TODO: better error message with unmatched `T`
 
@@ -568,7 +580,8 @@ only sees the outer-most "tree" `result₀` during the reduction.
 See [`wrapping`](@ref), [`unwrap`](@ref), and [`start`](@ref).
 """
 wrap(rf::T, state, iresult) where {T} = privatestate(rf, state, iresult)
-wrap(rf, state, iresult::Reduced) = iresult
+wrap(rf, state, iresult::Reduced) =
+    reduced(privatestate(rf, state, unreduced(iresult)))
 
 """
     wrapping(f, rf, result)
@@ -590,7 +603,7 @@ See [`wrap`](@ref), [`unwrap`](@ref), and [`next`](@ref).
 @inline function wrapping(f, rf, result)
     state0, iresult0 = unwrap(rf, result)
     state1, iresult1 = f(state0, iresult0)
-    return wrap(rf, state1, iresult1)
+    return wrap(rf, state1, iresult1) #:: PrivateState
 end
 
 unwrap_all(ps::PrivateState) = unwrap_all(psresult(ps))
