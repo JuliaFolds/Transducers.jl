@@ -462,14 +462,16 @@ combine(rf::Reduction, a, b) =
 privatestate(::T, state, result) where {T <: AbstractReduction} =
     privatestate(T, state, result)
 
+privatestate(::Type{T}, state, result) where {T <: AbstractReduction} =
+    privatestate(Val(T), state, result)
+
 struct PrivateState{T, S, R}
     state::S
     result::R
 
     # Rename constructor to make sure that it is always constructed
     # through the factory function:
-    global privatestate(::Type{T}, state::S, result::R) where {
-        T <: AbstractReduction,
+    global privatestate(T::Val, state::S, result::R) where {
         S,
         R,
     } =
@@ -486,7 +488,7 @@ Setfield.constructor_of(::Type{<:PrivateState{T}}) where T =
 @inline setpsresult(ps, x) = @set ps.result = x
 
 ownsstate(::Any, ::Any) = false
-ownsstate(::R, ::PrivateState{T}) where {R, T} = R === T
+ownsstate(::R, ::PrivateState{T}) where {R, T} = Val(R) === T
 # Using `result isa PrivateState{typeof(rf)}` makes it impossible to
 # compile Extrema examples in ../examples/tutorial_missings.jl (it
 # took more than 10 min).  See also:
@@ -505,15 +507,20 @@ unwrap(rf, wrap(rf, state, iresult)) == (state, iresult)
 This is intended to be used only in [`complete`](@ref).  Inside
 [`next`](@ref), use [`wrapping`](@ref).
 """
-unwrap(::T, ps::PrivateState{T}) where {T} = (psstate(ps), psresult(ps))
+unwrap(::RF, ps::PrivateState{TAG}) where {RF, TAG} =
+    if TAG === Val(RF)
+        (psstate(ps), psresult(ps))
+    else
+        error("nope")
+    end
 
-unwrap(::T1, ::PrivateState{T2}) where {T1, T2} =
-    error("""
-    `unwrap(rf1, ps)` is used for
-    typeof(rf1) = $T1
-    while `ps` is created by wrap(rf2, ...) where
-    typeof(rf2) = $T2
-    """)
+# unwrap(::T1, ::PrivateState{T2}) where {T1, T2} =
+#     error("""
+#     `unwrap(rf1, ps)` is used for
+#     typeof(rf1) = $T1
+#     while `ps` is created by wrap(rf2, ...) where
+#     typeof(rf2) = $T2
+#     """)
 
 # TODO: better error message with unmatched `T`
 
