@@ -1,11 +1,20 @@
 module TestCore
 include("preamble.jl")
-using Transducers: has, reform
+using Transducers: has, reform, needintype
 
 @testset "has" begin
     @test has(Count(), Count)
     @test has(Map(identity) |> Count(), Count)
     @test has(Count() |> Map(identity), Count)
+end
+
+@testset "needintype" begin
+    @test !needintype(Map)
+    @test needintype(TeeZip)
+    @test !needintype(Scan(+, 0))
+    with_logger(NullLogger()) do
+        @test needintype(Scan(+, Initializer(T -> zero(T))))
+    end
 end
 
 @testset "reform" begin

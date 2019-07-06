@@ -131,6 +131,9 @@ end
     @testset for xs in iterator_variants(1:5)
         @test collect(TeeZip(Filter(isodd) |> Map(inc)), xs) ==
             collect(zip(1:2:5, 2:2:6))
+
+        rfnotype = reducingfunction(TeeZip(Filter(isodd) |> Map(inc)), push!)
+        @test transduce(rfnotype, [], xs) == collect(zip(1:2:5, 2:2:6))
     end
 
     ed = eduction(TeeZip(Filter(isodd) |> Map(x -> x + 1.0)), 1:5)

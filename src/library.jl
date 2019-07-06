@@ -1263,7 +1263,7 @@ julia> collect(xf, split(\"\"\"
        name: Cat |> Filter
        type: chaotic
        \"\"\", "\\n"; keepempty=false))
-4-element Array{Any,1}:
+4-element Array{NamedTuple{(:name, :lines),Tuple{SubString{String},Array{String,1}}},1}:
  (name = "Map", lines = ["name: Map", "type: onetoone"])
  (name = "Cat", lines = ["name: Cat", "type: expansive"])
  (name = "Filter", lines = ["name: Filter", "type: contractive"])
@@ -1523,7 +1523,10 @@ struct Joiner{intype, F, T} <: AbstractReduction{intype, F}
 
     @inline function Joiner{intype,F,T}(inner) where {intype,F,T}
         _joiner_error(inner, intype)
-        if isbitstype(T) || Base.isbitsunion(T)
+        if T === NOTYPE
+            # Inefficient but this is the smallest fix to make it run:
+            return new{intype,F,Any}(inner, nothing)
+        elseif isbitstype(T) || Base.isbitsunion(T)
             return new(inner)
         else
             return new{intype,F,Union{T,Nothing}}(inner, nothing)
@@ -1548,6 +1551,7 @@ end
 @inline _joiner_error(inner::Reduction, intype) =
     _joiner_error(inner, intype, InType(inner))
 @inline _joiner_error(inner, ::Type{T}, ::Type{T}) where T = nothing
+@inline _joiner_error(inner, ::NoType, ::NoType) = nothing
 @noinline _joiner_error(inner, intype, intype_inner) = error("""
 `intype` specified for `Joiner` and inner reducing function does not match.
     intype = $intype
@@ -1557,13 +1561,13 @@ where
 """)
 
 # It's ugly that `Reduction` returns a non-`Reduction` type!  TODO: fix it
-function Reduction(xf::Composition{<:TeeZip}, f, intype::Type)
+function Reduction(xf::Composition{<:TeeZip}, f, intype::Typeish)
     @nospecialize
     rf = _teezip_rf(xf.outer.xform, intype, (xf.inner, f, intype))
     return Splitter(rf, _teezip_lens(rf))
 end
 
-function Reduction(xf::TeeZip, f, intype::Type)
+function Reduction(xf::TeeZip, f, intype::Typeish)
     @nospecialize
     rf = _teezip_rf(xf.xform, intype, (nothing, f, intype))
     return Splitter(rf, _teezip_lens(rf))
@@ -1571,7 +1575,7 @@ end
 
 function _teezip_rf(xf::Composition, intype, downstream)
     @nospecialize
-    intype_inner = outtype(xf.outer, intype)
+    intype_inner = _outtype(xf.outer, intype)
     rf_inner = _teezip_rf(xf.inner, intype_inner, downstream)
     return Reduction(xf.outer, rf_inner, intype)
 end
@@ -1579,7 +1583,11 @@ end
 function _teezip_rf(xf, intype, downstream)
     @nospecialize
     xf_ds, f, intype_orig = downstream
-    intype_ds = Tuple{intype_orig, outtype(xf, intype)}
+    if intype_orig === NOTYPE
+        intype_ds = NOTYPE
+    else
+        intype_ds = Tuple{intype_orig, outtype(xf, intype)}
+    end
     if xf_ds === nothing
         rf_ds = ensurerf(f, intype_ds)
     else
