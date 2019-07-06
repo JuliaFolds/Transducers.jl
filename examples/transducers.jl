@@ -49,7 +49,7 @@ end  # hide
 # `AddOneIfInt` is a stateless transducer which is very easy to
 # implement.  A stateful transducer needs a bit more code.
 
-using Transducers: start, complete, InType, wrap, unwrap, wrapping
+using Transducers: start, complete, wrap, unwrap, wrapping
 using Random
 
 # Let's define a transducer that spits out a random past element from
@@ -67,7 +67,7 @@ nothing  # hide
 # `buffer` and a random number generator state `rng`:
 
 function Transducers.start(rf::R_{RandomRecall}, result)
-    buffer = InType(rf)[]
+    buffer = []
     rng = MersenneTwister(xform(rf).seed)
     private_state = (buffer, rng)
     return wrap(rf, private_state, start(inner(rf), result))
@@ -99,19 +99,29 @@ end
 
 Transducers.outtype(::RandomRecall, intype) = intype
 
-# Indeed, it picks up some random elements from the past elements:
+# Any transducer with custom [`Transducers.start`](@ref) must have a
+# corresponding [`Transducers.complete`](@ref).  It is responsible for
+# unwrapping the `result` and call the `complete` for the inner
+# reducing function.
+
+function Transducers.complete(rf::R_{RandomRecall}, result)
+    _private_state, inner_result = unwrap(rf, result)
+    return complete(inner(rf), inner_result)
+end
+
+# Here is how it works:
 
 recall_out1 = begin  # hide
 collect(RandomRecall(), 1:5)
 end  # hide
 
+# Indeed, it picks up some random elements from the past elements.
 # With slightly more complex transducer:
 
 collect(Filter(isodd) |> RandomRecall() |> Filter(x -> x > 10) |> Take(5), 1:100)
 
-# Another overloadable API is [`Transducers.complete`](@ref).  It is
-# invoked at the end of each transducible process.  It is useful for,
-# e.g., flushing buffer.
+# Note that [`Transducers.complete`](@ref) can do more than `unwrap`
+# and `complete`.  It is useful for, e.g., flushing the buffer.
 
 function Transducers.complete(rf::R_{RandomRecall}, result)
     (buffer, _), iresult = unwrap(rf, result)
