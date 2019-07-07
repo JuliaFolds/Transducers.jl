@@ -35,6 +35,15 @@ end
         @test_inferred foldl(+, TakeLast(1), xs)
         @test_inferred foldl(+, PartitionBy(identity) |> Map(first), xs)
         @test_inferred foldl(+, Unique(), xs)
+        @test_inferred foldl(right, TeeZip(Filter(isodd) |> Map(inc)), xs)
+
+        # Nested stateful transducers.  (The ones with `right` and
+        # `Map(x -> x::Int)` actually succeeded in some REPL
+        # sessions...  Maybe some caching problem?)
+        @test_broken (@inferred foldl(right, Scan(+) |> Scan(+), xs)) == 1
+        @test_broken (@inferred foldl(*, Scan(+) |> Scan(+), xs)) == 1
+        @test_broken (@inferred foldl(*, Scan(+) |> Scan(+), xs; init=1)) == 1
+        @test_broken (@inferred foldl(*, Scan(+) |> Map(x -> x::Int) |> Scan(+), xs)) == 1
     end
 end
 
