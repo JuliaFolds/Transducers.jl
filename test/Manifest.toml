@@ -8,7 +8,7 @@ version = "1.0.1"
 
 [[BangBang]]
 deps = ["Future", "LinearAlgebra", "Requires", "Setfield"]
-git-tree-sha1 = "4b46d6143c1ec6c92b05ab9f6226a4c9304a6b33"
+git-tree-sha1 = "9b09ef961ad13fc265569975fc6b6afdf2e4ea81"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/BangBang.jl"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
@@ -76,7 +76,7 @@ deps = ["Random"]
 uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
 
 [[InitialValues]]
-git-tree-sha1 = "84359976159196f4caa2701e4433939cf2290a37"
+git-tree-sha1 = "00fc3631033606a66b6eebce4b020ad21abd5243"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/InitialValues.jl"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"

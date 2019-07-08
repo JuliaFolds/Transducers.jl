@@ -964,10 +964,10 @@ _real_state_type(::Type{Union{T, _FakeState}}) where T = T
 to Transducers.jl.  It is used for checking if the bottom reducing
 function is never called.
 """
-struct DefaultInit{OP} <: SpecificInitial{OP} end
+struct DefaultInit{OP} <: SpecificInitialValue{OP} end
 DefaultInit(::OP) where OP = DefaultInit{OP}()
 
-struct OptInitOf{OP} <: SpecificInitial{OP} end
+struct OptInitOf{OP} <: SpecificInitialValue{OP} end
 OptInit(::OP) where OP = OptInitOf{OP}()
 # It seems that compiler can infer more when passing around a
 # `Function` than a `Type` (since a `Function` is a singleton?).
@@ -1013,7 +1013,7 @@ _realbottomrf(rf::Completing) = rf.f
 provide_init(rf, init) = initvalue(init, FinalType(rf))
 function provide_init(rf, ::MissingInit)
     op = _realbottomrf(rf)
-    hasinitial(op) && return DefaultInit(op)
+    hasinitialvalue(op) && return DefaultInit(op)
     throw(MissingInitError(op))
 end
 
@@ -1042,6 +1042,6 @@ end
 
 makeid(op, init) = init
 function makeid(op, idfactory::Union{typeof(Init), typeof(OptInit)})
-    hasinitial(op) && return idfactory(op)
+    hasinitialvalue(op) && return idfactory(op)
     throw(IdentityNotDefinedError(op, idfactory))
 end

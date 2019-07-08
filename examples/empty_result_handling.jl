@@ -41,10 +41,10 @@ nothing                                                              # hide
 @assert result === transduce(Map(add1), Completing(*), Init, [])
 
 # Since the input collection `[]` is empty, `result` is `Init(*)` (which
-# is an `InitialValues.Initial`):
+# is an `InitialValues.InitialValue`):
 
-using InitialValues: Initial
-@assert result::Initial === Init(*)
+using InitialValues: InitialValue
+@assert result::InitialValue === Init(*)
 
 # `Init(*)` is the left identity of `*`.  Multiplying it with any `x`
 # from right returns `x` as-is.  This property may be useful, e.g., if

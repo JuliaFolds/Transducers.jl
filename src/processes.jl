@@ -302,7 +302,7 @@ function transduce(xform::Transducer, f, init, coll; kwargs...)
 end
 
 _needintype(xf, step, init) =
-    (init isa MissingInit && !hasinitial(_realbottomrf(step))) ||
+    (init isa MissingInit && !hasinitialvalue(_realbottomrf(step))) ||
     (init isa Initializer && !(init isa CopyInit)) ||
     needintype(xf)
 

@@ -1943,7 +1943,7 @@ end
 
 function GroupBy(key, rf)
     op = _realbottomrf(rf)
-    hasinitial(op) || throw(MissingInitError(op))
+    hasinitialvalue(op) || throw(MissingInitError(op))
     return GroupBy(key, rf, DefaultInit(op))
 end
 
