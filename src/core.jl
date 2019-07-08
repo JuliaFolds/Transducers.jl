@@ -719,7 +719,7 @@ julia> mapfoldl(Drop(5), right, 1:3; init=0)  # using `init` as the default valu
 right(l, r) = r
 right(r) = r
 
-Initials.@def right
+InitialValues.@def right
 
 identityof(::typeof(right), ::Any) = nothing
 # This is just a right identity but `right` is useful for left-fold
@@ -960,7 +960,7 @@ _real_state_type(::Type{Union{T, _FakeState}}) where T = T
 """
     DefaultInit(op)
 
-`DefaultInit` is like `Initials.Init` but **strictly** internal
+`DefaultInit` is like `InitialValues.Init` but **strictly** internal
 to Transducers.jl.  It is used for checking if the bottom reducing
 function is never called.
 """
@@ -1030,7 +1030,7 @@ function Base.showerror(io::IO, e::IdentityNotDefinedError)
     `init = $Init` is specified but the identity element `Init(op)` is not defined for
         op = $op
     Note that `op` must be a well known binary operations like `+` or `*`.
-    See Initials.jl documentation for more information.
+    See InitialValues.jl documentation for more information.
     """))
 end
 

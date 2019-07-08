@@ -3,7 +3,7 @@
 # Transducible processes [`foldl`](@ref) and [`mapfoldl`](@ref) try to
 # do the right thing even when `init` is not given, _if_ the given
 # binary operation `step` is supported by
-# [Initials.jl](https://tkf.github.io/Initials.jl/dev/)
+# [InitialValues.jl](https://tkf.github.io/InitialValues.jl/dev/)
 # (for example, `+`, `*`, `&`, and `|` are supported).  However, those
 # functions _throw_ an exception if the given collection is empty or
 # filtered out by the transducers:
@@ -22,10 +22,10 @@ catch err; err; end                                                  # hide
 
 # To write robust code, it is recommended to use `init` if there is a
 # reasonable default.  However, it may be useful to postpone
-# "materializing" the result.  In such case, `Init` from Initials.jl
+# "materializing" the result.  In such case, `Init` from InitialValues.jl
 # can be used as a placeholder.
 
-using Initials
+using InitialValues
 
 result = foldl(*, Map(add1), [], init=Init)
 nothing                                                              # hide
@@ -41,9 +41,9 @@ nothing                                                              # hide
 @assert result === transduce(Map(add1), Completing(*), Init, [])
 
 # Since the input collection `[]` is empty, `result` is `Init(*)` (which
-# is an `Initials.Initial`):
+# is an `InitialValues.Initial`):
 
-using Initials: Initial
+using InitialValues: Initial
 @assert result::Initial === Init(*)
 
 # `Init(*)` is the left identity of `*`.  Multiplying it with any `x`

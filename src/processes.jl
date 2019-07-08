@@ -254,7 +254,7 @@ This API is modeled after $(_cljref("transduce")).
 - `init`: An initial value fed to the first argument to reducing step
   function `step`.  This argument can be omitted for well know binary
   operations like `+` or `*`.  Supported binary operations are listed
-  in Initials.jl documentation.  When `Init` (not the result of
+  in InitialValues.jl documentation.  When `Init` (not the result of
   `Init`, such as `Init(*)`) is given, it is automatically "instantiated"
   as `Init(step)` (where `step` is appropriately unwrapped if `step` is
   a `Completing`).  See [Empty result handling](@ref) in the manual

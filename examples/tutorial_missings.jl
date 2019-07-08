@@ -267,7 +267,7 @@ mapfoldl(xf_argmax, right, [1, 3, missing, 2])
 # Side note: We use `typemin(Int)` as the initial value of `max` for
 # simplicity.  In practice, it should be
 # `typemin(eltype(input_array))`.  A more generic solution is to use
-# `Init(>)` from Initials.jl (see the next section).
+# `Init(>)` from InitialValues.jl (see the next section).
 
 # ## Extrema
 #

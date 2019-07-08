@@ -15,7 +15,7 @@ using Base.Broadcast: Broadcasted
 using ArgCheck
 using BangBang: push!!, empty!!, setindex!!
 using Requires
-using Initials: Initials, Initial, SpecificInitial, Init,
+using InitialValues: InitialValues, Initial, SpecificInitial, Init,
     hasinitial
 
 import Setfield
