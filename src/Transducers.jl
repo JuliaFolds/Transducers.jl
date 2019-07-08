@@ -33,7 +33,7 @@ include("show.jl")
 include("comprehensions.jl")
 include("deprecated.jl")
 
-include("interop.jl")
+include("interop/lazyarrays.jl")
 
 include("evals.jl")
 
