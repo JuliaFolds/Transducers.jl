@@ -48,3 +48,5 @@ end
     end
     return acc
 end
+
+# TODO: write reduce for BlockArrays which can be done in the "natural" order

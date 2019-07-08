@@ -44,6 +44,8 @@ function __init__()
             _foldl_blockarray(rf, acc, coll)
     end
     @require LazyArrays="5078a376-72f3-5289-bfd5-ec5146d43c02" begin
+        __foldl__(rf, acc, coll::LazyArrays.Hcat) =
+            _foldl_lazy_hcat(rf, acc, coll)
         __foldl__(rf, acc, coll::LazyArrays.Vcat) =
             _foldl_lazy_vcat(rf, acc, coll)
     end
