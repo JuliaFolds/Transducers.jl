@@ -1,5 +1,6 @@
 [deps]
 BangBang = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
+BlockArrays = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Initials = "f5763212-9e0f-11e9-37f1-074a78aac78e"

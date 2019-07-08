@@ -33,11 +33,16 @@ include("show.jl")
 include("comprehensions.jl")
 include("deprecated.jl")
 
+include("interop/blockarrays.jl")
 include("interop/lazyarrays.jl")
 
 include("evals.jl")
 
 function __init__()
+    @require BlockArrays="8e7c35d0-a365-5155-bbbb-fb81a777f24e" begin
+        __foldl__(rf, acc, coll::BlockArrays.BlockArray) =
+            _foldl_blockarray(rf, acc, coll)
+    end
     @require LazyArrays="5078a376-72f3-5289-bfd5-ec5146d43c02" begin
         __foldl__(rf, acc, coll::LazyArrays.Vcat) =
             _foldl_lazy_vcat(rf, acc, coll)
