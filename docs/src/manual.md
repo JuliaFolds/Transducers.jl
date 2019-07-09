@@ -58,4 +58,5 @@ CopyInit
 Initializer
 right
 setinput
+AdHocFoldable
 ```

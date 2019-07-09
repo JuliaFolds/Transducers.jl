@@ -984,3 +984,74 @@ Base.Channel(xform::Transducer, ed::Eduction; kwargs...) =
 
 Base.Channel(ed::Eduction; kwargs...) =
     Channel(Transducer(ed), ed.coll; kwargs...)
+
+
+"""
+    AdHocFoldable(foldl, collection)
+
+Provide a different way to fold `collection` without creating a
+wrapper type.
+
+# Arguments
+- `foldl::Function`: a function that implements [`__foldl__`](@ref).
+- `collection`: a collection passed to the last argument of
+  `foldl`.
+
+# Examples
+```jldoctest
+julia> using Transducers
+       using Transducers: @next, complete
+       using ArgCheck
+
+julia> function uppertriangle(A::AbstractMatrix)
+           @argcheck !Base.has_offset_axes(A)
+           return AdHocFoldable(A) do rf, acc, A
+               for j in 1:size(A, 2), i in 1:min(j, size(A, 1))
+                   acc = @next(rf, acc, @inbounds A[i, j])
+               end
+               return complete(rf, acc)
+           end
+       end;
+
+julia> A = reshape(1:6, (3, 2))
+3×2 reshape(::UnitRange{Int64}, 3, 2) with eltype Int64:
+ 1  4
+ 2  5
+ 3  6
+
+julia> collect(Map(identity), uppertriangle(A))
+3-element Array{Int64,1}:
+ 1
+ 4
+ 5
+
+julia> expressions(str::AbstractString; kwargs...) =
+           AdHocFoldable(str) do rf, val, str
+               pos = 1
+               while true
+                   expr, pos = Meta.parse(str, pos;
+                                          raise = false,
+                                          depwarn = false,
+                                          kwargs...)
+                   expr === nothing && break
+                   val = @next(rf, val, expr)
+               end
+               return complete(rf, val)
+           end;
+
+julia> collect(Map(identity), expressions(\"\"\"
+       x = 1
+       y = 2
+       \"\"\"))
+2-element Array{Expr,1}:
+ :(x = 1)
+ :(y = 2)
+```
+"""
+struct AdHocFoldable{C, F}
+    f::F
+    coll::C
+end
+
+__foldl__(rf, init, foldable::AdHocFoldable) =
+    foldable.f(rf, init, foldable.coll)
