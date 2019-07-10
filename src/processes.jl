@@ -987,7 +987,7 @@ Base.Channel(ed::Eduction; kwargs...) =
 
 
 """
-    AdHocFoldable(foldl, collection)
+    AdHocFoldable(foldl, [collection = nothing])
 
 Provide a different way to fold `collection` without creating a
 wrapper type.
@@ -1052,6 +1052,8 @@ struct AdHocFoldable{C, F}
     f::F
     coll::C
 end
+
+AdHocFoldable(f) = AdHocFoldable(f, nothing)
 
 __foldl__(rf, init, foldable::AdHocFoldable) =
     foldable.f(rf, init, foldable.coll)

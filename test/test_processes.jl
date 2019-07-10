@@ -325,7 +325,7 @@ end
 end
 
 @testset "AdHocFoldable" begin
-    counting = AdHocFoldable(nothing) do rf, acc, _
+    counting = AdHocFoldable() do rf, acc, _
         i = 0
         while true
             i += 1
