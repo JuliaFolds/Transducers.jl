@@ -266,8 +266,11 @@ mapfoldl(xf_argmax, right, [1, 3, missing, 2])
 
 # Side note: We use `typemin(Int)` as the initial value of `max` for
 # simplicity.  In practice, it should be
-# `typemin(eltype(input_array))`.  A more generic solution is to use
-# `Init(>)` from InitialValues.jl (see the next section).
+# `typemin(eltype(input_array))`.  A more generic solution is to
+# special-case the first invocation by using a singleton like
+# `nothing`.  Julia can handle small `Union` type such as this (see
+# the next section).  Another solution is to use `Init(>)` from
+# InitialValues.jl.
 
 # ## Extrema
 #
@@ -306,10 +309,6 @@ end  #src
 #-
 @assert ans === (2, 3.0) # hide
 @show ans  #src
-
-# We use `OfType(Tuple{Integer, Number})` instead of
-# `Filter(!(ismissing ∘ last))` as `typemin` used in `xf_scanext`
-# requires to know that the input type does not include `missing`.
 
 # We now have transducers `xf_scanext(<)` and `xf_scanext(>)` for
 # argmax and argmin, respectively.  We can compute them concurrently
