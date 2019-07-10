@@ -33,9 +33,9 @@ end
         @test_inferred foldl(+, Map(exp) |> Filter(x -> x > 0), xs)
         @test_inferred foldl(+, Map(exp) |> Scan(+), xs)
         @test_inferred foldl(+, TakeLast(1), xs)
-        @test_inferred foldl(+, PartitionBy(identity) |> Map(first), xs)
+        @test_broken_inferred foldl(+, PartitionBy(identity) |> Map(first), xs)
         @test_inferred foldl(+, Unique(), xs)
-        @test_inferred foldl(right, TeeZip(Filter(isodd) |> Map(inc)), xs)
+        @test_broken_inferred foldl(right, TeeZip(Filter(isodd) |> Map(inc)), xs)
 
         # Nested stateful transducers.  (The ones with `right` and
         # `Map(x -> x::Int)` actually succeeded in some REPL

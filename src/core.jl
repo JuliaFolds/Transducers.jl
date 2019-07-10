@@ -194,9 +194,8 @@ complete).  However, [`__foldl__`](@ref) implementers must use
 Transducers.jl.
 """
 macro complete(rf, result)
-    quote
-        complete($(esc(rf)), $(esc(result)))
-    end
+    # TODO: fix the docstring
+    return esc(result)
 end
 
 struct NoType end

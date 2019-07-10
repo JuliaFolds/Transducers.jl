@@ -222,7 +222,7 @@ performance tuning.
 """
 function simple_transduce(xform, f, init, coll)
     rf = rf_for(xform, f, init, eltype(coll))
-    return __simple_foldl__(rf, _start_init(rf, init), coll)
+    return complete_if_not(rf, __simple_foldl__(rf, _start_init(rf, init), coll))
 end
 
 """
@@ -230,7 +230,7 @@ end
 
 Call [`__foldl__`](@ref) without calling [`complete`](@ref).
 """
-foldl_nocomplete(rf, init, coll) = __foldl__(skipcomplete(rf), init, coll)
+foldl_nocomplete(rf, init, coll) = __foldl__(rf, init, coll)
 
 """
     mapfoldl(xf, step, reducible; init, simd) :: T
@@ -312,7 +312,11 @@ rf_for(xf, step, init, intype) =
 # Materialize initial value and then call start.
 _start_init(rf, init) = start(rf, provide_init(rf, init))
 
-_unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
+_unreduced__foldl__(rf, step, coll) =
+    unreduced(complete_if_not(rf, __foldl__(rf, step, coll)))
+
+@inline complete_if_not(rf, result::Reduced) = result
+@inline complete_if_not(rf, result) = complete(rf, result)
 
 # TODO: should it be an internal?
 @inline function transduce(rf0::AbstractReduction, init, coll;
@@ -321,7 +325,7 @@ _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
     # `darkritual` below to work.
     rf = maybe_usesimd(rf0, simd)
     state = _start_init(rf, init)
-    result = __foldl__(rf, state, coll)
+    result = complete_if_not(rf, __foldl__(rf, state, coll))
     if unreduced(result) isa DefaultInit
         throw(EmptyResultError(rf0))
         # Should I check if `init` is a `MissingInit`?
@@ -414,7 +418,7 @@ function Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
                         simd::SIMDFlag = Val(false),
                         kwargs...)
     rf = _reducingfunction(xform, step, eltype(itr); simd=simd)
-    return unreduced(__reduce__(rf, init, itr; kwargs...))
+    return unreduced(complete_if_not(rf, __reduce__(rf, init, itr; kwargs...)))
 end
 
 struct Eduction{F, C}

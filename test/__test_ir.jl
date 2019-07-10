@@ -110,7 +110,7 @@ end
     rf = Reduction(xf, +, eltype(coll))
     val = start(rf, 0.0)
     ir = julia_ir(__foldl__, (rf, val, coll))
-    @test anyunions(replace(ir, okunion => "")) == []
+    @test_broken anyunions(replace(ir, okunion => "")) == []
 
     # If Julia becomes clever enough to make `__simple_foldl__`
     # type-stable, there is no need to maintain current complex code:
