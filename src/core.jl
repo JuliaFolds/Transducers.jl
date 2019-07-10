@@ -816,7 +816,7 @@ julia> mapfoldl(xf1, right, 10:11)
 This may not be desired.  To avoid this behavior, create an `OnInit`
 object which takes a factory function to create a new initial value.
 
-```jldoctest OnInit; filter = r"#+[0-9]+"
+```jldoctest OnInit; filter = r"#+[0-9]+(\\(\\))?"
 julia> xf2 = Scan(push!, OnInit(() -> []))
 Scan(push!, OnInit(##9#10()))
 
