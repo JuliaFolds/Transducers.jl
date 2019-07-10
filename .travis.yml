@@ -14,6 +14,11 @@ matrix:
   fast_finish: true
 notifications:
   email: false
+
+# Do not build my PR twice.  Use the build on branch.
+# https://github.com/travis-ci/travis-ci/issues/1147#issuecomment-76296437
+if: NOT (type == pull_request AND repo == tkf/Transducers.jl)
+
 install:
   - unset JULIA_PROJECT
   - julia -e 'using Pkg; pkg"add https://github.com/tkf/Run.jl"'
