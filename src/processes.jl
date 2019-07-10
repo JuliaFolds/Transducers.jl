@@ -109,7 +109,7 @@ function __foldl__(rf, val, itr::MyType)
     for x in itr
         val = @next(rf, val, x)
     end
-    return complete(rf, val)
+    return @complete(rf, val)
 end
 ```
 
@@ -118,7 +118,7 @@ thus there is no need for defining it.  In general, defining
 `__foldl__` is useful only when there is a better way to go over items
 in `reducible` than `Base.iterate`.
 
-See also: [`@next`](@ref).
+See also: [`@next`](@ref), [`@complete`](@ref).
 """
 __foldl__
 
@@ -129,7 +129,7 @@ _dec(::Val{n}) where n = Val(n - 1)
 
 function __foldl__(rf, init, coll)
     ret = iterate(coll)
-    ret === nothing && return complete(rf, init)
+    ret === nothing && return @complete(rf, init)
     x, state = ret
     val = @next(rf, init, x)
     return _foldl_iter(rf, val, coll, state, FOLDL_RECURSION_LIMIT)
@@ -143,19 +143,19 @@ end
             return _foldl_iter(rf, y, iter, state, _dec(counter))
         val = y
     end
-    return complete(rf, val)
+    return @complete(rf, val)
 end
 
 # TODO: use IndexStyle
 @inline function __foldl__(rf, init, arr::Union{AbstractArray, Broadcasted})
-    isempty(arr) && return complete(rf, init)
+    isempty(arr) && return @complete(rf, init)
     idxs = eachindex(arr)
     val = @next(rf, init, @inbounds arr[idxs[firstindex(idxs)]])
     @simd_if rf for k in firstindex(idxs) + 1:lastindex(idxs)
         i = @inbounds idxs[k]
         val = @next(rf, val, @inbounds arr[i])
     end
-    return complete(rf, val)
+    return @complete(rf, val)
 end
 
 @inline _getvalues(i) = ()
@@ -166,13 +166,13 @@ end
     @inline function __foldl__(
             rf, init,
             zs::Iterators.Zip{<:Tuple{Vararg{AbstractArray}}})
-        isempty(zs) && return complete(rf, init)
+        isempty(zs) && return @complete(rf, init)
         idxs = eachindex(zs.is...)
         val = @next(rf, init, _getvalues(firstindex(idxs), zs.is...))
         @simd_if rf for i in firstindex(idxs) + 1:lastindex(idxs)
             val = @next(rf, val, _getvalues(i, zs.is...))
         end
-        return complete(rf, val)
+        return @complete(rf, val)
     end
 end
 
@@ -181,7 +181,7 @@ end
         prod::Iterators.ProductIterator{<:Tuple{Any,Any,Vararg{Any}}})
     val = _foldl_product(rf, init, (), prod.iterators...)
     val isa Reduced && return val
-    return complete(rf, val)
+    return @complete(rf, val)
 end
 
 @noinline _foldl_product(rf, val, ::Any) = error("Unreachable")
@@ -210,7 +210,7 @@ function __simple_foldl__(rf, val, itr)
     for x in itr
         val = @next(rf, val, x)
     end
-    return complete(rf, val)
+    return @complete(rf, val)
 end
 
 """
@@ -404,7 +404,7 @@ function __reduce__(rf, init, arr::AbstractArray;
         c = foldl(results) do a, b
             combine(rf, a, b)
         end
-        return complete(rf, c)
+        return @complete(rf, c)
     end
 end
 
@@ -1000,7 +1000,7 @@ wrapper type.
 # Examples
 ```jldoctest
 julia> using Transducers
-       using Transducers: @next, complete
+       using Transducers: @next, @complete
        using ArgCheck
 
 julia> function uppertriangle(A::AbstractMatrix)
@@ -1009,7 +1009,7 @@ julia> function uppertriangle(A::AbstractMatrix)
                for j in 1:size(A, 2), i in 1:min(j, size(A, 1))
                    acc = @next(rf, acc, @inbounds A[i, j])
                end
-               return complete(rf, acc)
+               return @complete(rf, acc)
            end
        end;
 
@@ -1036,7 +1036,7 @@ julia> expressions(str::AbstractString; kwargs...) =
                    expr === nothing && break
                    val = @next(rf, val, expr)
                end
-               return complete(rf, val)
+               return @complete(rf, val)
            end;
 
 julia> collect(Map(identity), expressions(\"\"\"

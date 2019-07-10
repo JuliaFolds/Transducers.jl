@@ -12,6 +12,7 @@ Transducers.start
 Transducers.next
 Transducers.@next
 Transducers.complete
+Transducers.@complete
 Transducers.outtype
 ```
 

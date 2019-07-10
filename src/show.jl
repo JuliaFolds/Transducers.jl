@@ -13,7 +13,7 @@ function __foldl__(rf, val, xff::TransducerFolder)
         xf = xf.inner
     end
     val = @next(rf, val, xf)
-    return complete(rf, val)
+    return @complete(rf, val)
 end
 
 function print_arrow(io, pre, post)

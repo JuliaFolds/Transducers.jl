@@ -185,6 +185,20 @@ macro next(rf, state, input)
     end
 end
 
+"""
+    @complete(rf, result)
+
+Currently, it is equivalent to [`complete(rf, result)`](@ref
+complete).  However, [`__foldl__`](@ref) implementers must use
+`@complete` in ordered to be forward-compatible with future
+Transducers.jl.
+"""
+macro complete(rf, result)
+    quote
+        complete($(esc(rf)), $(esc(result)))
+    end
+end
+
 struct NoType end
 const NOTYPE = NoType()
 const Typeish{T} = Union{Type{T}, NoType}
@@ -426,6 +440,14 @@ If `start(rf::R_{X}, state)` is defined, `complete` **must** unwarp
     In Transducers.jl 0.2, `complete` had a fallback implementation
     to automatically call `unwrap` when `wrap` is called in `start`.
     Relying on this fallback implementation is now deprecated.
+
+!!! warning
+
+    For forward compatibility, the macro [`@complete`](@ref) must be
+    used inside [`__foldl__`](@ref).  Inside `next` and `complete`,
+    function `complete` must be used.  It means that using macro and
+    non-macro forms (e.g., `@next` and `complete`) in a same function
+    is likely to be wrong.
 """
 complete(f, result) = f(result)
 complete(rf::AbstractReduction, result) =

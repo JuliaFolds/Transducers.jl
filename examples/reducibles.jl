@@ -8,11 +8,11 @@ struct VecOfVec{T}
     vectors::Vector{Vector{T}}
 end
 
-# We need [`@next`](@ref Transducers.@next) and [`complete`](@ref
-# Transducers.complete) to invoke the reducing function `rf`.
+# We need [`@next`](@ref Transducers.@next) and [`@complete`](@ref
+# Transducers.@complete) to invoke the reducing function `rf`.
 
 using Transducers
-using Transducers: @next, complete
+using Transducers: @next, @complete
 
 # Supporting [`mapfoldl`](@ref) and similar only requires
 # [`Transducers.__foldl__`](@ref):
@@ -23,7 +23,7 @@ function Transducers.__foldl__(rf, val, vov::VecOfVec)
             val = @next(rf, val, x)
         end
     end
-    return complete(rf, val)
+    return @complete(rf, val)
 end
 
 # Note that it's often a good idea to implement `Base.eltype`:
