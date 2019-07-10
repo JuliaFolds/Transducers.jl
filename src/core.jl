@@ -725,6 +725,8 @@ identityof(::typeof(right), ::Any) = nothing
 # This is just a right identity but `right` is useful for left-fold
 # context anyway so I guess it's fine.
 
+abstract type Reducible end
+abstract type Foldable <: Reducible end
 
 abstract type AbstractInitializer end
 

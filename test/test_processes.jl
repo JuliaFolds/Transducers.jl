@@ -334,6 +334,10 @@ end
     end
 
     @test collect(Take(3), counting) == 1:3
+
+    @test foreach(counting) do i
+        i == 3 && return reduced()
+    end === reduced()
 end
 
 end  # module

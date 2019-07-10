@@ -884,6 +884,10 @@ Base.foreach(eff, xform::Transducer, coll; kwargs...) =
 Base.foreach(eff, ed::Eduction; kwargs...) =
     transduce(reform(ed.rf, SideEffect(eff)), nothing, ed.coll;
               kwargs...)
+Base.foreach(eff, reducible::Reducible; kwargs...) =
+    transduce(BottomRF{Any}(SideEffect(eff)), nothing, reducible;
+              kwargs...)
+# Maybe use `__reduce__` in `foreach`?
 
 """
     ifunreduced(f, [x])
@@ -1046,9 +1050,25 @@ julia> collect(Map(identity), expressions(\"\"\"
 2-element Array{Expr,1}:
  :(x = 1)
  :(y = 2)
+
+julia> counting = AdHocFoldable() do rf, acc, _
+           i = 0
+           while true
+               i += 1
+               acc = @next(rf, acc, i)
+           end
+       end;
+
+julia> foreach(counting) do i
+           @show i;
+           i == 3 && return reduced()
+       end;
+i = 1
+i = 2
+i = 3
 ```
 """
-struct AdHocFoldable{C, F}
+struct AdHocFoldable{F, C} <: Foldable
     f::F
     coll::C
 end
