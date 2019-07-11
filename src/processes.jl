@@ -153,7 +153,7 @@ end
     val = @next(rf, init, @inbounds arr[idxs[firstindex(idxs)]])
     @simd_if rf for k in firstindex(idxs) + 1:lastindex(idxs)
         i = @inbounds idxs[k]
-        val = @next(rf, val, @inbounds arr[i])
+        @next!(rf, val, @inbounds arr[i])
     end
     return complete(rf, val)
 end
@@ -170,7 +170,7 @@ end
         idxs = eachindex(zs.is...)
         val = @next(rf, init, _getvalues(firstindex(idxs), zs.is...))
         @simd_if rf for i in firstindex(idxs) + 1:lastindex(idxs)
-            val = @next(rf, val, _getvalues(i, zs.is...))
+            @next!(rf, val, _getvalues(i, zs.is...))
         end
         return complete(rf, val)
     end
@@ -201,7 +201,7 @@ end
     # TODO: Handle the case inner iterators are tuples.  In such case,
     # inner-most non-tuple iterators should use @simd_if.
     @simd_if rf for input in iterator
-        val = @next(rf, val, (input, outer...))
+        @next!(rf, val, (input, outer...))
     end
     return val
 end

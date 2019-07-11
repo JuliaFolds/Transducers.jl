@@ -5,7 +5,7 @@ using BenchmarkTools
 using LinearAlgebra
 using Referenceables: referenceable
 using Transducers
-using Transducers: @simd_if, @next, complete
+using Transducers: @simd_if, @next!, complete
 
 function ij_ik_kj_foldable(C, A, B)
     @argcheck size(C) === (size(A)[1], size(B)[2])
@@ -18,7 +18,7 @@ function ij_ik_kj_foldable(C, A, B)
             @simd_if rf for i in 1:size(A, 1)
                 c = @inbounds C[i, j]
                 a = @inbounds A[i, k]
-                acc = @next(rf, acc, (c, a, b))
+                @next!(rf, acc, (c, a, b))
             end
         end
         return complete(rf, acc)
