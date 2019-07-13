@@ -1075,5 +1075,5 @@ end
 
 AdHocFoldable(f) = AdHocFoldable(f, nothing)
 
-__foldl__(rf, init, foldable::AdHocFoldable) =
+@inline __foldl__(rf, init, foldable::AdHocFoldable) =
     foldable.f(rf, init, foldable.coll)

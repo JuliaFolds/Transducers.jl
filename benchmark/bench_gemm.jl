@@ -5,9 +5,9 @@ using BenchmarkTools
 using LinearAlgebra
 using Referenceables: referenceable
 using Transducers
-using Transducers: @simd_if, @next!, complete
+using Transducers: @simd_if, @next!, complete, maybe_usesimd, BottomRF, SideEffect
 
-function ij_ik_kj_foldable(C, A, B)
+@inline function ij_ik_kj_foldable(C, A, B)
     @argcheck size(C) === (size(A)[1], size(B)[2])
     @argcheck size(A)[2] === size(B)[1]
     @argcheck !any(Base.has_offset_axes, (A, B, C))
@@ -30,9 +30,18 @@ function xfmul!(C, A, B, simd=Val(false))
 
     CAB = ij_ik_kj_foldable(referenceable(C), A, B)
 
+    # Passing `simd::Val` as a keyword argument introduces an
+    # `invoke`, even if I add `@inline` annotation to `foreach`...
+    #=
     foreach(CAB; simd=simd) do (c, a, b)
         c[] = muladd(a, b, c[])
     end
+    =#
+
+    rf = SideEffect() do (c, a, b)
+        c[] = muladd(a, b, c[])
+    end
+    transduce(maybe_usesimd(BottomRF{Any}(rf), simd), nothing, CAB)
 
     return C
 end
