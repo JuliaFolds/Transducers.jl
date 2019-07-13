@@ -34,7 +34,9 @@ jobs:
     - name: "Benchmark"
       julia: 1.1
       os: linux
-      script: julia -e 'using Run; Run.script("benchmark/runbenchmarks.jl")'
+      script:
+        - julia -e 'using Run; Run.script("benchmark/runbenchmarks.jl")'
+        - julia -e 'using Run; Run.script("benchmark/pprintresult.jl")'
       after_success: skip
     - stage: "Documentation"
       julia: 1.1
