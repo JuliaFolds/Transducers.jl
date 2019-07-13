@@ -31,6 +31,11 @@ after_success:
 
 jobs:
   include:
+    - name: "Benchmark"
+      julia: 1.1
+      os: linux
+      script: julia -e 'using Run; Run.script("benchmark/runbenchmarks.jl")'
+      after_success: skip
     - stage: "Documentation"
       julia: 1.1
       os: linux
