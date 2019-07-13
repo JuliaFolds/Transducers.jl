@@ -3,6 +3,7 @@
 *.jl.cov
 .DS_Store
 /Manifest.toml
+/benchmark/*.json
 /docs/Manifest.toml
 /docs/build/
 /docs/site/
