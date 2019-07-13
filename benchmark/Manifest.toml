@@ -130,6 +130,13 @@ uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 deps = ["Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
+[[Referenceables]]
+git-tree-sha1 = "0a4cb75bf87f2d593850209be03d863689174fd2"
+repo-rev = "master"
+repo-url = "https://github.com/tkf/Referenceables.jl"
+uuid = "42d2dcc6-99eb-4e98-b66c-637b7d73030e"
+version = "0.1.0"
+
 [[Requires]]
 deps = ["Test"]
 git-tree-sha1 = "f6fbf4ba64d295e146e49e021207993b6b48c7d1"
