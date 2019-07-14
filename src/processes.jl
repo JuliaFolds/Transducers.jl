@@ -1029,6 +1029,41 @@ julia> collect(Map(identity), uppertriangle(A))
  4
  5
 
+julia> function circularwindows(xs::AbstractVector, h::Integer)
+           @argcheck !Base.has_offset_axes(xs)
+           @argcheck h >= 0
+           @argcheck 2 * h + 1 <= length(xs)
+           return AdHocFoldable(xs) do rf, acc, xs
+               buffer = similar(xs, 2 * h + 1)
+               @inbounds for i in 1:h
+                   buffer[1:h - i + 1] .= @view xs[end - h + i:end]
+                   buffer[h - i + 2:end] .= @view xs[1:h + i]
+                   acc = @next(rf, acc, buffer)
+               end
+               for i in h + 1:length(xs) - h
+                   acc = @next(rf, acc, @inbounds @view xs[i - h:i + h])
+               end
+               @inbounds for i in 1:h
+                   buffer[1:end - i] .= @view xs[end - 2 * h + i:end]
+                   buffer[end - i + 1:end] .= @view xs[1:i]
+                   acc = @next(rf, acc, buffer)
+               end
+               return complete(rf, acc)
+           end
+       end;
+
+julia> collect(Map(collect), circularwindows(1:9, 2))
+9-element Array{Array{Int64,1},1}:
+ [8, 9, 1, 2, 3]
+ [9, 1, 2, 3, 4]
+ [1, 2, 3, 4, 5]
+ [2, 3, 4, 5, 6]
+ [3, 4, 5, 6, 7]
+ [4, 5, 6, 7, 8]
+ [5, 6, 7, 8, 9]
+ [6, 7, 8, 9, 1]
+ [7, 8, 9, 1, 2]
+
 julia> expressions(str::AbstractString; kwargs...) =
            AdHocFoldable(str) do rf, val, str
                pos = 1
