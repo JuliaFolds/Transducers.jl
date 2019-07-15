@@ -54,12 +54,22 @@ end
     end
 end
 
+hasnothing(xs) = foreach(Map(identity), xs) do x
+    if x === nothing
+        return reduced(Val(true))
+    end
+end |> ifunreduced() do _
+    Val(false)
+end
+
 @testset "foreach" begin
     @testset for xs in collections
         @test_inferred foreach(constant(nothing), Map(exp), xs)
         @test_inferred foreach(constant(nothing), Map(exp) |> Filter(x -> x > 0),
                                xs)
     end
+    @test (@inferred hasnothing((1, 2, 3))) === Val(false)
+    @test (@inferred hasnothing((1, nothing, 3))) === Val(true)
 end
 
 @testset "eduction" begin
