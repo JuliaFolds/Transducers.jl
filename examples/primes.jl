@@ -18,11 +18,14 @@ sieve(xf, x) =
 
 prime_xf = ScanEmit(sieve, Map(identity)) |> Filter(!isnothing)
 
-primes = begin  # hide
+using Test                                                             #src
+primes = begin                                                         #src
+                                                                       #src
 collect(prime_xf, 2:10)
-end  # hide
+                                                                       #src
+end                                                                    #src
+@test primes == [2, 3, 5, 7]                                           #src
 #-
-@assert primes == [2, 3, 5, 7]  # hide
 
 # The usage of transducers in `prime_xf` here is somewhat
 # unconventional; it builds a transducer inside a transducer.  That is
