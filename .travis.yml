@@ -3,10 +3,8 @@ language: julia
 os:
   - linux
 julia:
-  - 1.0
   - 1.1
   - 1.2
-  - nightly
 matrix:
   allow_failures:
     - julia: 1.2
@@ -28,19 +26,3 @@ script:
 after_success:
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
-
-jobs:
-  include:
-    - name: "Benchmark"
-      julia: 1.1
-      os: linux
-      script:
-        - julia -e 'using Run; Run.script("benchmark/runbenchmarks.jl")'
-        - julia -e 'using Run; Run.script("benchmark/pprintresult.jl")'
-      after_success: skip
-    - stage: "Documentation"
-      julia: 1.1
-      os: linux
-      script:
-        - docs/make.jl
-      after_success: skip
