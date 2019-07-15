@@ -68,7 +68,15 @@ by `next` is ignored when `ivdep` is specified.
 """
 macro simd_if(rf, loop)
     accs = findaccumulators(loop)
-    @argcheck length(accs) == 1
+    if length(accs) == 0
+        error(
+            "No call of the form `@next!(rf, acc, input)` is found.\n",
+            "`@next(rf, acc, input)` and `next(rf, acc, input)` are not",
+            " supported inside `@simd_if`."
+        )
+    elseif length(accs) > 1
+        error("Multiple `@next!(rf, acc, input)` statements found.")
+    end
     acc, = accs
     @gensym acc0
     # Aggressively using `$` since `esc(loop)` did not work with
