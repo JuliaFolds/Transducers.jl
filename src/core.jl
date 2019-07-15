@@ -926,7 +926,7 @@ Base.show(io::IO, init::CopyInit) = _default_show(io, init)
 @inline foldlargs(op, x) = x
 @inline foldlargs(op, x1, x2, xs...) =
     foldlargs(op,
-              @return_if_reduced(op(x1, x2)),
+              @next(op, x1, x2),
               xs...)
 
 """

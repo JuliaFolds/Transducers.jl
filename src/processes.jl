@@ -146,6 +146,9 @@ end
     return complete(rf, val)
 end
 
+__foldl__(rf, init, coll::Tuple) =
+    complete(rf, @return_if_reduced foldlargs(rf, init, coll...))
+
 # TODO: use IndexStyle
 @inline function __foldl__(rf, init, arr::Union{AbstractArray, Broadcasted})
     isempty(arr) && return complete(rf, init)
