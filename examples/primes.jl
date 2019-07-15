@@ -9,12 +9,16 @@ end                               # hide
 
 using Transducers
 
-sieve(xf, x) =
-    if mapfoldl(xf, right, (x,), init=nothing) === nothing
+function sieve(xf, x)
+    @info "sieve(xf, x=$x)"
+    if (@show mapfoldl(xf, right, (x,), init=nothing)) === nothing
+        @info "$x is NOT prime"
         nothing, xf
     else
-        x, xf |> Filter(n -> n % x != 0)
+        @info "$x IS prime"
+        x, xf |> Filter(n -> ((@info "Filtering" n x (n % x)); n % x != 0))
     end
+end
 
 prime_xf = ScanEmit(sieve, Map(identity)) |> Filter(!isnothing)
 
