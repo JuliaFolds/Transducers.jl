@@ -56,10 +56,12 @@ end
         (@test_error mapfoldl(Map(identity), +, 1:2; simd=:ivdep)),
         (@test_error foldl(+, Map(identity), 1:2; simd=:ivdep)),
         (@test_error foldl(+, eduction(Map(identity), 1:2); simd=:ivdep)),
+        (@test_error foreach(identity, Count() |> Map(first), 1:2; simd=:ivdep)),
     ]
         @test occursin("`simd=:ivdep` must not be used",
                        sprint(showerror, err))
     end
+    @test foreach(identity, TeeZip(Map(inc)), 1:2; simd=:ivdep) isa Any
 end
 
 @testset "@simd_if" begin
