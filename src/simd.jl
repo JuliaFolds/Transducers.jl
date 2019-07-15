@@ -99,6 +99,20 @@ end
 const SIMDFlag = Union{Bool, Symbol, Val{true}, Val{false}, Val{:ivdep}}
 
 """
+    check_no_ivdep(::SIMDFlag)
+    check_no_ivdep(; simd=Val(false), kwargs...)
+"""
+@inline check_no_ivdep(simd) = simd
+@inline check_no_ivdep(simd::Symbol) =
+    simd == :ivdep ? check_no_ivdep(Val(:ivdep)) : simd
+@noinline check_no_ivdep(::Val{:ivdep}) =
+    throw(ArgumentError(string(
+        "`simd=:ivdep` must not be used for generic `foldl` or `reduce`.",
+        " Please use `foreach`."
+    )))
+check_no_ivdep(; simd=Val(false), _...) = check_no_ivdep(simd)
+
+"""
     maybe_usesimd(xform, simd)
 
 Insert `UseSIMD` to `xform` if appropriate.
