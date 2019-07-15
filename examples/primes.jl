@@ -10,7 +10,7 @@ end                               # hide
 using Transducers
 
 sieve(xf, x) =
-    if mapfoldl(xf, right, (x,), init=nothing) === nothing
+    if isnothing(mapfoldl(xf, right, (x,), init=nothing))
         nothing, xf
     else
         x, xf |> Filter(n -> n % x != 0)
