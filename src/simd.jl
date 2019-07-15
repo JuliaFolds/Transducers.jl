@@ -32,8 +32,8 @@ findaccumulators(ex::Expr) =
         return mapfoldl(findaccumulators, append!, ex.args; init=[])
     end
 
-simdcompat(ivdep, acc, x) = x
-function simdcompat(ivdep, acc, ex::Expr)
+ivdepcompat(acc, x) = x
+function ivdepcompat(acc, ex::Expr)
     # TODO: detect Transducers.@next etc.
     if (
         (ex.head === :macrocall && ex.args[1] === Symbol("@next")) ||
@@ -43,21 +43,15 @@ function simdcompat(ivdep, acc, ex::Expr)
     elseif ex.head === :macrocall && ex.args[1] === Symbol("@next!")
         @argcheck length(ex.args) === 5
         rf, acc′, input = ex.args[3:end]
-        if ivdep
-            # No loop-carried memory dependencies are allowed.
-            # However, to support `TeeZip`, `acc` must still be
-            # supplied:
-            return quote
-                $next($rf, $acc, $input)
-                nothing
-            end
-        else
-            @assert acc′ == acc
-            # Exclude `acc isa Reduced && return acc` part:
-            return :($acc = $next($rf, $acc, $input))
+        # No loop-carried memory dependencies are allowed.
+        # However, to support `TeeZip`, `acc` must still be
+        # supplied:
+        return quote
+            $next($rf, $acc, $input)
+            nothing
         end
     else
-        return Expr(ex.head, simdcompat.(ivdep, Ref(acc), ex.args)...)
+        return Expr(ex.head, ivdepcompat.(Ref(acc), ex.args)...)
     end
 end
 
@@ -83,9 +77,9 @@ macro simd_if(rf, loop)
         if $rf isa $R_{$UseSIMD}
             if $isivdep($rf)
                 $acc0 = $acc  # must not change during the loop
-                $Base.@simd ivdep $(simdcompat(true, acc0, loop))
+                $Base.@simd ivdep $(ivdepcompat(acc0, loop))
             else
-                $Base.@simd $(simdcompat(false, acc, loop))
+                $Base.@simd $loop
             end
         else
             $loop
