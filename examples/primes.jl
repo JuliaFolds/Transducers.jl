@@ -11,7 +11,7 @@ using Transducers
 
 function sieve(xf, x)
     @info "sieve(xf, x=$x)"
-    if (@show mapfoldl(xf, right, (x,), init=nothing)) isa Nothing
+    if isnothing(@show mapfoldl(xf, right, (x,), init=nothing))
         @info "$x is NOT prime"
         nothing, xf
     else
