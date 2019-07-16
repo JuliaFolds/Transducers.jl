@@ -51,6 +51,7 @@ ifunreduced
 
 ```@docs
 Transducer(::Transducers.Comprehension)
+Transducer(::OnlineStats.OnlineStat)
 reducingfunction
 Completing
 OnInit

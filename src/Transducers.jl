@@ -50,6 +50,9 @@ function __init__()
         __foldl__(rf, acc, coll::LazyArrays.Vcat) =
             _foldl_lazy_vcat(rf, acc, coll)
     end
+    @require OnlineStatsBase="925886fa-5bf2-5e8e-b522-a9147a512338" begin
+        include("interop/onlinestats.jl")
+    end
 end
 
 end # module

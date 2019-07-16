@@ -1,3 +1,4 @@
+import OnlineStats
 using Documenter
 using Transducers
 # Not importing `Literate` here so that this file can be included from
