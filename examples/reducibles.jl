@@ -50,12 +50,13 @@ collect(PartitionBy(isequal(1)) |> Zip(Map(copy), Map(sum)), vov)
 # Notice that writing [`Transducers.__foldl__`](@ref) is very
 # straightforward comparing to how to define an iterator:
 
-function Base.iterate(vov::VecOfVec, state=nothing)
-    if state === nothing
-        i, j = 1, 1
-    else
-        i, j = state
-    end
+function Base.iterate(vov::VecOfVec, state=(1, 1))
+
+# Iterator `state` is a tuple of an index `i` to `vov.vectors` and an
+# index `j` to `vov.vectors[i]`:
+    i, j = state
+
+# If `i` is larger than the number of items, we are done:
     i > length(vov.vectors) && return nothing
 
 # If `j` is in bound, we are iterating the same sub-vector:
