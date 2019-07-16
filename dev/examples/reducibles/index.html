@@ -23,13 +23,7 @@ collect(Map(identity), vov)</code></pre><pre><code class="language-none">6-eleme
  ([1, 1], 2)
  ([2], 2)   
  ([1], 1)   
- ([2, 3], 5)</code></pre><p>Notice that writing <a href="../../interface/#Transducers.__foldl__"><code>Transducers.__foldl__</code></a> is very straightforward comparing to how to define an iterator:</p><pre><code class="language-julia">function Base.iterate(vov::VecOfVec, state=nothing)
-    if state === nothing
-        i, j = 1, 1
-    else
-        i, j = state
-    end
-    i &gt; length(vov.vectors) &amp;&amp; return nothing</code></pre><p>If <code>j</code> is in bound, we are iterating the same sub-vector:</p><pre><code class="language-julia">    vi = vov.vectors[i]
+ ([2, 3], 5)</code></pre><p>Notice that writing <a href="../../interface/#Transducers.__foldl__"><code>Transducers.__foldl__</code></a> is very straightforward comparing to how to define an iterator:</p><pre><code class="language-julia">function Base.iterate(vov::VecOfVec, state=(1, 1))</code></pre><p>Iterator <code>state</code> is a tuple of an index <code>i</code> to <code>vov.vectors</code> and an index <code>j</code> to <code>vov.vectors[i]</code>:</p><pre><code class="language-julia">    i, j = state</code></pre><p>If <code>i</code> is larger than the number of items, we are done:</p><pre><code class="language-julia">    i &gt; length(vov.vectors) &amp;&amp; return nothing</code></pre><p>If <code>j</code> is in bound, we are iterating the same sub-vector:</p><pre><code class="language-julia">    vi = vov.vectors[i]
     if j &lt;= length(vi)
         return vi[j], (i, j + 1)
     end</code></pre><p>Otherwise, find the next non-empty sub-vector and start iterating it:</p><pre><code class="language-julia">    for k in i + 1:length(vov.vectors)
