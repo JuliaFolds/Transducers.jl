@@ -8,7 +8,6 @@ EXAMPLE_PAGES = [
     "Tutorial: Missing values" => "examples/tutorial_missings.md",
     "Empty result handling" => "examples/empty_result_handling.md",
     "Parallel word count" => "examples/words.md",
-    "Prime sieve" => "examples/primes.md",
     "Writing transducers" => "examples/transducers.md",
     "Writing reducibles" => "examples/reducibles.md",
 ]
