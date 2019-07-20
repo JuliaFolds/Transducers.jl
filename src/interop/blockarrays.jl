@@ -43,7 +43,7 @@ end
     @inbounds for j in 1:nblocks(coll, 1)
         array = coll[Block(j, block...)]
         @simd_if rf for k in 1:blocksize(coll, 1, j)
-            @next!(rf, acc, array[k, offset...])
+            acc = @next(rf, acc, array[k, offset...])
         end
     end
     return acc

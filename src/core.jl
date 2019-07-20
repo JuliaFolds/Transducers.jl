@@ -185,19 +185,6 @@ macro next(rf, state, input)
     end
 end
 
-"""
-    @next!(rf, state, input)
-
-It is expanded to
-
-```julia
-state = @next(rf, state, input)
-```
-"""
-macro next!(rf, state, input)
-    esc(:($state = $(@__MODULE__).@next($rf, $state, $input)))
-end
-
 struct NoType end
 const NOTYPE = NoType()
 const Typeish{T} = Union{Type{T}, NoType}

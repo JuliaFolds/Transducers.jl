@@ -5,7 +5,7 @@ using BenchmarkTools
 using LinearAlgebra
 using Referenceables: referenceable
 using Transducers
-using Transducers: @simd_if, @next!, complete, maybe_usesimd, BottomRF, SideEffect
+using Transducers: @simd_if, @next, complete, maybe_usesimd, BottomRF, SideEffect
 
 _size(x) = size.(axes(x), 1)
 _size(x, i) = size(axes(x)[i], 1)
@@ -21,7 +21,7 @@ _size(x, i) = size(axes(x)[i], 1)
             @simd_if rf for i in 1:size(A, 1)
                 c = @inbounds C[i, j]
                 a = @inbounds A[i, k]
-                @next!(rf, acc, (c, a, b))
+                acc = @next(rf, acc, (c, a, b))
             end
         end
         return complete(rf, acc)

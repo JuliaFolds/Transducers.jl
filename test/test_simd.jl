@@ -1,7 +1,21 @@
 module TestSIMD
 include("preamble.jl")
 
-using Transducers: UseSIMD, usesimd, Reduction, skipcomplete, R_
+using Transducers: @simd_if, UseSIMD, usesimd, Reduction, skipcomplete, R_
+
+function simd_if_demo(xf, ys, xs)
+    @inbounds @simd_if xf for i in eachindex(ys, xs)
+        ys[i] = 2 .* xs[i]
+    end
+    return ys
+end
+
+@testset "@simd_if" begin
+    xs = [1:100;] .* 1.0
+    @test simd_if_demo(Map(identity), zero(xs), xs) == 2xs
+    @test simd_if_demo(UseSIMD{false}(), zero(xs), xs) == 2xs
+    @test simd_if_demo(UseSIMD{true}(), zero(xs), xs) == 2xs
+end
 
 asrf(xf) = Reduction(xf, right, Int)
 
@@ -40,8 +54,7 @@ end
 end
 
 @testset "foreach" begin
-    # TODO: simd=:ivdep support using Referenceables.jl
-    @testset for simd in [false, true]
+    @testset for simd in [false, true, :ivdep]
         xs = [1:100;]
         ys = zeros(100)
         foreach(Zip(Count(), Map(x -> x + 1.0)), xs; simd=simd) do (i, x)
