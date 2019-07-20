@@ -43,6 +43,7 @@ function xfmul!(C, A, B, simd=Val(false))
 
     rf = SideEffect() do (c, a, b)
         c[] = muladd(a, b, c[])
+        return  # for type stability
     end
     transduce(maybe_usesimd(BottomRF{Any}(rf), simd), nothing, CAB)
 
@@ -131,6 +132,7 @@ function fusedxfmul!(C, A, B1, B2)
         c1 = muladd(a, b1, c0)
         c2 = a^2 * b2
         c[] = c1 + c2
+        return  # for type stability
     end
 
     return C
