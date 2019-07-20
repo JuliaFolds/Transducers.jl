@@ -51,17 +51,6 @@ end
     end
 end
 
-@testset "UX" begin
-    for err in [
-        (@test_error mapfoldl(Map(identity), +, 1:2; simd=:ivdep)),
-        (@test_error foldl(+, Map(identity), 1:2; simd=:ivdep)),
-        (@test_error foldl(+, eduction(Map(identity), 1:2); simd=:ivdep)),
-    ]
-        @test occursin("`simd=:ivdep` must not be used",
-                       sprint(showerror, err))
-    end
-end
-
 @testset "@simd_if" begin
     err = @test_error @macroexpand @simd_if rf for i in 1:1
     end
