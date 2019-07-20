@@ -8,19 +8,6 @@ struct UseSIMD{ivdep} <: Transducer end
 outtype(::UseSIMD, intype) = intype
 next(rf::R_{UseSIMD}, result, input) = next(inner(rf), result, input)
 
-function start(rf::R_{UseSIMD{true}}, result)
-    state = start(inner(rf), result)
-    if !(state === result || is_ivdep_compat_state(state))
-        error("`simd=:ivdep` must not be used with stateful transducers")
-    end
-    return state
-end
-
-@inline is_ivdep_compat_state(::Any) = true
-@inline is_ivdep_compat_state(::PrivateState) = false
-@inline is_ivdep_compat_state(state::Union{SplitterState, JoinerState}) =
-    is_ivdep_compat_state(psresult(state))
-
 # Make sure UseSIMD is the outer-most transducer when UseSIMD is used
 # via Cat.
 skipcomplete(rf::R_{UseSIMD}) =
