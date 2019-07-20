@@ -1,7 +1,7 @@
 module TestSIMD
 include("preamble.jl")
 
-using Transducers: UseSIMD, usesimd, Reduction, skipcomplete, R_, @simd_if
+using Transducers: UseSIMD, usesimd, Reduction, skipcomplete, R_
 
 asrf(xf) = Reduction(xf, right, Int)
 
@@ -49,20 +49,6 @@ end
         end
         @test ys == xs .+ 1.0
     end
-end
-
-@testset "@simd_if" begin
-    err = @test_error @macroexpand @simd_if rf for i in 1:1
-    end
-    @test occursin("No call of the form `@next!(rf, acc, input)` is found.",
-                   sprint(showerror, err))
-
-    err = @test_error @macroexpand @simd_if rf for i in 1:1
-        @next!(rf, acc, init)
-        @next!(rf, acc, init)
-    end
-    @test occursin("Multiple `@next!(rf, acc, input)` statements found.",
-                   sprint(showerror, err))
 end
 
 end  # module
