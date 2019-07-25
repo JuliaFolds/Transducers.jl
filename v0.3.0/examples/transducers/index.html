@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Writing transducers · Transducers.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link href="../../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>Transducers.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../../">Home</a></li><li><a class="toctext" href="../../manual/">Manual</a></li><li><a class="toctext" href="../../interface/">Interface</a></li><li><span class="toctext">Examples</span><ul><li><a class="toctext" href="../tutorial_missings/">Tutorial: Missing values</a></li><li><a class="toctext" href="../empty_result_handling/">Empty result handling</a></li><li><a class="toctext" href="../words/">Parallel word count</a></li><li class="current"><a class="toctext" href>Writing transducers</a><ul class="internal"><li><a class="toctext" href="#Stateless-transducer-1">Stateless transducer</a></li><li><a class="toctext" href="#Stateful-transducer-1">Stateful transducer</a></li></ul></li><li><a class="toctext" href="../reducibles/">Writing reducibles</a></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li>Examples</li><li><a href>Writing transducers</a></li></ul><a class="edit-page" href="https://github.com/tkf/Transducers.jl/blob/master/examples/transducers.jl"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Writing transducers</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="How-to-write-transducers-1" href="#How-to-write-transducers-1">How to write transducers</a></h1><p><code>Transducers</code> don&#39;t export public interface for implementing transducers (and reducible collections).  Let&#39;s import some handy ones:</p><pre><code class="language-julia">using Transducers
+using Transducers: Transducer, R_, next, inner, xform</code></pre><h2><a class="nav-anchor" id="Stateless-transducer-1" href="#Stateless-transducer-1">Stateless transducer</a></h2><p>Let&#39;s write manually what <code>Filter(x -&gt; x isa Int) |&gt; Map(x -&gt; x + 1)</code> would do:</p><pre><code class="language-julia">struct AddOneIfInt &lt;: Transducer end
+
+function Transducers.next(rf::R_{AddOneIfInt}, result, input)
+    if input isa Int</code></pre><p>Output <code>input + 1</code> is passed to the &quot;inner&quot; reducing step:</p><pre><code class="language-julia">        next(inner(rf), result, input + 1)
+    else</code></pre><p>Filtering out is done by &quot;doing nothing&quot;; return <code>result</code>-so-far as-is:</p><pre><code class="language-julia">        result
+    end
+end</code></pre><p>Ineed, for integer collection, it increments input by one:</p><pre><code class="language-julia">collect(AddOneIfInt(), 1:5)</code></pre><pre><code class="language-none">5-element Array{Any,1}:
+ 2
+ 3
+ 4
+ 5
+ 6</code></pre><p>Non integer elements are filtered out:</p><pre><code class="language-julia">collect(AddOneIfInt(), Any[3, nothing, 2.0, missing, 5])</code></pre><pre><code class="language-none">2-element Array{Any,1}:
+ 4
+ 6</code></pre><p>Notice that output <code>eltype</code> is <code>Any</code>; it can be fixed by defining <code>outtype</code>:</p><pre><code class="language-julia">Transducers.outtype(::AddOneIfInt, _intype) = Int
+
+collect(AddOneIfInt(), 1:5)</code></pre><pre><code class="language-none">5-element Array{Int64,1}:
+ 2
+ 3
+ 4
+ 5
+ 6</code></pre><h2><a class="nav-anchor" id="Stateful-transducer-1" href="#Stateful-transducer-1">Stateful transducer</a></h2><p><code>AddOneIfInt</code> is a stateless transducer which is very easy to implement.  A stateful transducer needs a bit more code.</p><pre><code class="language-julia">using Transducers: start, complete, wrap, unwrap, wrapping
+using Random</code></pre><p>Let&#39;s define a transducer that spits out a random past element from the buffer:</p><pre><code class="language-julia">struct RandomRecall &lt;: Transducer
+    history::Int
+    seed::Int
+end
+RandomRecall() = RandomRecall(3, 0)</code></pre><p>A stateful transducer needs to implement <a href="../../interface/#Transducers.start"><code>Transducers.start</code></a> to &quot;allocate&quot; its private state.  Here, the private state is a <code>buffer</code> and a random number generator state <code>rng</code>:</p><pre><code class="language-julia">function Transducers.start(rf::R_{RandomRecall}, result)
+    buffer = []
+    rng = MersenneTwister(xform(rf).seed)
+    private_state = (buffer, rng)
+    return wrap(rf, private_state, start(inner(rf), result))
+end</code></pre><p>Stateful transducer needs to unwrap its private state inside <a href="../../interface/#Transducers.next"><code>Transducers.next</code></a> and then re-wrap it.  There is a helper function <a href="../../interface/#Transducers.wrapping"><code>Transducers.wrapping</code></a> does that with the <code>do</code> block:</p><pre><code class="language-julia">function Transducers.next(rf::R_{RandomRecall}, result, input)
+    wrapping(rf, result) do (buffer, rng), iresult</code></pre><p>Pickup a random element to be passed to the inner reducing function. Replace it with the new incoming one in the buffer:</p><pre><code class="language-julia">        if length(buffer) &lt; xform(rf).history
+            push!(buffer, input)
+            iinput = rand(rng, buffer)
+        else
+            i = rand(rng, 1:length(buffer))
+            iinput = buffer[i]
+            buffer[i] = input
+        end</code></pre><p>Call the inner reducing function.  Note that <code>iresult</code> unwrapped by <a href="../../interface/#Transducers.wrapping"><code>Transducers.wrapping</code></a> must be passed to <code>next</code>:</p><pre><code class="language-julia">        iresult = next(inner(rf), iresult, iinput)
+        return (buffer, rng), iresult
+    end
+end
+
+Transducers.outtype(::RandomRecall, intype) = intype</code></pre><p>Any transducer with custom <a href="../../interface/#Transducers.start"><code>Transducers.start</code></a> must have a corresponding <a href="../../interface/#Transducers.complete"><code>Transducers.complete</code></a>.  It is responsible for unwrapping the <code>result</code> and call the <code>complete</code> for the inner reducing function.</p><pre><code class="language-julia">function Transducers.complete(rf::R_{RandomRecall}, result)
+    _private_state, inner_result = unwrap(rf, result)
+    return complete(inner(rf), inner_result)
+end</code></pre><p>Here is how it works:</p><pre><code class="language-julia">collect(RandomRecall(), 1:5)</code></pre><pre><code class="language-none">5-element Array{Int64,1}:
+ 1
+ 1
+ 2
+ 2
+ 1</code></pre><p>Indeed, it picks up some random elements from the past elements. With slightly more complex transducer:</p><pre><code class="language-julia">collect(Filter(isodd) |&gt; RandomRecall() |&gt; Filter(x -&gt; x &gt; 10) |&gt; Take(5), 1:100)</code></pre><pre><code class="language-none">5-element Array{Int64,1}:
+ 13
+ 11
+ 19
+ 17
+ 21</code></pre><p>Note that <a href="../../interface/#Transducers.complete"><code>Transducers.complete</code></a> can do more than <code>unwrap</code> and <code>complete</code>.  It is useful for, e.g., flushing the buffer.</p><pre><code class="language-julia">function Transducers.complete(rf::R_{RandomRecall}, result)
+    (buffer, _), iresult = unwrap(rf, result)
+    for x in buffer</code></pre><p>Note that inner <code>next</code> can be called more than one time inside <code>next</code> and <code>complete</code>:</p><pre><code class="language-julia">        iresult = next(inner(rf), iresult, x)
+    end</code></pre><p><code>complete</code> for inner reducing function must be called exactly once:</p><pre><code class="language-julia">    return complete(inner(rf), iresult)
+end</code></pre><p>This then adds 3 (<code>= RandomRecall().history</code>) more elements to the output:</p><pre><code class="language-julia">collect(RandomRecall(), 1:5)</code></pre><pre><code class="language-none">8-element Array{Int64,1}:
+ 1
+ 1
+ 2
+ 2
+ 1
+ 5
+ 4
+ 3</code></pre><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><footer><hr/><a class="previous" href="../words/"><span class="direction">Previous</span><span class="title">Parallel word count</span></a><a class="next" href="../reducibles/"><span class="direction">Next</span><span class="title">Writing reducibles</span></a></footer></article></body></html>
