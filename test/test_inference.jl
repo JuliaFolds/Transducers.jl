@@ -45,6 +45,7 @@ end
         @test_broken_inferred foldl(*, Scan(+) |> Scan(+), xs; init=1)
         @test_broken_inferred foldl(*, Scan(+) |> Map(x -> x::Int) |> Scan(+), xs)
     end
+    @test_inferred foldl(+, Cat(), [[1]])
 end
 
 @testset "collect" begin
