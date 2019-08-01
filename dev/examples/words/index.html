@@ -67,20 +67,20 @@ mergecont!(a) = a</code></pre><p>Note that the unary form is required for the co
               mergecont!,
               transcode(UInt8, s);
               init = CopyInit(Dict{String,Int}()),
-              kwargs...)</code></pre><p>Side note: Since <a href="../../manual/#Base.mapreduce"><code>mapreduce</code></a> does not support string, the input string is converted to a <code>Vector{UInt8}</code> first by <code>transcode</code>. That&#39;s why there is <code>Map(Char) |&gt;</code> before <code>countxf</code>.  Of course, this is not valid for UTF-8 in general.</p><p>Side note 2: We use <a href="../../manual/#Transducers.CopyInit"><code>CopyInit</code></a> to create a fresh initial state for each sub-reduce to avoid overwriting mutable data between threads.</p><p>Let&#39;s run some tests with different number of threads:</p><pre><code class="language-julia">@testset for nthreads in [1, 2, 4]
-    @test countwords(&quot;This is a sample&quot;, nthreads=nthreads) ==
+              kwargs...)</code></pre><p>Side note: Since <a href="../../manual/#Base.mapreduce"><code>mapreduce</code></a> does not support string, the input string is converted to a <code>Vector{UInt8}</code> first by <code>transcode</code>. That&#39;s why there is <code>Map(Char) |&gt;</code> before <code>countxf</code>.  Of course, this is not valid for UTF-8 in general.</p><p>Side note 2: We use <a href="../../manual/#Transducers.CopyInit"><code>CopyInit</code></a> to create a fresh initial state for each sub-reduce to avoid overwriting mutable data between threads.</p><p>Let&#39;s run some tests with different <code>basesize</code> (<code>length(s) / basesize</code> corresponds to number of tasks to be used):</p><pre><code class="language-julia">@testset for basesize in [1, 2, 4]
+    @test countwords(&quot;This is a sample&quot;, basesize=basesize) ==
         Dict(&quot;This&quot; =&gt; 1, &quot;is&quot; =&gt; 1, &quot;a&quot; =&gt; 1, &quot;sample&quot; =&gt; 1)
-    @test countwords(&quot; Here is another sample &quot;, nthreads=nthreads) ==
+    @test countwords(&quot; Here is another sample &quot;, basesize=basesize) ==
         Dict(&quot;Here&quot; =&gt; 1, &quot;is&quot; =&gt; 1, &quot;another&quot; =&gt; 1, &quot;sample&quot; =&gt; 1)
-    @test countwords(&quot;JustOneWord&quot;, nthreads=nthreads) ==
+    @test countwords(&quot;JustOneWord&quot;, basesize=basesize) ==
         Dict(&quot;JustOneWord&quot; =&gt; 1)
-    @test countwords(&quot; &quot;, nthreads=nthreads) == Dict()
-    @test countwords(&quot;&quot;, nthreads=nthreads) == Dict()
-    @test countwords(&quot;aaa bb aaa aaa bb bb aaa&quot;, nthreads=nthreads) ==
+    @test countwords(&quot; &quot;, basesize=basesize) == Dict()
+    @test countwords(&quot;&quot;, basesize=basesize) == Dict()
+    @test countwords(&quot;aaa bb aaa aaa bb bb aaa&quot;, basesize=basesize) ==
         Dict(&quot;aaa&quot; =&gt; 4, &quot;bb&quot; =&gt; 3)
 end</code></pre><pre><code class="language-none">Test Summary: | Pass  Total
-nthreads = 1  |    6      6
+basesize = 1  |    6      6
 Test Summary: | Pass  Total
-nthreads = 2  |    6      6
+basesize = 2  |    6      6
 Test Summary: | Pass  Total
-nthreads = 4  |    6      6</code></pre><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><footer><hr/><a class="previous" href="../empty_result_handling/"><span class="direction">Previous</span><span class="title">Empty result handling</span></a><a class="next" href="../transducers/"><span class="direction">Next</span><span class="title">Writing transducers</span></a></footer></article></body></html>
+basesize = 4  |    6      6</code></pre><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><footer><hr/><a class="previous" href="../empty_result_handling/"><span class="direction">Previous</span><span class="title">Empty result handling</span></a><a class="next" href="../transducers/"><span class="direction">Next</span><span class="title">Writing transducers</span></a></footer></article></body></html>
