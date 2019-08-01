@@ -385,10 +385,26 @@ See [`mapfoldl`](@ref).
 """
 Base.mapreduce
 
+@static if VERSION >= v"1.3-alpha"
+function __reduce__(rf, init, arr::AbstractArray;
+                    nthreads = nothing)
+    if Threads.nthreads() == 1 || length(arr) <= 512
+        return foldl_nocomplete(rf, _start_init(rf, init), arr)
+    else
+        mid = length(arr) ÷ 2
+        left = @view arr[firstindex(arr):firstindex(arr) - 1 + mid]
+        right = @view arr[firstindex(arr) + mid:end]
+        task = Threads.@spawn __reduce__(rf, init, right)
+        a = __reduce__(rf, init, left)
+        b = fetch(task)
+        return combine(rf, a, b)
+    end
+end
+else
 function __reduce__(rf, init, arr::AbstractArray;
                     nthreads = max(1, min(length(arr), Threads.nthreads())))
     if nthreads == 1
-        return __foldl__(rf, _start_init(rf, init), arr)
+        return foldl_nocomplete(rf, _start_init(rf, init), arr)
     else
         w = length(arr) ÷ nthreads
         results = Vector{Any}(undef, nthreads)
@@ -407,9 +423,10 @@ function __reduce__(rf, init, arr::AbstractArray;
         c = foldl(results) do a, b
             combine(rf, a, b)
         end
-        return complete(rf, c)
+        return c
     end
 end
+end  # if
 
 # AbstractArray for disambiguation
 function Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
@@ -417,7 +434,7 @@ function Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
                         simd::SIMDFlag = Val(false),
                         kwargs...)
     rf = _reducingfunction(xform, step, eltype(itr); simd=simd)
-    return unreduced(__reduce__(rf, init, itr; kwargs...))
+    return unreduced(complete(rf, __reduce__(rf, init, itr; kwargs...)))
 end
 
 struct Eduction{F, C}
