@@ -13,6 +13,7 @@ transduce
 foldl
 foreach
 mapreduce
+reduce
 eduction
 map!
 copy!

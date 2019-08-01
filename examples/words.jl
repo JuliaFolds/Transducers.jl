@@ -164,30 +164,30 @@ countxf = wordsxf |> Map(processcount)
 # function `mergecont!`:
 
 mergecont!(a, b) = merge!(+, a, b)
-mergecont!(a) = a
 nothing  # hide
 
-# Note that the unary form is required for the completion.
-# Alternatively, we can use [`Completing((a, b) -> merge!(+, a,
-# b))`](@ref Completing) instead of `mergecont!`.  Putting the
-# transducer and reducing function together, we get:
+# Putting the transducer and reducing function together, we get:
 
 countwords(s; kwargs...) =
-    mapreduce(Map(Char) |> countxf,
-              mergecont!,
-              transcode(UInt8, s);
-              init = CopyInit(Dict{String,Int}()),
-              kwargs...)
+    reduce(mergecont!,
+           Map(Char) |> countxf,
+           transcode(UInt8, s);
+           init = CopyInit(Dict{String,Int}()),
+           kwargs...)
 nothing  # hide
 
-# Side note: Since [`mapreduce`](@ref) does not support string, the
-# input string is converted to a `Vector{UInt8}` first by `transcode`.
+# Side note: Since [`reduce`](@ref) does not support string, the input
+# string is converted to a `Vector{UInt8}` first by `transcode`.
 # That's why there is `Map(Char) |>` before `countxf`.  Of course,
 # this is not valid for UTF-8 in general.
 #
 # Side note 2: We use [`CopyInit`](@ref) to create a fresh initial
 # state for each sub-reduce to avoid overwriting mutable data between
 # threads.
+#
+# Side note 3: [`reduce`](@ref) wraps `mergecont!` automatically with
+# [`Completing`](@ref).  This is why `mergecont!` does not have to
+# have the unary method.
 
 # Let's run some tests with different `basesize` (`length(s) /
 # basesize` corresponds to number of tasks to be used):

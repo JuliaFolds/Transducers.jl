@@ -385,6 +385,14 @@ See [`mapfoldl`](@ref).
 """
 Base.mapreduce
 
+"""
+    reduce(step, xf, reducible; init, simd)
+
+Like [`mapreduce`](@ref) but `step` is automatically wrapped by
+[`Completing`](@ref).
+"""
+Base.reduce
+
 @static if VERSION >= v"1.3-alpha"
 function __reduce__(
     rf, init, arr::AbstractArray;
@@ -444,6 +452,9 @@ function Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
     rf = _reducingfunction(xform, step, eltype(itr); simd=simd)
     return unreduced(complete(rf, __reduce__(rf, init, itr; kwargs...)))
 end
+
+Base.reduce(step, xform::Transducer, itr; kwargs...) =
+    mapreduce(xform, Completing(step), itr; kwargs...)
 
 struct Eduction{F, C}
     rf::F
