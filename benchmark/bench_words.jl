@@ -19,7 +19,8 @@ end
 str = makewords(2^14)
 
 for n in [1, 2, 4]
-    suite["nthreads=$n"] = @benchmarkable countwords($str; nthreads=$n)
+    b = length(str) ÷ n
+    suite["nthreads=$n"] = @benchmarkable countwords($str; basesize=$b)
 end
 
 end  # module

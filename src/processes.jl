@@ -386,23 +386,31 @@ See [`mapfoldl`](@ref).
 Base.mapreduce
 
 @static if VERSION >= v"1.3-alpha"
-function __reduce__(rf, init, arr::AbstractArray;
-                    nthreads = nothing)
-    if Threads.nthreads() == 1 || length(arr) <= 512
+function __reduce__(
+    rf, init, arr::AbstractArray;
+    basesize = Threads.nthreads() == 1 ? typemax(Int) : 512,
+)
+    if length(arr) <= max(basesize, 1)
         return foldl_nocomplete(rf, _start_init(rf, init), arr)
     else
         mid = length(arr) ÷ 2
         left = @view arr[firstindex(arr):firstindex(arr) - 1 + mid]
         right = @view arr[firstindex(arr) + mid:end]
-        task = Threads.@spawn __reduce__(rf, init, right)
-        a = __reduce__(rf, init, left)
+        task = Threads.@spawn __reduce__(rf, init, right; basesize=basesize)
+        a = __reduce__(rf, init, left; basesize=basesize)
         b = fetch(task)
         return combine(rf, a, b)
     end
 end
 else
-function __reduce__(rf, init, arr::AbstractArray;
-                    nthreads = max(1, min(length(arr), Threads.nthreads())))
+function __reduce__(
+    rf, init, arr::AbstractArray;
+    basesize = Threads.nthreads() == 1 ? typemax(Int) : 512,
+)
+    nthreads = max(
+        1,
+        basesize <= 1 ? length(arr) : length(arr) ÷ basesize
+    )
     if nthreads == 1
         return foldl_nocomplete(rf, _start_init(rf, init), arr)
     else

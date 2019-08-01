@@ -96,7 +96,8 @@ end
         end
 
         @testset for nthreads in [1, 2, 4, 8]
-            actual = countwords(str; nthreads=nthreads)
+            basesize = length(str) ÷ nthreads
+            actual = countwords(str; basesize=basesize)
             @test actual == counts
         end
     end
