@@ -61,13 +61,12 @@ test set      |    5      5</code></pre><p>Side note: In the first example, the 
 countxf = wordsxf |&gt; Map(processcount)</code></pre><pre><code class="language-none">Map(vacantorchunk) |&gt;
     ScanEmit(extract, Chunk(&quot;&quot;), lastword) |&gt;
     Cat() |&gt;
-    Map(processcount)</code></pre><p>Transducer <code>countxf</code> constructs a &quot;singleton solution&quot; as a dictionary which then accumulated with the associative reducing step function <code>mergecont!</code>:</p><pre><code class="language-julia">mergecont!(a, b) = merge!(+, a, b)
-mergecont!(a) = a</code></pre><p>Note that the unary form is required for the completion. Alternatively, we can use <a href="../../manual/#Transducers.Completing"><code>Completing((a, b) -&gt; merge!(+, a, b))</code></a> instead of <code>mergecont!</code>.  Putting the transducer and reducing function together, we get:</p><pre><code class="language-julia">countwords(s; kwargs...) =
-    mapreduce(Map(Char) |&gt; countxf,
-              mergecont!,
-              transcode(UInt8, s);
-              init = CopyInit(Dict{String,Int}()),
-              kwargs...)</code></pre><p>Side note: Since <a href="../../manual/#Base.mapreduce"><code>mapreduce</code></a> does not support string, the input string is converted to a <code>Vector{UInt8}</code> first by <code>transcode</code>. That&#39;s why there is <code>Map(Char) |&gt;</code> before <code>countxf</code>.  Of course, this is not valid for UTF-8 in general.</p><p>Side note 2: We use <a href="../../manual/#Transducers.CopyInit"><code>CopyInit</code></a> to create a fresh initial state for each sub-reduce to avoid overwriting mutable data between threads.</p><p>Let&#39;s run some tests with different <code>basesize</code> (<code>length(s) / basesize</code> corresponds to number of tasks to be used):</p><pre><code class="language-julia">@testset for basesize in [1, 2, 4]
+    Map(processcount)</code></pre><p>Transducer <code>countxf</code> constructs a &quot;singleton solution&quot; as a dictionary which then accumulated with the associative reducing step function <code>mergecont!</code>:</p><pre><code class="language-julia">mergecont!(a, b) = merge!(+, a, b)</code></pre><p>Putting the transducer and reducing function together, we get:</p><pre><code class="language-julia">countwords(s; kwargs...) =
+    reduce(mergecont!,
+           Map(Char) |&gt; countxf,
+           transcode(UInt8, s);
+           init = CopyInit(Dict{String,Int}()),
+           kwargs...)</code></pre><p>Side note: Since <a href="../../manual/#Base.reduce"><code>reduce</code></a> does not support string, the input string is converted to a <code>Vector{UInt8}</code> first by <code>transcode</code>. That&#39;s why there is <code>Map(Char) |&gt;</code> before <code>countxf</code>.  Of course, this is not valid for UTF-8 in general.</p><p>Side note 2: We use <a href="../../manual/#Transducers.CopyInit"><code>CopyInit</code></a> to create a fresh initial state for each sub-reduce to avoid overwriting mutable data between threads.</p><p>Side note 3: <a href="../../manual/#Base.reduce"><code>reduce</code></a> wraps <code>mergecont!</code> automatically with <a href="../../manual/#Transducers.Completing"><code>Completing</code></a>.  This is why <code>mergecont!</code> does not have to have the unary method.</p><p>Let&#39;s run some tests with different <code>basesize</code> (<code>length(s) / basesize</code> corresponds to number of tasks to be used):</p><pre><code class="language-julia">@testset for basesize in [1, 2, 4]
     @test countwords(&quot;This is a sample&quot;, basesize=basesize) ==
         Dict(&quot;This&quot; =&gt; 1, &quot;is&quot; =&gt; 1, &quot;a&quot; =&gt; 1, &quot;sample&quot; =&gt; 1)
     @test countwords(&quot; Here is another sample &quot;, basesize=basesize) ==
