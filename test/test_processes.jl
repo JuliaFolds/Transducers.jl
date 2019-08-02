@@ -340,4 +340,9 @@ end
     end === reduced()
 end
 
+@testset "reduce" begin
+    # Test that InitialValues.jl can handle right identity
+    @test reduce(+, Filter(x -> x == 1), 1:2; basesize=1) == 1
+end
+
 end  # module
