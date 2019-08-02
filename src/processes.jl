@@ -393,28 +393,58 @@ Like [`mapreduce`](@ref) but `step` is automatically wrapped by
 """
 Base.reduce
 
-@static if VERSION >= v"1.3-alpha"
-function __reduce__(
-    rf, init, arr::AbstractArray;
+struct SizedReducible{T} <: Reducible
+    reducible::T
+    basesize::Int
+end
+
+foldable(reducible::SizedReducible) = reducible.reducible
+
+issmall(reducible::SizedReducible) =
+    length(reducible.reducible) <= max(reducible.basesize, 1)
+
+function halve(reducible::SizedReducible)
+    left, right = halve(reducible.reducible)
+    return (
+        SizedReducible(left, reducible.basesize),
+        SizedReducible(right, reducible.basesize),
+    )
+end
+
+function halve(arr::AbstractArray)
+    # TODO: support "slow" arrays
+    mid = length(arr) ÷ 2
+    left = @view arr[firstindex(arr):firstindex(arr) - 1 + mid]
+    right = @view arr[firstindex(arr) + mid:end]
+    return (left, right)
+end
+
+function transduce_assoc(
+    xform::Transducer, step, init, coll;
+    simd::SIMDFlag = Val(false),
     basesize = Threads.nthreads() == 1 ? typemax(Int) : 512,
 )
-    if length(arr) <= max(basesize, 1)
-        return foldl_nocomplete(rf, _start_init(rf, init), arr)
+    reducible = SizedReducible(coll, basesize)
+    rf = _reducingfunction(xform, step, ieltype(coll); simd=simd)
+    return complete(rf, __reduce__(rf, init, reducible))
+end
+
+@static if VERSION >= v"1.3-alpha"
+function __reduce__(rf, init, reducible::Reducible)
+    if issmall(reducible)
+        return foldl_nocomplete(rf, _start_init(rf, init), foldable(reducible))
     else
-        mid = length(arr) ÷ 2
-        left = @view arr[firstindex(arr):firstindex(arr) - 1 + mid]
-        right = @view arr[firstindex(arr) + mid:end]
-        task = Threads.@spawn __reduce__(rf, init, right; basesize=basesize)
-        a = __reduce__(rf, init, left; basesize=basesize)
+        left, right = halve(reducible)
+        task = Threads.@spawn __reduce__(rf, init, right)
+        a = __reduce__(rf, init, left)
         b = fetch(task)
         return combine(rf, a, b)
     end
 end
 else
-function __reduce__(
-    rf, init, arr::AbstractArray;
-    basesize = Threads.nthreads() == 1 ? typemax(Int) : 512,
-)
+function __reduce__(rf, init, reducible::SizedReducible{<:AbstractArray})
+    arr = reducible.reducible
+    basesize = reducible.basesize
     nthreads = max(
         1,
         basesize <= 1 ? length(arr) : length(arr) ÷ basesize
@@ -445,13 +475,13 @@ end
 end  # if
 
 # AbstractArray for disambiguation
-function Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
-                        init = MissingInit(),
-                        simd::SIMDFlag = Val(false),
-                        kwargs...)
-    rf = _reducingfunction(xform, step, eltype(itr); simd=simd)
-    return unreduced(complete(rf, __reduce__(rf, init, itr; kwargs...)))
-end
+Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
+               init = MissingInit(), kwargs...) =
+    unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
+
+Base.mapreduce(xform::Transducer, step, itr;
+               init = MissingInit(), kwargs...) =
+    unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
 
 Base.reduce(step, xform::Transducer, itr; kwargs...) =
     mapreduce(xform, Completing(step), itr; kwargs...)
