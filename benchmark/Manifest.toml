@@ -183,7 +183,7 @@ version = "0.5.4"
 deps = ["ArgCheck", "BangBang", "InitialValues", "Markdown", "Requires", "Setfield"]
 path = ".."
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
-version = "0.3.0-DEV"
+version = "0.4.0-DEV"
 
 [[UUIDs]]
 deps = ["Random", "SHA"]
