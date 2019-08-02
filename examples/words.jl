@@ -170,16 +170,14 @@ nothing  # hide
 
 countwords(s; kwargs...) =
     reduce(mergecont!,
-           Map(Char) |> countxf,
-           transcode(UInt8, s);
+           countxf,
+           collect(s);
            init = CopyInit(Dict{String,Int}()),
            kwargs...)
 nothing  # hide
 
 # Side note: Since [`reduce`](@ref) does not support string, the input
-# string is converted to a `Vector{UInt8}` first by `transcode`.
-# That's why there is `Map(Char) |>` before `countxf`.  Of course,
-# this is not valid for UTF-8 in general.
+# string is converted to a `Vector{Char}` first by `collect`.
 #
 # Side note 2: We use [`CopyInit`](@ref) to create a fresh initial
 # state for each sub-reduce to avoid overwriting mutable data between
@@ -203,5 +201,7 @@ nothing  # hide
     @test countwords("", basesize=basesize) == Dict()
     @test countwords("aaa bb aaa aaa bb bb aaa", basesize=basesize) ==
         Dict("aaa" => 4, "bb" => 3)
+    @test countwords("あああ いい あああ あああ いい いい あああ", basesize=basesize) ==
+        Dict("あああ" => 4, "いい" => 3)
 end
 nothing  # hide
