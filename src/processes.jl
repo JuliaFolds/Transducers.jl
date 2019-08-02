@@ -425,24 +425,34 @@ function transduce_assoc(
     basesize = Threads.nthreads() == 1 ? typemax(Int) : 512,
 )
     reducible = SizedReducible(coll, basesize)
-    rf = _reducingfunction(xform, step, ieltype(coll); simd=simd)
-    return complete(rf, __reduce__(rf, init, reducible))
+    rf = _reducingfunction(xform, step, eltype(coll); simd=simd)
+    stop = Threads.Atomic{Bool}(false)
+    acc = @return_if_reduced __reduce__(stop, rf, init, reducible)
+    return complete(rf, acc)
 end
 
 @static if VERSION >= v"1.3-alpha"
-function __reduce__(rf, init, reducible::Reducible)
+function __reduce__(stop, rf, init, reducible::Reducible)
+    stop[] && return init
     if issmall(reducible)
-        return foldl_nocomplete(rf, _start_init(rf, init), foldable(reducible))
+        acc = foldl_nocomplete(rf, _start_init(rf, init), foldable(reducible))
+        if acc isa Reduced
+            stop[] = true
+        end
+        return acc
     else
         left, right = halve(reducible)
-        task = Threads.@spawn __reduce__(rf, init, right)
-        a = __reduce__(rf, init, left)
-        b = fetch(task)
+        task = Threads.@spawn __reduce__(stop, rf, init, right)
+        a0 = __reduce__(stop, rf, init, left)
+        b0 = fetch(task)
+        a = @return_if_reduced a0
+        b = @return_if_reduced b0
+        stop[] && return a  # slight optimization
         return combine(rf, a, b)
     end
 end
 else
-function __reduce__(rf, init, reducible::SizedReducible{<:AbstractArray})
+function __reduce__(_stop, rf, init, reducible::SizedReducible{<:AbstractArray})
     arr = reducible.reducible
     basesize = reducible.basesize
     nthreads = max(
@@ -462,6 +472,8 @@ function __reduce__(rf, init, reducible::SizedReducible{<:AbstractArray})
             end
             results[i] = foldl_nocomplete(rf, _start_init(rf, init), chunk)
         end
+        i = findfirst(isreduced, results)
+        i === nothing || return results[i]
         # It can be done in `log2(n)` for loops but it's not clear if
         # `combine` is compute-intensive enough so that launching
         # threads is worth enough.  Let's merge the `results`
