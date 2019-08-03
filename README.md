@@ -1,4 +1,4 @@
-# Transducers.jl: Efficient and type-stable transducers for Julia
+# Transducers.jl: Efficient transducers for Julia
 
 [![Stable documentation][docs-stable-img]][docs-stable-url]
 [![Latest documentation][docs-dev-img]][docs-dev-url]
