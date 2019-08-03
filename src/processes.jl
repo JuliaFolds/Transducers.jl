@@ -425,7 +425,7 @@ function transduce_assoc(
     basesize = Threads.nthreads() == 1 ? typemax(Int) : 512,
 )
     reducible = SizedReducible(coll, basesize)
-    rf = _reducingfunction(xform, step, eltype(coll); simd=simd)
+    rf = maybe_usesimd(rf_for(xform, step, init, ieltype(coll)), simd)
     stop = Threads.Atomic{Bool}(false)
     acc = @return_if_reduced __reduce__(stop, rf, init, reducible)
     return complete(rf, acc)
