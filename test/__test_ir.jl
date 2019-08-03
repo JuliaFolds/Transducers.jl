@@ -49,7 +49,7 @@ end
 
 @testset "Cat SIMD" begin
     coll = [Float64[]]
-    rf = maybe_usesimd(Reduction(Cat(), +, eltype(coll)), true)
+    rf = maybe_usesimd(Reduction(Cat(), +), true)
     ir = llvm_ir(transduce, (rf, 0.0, coll))
     @test_broken_if(
         VERSION < v"1.1-",
@@ -84,9 +84,7 @@ unsafe_setter(ys) =
 
         # Manually "expand" `foreach` internal (so that I can observe
         # SIMD in the IR).
-        rf = Reduction(xf,
-                       SideEffect(unsafe_setter(ys)),
-                       eltype(xs))
+        rf = Reduction(xf, SideEffect(unsafe_setter(ys)))
         rf = maybe_usesimd(rf, true)
         fill!(ys, 0)
         transduce(rf, nothing, xs)
@@ -107,7 +105,7 @@ end
     okunion = r"UNION\{NOTHING, *TUPLE\{INT64, *INT64\}\}"
 
     coll = Float64[]
-    rf = Reduction(xf, +, eltype(coll))
+    rf = Reduction(xf, +)
     val = start(rf, 0.0)
     ir = julia_ir(__foldl__, (rf, val, coll))
     @test anyunions(replace(ir, okunion => "")) == []

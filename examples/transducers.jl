@@ -35,15 +35,6 @@ end  # hide
 
 collect(AddOneIfInt(), Any[3, nothing, 2.0, missing, 5])
 
-# Notice that output `eltype` is `Any`; it can be fixed by defining
-# `outtype`:
-
-Transducers.outtype(::AddOneIfInt, _intype) = Int
-
-addone_out2 = begin  # hide
-collect(AddOneIfInt(), 1:5)
-end  # hide
-
 # ## Stateful transducer
 #
 # `AddOneIfInt` is a stateless transducer which is very easy to
@@ -96,8 +87,6 @@ function Transducers.next(rf::R_{RandomRecall}, result, input)
         return (buffer, rng), iresult
     end
 end
-
-Transducers.outtype(::RandomRecall, intype) = intype
 
 # Any transducer with custom [`Transducers.start`](@ref) must have a
 # corresponding [`Transducers.complete`](@ref).  It is responsible for

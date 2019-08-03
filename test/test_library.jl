@@ -52,18 +52,6 @@ end
         @test collect(Scan(max), xs) == [0, 0, 3, 3, 3]
         @test collect(Scan(min), xs) == [0, -1, -1, -2, -2]
     end
-
-    @testset "outtype" begin
-        @test outtype(Scan(+), Int) == Union{Int, typeof(Init(+))}
-        @test outtype(Scan(+, 0.0), Int) === Float64
-        @test outtype(Scan(+, missing), Int) === Missing
-with_logger(NullLogger()) do
-        @test outtype(Scan(+, Initializer(_ -> rand())), Int) ===
-            Float64
-        @test outtype(Scan(+, Initializer(_ -> rand(Int))), Int) ===
-            Int
-end
-    end
 end
 
 @testset "ScanEmit" begin
@@ -76,21 +64,6 @@ end
         @testset for xs in iterator_variants(1:3)
             @test collect(ScanEmit(tuple, 0, identity) |> Take(4), xs) == 0:3
         end
-    end
-
-    @testset "outtype" begin
-        @test outtype(ScanEmit(tuple, 0), Int) === Int
-        @test outtype(ScanEmit(tuple, 0.0), Int) ===
-            Union{Float64, Int64}
-        @test outtype(
-            ScanEmit(tuple, missing), Int) === Union{Missing, Int64}
-with_logger(NullLogger()) do
-        @test outtype(
-            ScanEmit(tuple, Initializer(_ -> rand())), Int) ===
-                Union{Float64, Int64}
-        @test outtype(
-            ScanEmit(tuple, Initializer(_ -> rand(Int))), Int) === Int
-end
     end
 
     @testset "Do not call `complete` when reduced" begin
@@ -132,15 +105,6 @@ end
         @test collect(TeeZip(Filter(isodd) |> Map(inc)), xs) ==
             collect(zip(1:2:5, 2:2:6))
     end
-
-    ed = eduction(TeeZip(Filter(isodd) |> Map(x -> x + 1.0)) |>
-                  Map(last) |>
-                  Scan(+,
-                       with_logger(NullLogger()) do
-                           Initializer(T -> zero(T))
-                       end),
-                  1:5)
-    @test eltype(ed) === Float64
 
     xf = Map(inc) |> TeeZip(Filter(isodd)) |> Map(first)
     @testset for xs in iterator_variants(1:6)
@@ -491,24 +455,6 @@ end
 end
 
 @testset "OfType" begin
-    @testset "outtype" begin
-        @test outtype(OfType(Int), Int) === Int
-        @test outtype(OfType(Int), Union{Int,Missing}) === Int
-        @test outtype(OfType(Number), Union{Int,Missing}) === Int
-        @test outtype(OfType(Integer), Union{Int,Missing}) === Int
-        @test outtype(
-            OfType(Tuple{Int,Int}),
-            Tuple{Union{Int,Missing}, Int}
-        ) === Tuple{Int,Int}
-        @test outtype(
-            OfType(Tuple{Vararg{Int}}),
-            Tuple{Union{Int,Missing}, Int}
-        ) === Tuple{Int,Int}
-        @test outtype(
-            OfType(Tuple{Vararg{Number}}),
-            Tuple{Union{Int,Missing}, Int}
-        ) === Tuple{Int,Int}
-    end
     @testset "_next_oftype for non-tuple" begin
         @testset for xs in iterator_variants([0.0, 1.0, missing])
             @test collect(OfType(Float64), xs) == [0.0, 1.0]

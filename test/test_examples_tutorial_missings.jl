@@ -2,12 +2,6 @@ module TestExamplesTutorialMissings
 include("../examples/tutorial_missings.jl")
 include("preamble.jl")
 
-@testset "outtype of xf_sum_columns" begin
-    @test eltype(eduction(xf_sum_columns(Float64[]), Any[])) ===
-        Vector{Float64}
-    @test eltype(eduction(xf_sum_columns(Float64[]), Any[])) <: Vector
-end
-
 slow_xf_fullextrema = Zip(Count(), NotA(Missing)) |>
     Zip(xf_scanext(>), xf_scanext(<))
 

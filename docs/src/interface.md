@@ -12,7 +12,6 @@ Transducers.start
 Transducers.next
 Transducers.@next
 Transducers.complete
-Transducers.outtype
 ```
 
 ## Helpers for stateful transducers

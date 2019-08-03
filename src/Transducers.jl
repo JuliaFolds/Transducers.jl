@@ -5,7 +5,7 @@ export Transducer, Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, Zip,
     Interpose, Dedupe, Partition, Iterated, Count, GroupBy, ReduceIf,
     TakeLast, FlagFirst, MapSplat, ScanEmit, Enumerate, NotA, OfType,
     transduce, eduction, setinput, Reduced, reduced, unreduced, ifunreduced,
-    Completing, Initializer, OnInit, CopyInit, right, reducingfunction,
+    Completing, OnInit, CopyInit, right, reducingfunction,
     AdHocFoldable
 
 # Deprecated:
@@ -36,8 +36,6 @@ include("deprecated.jl")
 
 include("interop/blockarrays.jl")
 include("interop/lazyarrays.jl")
-
-include("evals.jl")
 
 function __init__()
     @require BlockArrays="8e7c35d0-a365-5155-bbbb-fb81a777f24e" begin

@@ -5,15 +5,12 @@ Tell the reducible to run the inner reducing function using `@simd`.
 The reducible can support it using `@simd_if`.
 """
 struct UseSIMD{ivdep} <: Transducer end
-outtype(::UseSIMD, intype) = intype
 next(rf::R_{UseSIMD}, result, input) = next(inner(rf), result, input)
 
 # Make sure UseSIMD is the outer-most transducer when UseSIMD is used
 # via Cat.
 skipcomplete(rf::R_{UseSIMD}) =
-    Reduction(xform(rf)::UseSIMD,
-              skipcomplete(inner(rf)),
-              InType(rf))
+    Reduction(xform(rf)::UseSIMD, skipcomplete(inner(rf)))
 
 isivdep(::UseSIMD{ivdep}) where ivdep = ivdep
 isivdep(rf::Reduction) = isivdep(xform(rf))
@@ -60,37 +57,37 @@ julia> using Transducers
        using Transducers: maybe_usesimd
 
 julia> maybe_usesimd(reducingfunction(Map(identity), right), false)
-Reduction{▶ NOTYPE}(
+Reduction(
     Map(identity),
-    BottomRF{▶ NOTYPE}(
+    BottomRF(
         Transducers.right))
 
 julia> maybe_usesimd(reducingfunction(Map(identity), right), true)
-Reduction{▶ NOTYPE}(
+Reduction(
     Transducers.UseSIMD{false}(),
-    Reduction{▶ NOTYPE}(
+    Reduction(
         Map(identity),
-        BottomRF{▶ NOTYPE}(
+        BottomRF(
             Transducers.right)))
 
 julia> maybe_usesimd(reducingfunction(Cat(), right), true)
-Reduction{▶ NOTYPE}(
+Reduction(
     Cat(),
-    Reduction{▶ NOTYPE}(
+    Reduction(
         Transducers.UseSIMD{false}(),
-        BottomRF{▶ NOTYPE}(
+        BottomRF(
             Transducers.right)))
 
 julia> maybe_usesimd(reducingfunction(Map(sin) |> Cat() |> Map(cos), right), :ivdep)
-Reduction{▶ NOTYPE}(
+Reduction(
     Map(sin),
-    Reduction{▶ NOTYPE}(
+    Reduction(
         Cat(),
-        Reduction{▶ NOTYPE}(
+        Reduction(
             Transducers.UseSIMD{true}(),
-            Reduction{▶ NOTYPE}(
+            Reduction(
                 Map(cos),
-                BottomRF{▶ NOTYPE}(
+                BottomRF(
                     Transducers.right)))))
 
 julia> maybe_usesimd(
@@ -100,19 +97,19 @@ julia> maybe_usesimd(
            ),
            true,
        )
-Reduction{▶ NOTYPE}(
+Reduction(
     Map(sin),
-    Reduction{▶ NOTYPE}(
+    Reduction(
         Cat(),
-        Reduction{▶ NOTYPE}(
+        Reduction(
             Map(cos),
-            Reduction{▶ NOTYPE}(
+            Reduction(
                 Cat(),
-                Reduction{▶ NOTYPE}(
+                Reduction(
                     Transducers.UseSIMD{false}(),
-                    Reduction{▶ NOTYPE}(
+                    Reduction(
                         Map(tan),
-                        BottomRF{▶ NOTYPE}(
+                        BottomRF(
                             Transducers.right)))))))
 ```
 """

@@ -68,8 +68,7 @@ julia> transduce(rf_bad, "", 1:3)
 "123112312123123"
 ```
 
-One way to solve this issue is to use [`CopyInit`](@ref) or
-[`Initializer`](@ref).
+One way to solve this issue is to use [`CopyInit`](@ref) or [`OnInit`](@ref).
 
 ```jldoctest reducingfunction
 julia> scan_state = CopyInit([])
@@ -87,12 +86,8 @@ julia> transduce(rf_good, "", 1:3)
 "112123"
 ```
 """
-@inline reducingfunction(xf::Transducer, step; kwargs...) =
-    _reducingfunction(xf, step, NOTYPE; kwargs...)
-
-@inline _reducingfunction(xf::Transducer, step, intype::Typeish;
-                          simd::SIMDFlag = Val(false)) =
-    maybe_usesimd(Reduction(xf, step, intype), simd)
+@inline reducingfunction(xf::Transducer, step; simd::SIMDFlag = Val(false)) =
+    maybe_usesimd(Reduction(xf, step), simd)
 
 """
     __foldl__(rf, init, reducible::T)
@@ -224,7 +219,7 @@ may be able to emit a good code.  This function exists only for
 performance tuning.
 """
 function simple_transduce(xform, f, init, coll)
-    rf = rf_for(xform, f, init, eltype(coll))
+    rf = Reduction(xform, f)
     return __simple_foldl__(rf, _start_init(rf, init), coll)
 end
 
@@ -300,17 +295,9 @@ See [`mapfoldl`](@ref).
 transduce
 
 function transduce(xform::Transducer, f, init, coll; kwargs...)
-    rf = rf_for(xform, f, init, ieltype(coll))
+    rf = Reduction(xform, f)
     return transduce(rf, init, coll; kwargs...)
 end
-
-_needintype(xf, step, init) =
-    (init isa MissingInit && !hasinitialvalue(_realbottomrf(step))) ||
-    (init isa Initializer && !(init isa CopyInit)) ||
-    needintype(xf)
-
-rf_for(xf, step, init, intype) =
-    Reduction(xf, step, _needintype(xf, step, init) ? intype : NOTYPE)
 
 # Materialize initial value and then call start.
 _start_init(rf, init) = start(rf, provide_init(rf, init))
@@ -425,7 +412,7 @@ function transduce_assoc(
     basesize = Threads.nthreads() == 1 ? typemax(Int) : 512,
 )
     reducible = SizedReducible(coll, basesize)
-    rf = maybe_usesimd(rf_for(xform, step, init, ieltype(coll)), simd)
+    rf = maybe_usesimd(Reduction(xform, step), simd)
     stop = Threads.Atomic{Bool}(false)
     acc = @return_if_reduced __reduce__(stop, rf, init, reducible)
     return complete(rf, acc)
@@ -504,17 +491,7 @@ struct Eduction{F, C}
 end
 
 Eduction(xform::Transducer, coll) =
-    Eduction(rf_for(xform, Completing(push!!), Union{}[], ieltype(coll)), coll)
-
-infer_input_types(ed::Eduction) =
-    if FinalType(ed.rf) isa Type
-        ed
-    else
-        Eduction(Reduction(Transducer(ed.rf),
-                           as(ed.rf, BottomRF).inner,
-                           ieltype(ed.coll)),
-                 ed.coll)
-    end
+    Eduction(Reduction(xform, Completing(push!!)), coll)
 
 Transducer(ed::Eduction) = Transducer(ed.rf)
 
@@ -522,10 +499,6 @@ transduce(xform::Transducer, f, init, ed::Eduction) =
     transduce(Transducer(ed) |> xform, f, init, ed.coll)
 
 Base.IteratorSize(::Type{<:Eduction}) = Base.SizeUnknown()
-
-Base.IteratorEltype(::Type{<:Eduction{F}}) where {F} =
-    F === NOTYPE ? Base.EltypeUnknown() : Base.HasEltype()
-Base.eltype(::Type{<:Eduction{F}}) where F = astype(FinalType(F))
 
 function Base.iterate(ts::Eduction, state = nothing)
     if state === nothing
@@ -673,13 +646,8 @@ julia> collect(Interpose(missing), 1:3)
 ```
 """
 function Base.collect(xf::Transducer, coll)
-    if needintype(xf)
-        rf = Reduction(xf, Completing(push!), eltype(coll))
-        to = FinalType(rf)[]
-    else
-        rf = reducingfunction(xf, Completing(push!!))
-        to = Union{}[]
-    end
+    rf = Reduction(xf, Completing(push!!))
+    to = Union{}[]
     result = unreduced(transduce(rf, to, coll))
     if result isa Vector{Union{}}
         et = @default_finaltype(xf, coll)
@@ -747,10 +715,9 @@ function _prepare_map(xf, dest, src, simd)
     # TODO: support Dict
     indices = eachindex(dest, src)
 
-    rf = _reducingfunction(
+    rf = reducingfunction(
         TeeZip(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
         (::Vararg) -> nothing,
-        needintype(xf) ? eltype(indices) : NOTYPE;
         simd = simd)
 
     return rf, indices, dest
@@ -808,14 +775,10 @@ function Base.foldl(step, xform::Transducer, itr;
     mapfoldl(xform, Completing(step), itr; kw...)
 end
 
-@inline Base.foldl(step, ed::Eduction; init=MissingInit(), kwargs...) =
-    if FinalType(ed.rf) === NOTYPE
-        xf = Transducer(ed.rf)
-        unreduced(transduce(xf, Completing(step), init, ed.coll; kwargs...))
-    else
-        rf = reform(ed.rf, Completing(step))
-        unreduced(transduce(rf, init, ed.coll; kwargs...))
-    end
+@inline function Base.foldl(step, ed::Eduction; init=MissingInit(), kwargs...)
+    xf = Transducer(ed.rf)
+    return unreduced(transduce(xf, Completing(step), init, ed.coll; kwargs...))
+end
 
 """
     foreach(eff, xf::Transducer, reducible; simd)
@@ -1018,7 +981,6 @@ through a channel.  `Channel(xf, itr)` and `Channel(eduction(xf,
 itr))` are equivalent.  Note that `itr` itself can be a `Channel`.
 
 Keyword arguments are passed to `Channel(function; kwargs...)`.
-`ctype` is inferred from `xf` if not specified.
 
 # Examples
 ```jldoctest
@@ -1032,9 +994,6 @@ julia> ed = eduction(Map(x -> 1:x), ch2);
 
 julia> ch3 = Channel(Cat(), ed);
 
-julia> typeof(ch1) === typeof(ch2) === typeof(ch3) === Channel{Int}
-true
-
 julia> foreach(PartitionBy(isequal(1)), ch3) do input
            @show input
        end;
@@ -1044,28 +1003,11 @@ input = [1]
 input = [2, 3, 4, 5, 6, 7, 8, 9]
 ```
 """
-Base.Channel(xform::Transducer, itr;
-             ctype::Type = _chan_ctype(xform, itr),
-             kwargs...) =
-    Channel(; ctype = ctype, kwargs...) do chan
+Base.Channel(xform::Transducer, itr; kwargs...) =
+    Channel(; kwargs...) do chan
         foreach(x -> put!(chan, x), xform, itr)
         return
     end
-
-function _chan_ctype(xform, itr)
-    ctype = outtype(xform, ieltype(itr))
-    if ctype === Union{}
-        error("""
-$_non_executable_transducer_msg
-Use `mapfoldl` etc. with `init` argument to run the transducer
-forcefully and find out which one causes the problem.
-""")
-    end
-    return ctype
-end
-
-Base.Channel(xform::Transducer, ed::Eduction; kwargs...) =
-    Channel(Transducer(ed) |> xform, ed.coll; kwargs...)
 
 Base.Channel(ed::Eduction; kwargs...) =
     Channel(Transducer(ed), ed.coll; kwargs...)

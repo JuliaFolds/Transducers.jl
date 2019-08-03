@@ -8,29 +8,26 @@ end
 ```
 
 ```jldoctest
-Reduction(
-    Filter(isfinite) |> Map(sin),
-    +,
-    Float64)
+Reduction(Filter(isfinite) |> Map(sin), +)
 
 # output
 
-Reduction{▶ Float64}(
+Reduction(
     Filter(isfinite),
-    Reduction{▶ Float64}(
+    Reduction(
         Map(sin),
-        BottomRF{▶ Float64}(
+        BottomRF(
             +)))
 ```
 
 ```jldoctest
-rf = Reduction(Map(error), right, Int64)
+rf = Reduction(Map(error), right)
 
 # output
 
-Reduction{▶ Int64}(
+Reduction(
     Map(error),
-    BottomRF{▶ Union{}}(
+    BottomRF(
         Transducers.right))
 ```
 
@@ -38,21 +35,21 @@ Reduction{▶ Int64}(
 rf = Reduction(
     TeeZip(Filter(isodd) |> Map(identity) |> TeeZip(Map(identity))),
     right,
-    Any)
+)
 
 # output
 
-Splitter{▶ Any}(
-    Reduction{▶ Any}(
+Splitter(
+    Reduction(
         Filter(isodd),
-        Reduction{▶ Any}(
+        Reduction(
             Map(identity),
-            Splitter{▶ Any}(
-                Reduction{▶ Any}(
+            Splitter(
+                Reduction(
                     Map(identity),
-                    Joiner{▶ ⦃Any, Any⦄}(
-                        Joiner{▶ ⦃Any, ⦃Any, Any⦄⦄}(
-                            BottomRF{▶ ⦃Any, ⦃Any, Any⦄⦄}(
+                    Joiner(
+                        Joiner(
+                            BottomRF(
                                 Transducers.right))))))))
 ```
 

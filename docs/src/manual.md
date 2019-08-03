@@ -57,7 +57,6 @@ reducingfunction
 Completing
 OnInit
 CopyInit
-Initializer
 right
 setinput
 AdHocFoldable

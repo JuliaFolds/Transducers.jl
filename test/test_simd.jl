@@ -17,7 +17,7 @@ end
     @test simd_if_demo(UseSIMD{true}(), zero(xs), xs) == 2xs
 end
 
-asrf(xf) = Reduction(xf, right, Int)
+asrf(xf) = Reduction(xf, right)
 
 @testset "usesimd" begin
     xfsimd = UseSIMD{false}()

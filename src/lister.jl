@@ -17,7 +17,6 @@ _unexported_public_api = (
     start,
     next,
     complete,
-    outtype,
     # Helpers for stateful transducers
     wrap,
     unwrap,

@@ -30,7 +30,6 @@ include("preamble.jl")
         @test foldl(+, xf, iter, init=32.) === 32.
 
         ed = eduction(xf, iter)
-        ed = infer_input_types(ed)
         @test_throws EmptyResultError foldl(+, ed)
         @test foldl(+, ed, init=32.) === 32.
 
@@ -98,8 +97,6 @@ end
     end
 
     ed = eduction(xf, 1:5)
-    ed = infer_input_types(ed)
-    @test eltype(ed) === Int
 
     @testset "inference" begin
         xf = Zip(Count(), Map(identity), Map(x -> 2x)) |> MapSplat(*)
@@ -115,51 +112,22 @@ end
             push!(result, x)
         end === reduced()
     end
-
-    @testset "eltype" begin
-        for (xf, desiredtype) in [
-                (Map(identity), Int),
-                (Filter(isodd), Int),
-                (Map(x -> 1/x), float(Int)),
-                ]
-            ed = eduction(xf, 1:10)
-            ed = infer_input_types(ed)
-            @test Base.IteratorEltype(typeof(ed)) ==
-                Base.IteratorEltype(ed) ==
-                Base.HasEltype()
-            @test eltype(typeof(ed)) == eltype(ed) == desiredtype
-        end
-    end
 end
 
 
 @testset "setinput" begin
     xf = Zip(Count(), Map(identity), Map(x -> 2x)) |> MapSplat(*)
     ed = eduction(xf, 1:10)
-    ed = infer_input_types(ed)
 
     @testset for xs in iterator_variants(1:10)
         @test setinput(ed, xs).coll isa typeof(xs)
         @test collect(setinput(ed, xs)) == collect(ed)
     end
 
-    @testset "changing eltype" begin
-        edchar = eduction(Zip(Map(identity), Count()), "abc")
-        edchar = infer_input_types(edchar)
-        @test eltype(edchar) === Tuple{Char, Int}
-        edf64 = setinput(edchar, Float64[])
-        edf64 = infer_input_types(edf64)
-        @test eltype(edf64) === Tuple{Float64, Int}
-    end
-
     @testset "inference" begin
         @test (@inferred setinput(ed, [0])).coll isa Vector{Int}
         @test (@inferred setinput(ed, view([0], 1:1))).coll isa SubArray{Int}
-
-        err = @test_error @inferred setinput(ed, Float64[])
-        msg = sprint(showerror, err)
-        @test occursin("return type", msg)
-        @test occursin("does not match inferred return type", msg)
+        @test_broken (@inferred setinput(ed, Float64[])).coll isa Vector{Float64}
     end
 end
 
@@ -278,18 +246,6 @@ end
 
         err = @eval @test_error $ex
         @test occursin("EmptyResultError:", sprint(showerror, err))
-    end
-
-    @testset for ex in @expressions begin
-            Channel(Map(error), Int[])
-            Channel(eduction(Map(error), Int[]))
-            Channel(Map(error), eduction(Map(identity), Int[]))
-            Channel(Map(identity), eduction(Map(error), Int[]))
-        end
-
-        err = @eval @test_error $ex
-        @test occursin("inferred", sprint(showerror, err))
-        @test occursin("`Union{}`", sprint(showerror, err))
     end
 
     @testset for ex in @expressions begin

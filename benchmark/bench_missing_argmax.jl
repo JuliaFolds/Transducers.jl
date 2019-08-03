@@ -21,14 +21,14 @@ end
 random_missings(n = 10^3, th=2) = [abs(x) > th ? missing : x for x in randn(n)]
 
 argext_step(should_update) =
-    ((oldindex, oldvalue), (index, value)) ->
-        should_update(oldvalue, value) ? (index, value) : (oldindex, oldvalue)
-init_helper(::typeof(>), ::Type{Tuple{F, S}}) where {F, S} = (zero(F), typemax(S))
-init_helper(::typeof(<), ::Type{Tuple{F, S}}) where {F, S} = (zero(F), typemin(S))
-argext_init(should_update) = Initializer(TT -> init_helper(should_update, TT))
+    (old, (index, value)) ->
+        if old === nothing || should_update(old[2], value)
+            (index, value)
+        else
+            old
+        end
 
-xf_scanext(should_update) = Scan(argext_step(should_update),
-                                 argext_init(should_update))
+xf_scanext(should_update) = Scan(argext_step(should_update), nothing)
 
 xf_argmax = Enumerate() |>
     OfType(Tuple{Integer, Number}) |>
@@ -45,17 +45,16 @@ let xs = random_missings()
 end
 
 suite["xf"] = @benchmarkable(
-    foldl(right, ed; init=$(argext_init(<))),
+    foldl(right, ed; init=nothing),
     setup=(ed = eduction(xf_argmax, random_missings())))
 
-rf = Transducers._reducingfunction(
+rf = reducingfunction(
     xf_argmax,
-    right,
-    Union{Missing, Float64};
+    right;
     # simd = true,
 )
 suite["rf"] = @benchmarkable(
-    transduce($rf, $(argext_init(<)), xs),
+    transduce($rf, nothing, xs),
     setup=(xs = random_missings()))
 
 suite["man"] = @benchmarkable(

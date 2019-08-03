@@ -48,7 +48,6 @@ struct Map{F} <: Transducer
 end
 
 isexpansive(::Map) = false
-outtype(xf::Map, intype) = Union{Base.return_types(xf.f, (intype,))...}
 next(rf::R_{Map}, result, input) = next(inner(rf), result, xform(rf).f(input))
 
 """
@@ -73,7 +72,6 @@ struct MapSplat{F} <: Transducer
 end
 
 isexpansive(::MapSplat) = false
-outtype(xf::MapSplat, intype) = Union{Base.return_types(xf.f, intype)...}
 next(rf::R_{MapSplat}, result, input) =
     next(inner(rf), result, xform(rf).f(input...))
 
@@ -120,7 +118,6 @@ struct Replace{D} <: Transducer
 end
 
 isexpansive(::Replace) = false
-outtype(xf::Replace, intype) = Union{intype, avaltype(xf.d)}
 next(rf::R_{Replace}, result, input) =
     next(inner(rf), result, get(xform(rf).d, input, input))
 
@@ -143,8 +140,6 @@ true
 """
 struct Cat <: Transducer
 end
-
-outtype(::Cat, intype) = ieltype(intype)
 
 next(rf::R_{Cat}, result, input) = foldl_nocomplete(inner(rf), result, input)
 
@@ -221,8 +216,6 @@ julia> collect(NotA(Missing), [1, missing, 2])
 struct NotA{T} <: AbstractFilter end
 NotA(T::Type) = NotA{T}()
 
-outtype(::NotA{T}, intype) where T = Core.Compiler.typesubtract(intype, T)
-
 next(rf::R_{NotA{T}}, result, input) where T =
     input isa T ? result : next(inner(rf), result, input)
 
@@ -231,8 +224,6 @@ next(rf::R_{NotA{T}}, result, input) where T =
 # information to the compiler), it seems `Filter(!ismissing)` is
 # enough for a small example.  See:
 # https://discourse.julialang.org/t/19159/11
-#
-# So, the main benefit of `NotA` over `Filter` is `outtype`.
 
 """
     OfType(T)
@@ -253,8 +244,6 @@ julia> collect(OfType(Int), [1, missing, 2])
 """
 struct OfType{T} <: AbstractFilter end
 OfType(T::Type) = OfType{T}()
-
-outtype(::OfType{T}, intype) where T = Base.typeintersect(T, intype)
 
 @inline next(rf::R_{OfType{T}}, result, input) where T =
     _next_oftype(T, inner(rf), result, input)
@@ -665,7 +654,6 @@ julia> collect(FlagFirst(), 1:3)
 struct FlagFirst <: Transducer end
 
 isexpansive(::FlagFirst) = false
-outtype(::FlagFirst, intype) = Tuple{Bool,intype}
 
 start(rf::R_{FlagFirst}, result) = wrap(rf, true, start(inner(rf), result))
 complete(rf::R_{FlagFirst}, result) = complete(inner(rf), unwrap(rf, result)[2])
@@ -729,7 +717,6 @@ Partition(size, step; flush = false) = Partition(size; step = step, flush = flus
 Partition(size; step = size, flush = false) = Partition(size, step, flush)
 
 isexpansive(::Partition) = false
-outtype(::Partition, intype) = DenseSubVector{intype}
 
 function start(rf::R_{Partition}, result)
     buf = Union{}[]
@@ -835,7 +822,6 @@ end
 struct Unseen end
 
 isexpansive(::PartitionBy) = false
-outtype(::PartitionBy, intype) = Vector{intype}
 
 function start(rf::R_{PartitionBy}, result)
     iinput = Union{}[]
@@ -896,9 +882,6 @@ struct Keep{F} <: Transducer
 end
 
 isexpansive(::Keep) = false
-outtype(xf::Keep, intype) =
-    Core.Compiler.typesubtract(Union{Base.return_types(xf.f, (intype,))...},
-                               Nothing)
 
 function next(rf::R_{Keep}, result, input)
     iinput = xform(rf).f(input)
@@ -971,8 +954,6 @@ julia> collect(Interpose(missing), 1:3)
 struct Interpose{T} <: Transducer
     sep::T
 end
-
-outtype(xf::Interpose, intype) = Union{typeof(xf.sep), intype}
 
 start(rf::R_{Interpose}, result) = wrap(rf, Val(true), start(inner(rf), result))
 complete(rf::R_{Interpose}, result) = complete(inner(rf), unwrap(rf, result)[2])
@@ -1082,23 +1063,7 @@ end
 
 Scan(f) = Scan(f, makeid(f, Init))
 
-_lefttype(xf::Scan, intype) = inittypeof(xf.init, intype)
-
-# Maybe this is fine:
-# outtype(xf::Scan, intype) = Union{_lefttype(xf, intype), intype}
-
 isexpansive(::Scan) = false
-outtype(xf::Scan, intype) =
-    _type_scan_fixedpoint(xf.f, _lefttype(xf, intype), intype)
-
-function _type_scan_fixedpoint(f, A, X, limit = 10)
-    for _ in 1:limit
-        Y = Union{A,Base.return_types(f, (A, X))...}
-        A === Y && return Y
-        A = Y
-    end
-    return Any
-end
 
 function start(rf::R_{Scan}, result)
     init = _initvalue(rf)
@@ -1158,17 +1123,6 @@ end
 ScanEmit(f, init) = ScanEmit(f, init, nothing)
 
 isexpansive(xf::ScanEmit) = xf.onlast === nothing
-
-function outtype(xf::ScanEmit, intype)
-    U = _type_scan_fixedpoint((u, x) -> xf.f(u, x)[2],
-                              inittypeof(xf.init, intype),
-                              intype)
-    Y = Base._return_type((u, x) -> xf.f(u, x)[1], Tuple{U, intype})
-    if xf.onlast === nothing
-        return Y
-    end
-    return Union{Y, Base._return_type(xf.onlast, Tuple{U})}
-end
 
 start(rf::R_{ScanEmit}, result) =
     wrap(rf, _initvalue(rf), start(inner(rf), result))
@@ -1295,14 +1249,12 @@ function complete(rf::R_{AdHocXF}, result)
 end
 
 """
-    Iterated(f, init[, T::Type])
+    Iterated(f, init)
 
 Generate a sequence `init`, `f(init)`, `f(f(init))`, `f(f(f(init)))`,
 and so on.
 
 $(_shared_notes_unfold)
-
-Use the third argument `T` to specify the output type of `f`.
 
 $_use_initializer
 
@@ -1335,23 +1287,9 @@ julia> collect(Zip(Map(identity), Iterated(x -> 2x, 1)), 1:5)
 struct Iterated{F, T} <: Transducer
     f::F
     init::T
-
-    Iterated(f::F, init, T::Type) where F = new{F, T}(f, init)
-end
-
-Iterated(f, init::T) where T = Iterated(f, init, _type_fixedpoint(f, T))
-
-function _type_fixedpoint(f, X, limit = 10)
-    for _ in 1:limit
-        Y = Union{X, Base.return_types(f, (X,))...}
-        X === Y && return Y
-        X = Y
-    end
-    return Any
 end
 
 isexpansive(::Iterated) = false
-outtype(xf::Iterated, intype) = inittypeof(xf.init, intype)
 start(rf::R_{Iterated}, result) =
     wrap(rf, _initvalue(rf), start(inner(rf), result))
 complete(rf::R_{Iterated}, result) = complete(inner(rf), unwrap(rf, result)[2])
@@ -1399,7 +1337,6 @@ end
 Count(start = 1) = Count(start, oneunit(start))
 
 isexpansive(::Count) = false
-outtype(xf::Count{T}, ::Any) where T = T
 start(rf::R_{Count}, result) = wrap(rf, xform(rf).start, start(inner(rf), result))
 complete(rf::R_{Count}, result) = complete(inner(rf), unwrap(rf, result)[2])
 next(rf::R_{Count}, result, ::Any) =
@@ -1473,57 +1410,49 @@ end
 #                             MapSplat(*),
 #                             rf))))))
 
-struct Splitter{intype, R} <: AbstractReduction{intype, R}
+struct Splitter{R} <: AbstractReduction{R}
     inner::R
 end
 
-Splitter(inner::R) where R = Splitter{InType(R), R}(inner)
 setinner(rf::Splitter, inner) = Splitter(inner)
 reform(rf::Splitter, f) = Splitter(reform(inner(rf), f))
 
-struct Joiner{intype, F} <: AbstractReduction{intype, F}
+struct Joiner{F} <: AbstractReduction{F}
     inner::F  # original inner reduction
 end
 
-Joiner(inner::R) where R = Joiner{InType(R), R}(inner)
 setinner(rf::Joiner, inner) = Joiner(inner)
 reform(rf::Joiner, f) = Joiner(reform(inner(rf), f))
 
 # It's ugly that `Reduction` returns a non-`Reduction` type!  TODO: fix it
-function Reduction(xf::Composition{<:TeeZip}, f, intype::Typeish)
+function Reduction(xf::Composition{<:TeeZip}, f)
     @nospecialize
-    rf = _teezip_rf(xf.outer.xform, intype, (xf.inner, f, intype))
+    rf = _teezip_rf(xf.outer.xform, (xf.inner, f))
     return Splitter(rf)
 end
 
-function Reduction(xf::TeeZip, f, intype::Typeish)
+function Reduction(xf::TeeZip, f)
     @nospecialize
-    rf = _teezip_rf(xf.xform, intype, (nothing, f, intype))
+    rf = _teezip_rf(xf.xform, (nothing, f))
     return Splitter(rf)
 end
 
-function _teezip_rf(xf::Composition, intype, downstream)
+function _teezip_rf(xf::Composition, downstream)
     @nospecialize
-    intype_inner = _outtype(xf.outer, intype)
-    rf_inner = _teezip_rf(xf.inner, intype_inner, downstream)
-    return Reduction(xf.outer, rf_inner, intype)
+    rf_inner = _teezip_rf(xf.inner, downstream)
+    return Reduction(xf.outer, rf_inner)
 end
 
-function _teezip_rf(xf, intype, downstream)
+function _teezip_rf(xf, downstream)
     @nospecialize
-    xf_ds, f, intype_orig = downstream
-    if intype_orig === NOTYPE
-        intype_ds = NOTYPE
-    else
-        intype_ds = Tuple{intype_orig, outtype(xf, intype)}
-    end
+    xf_ds, f = downstream
     if xf_ds === nothing
-        rf_ds = ensurerf(f, intype_ds)
+        rf_ds = ensurerf(f)
     else
-        rf_ds = Reduction(xf_ds, f, intype_ds)
+        rf_ds = Reduction(xf_ds, f)
     end
-    joiner = Joiner{intype_ds, typeof(rf_ds)}(rf_ds)
-    return Reduction(xf, joiner, intype)
+    joiner = Joiner(rf_ds)
+    return Reduction(xf, joiner)
 end
 
 const SplitterState = PrivateState{<:Splitter}
@@ -1567,7 +1496,6 @@ next(rf::Joiner, result, input) =
 # Putting `state` back to make it type stable.
 
 isexpansive(xf::TeeZip) = isexpansive(xf.xform)
-outtype(xf::TeeZip, intype) = Tuple{intype, outtype(xf.xform, intype)}
 
 function Transducer(rf::Splitter)
     xf_split, rf_ds = _rf_to_teezip(inner(rf))
@@ -1660,9 +1588,6 @@ GetIndex{inbounds}(array::A) where {inbounds, A} = GetIndex{inbounds, A}(array)
 GetIndex(array) = GetIndex{false}(array)
 
 isexpansive(::GetIndex) = false
-outtype(xf::GetIndex, ::Type{<:Integer}) = eltype(xf.array)
-outtype(::GetIndex, T) =
-    error("Unexpected non-integer input type for GetIndex:\n", T)
 
 next(rf::R_{GetIndex{true}}, result, input) =
     next(inner(rf), result, @inbounds xform(rf).array[input])
@@ -1705,9 +1630,6 @@ SetIndex{inbounds}(array::A) where {inbounds, A} = SetIndex{inbounds, A}(array)
 SetIndex(array) = SetIndex{false}(array)
 
 isexpansive(::SetIndex) = false
-outtype(xf::SetIndex, ::Type{<:Tuple{Integer, <:Any}}) = eltype(xf.array)
-outtype(::SetIndex, T) =
-    error("Unexpected non-integer input type for SetIndex:\n", T)
 
 next(rf::R_{SetIndex{true}}, result, input::NTuple{2, Any}) =
     next(inner(rf), result, (@inbounds xform(rf).array[input[1]] = input[2];))
@@ -1767,7 +1689,6 @@ struct Inject{T} <: Transducer
 end
 
 isexpansive(::Inject) = false
-outtype(xf::Inject, intype) = Tuple{intype, ieltype(xf.iterator)}
 start(rf::R_{Inject}, result) =
     wrap(rf, iterate(xform(rf).iterator), start(inner(rf), result))
 complete(rf::R_{Inject}, result) = complete(inner(rf), unwrap(rf, result)[2])
@@ -1814,7 +1735,6 @@ end
 Enumerate(start = 1) = Enumerate(start, oneunit(start))
 
 isexpansive(::Enumerate) = false
-outtype(xf::Enumerate{T}, intype) where {T} = Tuple{T, intype}
 start(rf::R_{Enumerate}, result) =
     wrap(rf, xform(rf).start, start(inner(rf), result))
 complete(rf::R_{Enumerate}, result) = complete(inner(rf), unwrap(rf, result)[2])
@@ -1949,7 +1869,7 @@ complete(rf::R_{GroupBy}, result) = complete(inner(rf), unwrap(rf, result)[2])
         key = xform(rf).key(input)
         gstate, somegr = dictset!!(gstate, key) do value
             if value === nothing
-                gr0 = start(xform(rf).rf, initvalue(xform(rf).init, NOTYPE))
+                gr0 = start(xform(rf).rf, initvalue(xform(rf).init))
             else
                 gr0 = something(value)
             end

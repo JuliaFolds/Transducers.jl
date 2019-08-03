@@ -177,29 +177,6 @@ function _show_noindent(io, mime, x::Function)
     print(io, nameof(x))
 end
 
-function _show_intype(io, rf)
-    print(io, "{▶ ")
-    _show_type(io, InType(rf))
-    print(io, "}")
-end
-
-_show_type(io, t) = show(io, t)
-_show_type(io, t::Type{Union{}}) = show(io, t)
-
-function _show_type(io, t::Type{<:Tuple})
-    print(io, '⦃')
-    isfirst = true
-    for e in t.types
-        if isfirst
-            isfirst = false
-        else
-            print(io, ", ")
-        end
-        _show_type(io, e)
-    end
-    print(io, '⦄')
-end
-
 function _show_impl(io, mime, rf::AbstractReduction)
     indent = get(io, :indent, "")
     first_indent = get(io, :first_indent, indent)
@@ -210,7 +187,6 @@ function _show_impl(io, mime, rf::AbstractReduction)
 
     print(io, first_indent)
     print(io, Base.typename(typeof(rf)).name)
-    _show_intype(io, rf)
     println(io, '(')
     _show_multiline_args(next_io, mime, rf)
     print(io, ")")

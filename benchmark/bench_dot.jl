@@ -29,8 +29,8 @@ suite["xf"] = @benchmarkable(
 
 # This is a bit "cheating" since it's using non-public API.  It is
 # just to show the lower-bound of Transducers.jl runtime:
-rf = Transducers._reducingfunction(
-    MapSplat(*), +, Tuple{Float64, Float64};
+rf = reducingfunction(
+    MapSplat(*), +;
     simd = true)
 suite["rf"] = @benchmarkable(
     transduce($rf, 0.0, zs),

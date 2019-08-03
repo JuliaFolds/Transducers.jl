@@ -185,21 +185,6 @@ macro next(rf, state, input)
     end
 end
 
-struct NoType end
-const NOTYPE = NoType()
-const Typeish{T} = Union{Type{T}, NoType}
-
-astype(::NoType) = Any
-astype(T::Type) = T
-
-function Base.show(io::IO, ::NoType)
-    if !get(io, :limit, false)
-        # Don't show full name in REPL etc.:
-        print(io, "Transducers.")
-    end
-    print(io, "NOTYPE")
-end
-
 
 abstract type Transducer end
 abstract type AbstractFilter <: Transducer end
@@ -224,19 +209,13 @@ Transducer
 """
     AbstractFilter <: Transducer
 
-The abstract type for filter-like transducers.  [`outtype`](@ref) is
-appropriately defined for child types.
+The abstract type for filter-like transducers.
 """
 AbstractFilter
 
-abstract type AbstractReduction{intype, innertype} end
+abstract type AbstractReduction{innertype} end
 
-InType(::T) where T = InType(T)
-InType(NOTYPE::NoType) = NOTYPE
-InType(::Type{<:AbstractReduction{intype}}) where {intype} = intype
-InType(T::Type) = throw(MethodError(InType, (T,)))
-
-InnerType(::Type{<:AbstractReduction{<:Any, T}}) where T = T
+InnerType(::Type{<:AbstractReduction{T}}) where T = T
 
 Setfield.constructor_of(::Type{T}) where {T <: AbstractReduction} = T
 
@@ -257,14 +236,12 @@ xform(rf::AbstractReduction) = rf.xform
 
 has(rf::AbstractReduction, T::Type{<:Transducer}) = has(Transducer(rf), T)
 
-struct BottomRF{intype, F} <: AbstractReduction{intype, F}
+struct BottomRF{F} <: AbstractReduction{F}
     inner::F
 end
 
-BottomRF{intype}(f::F) where {intype, F} = BottomRF{intype, F}(f)
-
-ensurerf(rf::AbstractReduction, ::Typeish) = rf
-ensurerf(f, intype::Typeish) = BottomRF{intype}(f)
+ensurerf(rf::AbstractReduction) = rf
+ensurerf(f) = BottomRF(f)
 
 # Not calling rf.inner(result, input) etc. directly since it can be
 # `Completing` etc.
@@ -272,10 +249,6 @@ start(rf::BottomRF, result) = start(inner(rf), result)
 next(rf::BottomRF, result, input) = next(inner(rf), result, input)
 complete(rf::BottomRF, result) = complete(inner(rf), result)
 combine(rf::BottomRF, a, b) = combine(inner(rf), a, b)
-
-FinalType(::T) where {T <: AbstractReduction} = FinalType(T)
-FinalType(::Type{<:BottomRF{intype}}) where intype = intype
-FinalType(::Type{T}) where {T <: AbstractReduction} = FinalType(InnerType(T))
 
 Transducer(::BottomRF) = IdentityTransducer()
 
@@ -286,20 +259,29 @@ as(rf, T::Type) = as(inner(rf), T)
 # whatever, input -> whatever
 #
 # The `Reduction` type corresponds to such a function, but keeps extra information:
-# * InType records the type of input
 # * `xform` and `inner` are a decomposition of the reduction function into
 #   a transducer `xform` and an inner reduction function `inner`.
 #   `inner` can be either a `Reduction` or a function with arity-2 and arity-1 methods
 #
-struct Reduction{X <: Transducer, I, intype} <: AbstractReduction{intype, I}
+struct Reduction{X <: Transducer, I} <: AbstractReduction{I}
     xform::X
     inner::I
+
+    Reduction{X, I}(xf, inner) where {X, I} = new{X, I}(xf, inner)
+
+    Reduction(xf::X, inner::I) where {X <: Transducer, I} =
+        if I <: AbstractReduction
+            new{X, I}(xf, inner)
+        else
+            rf = ensurerf(inner)
+            new{X, typeof(rf)}(xf, rf)
+        end
 end
 
 @inline (rf::Reduction)(state, input) = next(rf, state, input)
 
-prependxf(rf::AbstractReduction, xf) = Reduction(xf, rf, InType(rf))
-setinner(rf::Reduction, inner) = Reduction(xform(rf), inner, InType(rf))
+prependxf(rf::AbstractReduction, xf) = Reduction(xf, rf)
+setinner(rf::Reduction, inner) = Reduction(xform(rf), inner)
 
 Transducer(rf::Reduction) =
     if inner(rf) isa BottomRF
@@ -318,28 +300,15 @@ transducer `xform(rf)::X` and the inner reducing function
 """
 const R_{X} = Reduction{<:X}
 
-Reduction(xf::X, inner::I, InType::Typeish) where {X, I} =
-    if I <: AbstractReduction
-        Reduction{X, I, InType}(xf, inner)
-    else
-        Reduction(xf, ensurerf(inner, _outtype(xf, InType)), InType)
-    end
-
-@inline function Reduction(xf_::Composition, f, intype::Typeish)
+@inline function Reduction(xf_::Composition, f)
     xf = _normalize(xf_)
     # @assert !(xf.outer isa Composition)
-    return Reduction(
-        xf.outer,
-        Reduction(xf.inner, f, _outtype(xf.outer, intype)),
-        intype)
+    return Reduction(xf.outer, Reduction(xf.inner, f))
 end
 
 @inline _normalize(xf) = xf
 @inline _normalize(xf::Composition{<:Composition}) =
     _normalize(xf.outer.outer |> _normalize(xf.outer.inner |> xf.inner))
-
-outtype(xf::Composition, intype) = outtype(xf.inner, outtype(xf.outer, intype))
-# TeeZip needs it
 
 # Not sure if this a good idea... (But it's easier to type)
 @inline Base.:|>(f::Transducer, g::Transducer) = _normalize(Composition(f, g))
@@ -353,9 +322,8 @@ outtype(xf::Composition, intype) = outtype(xf.inner, outtype(xf.outer, intype))
 
 Reset "bottom" reducing function of `rf` to `f`.
 """
-reform(rf::Reduction, f) =
-    Reduction(xform(rf), reform(inner(rf), f), InType(rf))
-reform(rf::BottomRF, f) = BottomRF{InType(rf)}(reform(inner(rf), f))
+reform(rf::Reduction, f) = Reduction(xform(rf), reform(inner(rf), f))
+reform(rf::BottomRF, f) = BottomRF(reform(inner(rf), f))
 reform(::Any, f) = f
 
 """
@@ -537,7 +505,7 @@ This is intended to be used only in [`start`](@ref).  Inside
 
 Consider a reducing step constructed as
 
-    rf = Reduction(xf₁ |> xf₂ |> xf₃, f, intype)
+    rf = Reduction(xf₁ |> xf₂ |> xf₃, f)
 
 where each `xfₙ` is a stateful transducer and hence needs a private
 state `stateₙ`.  Then, calling `start(rf, result))` is equivalent to
@@ -597,41 +565,6 @@ unwrap_all(ps::PrivateState) = unwrap_all(psresult(ps))
 unwrap_all(result) = result
 unwrap_all(ps::Reduced) = Reduced(unwrap_all(unreduced(ps)))
 
-"""
-    needintype(xf::Transducer) :: Bool
-    needintype(T::Type{<:Transducer}) :: Bool
-
-Return `false` if `start(xf::T, _)` does not need `intype`.  Abstract
-`Transducer` defaults to return `true`.  This is because it is
-impossible to know if a user-defined transducer needs `intype`
-(typically via `initvalue`).
-"""
-needintype(::T) where {T <: Transducer} = needintype(T)
-needintype(::Type{Composition{XO, XI}}) where {XO, XI} =
-    needintype(XO) || needintype(XI)
-
-# This definition is not used in the builtin transducers.  It will be
-# used only for the transducers defined outside Transducers.jl:
-needintype(::Type{<:Transducer}) = true
-
-function default_needintype_with_init(T::Type{<:Transducer})
-    I = fieldtype(T, :init)
-    return I <: AbstractInitializer
-    # Maybe I need to do this?
-    # return !isconcretetype(I) || I <: AbstractInitializer
-end
-
-"""
-    outtype(xf::Transducer, intype)
-
-Output item type for the transducer `xf` when the input type is `intype`.
-"""
-outtype(::Any, ::Any) = Any
-outtype(::AbstractFilter, intype) = intype
-
-_outtype(::Any, ::NoType) = NOTYPE
-_outtype(xf, intype) = outtype(xf, intype)
-
 # isexpansive(::Any) = true
 isexpansive(::Transducer) = true
 isexpansive(::AbstractFilter) = false
@@ -646,7 +579,6 @@ iscontractive(rf::Reduction) = iscontractive(xform(rf)) && iscontractive(inner(r
 =#
 
 struct NoComplete <: Transducer end
-outtype(::NoComplete, intype) = intype
 next(rf::R_{NoComplete}, result, input) = next(inner(rf), result, input)
 complete(::R_{NoComplete}, result) = result  # don't call inner complete
 
@@ -670,11 +602,10 @@ combine(rf::Completing, a, b) = combine(rf.f, a, b)
 
 # If I expose `Reduction` as a user-interface, I should export
 # `skipcomplete` instead of the struct `Completing`.
-skipcomplete(rf::Reduction) = Reduction(NoComplete(), rf, InType(rf))
+skipcomplete(rf::Reduction) = Reduction(NoComplete(), rf)
 skipcomplete(f) = Completing(f)
 # skipcomplete(f) = Reduction(NoComplete(), f, Any)
-# TODO: get rid of `Completing` struct.  I need to make sure it's
-# possible to refine `InType` from `Any` when it's re-composed.
+# TODO: get rid of `Completing` struct.
 
 struct SideEffect{F}  # Note: not a Transducer
     f::F
@@ -730,49 +661,9 @@ abstract type Foldable <: Reducible end
 
 abstract type AbstractInitializer end
 
-"""
-    Initializer(f)
+initvalue(x) = x
 
-Wrap a factory function to create an initial value for transducible
-processes (e.g., [`mapfoldl`](@ref)) and "stateful" transducers (e.g.,
-[`Scan`](@ref)).  Factory function `f` takes the input type to the
-transducer or the reducing function.
-
-!!! compat "Transducers.jl 0.3"
-
-    `Initializer` is deprecated since Transducers 0.3.  Please use
-    [`OnInit`](@ref).
-"""
-struct Initializer{F} <: AbstractInitializer
-    f::F
-
-    Initializer{F}(f) where F = new{F}(f)
-end
-
-function Initializer(f)
-    Base.depwarn(
-        """
-        `Initializer(T -> ...)` is deprecated.  Please use `OnInit(() -> ...)`.
-        """,
-        :Initializer)
-    return Initializer{typeof(f)}(f)
-end
-
-initvalue(x, ::Any) = x
-initvalue(init::Initializer, intype) = init.f(astype(intype))
-
-_initvalue(rf::Reduction) = initvalue(xform(rf).init, InType(rf))
-
-inittypeof(::T, ::Type) where T = T
-function inittypeof(init::AbstractInitializer, intype::Type)
-    # Maybe I should just call it?  But that would be a bit of waste
-    # when `init.f` allocates...
-    T = Base.promote_op(initvalue, typeof(init), Type{intype})
-    isconcretetype(T) && return T
-    return typeof(initvalue(init, intype))  # T==Union{} hits this code pass
-end
-
-Base.show(io::IO, init::Initializer) = _default_show(io, init)
+_initvalue(rf::Reduction) = initvalue(xform(rf).init)
 
 """
     OnInit(f)
@@ -866,8 +757,7 @@ struct OnInit{F} <: AbstractInitializer
     f::F
 end
 
-initvalue(init::OnInit, ::Any) = init.f()
-inittypeof(::OnInit, ::Type) = Any
+initvalue(init::OnInit) = init.f()
 
 Base.show(io::IO, init::OnInit) = _default_show(io, init)
 
@@ -875,8 +765,6 @@ Base.show(io::IO, init::OnInit) = _default_show(io, init)
     CopyInit(value)
 
 This is equivalent to `OnInit(() -> deepcopy(value))`.
-
-See [`Initializer`](@ref).
 
 !!! compat "Transducers.jl 0.3"
 
@@ -905,8 +793,7 @@ struct CopyInit{T} <: AbstractInitializer
     value::T
 end
 
-initvalue(init::CopyInit, ::Any) = deepcopy(init.value)
-inittypeof(::CopyInit{T}, ::Type) where T = T
+initvalue(init::CopyInit) = deepcopy(init.value)
 
 Base.show(io::IO, init::CopyInit) = _default_show(io, init)
 
@@ -1012,7 +899,7 @@ _realbottomrf(op) = op
 _realbottomrf(rf::AbstractReduction) = _realbottomrf(as(rf, BottomRF).inner)
 _realbottomrf(rf::Completing) = rf.f
 
-provide_init(rf, init) = initvalue(init, FinalType(rf))
+provide_init(rf, init) = initvalue(init)
 function provide_init(rf, ::MissingInit)
     op = _realbottomrf(rf)
     hasinitialvalue(op) && return DefaultInit(op)
