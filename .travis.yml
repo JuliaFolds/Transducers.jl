@@ -42,6 +42,7 @@ jobs:
       script:
         - julia -e 'using Run; Run.script("benchmark/pprintjudge.jl")'
       after_success: skip
+      if: NOT (branch = master)
     - stage: "Documentation"
       julia: 1.1
       os: linux
