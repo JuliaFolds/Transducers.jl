@@ -32,7 +32,7 @@ after_success:
 jobs:
   include:
     - name: "Benchmark"
-      julia: 1.1
+      julia: 1.2
       os: linux
       script:
         - julia -e 'using Run; Run.script("benchmark/runbenchmarks.jl")'
