@@ -45,7 +45,7 @@ function xfmul!(C, A, B, simd=Val(false))
         c[] = muladd(a, b, c[])
         return  # for type stability
     end
-    transduce(maybe_usesimd(BottomRF{Any}(rf), simd), nothing, CAB)
+    transduce(maybe_usesimd(BottomRF(rf), simd), nothing, CAB)
 
     return C
 end

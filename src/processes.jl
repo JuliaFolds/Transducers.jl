@@ -929,8 +929,7 @@ Base.foreach(eff, ed::Eduction; kwargs...) =
     transduce(reform(ed.rf, SideEffect(eff)), nothing, ed.coll;
               kwargs...)
 Base.foreach(eff, reducible::Reducible; kwargs...) =
-    transduce(BottomRF{Any}(SideEffect(eff)), nothing, reducible;
-              kwargs...)
+    transduce(BottomRF(SideEffect(eff)), nothing, reducible; kwargs...)
 # Maybe use `__reduce__` in `foreach`?
 
 """
