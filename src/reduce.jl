@@ -48,6 +48,34 @@ function halve(arr::AbstractArray)
     return (left, right)
 end
 
+struct TaskContext
+    listening::Vector{Threads.Atomic{Bool}}
+    cancellables::Vector{Threads.Atomic{Bool}}
+end
+
+TaskContext() = TaskContext([], [])
+
+function splitcontext(ctx::TaskContext)
+    c = Threads.Atomic{Bool}(false)
+    return (
+        fg = TaskContext(ctx.listening, vcat(ctx.cancellables, c)),
+        bg = TaskContext(vcat(ctx.listening, c), ctx.cancellables),
+    )
+end
+
+function should_abort(ctx::TaskContext)
+    for c in ctx.listening
+        c[] && return true
+    end
+    return false
+end
+
+function cancel!(ctx::TaskContext)
+    for c in ctx.cancellables
+        c[] = true
+    end
+end
+
 function transduce_assoc(
     xform::Transducer, step, init, coll;
     simd::SIMDFlag = Val(false),
@@ -56,30 +84,30 @@ function transduce_assoc(
     reducible = SizedReducible(coll, basesize)
     rf = maybe_usesimd(Reduction(xform, step), simd)
     @static if VERSION >= v"1.3-alpha"
-        stop = Threads.Atomic{Bool}(false)
-        acc = @return_if_reduced _reduce(stop, rf, init, reducible)
+        acc = @return_if_reduced _reduce(TaskContext(), rf, init, reducible)
     else
         acc = @return_if_reduced _reduce_threads_for(rf, init, reducible)
     end
     return complete(rf, acc)
 end
 
-function _reduce(stop, rf, init, reducible::Reducible)
-    stop[] && return init
+function _reduce(ctx, rf, init, reducible::Reducible)
+    should_abort(ctx) && return init
     if issmall(reducible)
         acc = foldl_nocomplete(rf, _start_init(rf, init), foldable(reducible))
         if acc isa Reduced
-            stop[] = true
+            cancel!(ctx)
         end
         return acc
     else
         left, right = halve(reducible)
-        task = @spawn _reduce(stop, rf, init, right)
-        a0 = _reduce(stop, rf, init, left)
+        fg, bg = splitcontext(ctx)
+        task = @spawn _reduce(bg, rf, init, right)
+        a0 = _reduce(fg, rf, init, left)
         b0 = fetch(task)
         a = @return_if_reduced a0
         b = @return_if_reduced b0
-        stop[] && return a  # slight optimization
+        should_abort(ctx) && return a  # slight optimization
         return combine(rf, a, b)
     end
 end
