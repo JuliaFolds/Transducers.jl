@@ -14,6 +14,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Transducers = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 
 [compat]
-Documenter = "0.22"
 Literate = "1"
-Setfield = "0.3.2"

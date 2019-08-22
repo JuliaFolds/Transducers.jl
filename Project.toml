@@ -12,7 +12,6 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
 
 [compat]
-Documenter = "0.22"
 Setfield = "≥ 0.3"
 InitialValues = "≥ 0.2"
 julia = "1"
