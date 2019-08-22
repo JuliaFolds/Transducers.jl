@@ -42,4 +42,14 @@ end
     end
 end
 
+@testset "early termination (shuffle)" begin
+    @testset for seed in rand(UInt32, 10), p in Any[50, 95, 99, Inf]
+        rng = MersenneTwister(seed)
+        basesize = 16
+        xs = collect(enumerate(rand(rng, 1:100, 100 * basesize)))
+        xf = ReduceIf(x -> x[2] >= p)
+        @test reduce(right, xf, xs; basesize=basesize) == foldl(right, xf, xs)
+    end
+end
+
 end  # module
