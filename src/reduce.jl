@@ -55,13 +55,16 @@ function transduce_assoc(
 )
     reducible = SizedReducible(coll, basesize)
     rf = maybe_usesimd(Reduction(xform, step), simd)
-    stop = Threads.Atomic{Bool}(false)
-    acc = @return_if_reduced __reduce__(stop, rf, init, reducible)
+    @static if VERSION >= v"1.3-alpha"
+        stop = Threads.Atomic{Bool}(false)
+        acc = @return_if_reduced _reduce(stop, rf, init, reducible)
+    else
+        acc = @return_if_reduced _reduce_threads_for(rf, init, reducible)
+    end
     return complete(rf, acc)
 end
 
-@static if VERSION >= v"1.3-alpha"
-function __reduce__(stop, rf, init, reducible::Reducible)
+function _reduce(stop, rf, init, reducible::Reducible)
     stop[] && return init
     if issmall(reducible)
         acc = foldl_nocomplete(rf, _start_init(rf, init), foldable(reducible))
@@ -71,8 +74,8 @@ function __reduce__(stop, rf, init, reducible::Reducible)
         return acc
     else
         left, right = halve(reducible)
-        task = Threads.@spawn __reduce__(stop, rf, init, right)
-        a0 = __reduce__(stop, rf, init, left)
+        task = @spawn _reduce(stop, rf, init, right)
+        a0 = _reduce(stop, rf, init, left)
         b0 = fetch(task)
         a = @return_if_reduced a0
         b = @return_if_reduced b0
@@ -80,8 +83,8 @@ function __reduce__(stop, rf, init, reducible::Reducible)
         return combine(rf, a, b)
     end
 end
-else
-function __reduce__(_stop, rf, init, reducible::SizedReducible{<:AbstractArray})
+
+function _reduce_threads_for(rf, init, reducible::SizedReducible{<:AbstractArray})
     arr = reducible.reducible
     basesize = reducible.basesize
     nthreads = max(
@@ -113,7 +116,6 @@ function __reduce__(_stop, rf, init, reducible::SizedReducible{<:AbstractArray})
         return c
     end
 end
-end  # if
 
 # AbstractArray for disambiguation
 Base.mapreduce(xform::Transducer, step, itr::AbstractArray;

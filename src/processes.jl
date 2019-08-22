@@ -801,7 +801,6 @@ Base.foreach(eff, ed::Eduction; kwargs...) =
               kwargs...)
 Base.foreach(eff, reducible::Reducible; kwargs...) =
     transduce(BottomRF(SideEffect(eff)), nothing, reducible; kwargs...)
-# Maybe use `__reduce__` in `foreach`?
 
 """
     ifunreduced(f, [x])

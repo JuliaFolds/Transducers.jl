@@ -22,6 +22,13 @@ using InitialValues: InitialValues, InitialValue, SpecificInitialValue, Init,
 import Setfield
 using Setfield: @lens, @set, set
 
+@static if VERSION >= v"1.3-alpha"
+    using Base.Threads: @spawn
+else
+    # Mock `@spawn` using `@async`:
+    @eval const $(Symbol("@spawn")) = $(Symbol("@async"))
+end
+
 include("showutils.jl")
 include("basics.jl")
 include("core.jl")
