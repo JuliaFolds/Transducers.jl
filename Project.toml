@@ -12,9 +12,9 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
 
 [compat]
-BangBang = "≥ 0.2, < 1"
-InitialValues = "≥ 0.2, < 1"
-Setfield = "≥ 0.3, < 1"
+BangBang = "≥ 0.2"
+InitialValues = "≥ 0.2"
+Setfield = "≥ 0.3"
 julia = "1"
 
 [extras]
