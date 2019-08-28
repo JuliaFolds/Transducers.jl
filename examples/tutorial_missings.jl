@@ -111,7 +111,7 @@ mapfoldl(xf_demean(xs, ys) |> xf_mdot, +, zip(xs, ys)) / nonmissings
 function add_skipmissing!(ys, xs)
     length(ys) == length(xs) || error("length(ys) != length(xs)")
     firstindex(ys) == 1 || error("firstindex(ys) != 1")
-
+#+
 # For filtering out missing values from `xs` while tracking indices,
 # we use [`Enumerate`](@ref) and [`Filter`](@ref).  To iterate over
 # the output of the transducer, [`foreach`](@ref) is used instead of
@@ -121,7 +121,7 @@ function add_skipmissing!(ys, xs)
     foreach(Enumerate() |> Filter(!(ismissing ∘ last)), xs) do (i, xi)
         @inbounds ys[i] += xi
     end
-
+#+
 # We then return the mutated value to behave like the rest of Julia
 # functions (`push!`, `mul!`, etc.):
 

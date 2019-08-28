@@ -16,9 +16,11 @@ struct AddOneIfInt <: Transducer end
 
 function Transducers.next(rf::R_{AddOneIfInt}, result, input)
     if input isa Int
+#+
 # Output `input + 1` is passed to the "inner" reducing step:
         next(inner(rf), result, input + 1)
     else
+#+
 # Filtering out is done by "doing nothing"; return `result`-so-far
 # as-is:
         result
@@ -71,6 +73,7 @@ end
 
 function Transducers.next(rf::R_{RandomRecall}, result, input)
     wrapping(rf, result) do (buffer, rng), iresult
+#+
 # Pickup a random element to be passed to the inner reducing function.
 # Replace it with the new incoming one in the buffer:
         if length(buffer) < xform(rf).history
@@ -81,6 +84,7 @@ function Transducers.next(rf::R_{RandomRecall}, result, input)
             iinput = buffer[i]
             buffer[i] = input
         end
+#+
 # Call the inner reducing function.  Note that `iresult` unwrapped by
 # [`Transducers.wrapping`](@ref) must be passed to `next`:
         iresult = next(inner(rf), iresult, iinput)
@@ -115,10 +119,12 @@ collect(Filter(isodd) |> RandomRecall() |> Filter(x -> x > 10) |> Take(5), 1:100
 function Transducers.complete(rf::R_{RandomRecall}, result)
     (buffer, _), iresult = unwrap(rf, result)
     for x in buffer
+#+
 # Note that inner `next` can be called more than one time inside
 # `next` and `complete`:
         iresult = next(inner(rf), iresult, x)
     end
+#+
 # `complete` for inner reducing function must be called exactly once:
     return complete(inner(rf), iresult)
 end
