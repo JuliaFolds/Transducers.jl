@@ -88,7 +88,7 @@ end</code></pre><p>This function is passed to <code>ScanEmit</code> with the ini
 
 xf_scanext(should_update) = Scan(argext_step(should_update), nothing)</code></pre><p>Passing <code>&lt;</code> gives us the argmax transducer:</p><pre><code class="language-julia">mapfoldl(
     Enumerate() |&gt; OfType(Tuple{Integer, Number}) |&gt; xf_scanext(&lt;),
-    right, [1.0, 3.0, missing, 2.0])</code></pre><p>We now have transducers <code>xf_scanext(&lt;)</code> and <code>xf_scanext(&gt;)</code> for argmax and argmin, respectively.  We can compute them concurrently by <a href="../../manual/#Transducers.Zip-Tuple"><code>Zip</code></a>&#39;ing them together:</p><pre><code class="language-julia">xf_fullextrema = Enumerate() |&gt; OfType(Tuple{Integer, Number}) |&gt;
+    right, [1.0, 3.0, missing, 2.0])</code></pre><pre><code class="language-none">(2, 3.0)</code></pre><p>We now have transducers <code>xf_scanext(&lt;)</code> and <code>xf_scanext(&gt;)</code> for argmax and argmin, respectively.  We can compute them concurrently by <a href="../../manual/#Transducers.Zip-Tuple"><code>Zip</code></a>&#39;ing them together:</p><pre><code class="language-julia">xf_fullextrema = Enumerate() |&gt; OfType(Tuple{Integer, Number}) |&gt;
     Zip(xf_scanext(&gt;), xf_scanext(&lt;))
 
 mapfoldl(xf_fullextrema, right, [1.0, 3.0, -1.0, missing, 2.0])</code></pre><pre><code class="language-none">((3, -1.0), (2, 3.0))</code></pre><p>This transducer produces a tuple <code>((argmin, min), (argmax, max))</code>. To output only indices, append an appropriate <code>Map</code>:</p><pre><code class="language-julia">xf_argextrema =
