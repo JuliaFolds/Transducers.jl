@@ -118,15 +118,29 @@ maybe_usesimd(rf::AbstractReduction, simd::SIMDFlag) =
         # An optimization; shortcut everything if SIMD is already
         # enabled.
         rf
-    elseif simd === Val(true) || simd === true
+    elseif simd === true
         usesimd(rf, UseSIMD{false}())
-    elseif simd === Val(:ivdep) || simd === :ivdep
+    elseif simd === :ivdep
         usesimd(rf, UseSIMD{true}())
-    elseif simd === Val(false) || simd === false
+    elseif simd === false
         rf
     else
         error("Unknown `simd` argument: ", simd)
     end
+
+function maybe_usesimd(rf::AbstractReduction, ::Val{true})
+    has(rf, UseSIMD) && return rf
+    usesimd(rf, UseSIMD{false}())
+end
+
+function maybe_usesimd(rf::AbstractReduction, ::Val{false}) 
+    rf
+end
+
+function maybe_usesimd(rf::AbstractReduction, ::Val{:ivdep})
+    has(rf, UseSIMD) && return rf
+    usesimd(rf, UseSIMD{true}())
+end
 
 """
     usesimd(rf::Reduction, xfsimd::UseSIMD)
