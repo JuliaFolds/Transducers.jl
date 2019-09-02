@@ -19,7 +19,7 @@ notifications:
 
 # Do not build my PR twice.  Use the build on branch.
 # https://github.com/travis-ci/travis-ci/issues/1147#issuecomment-76296437
-if: NOT (type == pull_request AND repo == tkf/Transducers.jl)
+if: NOT (type == pull_request AND head_repo == tkf/Transducers.jl)
 
 install:
   - unset JULIA_PROJECT
