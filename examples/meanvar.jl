@@ -27,7 +27,7 @@ function T.next(rf::T.R_{MeanVar}, result, input)
         M2 += δ*δ2
         iinput = (μ, M2 / (n-1))
         iresult = T.next(T.inner(rf), iresult, iinput)
-        return (n,μ, M2), iresult
+        return (n, μ, M2), iresult
     end
 end
 
