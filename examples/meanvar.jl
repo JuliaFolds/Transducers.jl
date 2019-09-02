@@ -5,7 +5,7 @@
 
 
 using Transducers
-const T = Transducers
+using Transducers: R_, start, next, complete, inner, xform, wrap, unwrap, wrapping
 
 struct MeanVar <: Transducer
 end
