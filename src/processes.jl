@@ -122,19 +122,19 @@ const FOLDL_RECURSION_LIMIT = Val(10)
 _dec(::Nothing) = nothing
 _dec(::Val{n}) where n = Val(n - 1)
 
-function __foldl__(rf, init, coll)
-    ret = iterate(coll)
-    ret === nothing && return complete(rf, init)
-    x, state = ret
-    val = @next(rf, init, x)
-    return _foldl_iter(rf, val, coll, state, FOLDL_RECURSION_LIMIT)
-end
+@inline _iterate(iter, ::Unseen) = iterate(iter)
+@inline _iterate(iter, state) = iterate(iter, state)
 
-@inline function _foldl_iter(rf, val::T, iter, state, counter) where T
-    while (ret = iterate(iter, state)) !== nothing
+@inline __foldl__(rf, init, coll) =
+    _foldl_iter(rf, init, coll, Unseen(), FOLDL_RECURSION_LIMIT)
+
+@inline function _foldl_iter(rf, val::T, iter, state::S, counter) where {T, S}
+    while true
+        ret = _iterate(iter, state)
+        ret === nothing && break
         x, state = ret
         y = @next(rf, val, x)
-        counter === Val(0) || y isa T ||
+        counter === Val(0) || y isa T || state isa S ||
             return _foldl_iter(rf, y, iter, state, _dec(counter))
         val = y
     end
@@ -145,13 +145,15 @@ __foldl__(rf, init, coll::Tuple) =
     complete(rf, @return_if_reduced foldlargs(rf, init, coll...))
 
 # TODO: use IndexStyle
-@inline function __foldl__(rf, init, arr::Union{AbstractArray, Broadcasted})
-    isempty(arr) && return complete(rf, init)
-    idxs = eachindex(arr)
-    val = @next(rf, init, @inbounds arr[idxs[firstindex(idxs)]])
-    @simd_if rf for k in firstindex(idxs) + 1:lastindex(idxs)
-        i = @inbounds idxs[k]
-        val = @next(rf, val, @inbounds arr[i])
+@inline __foldl__(rf, init, arr::Union{AbstractArray, Broadcasted}) =
+    _foldl_array(rf, init, arr, firstindex(arr), FOLDL_RECURSION_LIMIT)
+
+@inline function _foldl_array(rf, val::T, arr, n, counter) where T
+    @simd_if rf for i in n:lastindex(arr)
+        y = @next(rf, val, @inbounds arr[i])
+        counter === Val(0) || y isa T ||
+            return _foldl_array(rf, y, arr, i + 1, _dec(counter))
+        val = y
     end
     return complete(rf, val)
 end
