@@ -131,7 +131,9 @@ function __foldl__(rf, init, coll)
 end
 
 @inline function _foldl_iter(rf, val::T, iter, state, counter) where T
-    while (ret = iterate(iter, state)) !== nothing
+    while true
+        ret = iterate(iter, state)
+        ret === nothing && break
         x, state = ret
         y = @next(rf, val, x)
         counter === Val(0) || y isa T ||
