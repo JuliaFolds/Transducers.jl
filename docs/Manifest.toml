@@ -7,12 +7,12 @@ uuid = "dce04be8-c92d-5529-be00-80e4d2c0e197"
 version = "1.0.1"
 
 [[BangBang]]
-deps = ["Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield"]
-git-tree-sha1 = "df248efd42d8d16eb4a3e9dc9bcb13121aac6bf2"
+deps = ["Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "ZygoteRules"]
+git-tree-sha1 = "6a721fca2a44ae40615712e6522ce1c12ac4726c"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/BangBang.jl"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
-version = "0.2.0"
+version = "0.3.1"
 
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
@@ -60,9 +60,9 @@ version = "0.8.0"
 
 [[Documenter]]
 deps = ["Base64", "DocStringExtensions", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Test", "Unicode"]
-git-tree-sha1 = "c61d6eedbc3c4323c08b64af12d29c8ee0fcbb5f"
+git-tree-sha1 = "1b6ae3796f60311e39cd1770566140d2c056e87f"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-version = "0.23.2"
+version = "0.23.3"
 
 [[Future]]
 deps = ["Random"]
@@ -127,25 +127,24 @@ deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[Missings]]
-deps = ["SparseArrays", "Test"]
-git-tree-sha1 = "f0719736664b4358aa9ec173077d4285775f8007"
+git-tree-sha1 = "29858ce6c8ae629cf2d733bffa329619a1c843d0"
 uuid = "e1d29d7a-bbdc-5cf2-9ac0-f12de2c33e28"
-version = "0.4.1"
+version = "0.4.2"
 
 [[Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[OnlineStats]]
-deps = ["Dates", "LearnBase", "LinearAlgebra", "LossFunctions", "OnlineStatsBase", "OrderedCollections", "PenaltyFunctions", "RecipesBase", "Reexport", "Statistics", "StatsBase", "SweepOperator"]
-git-tree-sha1 = "1a274ad329e264619d4b8c319f601637d05d40ee"
+deps = ["Dates", "LearnBase", "LinearAlgebra", "LossFunctions", "OnlineStatsBase", "OrderedCollections", "PenaltyFunctions", "Random", "RecipesBase", "Reexport", "Statistics", "StatsBase", "SweepOperator"]
+git-tree-sha1 = "cc5e782b1d6aaadab80ac093773458f86739ddcf"
 uuid = "a15396b6-48d5-5d58-9928-6d29437db91e"
-version = "0.27.0"
+version = "1.0.0"
 
 [[OnlineStatsBase]]
-deps = ["Dates", "LearnBase", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "58ed588062b4321ecd3a444d6dc63401b5cae9b0"
+deps = ["Dates", "LearnBase", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
+git-tree-sha1 = "d43eba88c2afdf729d9fb5852ed74b9b4dbab5e5"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "0.13.0"
+version = "1.0.0"
 
 [[OrderedCollections]]
 deps = ["Random", "Serialization", "Test"]
@@ -155,9 +154,9 @@ version = "1.1.0"
 
 [[Parsers]]
 deps = ["Dates", "Test"]
-git-tree-sha1 = "db2b35dedab3c0e46dc15996d170af07a5ab91c9"
+git-tree-sha1 = "ef0af6c8601db18c282d092ccbd2f01f3f0cd70b"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "0.3.6"
+version = "0.3.7"
 
 [[PenaltyFunctions]]
 deps = ["InteractiveUtils", "LearnBase", "LinearAlgebra", "RecipesBase", "Reexport", "Test"]
@@ -256,7 +255,7 @@ version = "0.5.6"
 deps = ["ArgCheck", "BangBang", "InitialValues", "Markdown", "Requires", "Setfield"]
 path = ".."
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
-version = "0.4.0-DEV"
+version = "0.4.0"
 
 [[UUIDs]]
 deps = ["Random", "SHA"]
@@ -264,3 +263,9 @@ uuid = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
 [[Unicode]]
 uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
+
+[[ZygoteRules]]
+deps = ["MacroTools"]
+git-tree-sha1 = "def5f96ac2895fd9b48435f6b97020979ee0a4c6"
+uuid = "700de1a5-db45-46bc-99cf-38207098b444"
+version = "0.1.0"
