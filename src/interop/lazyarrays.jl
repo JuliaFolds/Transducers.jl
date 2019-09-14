@@ -10,18 +10,18 @@ end
     _foldl_lazy_hcat(rf, acc, coll::LazyArrays.Hcat)
 """
 @inline _foldl_lazy_hcat(rf, acc, coll::AbstractMatrix) =
-    _foldl_lazy_cat_vectors(rf, acc, coll.arrays)
+    _foldl_lazy_cat_vectors(rf, acc, coll.args)
 # Hcat currently always is an `AbstractMatrix`
 
 """
     _foldl_lazy_vcat(rf, acc, coll::LazyArrays.Vcat)
 """
 @inline function _foldl_lazy_vcat(rf, acc, coll)
-    isempty(coll.arrays) && return complete(rf, acc)
-    coll isa AbstractVector && return _foldl_lazy_cat_vectors(rf, acc, coll.arrays)
+    isempty(coll.args) && return complete(rf, acc)
+    coll isa AbstractVector && return _foldl_lazy_cat_vectors(rf, acc, coll.args)
     coll :: AbstractMatrix
     for j in axes(coll, 2)
-        vectors = view.(coll.arrays, Ref(:), j)
+        vectors = view.(coll.args, Ref(:), j)
         acc = @return_if_reduced _foldl_lazy_cat_vectors(rf, acc, vectors)
     end
     return complete(rf, acc)
