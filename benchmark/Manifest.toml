@@ -124,9 +124,9 @@ uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[ProgressMeter]]
 deps = ["Distributed", "Printf"]
-git-tree-sha1 = "0f08e0e74e5b160ca20d3962a2620038b75881c7"
+git-tree-sha1 = "fab12b19f198dd148ca467ac4e4f12ecd0241819"
 uuid = "92933f4c-e287-5a05-a399-4b506db050ca"
-version = "1.0.0"
+version = "1.1.0"
 
 [[REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets"]
@@ -156,10 +156,10 @@ uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 
 [[Setfield]]
-deps = ["InteractiveUtils", "MacroTools", "Test"]
-git-tree-sha1 = "bef11bb6030131bafbcaaf8a3df16b7a72be8b9c"
+deps = ["MacroTools"]
+git-tree-sha1 = "1d8d1e5ecae03c6fad643328a98c9adbda6d8eee"
 uuid = "efcf1570-3423-57d1-acb7-fd33fddbac46"
-version = "0.3.4"
+version = "0.4.0"
 
 [[SharedArrays]]
 deps = ["Distributed", "Mmap", "Random", "Serialization"]
@@ -189,7 +189,7 @@ version = "0.5.6"
 deps = ["ArgCheck", "BangBang", "InitialValues", "Markdown", "Requires", "Setfield"]
 path = ".."
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
-version = "0.4.0"
+version = "0.4.1"
 
 [[UUIDs]]
 deps = ["Random", "SHA"]
