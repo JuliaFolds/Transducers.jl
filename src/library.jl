@@ -901,15 +901,25 @@ $(_thx_clj("distinct"))
 ```jldoctest
 julia> using Transducers
 
-julia> collect(Unique(), [1, 1, 2, 1, 3, 3, 2])
+julia> collect(Unique(), [1, 1, 2, -1, 3, 3, 2])
+3-element Array{Int64,1}:
+ 1
+ 2
+ -1
+ 3
+
+ julia> collect(Unique(x -> x^2), [1, 1, 2, -1, 3, 3, 2])
 3-element Array{Int64,1}:
  1
  2
  3
 ```
 """
-struct Unique <: AbstractFilter
+struct Unique{P} <: AbstractFilter
+    pred::P
 end
+
+Unique() = Unique(x -> x)
 
 function start(rf::R_{Unique}, result)
     seen = Set(Union{}[])
@@ -920,10 +930,11 @@ complete(rf::R_{Unique}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 function next(rf::R_{Unique}, result, input)
     wrapping(rf, result) do seen, iresult
-        if input in seen
+        y = xform(rf).pred(input)
+        if y in seen
             return seen, iresult
         else
-            seen′ = push!!(seen, input)
+            seen′ = push!!(seen, y)
             return seen′, next(inner(rf), iresult, input)
         end
     end
