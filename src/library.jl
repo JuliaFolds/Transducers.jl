@@ -919,7 +919,7 @@ struct Unique{P} <: AbstractFilter
     pred::P
 end
 
-Unique() = Unique(x -> x)
+Unique() = Unique(identity)
 
 function start(rf::R_{Unique}, result)
     seen = Set(Union{}[])
