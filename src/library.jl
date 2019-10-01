@@ -902,7 +902,7 @@ $(_thx_clj("distinct"))
 julia> using Transducers
 
 julia> collect(Unique(), [1, 1, 2, -1, 3, 3, 2])
-3-element Array{Int64,1}:
+4-element Array{Int64,1}:
  1
  2
  -1
