@@ -318,6 +318,10 @@ end
     @testset for xs in iterator_variants([1, 1, 2, 1, 3, 2])
         @test collect(Unique(), xs) == [1, 2, 3]
     end
+
+    @testset for xs in iterator_variants([1, 1, 2, -1, 3, 2])
+        @test collect(Unique(x -> x^2), xs) == [1, 2, 3]
+    end
 end
 
 # https://clojuredocs.org/clojure.core/interpose
