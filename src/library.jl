@@ -906,7 +906,7 @@ julia> collect(Unique(), [1, 1, 2, -1, 3, 3, 2])
   1
   2
  -1
- 3
+  3
 
 julia> collect(Unique(x -> x^2), [1, 1, 2, -1, 3, 3, 2])
 3-element Array{Int64,1}:
