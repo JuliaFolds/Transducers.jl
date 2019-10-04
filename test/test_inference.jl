@@ -46,6 +46,14 @@ end
         @test_broken_inferred foldl(*, Scan(+) |> Map(x -> x::Int) |> Scan(+), xs)
     end
     @test_inferred foldl(+, Cat(), [[1]])
+
+    @testset "type constructor" begin
+        xf = Map(Float64)
+        @test_inferred foldl(+, xf, Int[1])
+
+        xf = MapSplat(ComplexF64)
+        @test_inferred foldl(+, xf, Tuple{Int, Int}[(1, 1)])
+    end
 end
 
 @testset "collect" begin
