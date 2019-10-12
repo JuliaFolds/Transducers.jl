@@ -29,15 +29,20 @@ version = "0.6.2"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "84aa74986c5b9b898b0d1acaf3258741ee64754f"
+git-tree-sha1 = "ed2c4abadf84c53d9e58510b5fc48912c2336fbb"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "2.1.0"
+version = "2.2.0"
+
+[[ConstructionBase]]
+git-tree-sha1 = "e3efe0a0f49dcd294c8c73e897b4fdf891f0fbd3"
+uuid = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
+version = "0.1.0"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "OrderedCollections"]
-git-tree-sha1 = "0809951a1774dc724da22d26e4289bbaab77809a"
+git-tree-sha1 = "f94423c68f2e47db0d6f626a26d4872266e0ec3d"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.17.0"
+version = "0.17.2"
 
 [[Dates]]
 deps = ["Printf"]
@@ -114,9 +119,9 @@ uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[PkgBenchmark]]
 deps = ["BenchmarkTools", "Dates", "InteractiveUtils", "JSON", "LibGit2", "Pkg", "Printf", "ProgressMeter"]
-git-tree-sha1 = "1e3fb186c332e58dfa57e11a91f9f629bacefd84"
+git-tree-sha1 = "eeda9bde6194b57515c2494082ee1875ebf140ad"
 uuid = "32113eaa-f34f-5b0d-bd6c-c81e245fc73d"
-version = "0.2.5"
+version = "0.2.6"
 
 [[Printf]]
 deps = ["Unicode"]
@@ -156,10 +161,10 @@ uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 
 [[Setfield]]
-deps = ["MacroTools"]
-git-tree-sha1 = "1d8d1e5ecae03c6fad643328a98c9adbda6d8eee"
+deps = ["ConstructionBase", "MacroTools"]
+git-tree-sha1 = "48e02359e79fc1934905e96fc81f42678abf2b56"
 uuid = "efcf1570-3423-57d1-acb7-fd33fddbac46"
-version = "0.4.0"
+version = "0.5.0"
 
 [[SharedArrays]]
 deps = ["Distributed", "Mmap", "Random", "Serialization"]
@@ -189,7 +194,7 @@ version = "0.5.6"
 deps = ["ArgCheck", "BangBang", "InitialValues", "Markdown", "Requires", "Setfield"]
 path = ".."
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
-version = "0.4.1"
+version = "0.4.2"
 
 [[UUIDs]]
 deps = ["Random", "SHA"]
