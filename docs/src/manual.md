@@ -14,6 +14,8 @@ foldl
 foreach
 mapreduce
 reduce
+dreduce
+dtransduce
 eduction
 map!
 copy!

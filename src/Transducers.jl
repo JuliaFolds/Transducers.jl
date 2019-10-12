@@ -5,7 +5,7 @@ export Transducer, Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, Zip,
     Interpose, Dedupe, Partition, Iterated, Count, GroupBy, ReduceIf,
     TakeLast, FlagFirst, MapSplat, ScanEmit, Enumerate, NotA, OfType,
     transduce, eduction, setinput, Reduced, reduced, unreduced, ifunreduced,
-    Completing, OnInit, CopyInit, right, reducingfunction,
+    Completing, OnInit, CopyInit, right, reducingfunction, dreduce, dtransduce,
     AdHocFoldable
 
 # Deprecated:
@@ -15,6 +15,7 @@ using Base.Broadcast: Broadcasted
 
 using ArgCheck
 using BangBang: push!!, empty!!, setindex!!
+using Distributed: Distributed, @everywhere
 using Requires
 using InitialValues: InitialValues, InitialValue, SpecificInitialValue, Init,
     hasinitialvalue
@@ -47,6 +48,7 @@ include("library.jl")
 include("simd.jl")
 include("processes.jl")
 include("reduce.jl")
+include("dreduce.jl")
 include("air.jl")
 include("lister.jl")
 include("show.jl")

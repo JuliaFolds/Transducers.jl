@@ -2,6 +2,7 @@
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
 BangBang = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 InitialValues = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
 Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
