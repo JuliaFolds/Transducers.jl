@@ -1,3 +1,10 @@
+if lowercase(get(ENV, "CI", "false")) == "true"
+    @info "Executing in CI. Instantiating benchmark environment..."
+    using Pkg
+    Pkg.activate(@__DIR__)
+    Pkg.instantiate()
+end
+
 using BenchmarkTools
 SUITE = BenchmarkGroup()
 for file in readdir(@__DIR__)
