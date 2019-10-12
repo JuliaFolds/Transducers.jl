@@ -22,6 +22,17 @@ using InitialValues: InitialValues, InitialValue, SpecificInitialValue, Init,
 import Setfield
 using Setfield: @lens, @set, set
 
+module DummyConstructionBase
+using Setfield
+const constructorof = Setfield.constructor_of
+end
+
+@static if isdefined(Setfield, :ConstructionBase)
+    const ConstructionBase = Setfield.ConstructionBase
+else
+    const ConstructionBase = DummyConstructionBase
+end
+
 @static if VERSION >= v"1.3-alpha"
     using Base.Threads: @spawn
 else

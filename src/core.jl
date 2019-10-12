@@ -217,7 +217,7 @@ abstract type AbstractReduction{innertype} end
 
 InnerType(::Type{<:AbstractReduction{T}}) where T = T
 
-Setfield.constructor_of(::Type{T}) where {T <: AbstractReduction} = T
+ConstructionBase.constructorof(::Type{T}) where {T <: AbstractReduction} = T
 
 """
     Transducers.inner(rf::R_)
@@ -445,7 +445,7 @@ struct PrivateState{T, S, R}
 end
 # TODO: make it a tuple-like so that I can return it as-is
 
-Setfield.constructor_of(::Type{<:PrivateState{T}}) where T =
+ConstructionBase.constructorof(::Type{<:PrivateState{T}}) where T =
     (state, result) -> privatestate(T, state, result)
 
 @inline psstate(ps) = ps.state
