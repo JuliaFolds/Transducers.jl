@@ -23,15 +23,14 @@ using InitialValues: InitialValues, InitialValue, SpecificInitialValue, Init,
 import Setfield
 using Setfield: @lens, @set, set
 
-module DummyConstructionBase
-using Setfield
-const constructorof = Setfield.constructor_of
-end
-
-@static if isdefined(Setfield, :ConstructionBase)
-    const ConstructionBase = Setfield.ConstructionBase
-else
-    const ConstructionBase = DummyConstructionBase
+# Dummy `ConstructionBase` module for supporting older `Setfield`:
+module ConstructionBase
+    using Setfield
+    @static if isdefined(Setfield, :constructorof)
+        const constructorof = Setfield.constructorof
+    else
+        const constructorof = Setfield.constructor_of
+    end
 end
 
 @static if VERSION >= v"1.3-alpha"
