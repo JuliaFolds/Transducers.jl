@@ -6,7 +6,7 @@ export Transducer, Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, Zip,
     TakeLast, FlagFirst, MapSplat, ScanEmit, Enumerate, NotA, OfType,
     transduce, eduction, setinput, Reduced, reduced, unreduced, ifunreduced,
     Completing, OnInit, CopyInit, right, reducingfunction, dreduce, dtransduce,
-    AdHocFoldable
+    withprogress, AdHocFoldable
 
 # Deprecated:
 export Distinct
@@ -52,6 +52,7 @@ include("air.jl")
 include("lister.jl")
 include("show.jl")
 include("comprehensions.jl")
+include("progress.jl")
 include("deprecated.jl")
 
 include("interop/blockarrays.jl")
