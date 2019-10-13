@@ -530,7 +530,7 @@ result₀ = wrap(rf,               state₁, result₁)
 ```
 
 The inner most step function receives the original `result` as the
-first argument while transducible processes such as [`mapfoldl`](@ref)
+first argument while transducible processes such as [`foldl`](@ref)
 only sees the outer-most "tree" `result₀` during the reduction.
 
 See [`wrapping`](@ref), [`unwrap`](@ref), and [`start`](@ref).
@@ -628,7 +628,7 @@ right(r) = r
 ```
 
 This function is meant to be used as `step` argument for
-[`mapfoldl`](@ref) etc. for extracting the last output of the
+[`foldl`](@ref) etc. for extracting the last output of the
 transducers.
 
 !!! compat "Transducers.jl 0.3"
@@ -640,10 +640,10 @@ transducers.
 ```jldoctest
 julia> using Transducers
 
-julia> mapfoldl(Take(5), right, 1:10)
+julia> foldl(right, Take(5), 1:10)
 5
 
-julia> mapfoldl(Drop(5), right, 1:3; init=0)  # using `init` as the default value
+julia> foldl(right, Drop(5), 1:3; init=0)  # using `init` as the default value
 0
 ```
 """
@@ -673,7 +673,7 @@ Call a callable `f` to create an initial value.
 See also [`CopyInit`](@ref).
 
 `OnInit` or `CopyInit` must be used whenever using in-place reduction
-with [`mapreduce`](@ref).
+with [`reduce`](@ref) etc.
 
 # Examples
 ```jldoctest OnInit
@@ -682,7 +682,7 @@ julia> using Transducers
 julia> xf1 = Scan(push!, [])
 Scan(push!, Any[])
 
-julia> mapfoldl(xf1, right, 1:3)
+julia> foldl(right, xf1, 1:3)
 3-element Array{Any,1}:
  1
  2
@@ -693,11 +693,11 @@ Scan(push!, Any[1, 2, 3])
 ```
 
 Notice that the array is stored in `xf1` and mutated in-place.  As a
-result, second run of `mapfoldl` contains the results from the first
+result, second run of `foldl` contains the results from the first
 run:
 
 ```jldoctest OnInit
-julia> mapfoldl(xf1, right, 10:11)
+julia> foldl(right, xf1, 10:11)
 5-element Array{Any,1}:
   1
   2
@@ -713,13 +713,13 @@ object which takes a factory function to create a new initial value.
 julia> xf2 = Scan(push!, OnInit(() -> []))
 Scan(push!, OnInit(##9#10()))
 
-julia> mapfoldl(xf2, right, 1:3)
+julia> foldl(right, xf2, 1:3)
 3-element Array{Any,1}:
  1
  2
  3
 
-julia> mapfoldl(xf2, right, [10.0, 11.0])
+julia> foldl(right, xf2, [10.0, 11.0])
 2-element Array{Any,1}:
  10.0
  11.0

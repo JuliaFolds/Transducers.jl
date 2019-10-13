@@ -8,9 +8,9 @@ using Transducers
 # ## Dot product
 #
 # Here is a simple way to compute a dot product using
-# [`mapfoldl`](@ref) and [`MapSplat`](@ref):
+# [`foldl`](@ref) and [`MapSplat`](@ref):
 
-mapfoldl(MapSplat(*), +, zip(1:3, 10:2:14))
+foldl(+, MapSplat(*), zip(1:3, 10:2:14))
 
 # Let's see what it does step by step.  First we create a "printer"
 # transducer using the following function (see [`Map`](@ref)):
@@ -25,9 +25,11 @@ nothing  # hide
 # (prefixed by a `label`).  Let's sandwich the previous `MapSplat(*)`
 # with it:
 
-mapfoldl(
+foldl(
+    +,
     xf_printer(" input") |> MapSplat(*) |> xf_printer("output"),
-    +, zip(1:3, 10:2:14))
+    zip(1:3, 10:2:14),
+)
 flush(stdout)  # hide
 
 # You can see that the input tuple `(1, 10)` is splatted into function
@@ -40,13 +42,13 @@ flush(stdout)  # hide
 
 xs = [1, missing, 3, 2]
 ys = [10, 14, missing, 12]
-mapfoldl(MapSplat(*), +, zip(xs, ys))
+foldl(+, MapSplat(*), zip(xs, ys))
 
 # However, it is very simple to ignore any missing values using
 # [`OfType`](@ref):
 
 xf_mdot = OfType(Tuple{Vararg{Number}}) |> MapSplat(*)
-mapfoldl(xf_mdot, +, zip(xs, ys))
+foldl(+, xf_mdot, zip(xs, ys))
 
 # Here, `Tuple{Vararg{Number}}` is a type that matches with a tuple of
 # any length with numbers.  It does not match with a tuple if it has a
@@ -62,10 +64,12 @@ mapfoldl(xf_mdot, +, zip(xs, ys))
 # covariance.  First, we need the number of pairs of elements in `xs`
 # and `ys` that _both_ of them are not `missing`:
 
-nonmissings = mapfoldl(OfType(Tuple{Vararg{Number}}) |> Count(),
-                       right,
-                       zip(xs, ys);
-                       init = 0)
+nonmissings = foldl(
+    right,
+    OfType(Tuple{Vararg{Number}}) |> Count(),
+    zip(xs, ys);
+    init = 0,
+)
 nonmissings  # hide
 #-
 @assert nonmissings == 2  # hide
@@ -76,15 +80,17 @@ nonmissings  # hide
 # downstream transducer only if there is no `missing` values, this
 # correctly counts the number of non-missing pairs.  Function `right`
 # is simply defined as `right(l, r) = r` (and `right(r) = r`).  Thus,
-# the whole `mapfoldl` returns the last output of `Count`.  In case
+# the whole `foldl` returns the last output of `Count`.  In case
 # `Count` never gets called (i.e., there are no non-missing pairs), we
 # pass `init=0`.
 
 ans =  # hide
-mapfoldl(OfType(Tuple{Vararg{Number}}) |> Count(),
-         right,
-         zip(Int[], Int[]);
-         init = 0)
+foldl(
+    right,
+    OfType(Tuple{Vararg{Number}}) |> Count(),
+    zip(Int[], Int[]);
+    init = 0,
+)
 ans  # hide
 #-
 @assert ans == 0  # hide
@@ -100,7 +106,7 @@ function xf_demean(xs, ys)
     return Map(((x, y),) -> (x - xmean, y - ymean))
 end
 
-mapfoldl(xf_demean(xs, ys) |> xf_mdot, +, zip(xs, ys)) / nonmissings
+foldl(+, xf_demean(xs, ys) |> xf_mdot, zip(xs, ys)) / nonmissings
 
 # ## Addition
 #
@@ -115,7 +121,7 @@ function add_skipmissing!(ys, xs)
 # For filtering out missing values from `xs` while tracking indices,
 # we use [`Enumerate`](@ref) and [`Filter`](@ref).  To iterate over
 # the output of the transducer, [`foreach`](@ref) is used instead of
-# [`mapfoldl`](@ref) since mutating an array is better expressed as a
+# [`foldl`](@ref) since mutating an array is better expressed as a
 # side-effect than a fold.
 
     foreach(Enumerate() |> Filter(!(ismissing ∘ last)), xs) do (i, xi)
@@ -161,7 +167,7 @@ nothing  # hide
 
 if VERSION >= v"1.1-"  # eachcol not in Julia 1.0  #src
 ans =  # hide
-mapfoldl(xf_sum_columns(xs[:, 1]), right, eachcol(xs))
+foldl(right, xf_sum_columns(xs[:, 1]), eachcol(xs))
 #-
 @assert ans == [3, 12, 13]  # hide
 
@@ -171,8 +177,11 @@ mapfoldl(xf_sum_columns(xs[:, 1]), right, eachcol(xs))
 # can easily be done by prepending a filter:
 
 ans =  # hide
-mapfoldl(Filter(x -> !any(ismissing, x)) |> xf_sum_columns(xs[:, 1]),
-         right, eachcol(xs))
+foldl(
+    right,
+    Filter(x -> !any(ismissing, x)) |> xf_sum_columns(xs[:, 1]),
+    eachcol(xs),
+)
 #md ans  # hide
 #src `#md ans` is a hack to avoid Literate.jl to put `continued = true`.
 #-
@@ -189,13 +198,14 @@ foldl(add_skipmissing!, eachcol(xs), init=zeros(Int, size(xs, 1)))
 # However, packaging it as a transducer is sometimes useful as it can
 # be composed with other transducers and "bottom" reducing function.
 # For example, vectorized version of `cumsum` can easily obtained by
-# composing it with `append!` (and then `reshape` after `mapfoldl`):
+# composing it with `append!` (and then `reshape` after `foldl`):
 
-result = mapfoldl(
+result = foldl(
+    append!,
     xf_sum_columns(xs[:, 1]),
-    Completing(append!),
     eachcol(xs);
-    init = Int[])
+    init = Int[],
+)
 ans =  # hide
 reshape(result, (size(xs, 1), :))
 #-
@@ -205,10 +215,6 @@ reshape(result, (size(xs, 1), :))
     0  6  13  13      # hide
 ]                     # hide
 end  # if VERSION >= v"1.1-"  #src
-
-# Note that we need [`Completing`](@ref) here since `append!` does not
-# have the unary method used for [`complete`](@ref
-# Transducers.complete) protocol.
 
 # ## Argmax
 #
@@ -262,7 +268,7 @@ nothing  # hide
 # We have the argmax function by extracting the last output of
 # `xf_argmax`:
 
-mapfoldl(xf_argmax, right, [1, 3, missing, 2])
+foldl(right, xf_argmax, [1, 3, missing, 2])
 
 # Side note: We use `typemin(Int)` as the initial value of `max` for
 # simplicity.  In practice, it should be
@@ -302,9 +308,11 @@ nothing  # hide
 
 @time begin  #src
 ans = # hide
-mapfoldl(
+foldl(
+    right,
     Enumerate() |> OfType(Tuple{Integer, Number}) |> xf_scanext(<),
-    right, [1.0, 3.0, missing, 2.0])
+    [1.0, 3.0, missing, 2.0],
+)
 end  #src
 #-
 @assert ans === (2, 3.0) # hide
@@ -319,7 +327,7 @@ xf_fullextrema = Enumerate() |> OfType(Tuple{Integer, Number}) |>
 
 @time begin  #src
 ans = # hide
-mapfoldl(xf_fullextrema, right, [1.0, 3.0, -1.0, missing, 2.0])
+foldl(right, xf_fullextrema, [1.0, 3.0, -1.0, missing, 2.0])
 end  #src
 #-
 @assert ans === ((3, -1.0), (2, 3.0))  # hide
@@ -335,7 +343,7 @@ xf_argextrema =
 
 @time begin  #src
 ans = # hide
-mapfoldl(xf_argextrema, right, [1.0, 3.0, -1.0, missing, 2.0])
+foldl(right, xf_argextrema, [1.0, 3.0, -1.0, missing, 2.0])
 end  #src
 #-
 @assert ans === (3, 2)  # hide

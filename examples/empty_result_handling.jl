@@ -1,6 +1,6 @@
 # # Empty result handling
 #
-# Transducible processes [`foldl`](@ref) and [`mapfoldl`](@ref) try to
+# Transducible processes such as [`foldl`](@ref) try to
 # do the right thing even when `init` is not given, _if_ the given
 # binary operation `step` is supported by
 # [InitialValues.jl](https://tkf.github.io/InitialValues.jl/dev/)

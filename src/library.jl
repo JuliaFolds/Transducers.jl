@@ -1038,7 +1038,7 @@ This is a generalized version of the
 _cumulative sum_, _inclusive scan_, or _scan_.
 
 Note that the associativity of `f` is not required when the transducer
-is used in a process that gurantee an order, such as [`mapfoldl`](@ref).
+is used in a process that gurantee an order, such as [`foldl`](@ref).
 
 Unless `f` is a function with known identity element such as `+`, `*`,
 `min`, `max`, and `append!`, the initial state `init` must be
@@ -1628,7 +1628,7 @@ julia> using Transducers
 
 julia> ys = zeros(3);
 
-julia> mapfoldl(SetIndex(ys), first ∘ tuple, [(1, 11.1), (3, 33.3)], init=nothing)
+julia> foldl(first ∘ tuple, SetIndex(ys), [(1, 11.1), (3, 33.3)], init=nothing)
 
 julia> ys
 3-element Array{Float64,1}:

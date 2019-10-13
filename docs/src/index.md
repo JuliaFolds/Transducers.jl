@@ -75,17 +75,17 @@ julia> xf = Filter(iseven) |> Map(x -> 2x)
 ```
 
 An efficient way to use transducers is combination with
-[`mapfoldl`](@ref).  This computation is done without creating any
+[`foldl`](@ref).  This computation is done without creating any
 intermediate lazy object and compiles to a single loop:
 
 ```jldoctest filter-map
-julia> mapfoldl(xf, +, 1:6)
+julia> foldl(+, xf, 1:6)
 24
 ```
 
 ## Difference to iterators
 
-How `mapfoldl` and `foldl` are used illustrates the difference between
+How `foldl` is used illustrates the difference between
 iterators and transducers.  Implementation of the above computation in
 iterator would be:
 
@@ -101,7 +101,7 @@ foldl(+, imap(f, filter(iseven, input)))  # equivalent
 Compare it to how transducers are used:
 
 ```julia
-mapfoldl(Filter(iseven) |> Map(f), +, input, init=0)
+foldl(+, Filter(iseven) |> Map(f), input, init=0)
 #        ________________________
 #        composition occurs at computation part
 ```
@@ -167,7 +167,7 @@ xs = [6, 8, 1, 4, 5, 6, 6, 7, 9, 9, 7, 8, 6, 8, 2, 5, 2, 4, 3, 7]
 
 Notice that the iteration of `input` is at the _outer_ most block
 while `+` is in the inner most block.  Transducers passed to
-`mapfoldl` appears in the block between them in the order they are
+`foldl` appears in the block between them in the order they are
 composed.  An outer transducer (say `Filter`) "pushes" _arbitrary_
 number of items to the inner transducer (`Map` in above example).
 Note that `Filter` can choose to _not_ push an item (i.e., push zero
@@ -182,7 +182,7 @@ example:
 
 ```jldoctest map-filter-cat
 julia> xf = Map(x -> 1:x) |> Filter(iseven ∘ sum) |> Cat()
-       mapfoldl(xf, *, 1:10)
+       foldl(*, xf, 1:10)
 29262643200
 ```
 
@@ -202,7 +202,7 @@ function map_filter_cat_transducers(xs, init)
     return acc
 end
 
-@assert mapfoldl(xf, *, 1:10) == map_filter_cat_transducers(1:10, 1)
+@assert foldl(*, xf, 1:10) == map_filter_cat_transducers(1:10, 1)
 # output
 
 ```
@@ -228,21 +228,21 @@ Markdown.MD(Transducers.TransducerLister())
 ## Glossary
 
 ```julia
-mapfoldl(xf, step, input, init=...)
-#   |    |   |     |
-#   |    |   |     `-- reducible
-#   |    |   |
-#   |    |   `-- "bottom" (inner most) reducing function
-#   |    |
-#   |    `-- transducer
-#   |
-#   `-- transducible process
+foldl(step, xf, input, init=...)
+#  |   |    |     |
+#  |   |    |     `-- reducible
+#  |   |    |
+#  |   |    `-- transducer
+#  |   |
+#  |   `-- "bottom" (inner most) reducing function
+#  |
+#  `-- transducible process
 ```
 
 * **Reducing function** or **Reducing step (function)**: A reducing
   function combines result-so-far with the input.  It in a narrow
   sense is a "callable" `op` of the signature `op(::X, ::Y) :: X` (or
-  `op(::X, ::X) :: X` in case for [`mapreduce`](@ref)) or
+  `op(::X, ::X) :: X` in case for [`reduce`](@ref)) or
   schematically:
 
   ```math
@@ -278,14 +278,14 @@ mapfoldl(xf, step, input, init=...)
   ``\mathrm{xf}_1(\mathrm{xf}_2(\mathrm{rf}'))``.
 
 * **Reducible collection** (or just **Reducible**): Any object that
-  can be passed to [`mapfoldl`](@ref) and alike is reducible.  A
+  can be passed to [`foldl`](@ref) and alike is reducible.  A
   reducible collection knows how to apply reducing function to its
   elements.  Iterators are automatically reducible as this is the
   canonical fallback implementation.
 
 * **Transducible process**: A function that can reduce reducible
   collections using transducers is a transducible process.  Examples
-  are [`mapfoldl`](@ref) and [`mapreduce`](@ref).  Find more in
+  are [`foldl`](@ref) and [`reduce`](@ref).  Find more in
   [Transducible processes](@ref).
 
 

@@ -2,7 +2,7 @@
 #
 # Let's see how to make a vector-of-vector a [reducible
 # collection](@ref Glossary); i.e., a type that can be fed to
-# [`mapfoldl`](@ref).
+# [`foldl`](@ref).
 
 struct VecOfVec{T}
     vectors::Vector{Vector{T}}
@@ -14,7 +14,7 @@ end
 using Transducers
 using Transducers: @next, complete
 
-# Supporting [`mapfoldl`](@ref) and similar only requires
+# Supporting [`foldl`](@ref) and similar only requires
 # [`Transducers.__foldl__`](@ref):
 
 function Transducers.__foldl__(rf, val, vov::VecOfVec)

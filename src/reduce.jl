@@ -1,7 +1,7 @@
 """
-    mapreduce(xf, step, reducible; init, simd) :: T
+    reduce(step, xf, reducible; init, simd) :: T
 
-Possibly parallel version of [`mapfoldl`](@ref).  The "bottom"
+Possibly parallel version of [`foldl`](@ref).  The "bottom"
 reduction function `step(::T, ::T) :: T` must be associative and
 `init` must be its identity element.
 
@@ -10,17 +10,22 @@ Transducers composing `xf` must be stateless and non-terminating
 for [`ScanEmit`](@ref).  Note that [`Scan`](@ref) is not supported
 (although possible in theory).
 
-See [`mapfoldl`](@ref).
-"""
-Base.mapreduce
-
-"""
-    reduce(step, xf, reducible; init, simd)
-
-Like [`mapreduce`](@ref) but `step` is automatically wrapped by
-[`Completing`](@ref).
+See [`foldl`](@ref).
 """
 Base.reduce
+
+"""
+    mapreduce(xf, step, reducible; init, simd)
+
+!!! warning
+
+    `mapreduce` exists primary for backward compatibility.  It is
+    recommended to use `reduce`.
+
+Like [`reduce`](@ref) but `step` is _not_ automatically wrapped by
+[`Completing`](@ref).
+"""
+Base.mapreduce
 
 struct SizedReducible{T} <: Reducible
     reducible::T

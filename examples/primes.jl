@@ -10,7 +10,7 @@ end                               # hide
 using Transducers
 
 sieve(xf, x) =
-    if isnothing(mapfoldl(xf, right, (x,), init=nothing))
+    if isnothing(foldl(right, xf, (x,), init=nothing))
         nothing, xf
     else
         x, xf |> Filter(n -> n % x != 0)
@@ -37,7 +37,7 @@ end                                                                    #src
 # transducer).
 #
 # See: [`right`](@ref), [`ScanEmit`](@ref), [`Map`](@ref),
-# [`Filter`](@ref), [`mapreduce`](@ref), [`collect`](@ref)
+# [`Filter`](@ref), [`collect`](@ref)
 
 # !!! note "Side notes"
 #

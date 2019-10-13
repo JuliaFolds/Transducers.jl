@@ -233,17 +233,21 @@ Call [`__foldl__`](@ref) without calling [`complete`](@ref).
 foldl_nocomplete(rf, init, coll) = __foldl__(skipcomplete(rf), init, coll)
 
 """
-    mapfoldl(xf, step, reducible; init, simd) :: T
+    foldl(step, xf::Transducer, reducible; init, simd) :: T
+    foldl(step, ed::Eduction; init, simd) :: T
     transduce(xf, step, init, reducible; simd) :: Union{T, Reduced{T}}
 
 Compose transducer `xf` with reducing step function `step` and reduce
 `itr` using it.
 
 !!! note
-    `transduce` differs from `mapfoldl` as `Reduced{T}` is returned if
-    the transducer `xf` or `step` aborts the reduction.
+    `transduce` differs from `foldl` as `Reduced{T}` is returned if
+    the transducer `xf` or `step` aborts the reduction and `step` is
+    _not_ automatically wrapped by [`Completing`](@ref).
 
 This API is modeled after $(_cljref("transduce")).
+
+See also: [Empty result handling](@ref).
 
 # Arguments
 - `xf::Transducer`: A transducer.
@@ -270,6 +274,39 @@ This API is modeled after $(_cljref("transduce")).
 ```jldoctest
 julia> using Transducers
 
+julia> foldl(Filter(isodd), 1:4, init=0.0) do state, input
+           @show state, input
+           state + input
+       end
+(state, input) = (0.0, 1)
+(state, input) = (1.0, 3)
+4.0
+```
+"""
+foldl
+
+"""
+    transduce(xf, step, init, reducible) :: Union{T, Reduced{T}}
+
+See [`foldl`](@ref).
+"""
+transduce
+
+"""
+    mapfoldl(xf::Transducer, step, reducible; init, simd)
+
+!!! warning
+
+    `mapfoldl` exists primary for backward compatibility.  It is
+    recommended to use `foldl`.
+
+Like [`foldl`](@ref) but `step` is _not_ automatically wrapped by
+[`Completing`](@ref).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
 julia> function step_demo(state, input)
            @show state, input
            state + input
@@ -288,13 +325,6 @@ Finishing with state = 4.0
 ```
 """
 mapfoldl
-
-"""
-    transduce(xf, step, init, reducible) :: Union{T, Reduced{T}}
-
-See [`mapfoldl`](@ref).
-"""
-transduce
 
 function transduce(xform::Transducer, f, init, coll; kwargs...)
     rf = Reduction(xform, f)
@@ -620,29 +650,6 @@ julia> copy!(PartitionBy(x -> x ÷ 3) |> Map(sum), Int[], 1:10)
 """
 Base.copy!(xf::Transducer, dest, src) = append!(xf, empty!(dest), src)
 
-"""
-    foldl(step, xf::Transducer, reducible; init, simd)
-    foldl(step, ed::Eduction; init, simd)
-
-The first form is a shorthand for `mapfoldl(xf, Completing(step),
-reducible)`.  It is intended to be used with a `do` block.  It is also
-equivalent to `foldl(step, eduction(xf, itr))`.
-
-See: [`mapfoldl`](@ref), [Empty result handling](@ref).
-
-# Examples
-```jldoctest
-julia> using Transducers
-
-julia> foldl(Filter(isodd), 1:4, init=0.0) do state, input
-           @show state, input
-           state + input
-       end
-(state, input) = (0.0, 1)
-(state, input) = (1.0, 3)
-4.0
-```
-"""
 function Base.foldl(step, xform::Transducer, itr;
                     kw...)
     mapfoldl(xform, Completing(step), itr; kw...)
