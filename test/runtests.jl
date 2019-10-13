@@ -7,5 +7,3 @@ using Test
 end
 
 end  # module
-
-include("__test_doctest.jl")

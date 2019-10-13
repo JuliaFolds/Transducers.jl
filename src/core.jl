@@ -127,7 +127,7 @@ See also [`@next`](@ref).
     message](https://github.com/tkf/Transducers.jl/commit/74f8961fea97b746cb097b27aa5a5761e9bf4dae).
 
 # Examples
-```jldoctest; filter = [r"#[0-9]+#", r"#=.*?=#"]
+```jldoctest; filter = [r"(var\\")?#[0-9]+#val(\\")?", r"#=.*?=#"]
 julia> using Transducers: @return_if_reduced
 
 julia> @macroexpand @return_if_reduced f(x)
