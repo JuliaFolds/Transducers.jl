@@ -66,6 +66,84 @@ end
 
 Base.eltype(::ProgressLoggingFoldable{T}) where {T} = eltype(T)
 
+struct LogProgressOnCombine{C} <: Transducer
+    chan::C
+    progress_interval::Float64
+end
+
+# Recrod started time:
+start(rf::R_{LogProgressOnCombine}, result) =
+    wrap(rf, (time(), 0), start(inner(rf), result))
+
+# Count processed number of items:
+@inline next(rf::R_{LogProgressOnCombine}, result, input) =
+    wrapping(rf, result) do (t0, n), iresult
+        (t0, n + 1), next(inner(rf), iresult, input)
+    end
+
+@inline complete(rf::R_{LogProgressOnCombine}, result) =
+    complete(inner(rf), unwrap(rf, result)[2])
+
+# Send number of processed item to progress channel:
+@inline function combine(rf::R_{LogProgressOnCombine}, a, b)
+    (ta, na), ira = unwrap(rf, a)
+    (tb, nb), irb = unwrap(rf, b)
+    irc = combine(inner(rf), ira, irb)
+
+    tc = time()
+    t0 = min(ta, tb)
+    nc = na + nb
+    if tc - t0 > xform(rf).progress_interval
+        put!(xform(rf).chan, nc)
+        nc = 0
+    else
+        tc = t0
+    end
+
+    return wrap(rf, (tc, nc), irc)
+end
+
+function _reduce_progress(reduce_impl, rf0, init, coll)
+    if rf0 isa R_{UseSIMD}
+        xf0 = xform(rf0)
+        rfinner = inner(rf0)
+    else
+        xf0 = IdentityTransducer()
+        rfinner = rf0
+    end
+
+    chan = Channel{Int}(0)
+    xf = xf0 |> LogProgressOnCombine(chan, coll.reducible.interval)
+    rf = Reduction(xf, rfinner)
+
+    reducible = @set coll.reducible = coll.reducible.foldable
+    progress_task = @async let n = length(coll.reducible.foldable)
+        __progress() do id
+            foreach(Scan(+), chan) do i
+                @debug "reduce" _id=id progress=i/n
+            end
+        end
+    end
+    try
+        result = reduce_impl(rf, init, reducible)
+        result isa Reduced && return result
+        # Manually unwrap LogProgressOnCombine's private state:
+        _, iresult = unwrap(rf, result)
+        return iresult
+    finally
+        close(chan)
+        wait(progress_task)
+    end
+end
+
+_reduce(ctx, rf, init, coll::SizedReducible{<:ProgressLoggingFoldable}) =
+    _reduce_progress(rf, init, coll) do rf, init, coll
+        _reduce(ctx, rf, init, coll)
+    end
+
+_reduce_threads_for(rf, init, coll::SizedReducible{<:ProgressLoggingFoldable}) =
+    _reduce_progress(_reduce_threads_for, rf, init, coll)
+
 struct RemoteFoldlWithLogging{C} <: Function
     chan::C
     progress_interval::Float64

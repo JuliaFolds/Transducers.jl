@@ -52,4 +52,18 @@ end
     end
 end
 
+@testset "withprogress" begin
+    xf = Map() do x
+        sleep(0.01)
+        x
+    end
+    @test reduce(+, xf, withprogress(1:100; interval=0); basesize=1) == 5050
+
+    xf2 = ScanEmit(0) do u, x
+        y = u + x
+        y, y
+    end
+    @test reduce(right, xf2, withprogress(1:100; interval=0); basesize=1) == 5050
+end
+
 end  # module
