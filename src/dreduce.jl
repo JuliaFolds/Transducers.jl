@@ -27,7 +27,7 @@ julia> dreduce(append!!, Map(vcat), 1:3; init=Union{}[])
 ```
 """
 dreduce(step, xform::Transducer, itr; init=MissingInit(), kwargs...) =
-    unreduced(dtransduce(xform, Completing(step), init, itr); kwargs...)
+    unreduced(dtransduce(xform, Completing(step), init, itr; kwargs...))
 
 """
     dtransduce(xform::Transducer, step, init, array; [simd, basesize, pool])
@@ -39,13 +39,14 @@ function dtransduce(
     simd::SIMDFlag = Val(false),
     basesize::Integer = length(coll) ÷ Distributed.nworkers(),
     pool::Distributed.AbstractWorkerPool = Distributed.default_worker_pool(),
+    _remote_foldl = _remote_foldl,
 )
     @argcheck basesize > 0
     load_me_everywhere()
     rf = maybe_usesimd(Reduction(xform, step), simd)
     futures = map(firstindex(coll):basesize:lastindex(coll)) do start
         Distributed.remotecall(
-            foldl_nocomplete,
+            _remote_foldl,
             pool,
             rf,
             init,
@@ -60,6 +61,11 @@ function dtransduce(
         combine(rf, a, b)
     end
     return complete(rf, c)
+end
+
+function _remote_foldl(rf, init, coll)
+    acc = _start_init(rf, init)
+    return foldl_nocomplete(rf, acc, coll)
 end
 
 function load_me_everywhere()
