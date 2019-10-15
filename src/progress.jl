@@ -141,8 +141,19 @@ _reduce(ctx, rf, init, coll::SizedReducible{<:ProgressLoggingFoldable}) =
         _reduce(ctx, rf, init, coll)
     end
 
-_reduce_threads_for(rf, init, coll::SizedReducible{<:ProgressLoggingFoldable}) =
-    _reduce_progress(_reduce_threads_for, rf, init, coll)
+if VERSION >= v"1.2"
+    _reduce_threads_for(rf, init, coll::SizedReducible{<:ProgressLoggingFoldable}) =
+        _reduce_progress(_reduce_threads_for, rf, init, coll)
+else
+    # In earlier versions, Channel was not thread-safe (?)
+    # https://github.com/JuliaLang/julia/pull/30186
+    _reduce_threads_for(rf, init, coll::SizedReducible{<:ProgressLoggingFoldable}) =
+        _reduce_threads_for(
+            rf,
+            init,
+            (@set coll.reducible = coll.reducible.foldable),
+        )
+end
 
 struct RemoteFoldlWithLogging{C} <: Function
     chan::C
