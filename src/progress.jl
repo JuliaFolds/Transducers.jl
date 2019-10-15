@@ -4,6 +4,10 @@
 Wrap a foldable so that progress is shown in logging-based progress meter
 (e.g., Juno) during `foldl`.
 
+# Keyword Arguments
+- `interval::Real`: Minimum interval (in seconds) for how often progress is
+  logged.
+
 # Examples
 ```jldoctest
 julia> using Transducers
@@ -13,7 +17,7 @@ julia> xf = Map() do x
            x
        end;
 
-julia> foldl(+, xf, withprogress(1:100))  # see progress meter
+julia> foldl(+, xf, withprogress(1:100; interval=1e-3))  # see progress meter
 5050
 ```
 """
@@ -41,15 +45,21 @@ function __progress(f; name = "")
     end
 end
 
-function Transducers.__foldl__(rf0, val0, coll::ProgressLoggingFoldable)
+function __foldl__(rf0, init, coll::ProgressLoggingFoldable)
     __progress() do id
         n = length(coll.foldable)
-        xf = Enumerate() |> Map() do (i, x)
-            @debug "foldl" _id=id progress=i/n
-            x
+        progress_interval = coll.interval
+        scaninit = (0, time())
+        xf = ScanEmit(scaninit) do (i, t0), x
+            t1 = time()
+            if t1 - t0 > progress_interval
+                @debug "foldl" _id=id progress=i/n
+                t0 = t1
+            end
+            x, (i + 1, t0)
         end
         rf = Reduction(xf, rf0)
-        val = wrap(rf, 1, val0)  # manually `start`ing `Enumerate`
+        val = wrap(rf, scaninit, init)  # manually `start`ing `ScanEmit`
         return Transducers.__foldl__(rf, val, coll.foldable)
     end
 end
