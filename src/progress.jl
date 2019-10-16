@@ -20,6 +20,26 @@ julia> xf = Map() do x
 julia> foldl(+, xf, withprogress(1:100; interval=1e-3))  # see progress meter
 5050
 ```
+
+In `foldl` and `reduce`, `withprogress` can be nested.  This is not supported
+in `dreduce`.
+
+```jldoctest; setup = :(using Transducers)
+julia> xf = MapCat() do x
+           withprogress(1:x; interval=1e-3)  # nested progress
+       end |> Map() do x
+           sleep(0.5)
+           x
+       end;
+
+julia> if VERSION >= v"1.3-alpha"
+           # Calling `sleep` in thread is safe in Julia 1.3:
+           reduce(+, xf, withprogress(1:10; interval=1e-3); basesize=1)
+       else
+           foldl(+, xf, withprogress(1:10; interval=1e-3))
+       end
+220
+```
 """
 withprogress(
     foldable;
