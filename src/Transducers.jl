@@ -16,6 +16,7 @@ using Base.Broadcast: Broadcasted
 using ArgCheck
 using BangBang: push!!, empty!!, setindex!!
 using Distributed: Distributed, @everywhere
+using Logging: LogLevel, @logmsg
 using Requires
 using InitialValues: InitialValues, InitialValue, SpecificInitialValue, Init,
     hasinitialvalue
