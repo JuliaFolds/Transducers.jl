@@ -19,6 +19,10 @@ end
     ys = dreduce(append!!, Map(fun), xs; init=Union{}[])
     @test first.(ys) == xs
     @test Set(last.(ys)) == Set(pids)
+
+    ys = dreduce(append!!, Map(fun), withprogress(xs; interval=0); init=Union{}[])
+    @test first.(ys) == xs
+    @test Set(last.(ys)) == Set(pids)
 end
 
 end  # module

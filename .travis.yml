@@ -4,8 +4,8 @@ os:
   - linux
 julia:
   - 1.0
-  - 1.1
   - 1.2
+  - 1.3
   - nightly
 env:
    global:
@@ -46,7 +46,7 @@ jobs:
       after_success: skip
       if: NOT (branch = master)
     - stage: "Documentation"
-      julia: 1.1
+      julia: 1.3
       os: linux
       script:
         - docs/make.jl
