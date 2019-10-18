@@ -54,30 +54,15 @@ struct ProgressLoggingFoldable{T} <: Foldable
     interval::Float64
 end
 
-# Use Juno/Atom-compatible log-level.  See:
-# https://github.com/JunoLab/Atom.jl/blob/v0.11.1/src/progress.jl#L75-L76
-const PROGRESSLEVEL = LogLevel(-1)
-
-# Juno.progress
-function __progress(f; name = "")
-    _id = gensym()
-    @logmsg PROGRESSLEVEL name progress=0.0 _id=_id
-    try
-        f(_id)
-    finally
-        @logmsg PROGRESSLEVEL name progress="done" _id=_id
-    end
-end
-
 function __foldl__(rf0, init, coll::ProgressLoggingFoldable)
-    __progress() do id
+    @withprogress begin
         n = length(coll.foldable)
         progress_interval = coll.interval
         scaninit = (0, time())
         xf = ScanEmit(scaninit) do (i, t0), x
             t1 = time()
             if t1 - t0 > progress_interval
-                @logmsg PROGRESSLEVEL "foldl" _id=id progress=i/n
+                @logprogress "foldl" progress=i/n
                 t0 = t1
             end
             x, (i + 1, t0)
@@ -142,9 +127,9 @@ function _reduce_progress(reduce_impl, rf0, init, coll)
 
     reducible = @set coll.reducible = coll.reducible.foldable
     progress_task = @async let n = length(coll.reducible.foldable)
-        __progress() do id
+        @withprogress begin
             foreach(Scan(+), chan) do i
-                @logmsg PROGRESSLEVEL "reduce" _id=id progress=i/n
+                @logprogress "reduce" progress=i/n
             end
         end
     end
@@ -211,7 +196,7 @@ function dtransduce(
     chan = Distributed.RemoteChannel()
     remote_foldl_with_logging = RemoteFoldlWithLogging(chan, coll.interval)
     progress_task = @async let n = length(coll.foldable)
-        __progress() do id
+        @withprogress begin
             i = 0
             while true
                 i += try
@@ -219,11 +204,11 @@ function dtransduce(
                 catch
                     return
                 end
-                @logmsg PROGRESSLEVEL "dreduce" _id=id progress=i/n
+                @logprogress "dreduce" progress=i/n
             end
             #=
             foreach(Scan(+), chan) do i
-                @logmsg PROGRESSLEVEL "dreduce" _id=id progress=i/n
+                @logprogress "dreduce" progress=i/n
             end
             =#
         end
