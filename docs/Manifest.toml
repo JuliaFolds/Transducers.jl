@@ -8,7 +8,7 @@ version = "1.0.1"
 
 [[BangBang]]
 deps = ["ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "ZygoteRules"]
-git-tree-sha1 = "f611e935d896d85dbfc3add14165476ec7b03ce4"
+git-tree-sha1 = "3a1f4990976144727192fad89a9e3ead0733cae5"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/BangBang.jl"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
@@ -74,7 +74,7 @@ deps = ["Random"]
 uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
 
 [[InitialValues]]
-git-tree-sha1 = "42aa88972dd7b608cb8261f29beac0a4c4a72174"
+git-tree-sha1 = "bea64fd3a0cb4edd5ec177cbe4b2c4f95b607356"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/InitialValues.jl"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
@@ -142,15 +142,15 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[OnlineStats]]
 deps = ["Dates", "LearnBase", "LinearAlgebra", "LossFunctions", "OnlineStatsBase", "OrderedCollections", "PenaltyFunctions", "Random", "RecipesBase", "Reexport", "Statistics", "StatsBase", "SweepOperator"]
-git-tree-sha1 = "cc5e782b1d6aaadab80ac093773458f86739ddcf"
+git-tree-sha1 = "91f701d99f1d8b6339c077f1ba6d8772aa9ecf1e"
 uuid = "a15396b6-48d5-5d58-9928-6d29437db91e"
-version = "1.0.0"
+version = "1.0.1"
 
 [[OnlineStatsBase]]
 deps = ["Dates", "LearnBase", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "f1512e02c3d066d8ca48042fb3d17c3db9dc69f3"
+git-tree-sha1 = "f375c3a187436278bae1e1e8eaae853449737097"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.0.1"
+version = "1.0.2"
 
 [[OrderedCollections]]
 deps = ["Random", "Serialization", "Test"]

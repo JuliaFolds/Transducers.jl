@@ -8,7 +8,7 @@ version = "1.0.1"
 
 [[BangBang]]
 deps = ["ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "ZygoteRules"]
-git-tree-sha1 = "f611e935d896d85dbfc3add14165476ec7b03ce4"
+git-tree-sha1 = "3a1f4990976144727192fad89a9e3ead0733cae5"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/BangBang.jl"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
@@ -19,9 +19,9 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[BlockArrays]]
 deps = ["LinearAlgebra"]
-git-tree-sha1 = "87b72cb71d7306b767d175ece832bf8a7f3b6dc8"
+git-tree-sha1 = "f58a4335816434b7c283bb9933b374b158a25b34"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.10.0"
+version = "0.10.1"
 
 [[CSTParser]]
 deps = ["Tokenize"]
@@ -79,16 +79,16 @@ version = "0.24.0-DEV"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
-git-tree-sha1 = "16974065d5bfa867446d3228bc63f05a440e910b"
+git-tree-sha1 = "a2e22cd210dfa3ad1e1e6291fb733741dfabcc9f"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.7.2"
+version = "0.7.3"
 
 [[Future]]
 deps = ["Random"]
 uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
 
 [[InitialValues]]
-git-tree-sha1 = "42aa88972dd7b608cb8261f29beac0a4c4a72174"
+git-tree-sha1 = "bea64fd3a0cb4edd5ec177cbe4b2c4f95b607356"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/InitialValues.jl"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
@@ -156,15 +156,15 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[OnlineStats]]
 deps = ["Dates", "LearnBase", "LinearAlgebra", "LossFunctions", "OnlineStatsBase", "OrderedCollections", "PenaltyFunctions", "Random", "RecipesBase", "Reexport", "Statistics", "StatsBase", "SweepOperator"]
-git-tree-sha1 = "cc5e782b1d6aaadab80ac093773458f86739ddcf"
+git-tree-sha1 = "91f701d99f1d8b6339c077f1ba6d8772aa9ecf1e"
 uuid = "a15396b6-48d5-5d58-9928-6d29437db91e"
-version = "1.0.0"
+version = "1.0.1"
 
 [[OnlineStatsBase]]
 deps = ["Dates", "LearnBase", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "f1512e02c3d066d8ca48042fb3d17c3db9dc69f3"
+git-tree-sha1 = "f375c3a187436278bae1e1e8eaae853449737097"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.0.1"
+version = "1.0.2"
 
 [[OrderedCollections]]
 deps = ["Random", "Serialization", "Test"]
@@ -248,9 +248,9 @@ uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "db23bbf50064c582b6f2b9b043c8e7e98ea8c0c6"
+git-tree-sha1 = "1085ffbf5fd48fdba64ef8e902ca429c4e1212d3"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "0.11.0"
+version = "0.11.1"
 
 [[Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
