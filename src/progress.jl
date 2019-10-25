@@ -55,14 +55,14 @@ struct ProgressLoggingFoldable{T} <: Foldable
 end
 
 function __foldl__(rf0, init, coll::ProgressLoggingFoldable)
-    @withprogress begin
+    @withprogress name = "foldl" begin
         n = length(coll.foldable)
         progress_interval = coll.interval
         scaninit = (0, time())
         xf = ScanEmit(scaninit) do (i, t0), x
             t1 = time()
             if t1 - t0 > progress_interval
-                @logprogress "foldl" progress=i/n
+                @logprogress i/n
                 t0 = t1
             end
             x, (i + 1, t0)
@@ -127,9 +127,9 @@ function _reduce_progress(reduce_impl, rf0, init, coll)
 
     reducible = @set coll.reducible = coll.reducible.foldable
     progress_task = @async let n = length(coll.reducible.foldable)
-        @withprogress begin
+        @withprogress name = "reduce" begin
             foreach(Scan(+), chan) do i
-                @logprogress "reduce" progress=i/n
+                @logprogress i/n
             end
         end
     end
@@ -196,7 +196,7 @@ function dtransduce(
     chan = Distributed.RemoteChannel()
     remote_foldl_with_logging = RemoteFoldlWithLogging(chan, coll.interval)
     progress_task = @async let n = length(coll.foldable)
-        @withprogress begin
+        @withprogress name = "dreduce" begin
             i = 0
             while true
                 i += try
@@ -204,11 +204,11 @@ function dtransduce(
                 catch
                     return
                 end
-                @logprogress "dreduce" progress=i/n
+                @logprogress i/n
             end
             #=
             foreach(Scan(+), chan) do i
-                @logprogress "dreduce" progress=i/n
+                @logprogress i/n
             end
             =#
         end
