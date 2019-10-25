@@ -388,7 +388,7 @@ function Base.mapfoldl(xform::Transducer, step, itr;
     unreduced(transduce(xform, step, init, itr; simd=simd))
 end
 
-struct Eduction{F, C}
+struct Eduction{F, C} <: Foldable
     rf::F
     coll::C
 end
@@ -477,6 +477,15 @@ eduction(xform, coll) = Eduction(xform, coll)
 # Note on API:
 # Exporting `Eduction` could also work.  But `Base` has, e.g.,
 # `skipmissing` so maybe this is better for more uniform API.
+
+"""
+    induction(foldable) -> (xf, foldable′)
+
+Reverse of `eduction` (I have no idea what the right name of this
+function is).
+"""
+induction(ed::Eduction) = (Transducer(ed.rf), ed.coll)
+induction(coll) = (Map(identity), coll)  # TODO: use `IdentityTransducer`
 
 """
     setinput(ed::Eduction, coll)
@@ -655,9 +664,9 @@ function Base.foldl(step, xform::Transducer, itr;
     mapfoldl(xform, Completing(step), itr; kw...)
 end
 
-@inline function Base.foldl(step, ed::Eduction; init=MissingInit(), kwargs...)
-    xf = Transducer(ed.rf)
-    return unreduced(transduce(xf, Completing(step), init, ed.coll; kwargs...))
+@inline function Base.foldl(step, foldable::Foldable; init=MissingInit(), kwargs...)
+    xf, coll = induction(foldable)
+    return unreduced(transduce(xf, Completing(step), init, coll; kwargs...))
 end
 
 """
