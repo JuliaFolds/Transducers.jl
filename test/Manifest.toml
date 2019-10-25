@@ -194,8 +194,8 @@ uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[ProgressLogging]]
 deps = ["Logging"]
-git-tree-sha1 = "5575775b3e1bc449840fcd9b3ea4f56e042b00e2"
-repo-rev = "withprogress"
+git-tree-sha1 = "aac07ef3cc8d6d8e0ccf476d649c32feb7cb1860"
+repo-rev = "logprogress"
 repo-url = "https://github.com/tkf/ProgressLogging.jl.git"
 uuid = "33c8b6b6-d38a-422a-b730-caa89a2f386c"
 version = "0.1.0"
