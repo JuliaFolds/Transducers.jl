@@ -388,6 +388,19 @@ function Base.mapfoldl(xform::Transducer, step, itr;
     unreduced(transduce(xform, step, init, itr; simd=simd))
 end
 
+function Base.mapfoldl(f, step, itr::Foldable;
+                       simd::SIMDFlag = Val(false),
+                       init = MissingInit())
+    foldl(step, Map(f), itr; init=init, simd=simd)
+end
+
+# disambiguation
+function Base.mapfoldl(xform::Transducer, step, itr::Foldable;
+                       simd::SIMDFlag = Val(false),
+                       init = MissingInit())
+    unreduced(transduce(xform, step, init, itr; simd=simd))
+end
+
 struct Eduction{F, C} <: Foldable
     rf::F
     coll::C
