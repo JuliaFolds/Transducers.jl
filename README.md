@@ -18,15 +18,15 @@ know similar concepts in iterator libraries:
 ```julia
 using Transducers
 xf = Partition(7) |> Filter(x -> prod(x) % 11 == 0) |> Cat() |> Scan(+)
-mapfoldl(xf, +, 1:40)
+foldl(+, xf, 1:40)
 ```
 
 However, the protocol used for the transducers is quite different from
 iterators and results in a better performance for complex
 compositions.  Furthermore, some transducers support parallel
 execution.  If a transducer is composed of such transducers, it can be
-automatically re-used both in sequential (`mapfoldl` etc.) and
-parallel (`mapreduce`) contexts.
+automatically re-used both in sequential (`foldl` etc.) and parallel
+(`reduce` etc.) contexts.
 
 See more in the [documentation](https://tkf.github.io/Transducers.jl/dev).
 
