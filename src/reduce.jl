@@ -84,7 +84,7 @@ end
 function transduce_assoc(
     xform::Transducer, step, init, coll;
     simd::SIMDFlag = Val(false),
-    basesize = Threads.nthreads() == 1 ? typemax(Int) : 512,
+    basesize::Integer = length(coll) ÷ Threads.nthreads(),
 )
     reducible = SizedReducible(coll, basesize)
     rf = maybe_usesimd(Reduction(xform, step), simd)
