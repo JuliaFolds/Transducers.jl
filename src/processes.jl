@@ -814,11 +814,10 @@ false
 """
 Base.foreach(eff, xform::Transducer, coll; kwargs...) =
     transduce(xform, SideEffect(eff), nothing, coll; kwargs...)
-Base.foreach(eff, ed::Eduction; kwargs...) =
-    transduce(reform(ed.rf, SideEffect(eff)), nothing, ed.coll;
-              kwargs...)
-Base.foreach(eff, reducible::Reducible; kwargs...) =
-    transduce(BottomRF(SideEffect(eff)), nothing, reducible; kwargs...)
+function Base.foreach(eff, reducible::Reducible; kwargs...)
+    xf, coll = induction(reducible)
+    return transduce(xf, SideEffect(eff), nothing, coll; kwargs...)
+end
 
 """
     ifunreduced(f, [x])
