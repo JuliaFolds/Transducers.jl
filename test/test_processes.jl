@@ -162,10 +162,12 @@ end
     @testset for src in [xs0, collect(xs0)]
         dest = zero(src)
         @test map!(Filter(isodd) |> Scan(+), dest, src) == [1, 0, 4, 0, 9]
+        @test map!(ScanEmit(tuple, 0), dest, src) == 0:4
     end
 
     @testset "Expansive transducers are not allowed" begin
         @test_throws Exception map!(Cat(), [0], 1:1)
+        @test_throws Exception map!(ScanEmit(tuple, 0, identity), [0], 1:1)
     end
 end
 

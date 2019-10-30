@@ -1116,7 +1116,7 @@ when the sequence `x₁, x₂, x₃, ..., xₙ, ...` is fed to `ScanEmit(f)`.
 
 $_use_initializer
 
-See also: [`ScanEmit`](@ref), [`Iterated`](@ref).
+See also: [`Scan`](@ref), [`Iterated`](@ref).
 
 # Examples
 ```jldoctest
@@ -1137,7 +1137,7 @@ end
 
 ScanEmit(f, init) = ScanEmit(f, init, nothing)
 
-isexpansive(xf::ScanEmit) = xf.onlast === nothing
+isexpansive(xf::ScanEmit) = xf.onlast !== nothing
 
 start(rf::R_{ScanEmit}, result) =
     wrap(rf, _initvalue(rf), start(inner(rf), result))
