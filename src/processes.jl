@@ -591,6 +591,26 @@ end
 # Base.collect(xf, coll) = append!([], xf, coll)
 
 """
+    copy(xf::Transducer, T, foldable) :: Union{T, Nothing}
+    copy(xf::Transducer, foldable::T) :: Union{T, Nothing}
+
+Process `foldable` with a transducer `xf` and then create a container of type `T`
+filled with the result.  Return `nothing` if the transducer does not produce
+anything.  (This is because there is no consistent interface to create an empty
+container given its type and not all containers support creating an empty
+container.)
+"""
+function Base.copy(xf::Transducer, ::Type{T}, foldable) where T
+    result = append!!(Empty(T), foldable)
+    if result isa Empty
+        return nothing
+    end
+    return result
+end
+
+Base.copy(xf::Transducer, foldable::T) where T = copy(xf, T, foldable)
+
+"""
     map!(xf::Transducer, dest, src; simd)
 
 Feed `src` to transducer `xf`, storing the result in `dest`.

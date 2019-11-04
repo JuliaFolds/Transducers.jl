@@ -14,7 +14,7 @@ export Distinct
 using Base.Broadcast: Broadcasted
 
 using ArgCheck
-using BangBang: BangBang, append!!, empty!!, push!!, setindex!!
+using BangBang: BangBang, Empty, append!!, empty!!, push!!, setindex!!
 using Distributed: Distributed, @everywhere
 using Logging: LogLevel, @logmsg
 using Requires
