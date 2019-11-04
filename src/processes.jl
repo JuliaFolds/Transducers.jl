@@ -536,7 +536,7 @@ julia> append!(Drop(2), [-1, -2], 1:5)
 ```
 """
 Base.append!(xf::Transducer, to, from) =
-    transduce(xf, Completing(push!), to, from)
+    unreduced(transduce(xf, Completing(push!), to, from))
 
 """
     collect(xf::Transducer, itr)
