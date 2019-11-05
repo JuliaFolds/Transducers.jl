@@ -20,7 +20,7 @@ eduction
 map!
 copy!
 append!
-BangBang.append!!
+Transducers.append!!
 collect
 Channel
 ```
