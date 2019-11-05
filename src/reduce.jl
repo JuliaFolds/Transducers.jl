@@ -1,16 +1,25 @@
 """
-    reduce(step, xf, reducible; init, simd) :: T
+    reduce(step, xf, reducible; [init, simd, basesize]) :: T
 
-Possibly parallel version of [`foldl`](@ref).  The "bottom"
+Thread-based parallelization of [`foldl`](@ref).  The "bottom"
 reduction function `step(::T, ::T) :: T` must be associative and
 `init` must be its identity element.
 
-Transducers composing `xf` must be stateless and non-terminating
-(e.g., [`Map`](@ref), [`Filter`](@ref), [`Cat`](@ref), etc.) except
-for [`ScanEmit`](@ref).  Note that [`Scan`](@ref) is not supported
-(although possible in theory).
+Transducers composing `xf` must be stateless (e.g., [`Map`](@ref),
+[`Filter`](@ref), [`Cat`](@ref), etc.) except for [`ScanEmit`](@ref).
+Note that [`Scan`](@ref) is not supported (although possible in
+theory).  Early termination requires Julia ≥ 1.3.
 
-See [`foldl`](@ref).
+See [`foldl`](@ref), [`dreduce`](@ref).
+
+# Keyword Arguments
+- `basesize::Integer = length(reducible) ÷ nthreads()`: A size of
+  chunk in `reducible` that is processed by each worker.  A smaller
+  size may be required when:
+    * computation time for processing each item fluctuates a lot
+    * computation can be terminated by [`reduced`](@ref) or
+      transducers using it, such as [`ReduceIf`](@ref)
+- For other keyword arguments, see [`foldl`](@ref).
 """
 Base.reduce
 

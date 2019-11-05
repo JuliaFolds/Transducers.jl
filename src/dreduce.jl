@@ -4,14 +4,16 @@
 Distributed.jl-based parallelization of `reduce`.  Input collection must
 be indexable.
 
+Unlike [`reduce`](@ref), early termination by [`reduced`](@ref) is not
+supported yet.
+
 # Keyword Arguments
 - `pool::AbstractWorkerPool`: Passed to `Distributed.remotecall`.
-- `basesize::Integer`: A size of chunk in `itr` that is processed by
-  each worker.  Unlike `reduce`, this is `length(itr) ÷ nworkers()`
-  so that inter-process communication is minimized.  A smaller size may
-  be required when computation time for processing each item can fluctuate
-  a lot.
-- For other keyword arguments, see [`reduce`](@ref).
+- `basesize::Integer = length(array) ÷ nworkers()`: A size of chunk in
+  `array` that is processed by each worker.  A smaller size may be
+  required when computation time for processing each item can
+  fluctuate a lot.
+- For other keyword arguments, see [`foldl`](@ref).
 
 # Examples
 ```jldoctest
