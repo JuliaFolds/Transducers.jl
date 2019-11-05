@@ -1,3 +1,4 @@
+import BangBang
 import OnlineStats
 using Documenter
 using Transducers

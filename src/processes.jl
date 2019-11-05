@@ -518,7 +518,7 @@ _setinput(::Type{T}, ::Type{T}, ed, coll) where T = @set ed.coll = coll
 _setinput(::Type, ::Type, ed, coll) = eduction(Transducer(ed), coll)
 
 """
-    append!(xf::Transducer, dest, src)
+    append!(xf::Transducer, dest, src) -> dest
 
 This API is modeled after $(_cljref("into")).
 
@@ -537,6 +537,27 @@ julia> append!(Drop(2), [-1, -2], 1:5)
 """
 Base.append!(xf::Transducer, to, from) =
     unreduced(transduce(xf, Completing(push!), to, from))
+
+"""
+    BangBang.append!!(xf::Transducer, dest, src) -> dest′
+
+Mutate-or-widen version of [`append!`](@ref).
+
+# Examples
+```jldoctest
+julia> using Transducers, BangBang
+
+julia> append!!(Drop(2) |> Map(x -> x + 0.0), [-1, -2], 1:5)
+5-element Array{Float64,1}:
+ -1.0
+ -2.0
+  3.0
+  4.0
+  5.0
+```
+"""
+BangBang.append!!(xf::Transducer, to, from) =
+    unreduced(transduce(xf, Completing(push!!), to, from))
 
 """
     collect(xf::Transducer, itr)
