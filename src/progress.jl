@@ -2,7 +2,12 @@
     withprogress(foldable) -> foldable′
 
 Wrap a foldable so that progress is shown in logging-based progress meter
-(e.g., Juno) during `foldl`.
+(e.g., Juno) during [`foldl`](@ref), [`reduce`](@ref), [`dreduce`](@ref), etc.
+
+For parallel reduction such as `reduce` and `dreduce`, reasonably small
+`basesize` must be supplied to ensure that progress information is updated
+frequently.  However, it may slow down the computation if `basesize` is too
+small.
 
 # Keyword Arguments
 - `interval::Real`: Minimum interval (in seconds) for how often progress is
