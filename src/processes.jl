@@ -599,9 +599,26 @@ filled with the result.  Return `nothing` if the transducer does not produce
 anything.  (This is because there is no consistent interface to create an empty
 container given its type and not all containers support creating an empty
 container.)
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> copy(Map(x -> x => x^2), Dict, 2:2)
+Dict{Int64,Int64} with 1 entry:
+  2 => 4
+
+julia> using TypedTables
+
+julia> @assert copy(Map(x -> (a=x, b=x^2)), Table, 1:1) == Table(a=[1], b=[1])
+
+julia> using StructArrays
+
+julia> @assert copy(Map(x -> (a=x, b=x^2)), StructVector, 1:1) == StructVector(a=[1], b=[1])
+```
 """
 function Base.copy(xf::Transducer, ::Type{T}, foldable) where T
-    result = append!!(Empty(T), foldable)
+    result = append!!(xf, Empty(T), foldable)
     if result isa Empty
         return nothing
     end
