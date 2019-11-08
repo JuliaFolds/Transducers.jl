@@ -895,11 +895,17 @@ end
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/distinct
 # https://clojuredocs.org/clojure.core/distinct
 """
-    Unique()
+    Unique(by = identity)
 
 Pass only unseen item to the inner reducing step.
 
+The item is distinguished by the output of function `by` when given.
+
 $(_thx_clj("distinct"))
+
+!!! compat "Transducers.jl 0.4.2"
+
+    New in version 0.4.2.
 
 # Examples
 ```jldoctest
@@ -920,7 +926,7 @@ julia> collect(Unique(x -> x^2), [1, 1, 2, -1, 3, 3, 2])
 ```
 """
 struct Unique{P} <: AbstractFilter
-    pred::P
+    by::P
 end
 
 Unique() = Unique(identity)
@@ -934,7 +940,7 @@ complete(rf::R_{Unique}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 function next(rf::R_{Unique}, result, input)
     wrapping(rf, result) do seen, iresult
-        y = xform(rf).pred(input)
+        y = xform(rf).by(input)
         if y in seen
             return seen, iresult
         else
