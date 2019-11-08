@@ -8,11 +8,9 @@ Order = [:function, :type]
 ## Transducible processes
 
 ```@docs
-mapfoldl
 transduce
 foldl
 foreach
-mapreduce
 reduce
 dreduce
 dtransduce
@@ -65,4 +63,11 @@ right
 setinput
 AdHocFoldable
 withprogress
+```
+
+## Deprecated
+
+```@docs
+mapfoldl
+mapreduce
 ```
