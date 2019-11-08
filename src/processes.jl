@@ -543,6 +543,10 @@ Base.append!(xf::Transducer, to, from) =
 
 Mutate-or-widen version of [`append!`](@ref).
 
+!!! compat "Transducers.jl 0.4.4"
+
+    New in version 0.4.4.
+
 # Examples
 ```jldoctest
 julia> using Transducers, BangBang
@@ -600,6 +604,10 @@ filled with the result.  Return
 if the transducer does not produce anything.  (This is because there is no
 consistent interface to create an empty container given its type and not all
 containers support creating an empty container.)
+
+!!! compat "Transducers.jl 0.4.4"
+
+    New in version 0.4.4.
 
 # Examples
 ```jldoctest

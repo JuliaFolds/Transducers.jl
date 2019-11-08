@@ -7,6 +7,10 @@ be indexable.
 Unlike [`reduce`](@ref), early termination by [`reduced`](@ref) is not
 supported yet.
 
+!!! compat "Transducers.jl 0.4.3"
+
+    New in version 0.4.3.
+
 # Keyword Arguments
 - `pool::AbstractWorkerPool`: Passed to `Distributed.remotecall`.
 - `basesize::Integer = length(array) ÷ nworkers()`: A size of chunk in
