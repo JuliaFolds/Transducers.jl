@@ -36,9 +36,9 @@ uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
 version = "2.2.0"
 
 [[ConstructionBase]]
-git-tree-sha1 = "e3efe0a0f49dcd294c8c73e897b4fdf891f0fbd3"
+git-tree-sha1 = "a2a6a5fea4d6f730ec4c18a76d27ec10e8ec1c50"
 uuid = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
-version = "0.1.0"
+version = "1.0.0"
 
 [[DataAPI]]
 git-tree-sha1 = "674b67f344687a88310213ddfa8a2b3c76cc4252"
@@ -76,7 +76,7 @@ version = "0.8.1"
 
 [[Documenter]]
 deps = ["Base64", "Dates", "DocStringExtensions", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Test", "Unicode"]
-git-tree-sha1 = "7e4e014303acbfa13cf93f8e29c2e766c7739da1"
+git-tree-sha1 = "cbd3a3b435bcc0a6c844567416acb34ace15ea4d"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaDocs/Documenter.jl.git"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
@@ -246,9 +246,9 @@ uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 
 [[Setfield]]
 deps = ["ConstructionBase", "MacroTools"]
-git-tree-sha1 = "39c71b432fa9c00153d865da87ee259b9b97114c"
+git-tree-sha1 = "f4adc8effec88c1dc109190f22370cb9648a5ced"
 uuid = "efcf1570-3423-57d1-acb7-fd33fddbac46"
-version = "0.5.1"
+version = "0.5.2"
 
 [[SharedArrays]]
 deps = ["Distributed", "Mmap", "Random", "Serialization"]
