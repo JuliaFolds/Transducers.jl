@@ -8,9 +8,9 @@ version = "1.0.1"
 
 [[ArrayLayouts]]
 deps = ["FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "5b5ec5292c64adfd6a46393c100ab11cdcab353b"
+git-tree-sha1 = "46de2a06a20e59ccd6362c040765fa62893f6451"
 uuid = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
-version = "0.1.2"
+version = "0.1.3"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
@@ -76,7 +76,7 @@ version = "0.8.1"
 
 [[Documenter]]
 deps = ["Base64", "Dates", "DocStringExtensions", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Test", "Unicode"]
-git-tree-sha1 = "cbd3a3b435bcc0a6c844567416acb34ace15ea4d"
+git-tree-sha1 = "adb6ced649fcb135f9a88100765eb60004858422"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaDocs/Documenter.jl.git"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
@@ -84,9 +84,9 @@ version = "0.24.0-DEV"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
-git-tree-sha1 = "6827a8f73ff12707f209c920d204238a16892b55"
+git-tree-sha1 = "b2cf74f09216cfe3c241e8484178ec0ea941870f"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.8.0"
+version = "0.8.1"
 
 [[Future]]
 deps = ["Random"]
@@ -122,9 +122,9 @@ version = "0.21.0"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "StaticArrays"]
-git-tree-sha1 = "4f52d322d1904b66c8a402cc2bc1b6999a329f0b"
+git-tree-sha1 = "860e3d45aaef4f7f60b77b1e5b6f9f24e590b985"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.14.4"
+version = "0.14.6"
 
 [[LearnBase]]
 deps = ["LinearAlgebra", "SparseArrays", "StatsBase", "Test"]
