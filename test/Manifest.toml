@@ -8,17 +8,17 @@ version = "1.0.1"
 
 [[ArrayLayouts]]
 deps = ["FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "1ddfbcefdcb1d5417cf10a29e4ce3284a7ebb379"
+git-tree-sha1 = "d9215d1294a89571977eda8fdec5830646b27a7e"
 uuid = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
-version = "0.1.1"
+version = "0.1.4"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "95e96e0a3d5d8e43747b2bc4d6932f2ffe9e54df"
+git-tree-sha1 = "f6f605fa61c05f6f65ef12d9f3ef1f80b89c20c2"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
-version = "0.3.5-DEV"
+version = "0.3.7-DEV"
 
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
@@ -29,16 +29,22 @@ git-tree-sha1 = "991b73d29f2166fb8acc2ac9e0093a8b9143cc96"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
 version = "0.10.2"
 
+[[CSTParser]]
+deps = ["Tokenize"]
+git-tree-sha1 = "99dda94f5af21a4565dc2b97edf6a95485f116c3"
+uuid = "00ebfdb7-1f24-5e51-bd34-a7502290713f"
+version = "1.0.0"
+
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "ed2c4abadf84c53d9e58510b5fc48912c2336fbb"
+git-tree-sha1 = "0caaa696071d6e7872ddf30e58ed6ec0b49954c4"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "2.2.0"
+version = "3.0.0"
 
 [[ConstructionBase]]
-git-tree-sha1 = "e3efe0a0f49dcd294c8c73e897b4fdf891f0fbd3"
+git-tree-sha1 = "a2a6a5fea4d6f730ec4c18a76d27ec10e8ec1c50"
 uuid = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
-version = "0.1.0"
+version = "1.0.0"
 
 [[DataAPI]]
 git-tree-sha1 = "674b67f344687a88310213ddfa8a2b3c76cc4252"
@@ -76,7 +82,7 @@ version = "0.8.1"
 
 [[Documenter]]
 deps = ["Base64", "Dates", "DocStringExtensions", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Test", "Unicode"]
-git-tree-sha1 = "c16d9c88cd8393e35834275f14ee5b2dae3237fd"
+git-tree-sha1 = "fb16819c1bcf5e99b8e316e329e5e0958550334e"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaDocs/Documenter.jl.git"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
@@ -84,9 +90,9 @@ version = "0.24.0-DEV"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
-git-tree-sha1 = "6827a8f73ff12707f209c920d204238a16892b55"
+git-tree-sha1 = "1a9fe4e1323f38de0ba4da49eafd15b25ec62298"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.8.0"
+version = "0.8.2"
 
 [[Future]]
 deps = ["Random"]
@@ -122,9 +128,9 @@ version = "0.21.0"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "StaticArrays"]
-git-tree-sha1 = "4f52d322d1904b66c8a402cc2bc1b6999a329f0b"
+git-tree-sha1 = "9b12c5346242923c8d51f99f3dfa2cd0c156090f"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.14.4"
+version = "0.14.7"
 
 [[LearnBase]]
 deps = ["LinearAlgebra", "SparseArrays", "StatsBase", "Test"]
@@ -152,10 +158,10 @@ uuid = "30fc2ffe-d236-52d8-8643-a9d8f7c094a7"
 version = "0.5.1"
 
 [[MacroTools]]
-deps = ["Compat", "DataStructures", "Test"]
-git-tree-sha1 = "82921f0e3bde6aebb8e524efc20f4042373c0c06"
+deps = ["CSTParser", "Compat", "DataStructures", "Test", "Tokenize"]
+git-tree-sha1 = "d6e9dedb8c92c3465575442da456aec15a89ff76"
 uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
-version = "0.5.2"
+version = "0.5.1"
 
 [[Markdown]]
 deps = ["Base64"]
@@ -190,9 +196,9 @@ version = "1.1.0"
 
 [[Parsers]]
 deps = ["Dates", "Test"]
-git-tree-sha1 = "c56ecb484f286639f161e712b8311f5ab77e8d32"
+git-tree-sha1 = "0139ba59ce9bc680e2925aec5b7db79065d60556"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "0.3.8"
+version = "0.3.10"
 
 [[PenaltyFunctions]]
 deps = ["InteractiveUtils", "LearnBase", "LinearAlgebra", "RecipesBase", "Reexport", "Test"]
@@ -246,9 +252,9 @@ uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 
 [[Setfield]]
 deps = ["ConstructionBase", "MacroTools"]
-git-tree-sha1 = "39c71b432fa9c00153d865da87ee259b9b97114c"
+git-tree-sha1 = "f4adc8effec88c1dc109190f22370cb9648a5ced"
 uuid = "efcf1570-3423-57d1-acb7-fd33fddbac46"
-version = "0.5.1"
+version = "0.5.2"
 
 [[SharedArrays]]
 deps = ["Distributed", "Mmap", "Random", "Serialization"]
@@ -316,6 +322,11 @@ version = "0.2.11"
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[[Tokenize]]
+git-tree-sha1 = "dfcdbbfb2d0370716c815cbd6f8a364efb6f42cf"
+uuid = "0796e94c-ce3b-5d07-9a54-7f471281c624"
+version = "0.5.6"
 
 [[Transducers]]
 deps = ["ArgCheck", "BangBang", "Distributed", "InitialValues", "Logging", "Markdown", "Requires", "Setfield"]
