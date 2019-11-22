@@ -124,9 +124,9 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Literate]]
 deps = ["Base64", "JSON", "REPL"]
-git-tree-sha1 = "eb9fc04f313ed38de4cba4145c1afc77e29d0a6e"
+git-tree-sha1 = "52baba07d8d83cda31a5891ebf1a9c28250ae566"
 uuid = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
-version = "2.1.0"
+version = "2.1.1"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
@@ -176,9 +176,9 @@ version = "1.1.0"
 
 [[Parsers]]
 deps = ["Dates", "Test"]
-git-tree-sha1 = "a23968e107c0544aca91bfab6f7dd34de1206a54"
+git-tree-sha1 = "0139ba59ce9bc680e2925aec5b7db79065d60556"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "0.3.9"
+version = "0.3.10"
 
 [[PenaltyFunctions]]
 deps = ["InteractiveUtils", "LearnBase", "LinearAlgebra", "RecipesBase", "Reexport", "Test"]
