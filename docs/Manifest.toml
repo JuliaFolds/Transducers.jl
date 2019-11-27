@@ -68,9 +68,9 @@ version = "0.8.1"
 
 [[Documenter]]
 deps = ["Base64", "Dates", "DocStringExtensions", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Test", "Unicode"]
-git-tree-sha1 = "7f6ad432deb42aa108bc79205ee96d28724b084f"
+git-tree-sha1 = "0be9bf63e854a2408c2ecd3c600d68d4d87d8a73"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-version = "0.24.1"
+version = "0.24.2"
 
 [[Future]]
 deps = ["Random"]
@@ -122,9 +122,9 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Literate]]
 deps = ["Base64", "JSON", "REPL"]
-git-tree-sha1 = "52baba07d8d83cda31a5891ebf1a9c28250ae566"
+git-tree-sha1 = "463a0fe61a863fe1098f45a80eade3ed04f6586e"
 uuid = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
-version = "2.1.1"
+version = "2.2.0"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
