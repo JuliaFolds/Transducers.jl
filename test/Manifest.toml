@@ -124,9 +124,9 @@ version = "0.21.0"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "StaticArrays"]
-git-tree-sha1 = "cc98c58f97eda8f710dcf5bbf9f28c1d960ca0ee"
+git-tree-sha1 = "6d67f19b661fb48599c5e980d4a7ca1779cff4c3"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.14.8"
+version = "0.14.9"
 
 [[LearnBase]]
 deps = ["LinearAlgebra", "SparseArrays", "StatsBase", "Test"]
@@ -320,9 +320,9 @@ deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[Tokenize]]
-git-tree-sha1 = "dfcdbbfb2d0370716c815cbd6f8a364efb6f42cf"
+git-tree-sha1 = "c3aab236f122445406cf7a6de8af0b794da5a950"
 uuid = "0796e94c-ce3b-5d07-9a54-7f471281c624"
-version = "0.5.6"
+version = "0.5.7"
 
 [[Transducers]]
 deps = ["ArgCheck", "BangBang", "Distributed", "InitialValues", "Logging", "Markdown", "Requires", "Setfield"]
