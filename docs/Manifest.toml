@@ -15,12 +15,6 @@ version = "0.3.6"
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
-[[CSTParser]]
-deps = ["Tokenize"]
-git-tree-sha1 = "39ba1205b6ddd4c7fa4d0ba6f2f98774a9b92d2c"
-uuid = "00ebfdb7-1f24-5e51-bd34-a7502290713f"
-version = "1.1.0"
-
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
 git-tree-sha1 = "0caaa696071d6e7872ddf30e58ed6ec0b49954c4"
@@ -122,9 +116,9 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Literate]]
 deps = ["Base64", "JSON", "REPL"]
-git-tree-sha1 = "463a0fe61a863fe1098f45a80eade3ed04f6586e"
+git-tree-sha1 = "1237e824184149798082d89a60805a67b577bc75"
 uuid = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
-version = "2.2.0"
+version = "2.2.1"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
@@ -136,10 +130,10 @@ uuid = "30fc2ffe-d236-52d8-8643-a9d8f7c094a7"
 version = "0.5.1"
 
 [[MacroTools]]
-deps = ["CSTParser", "Compat", "DataStructures", "Test", "Tokenize"]
-git-tree-sha1 = "d6e9dedb8c92c3465575442da456aec15a89ff76"
+deps = ["DataStructures", "Markdown", "Random"]
+git-tree-sha1 = "e2fc7a55bb2224e203bbd8b59f72b91323233458"
 uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
-version = "0.5.1"
+version = "0.5.3"
 
 [[Markdown]]
 deps = ["Base64"]
@@ -294,11 +288,6 @@ version = "0.2.11"
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-
-[[Tokenize]]
-git-tree-sha1 = "c3aab236f122445406cf7a6de8af0b794da5a950"
-uuid = "0796e94c-ce3b-5d07-9a54-7f471281c624"
-version = "0.5.7"
 
 [[Transducers]]
 deps = ["ArgCheck", "BangBang", "Distributed", "InitialValues", "Logging", "Markdown", "Requires", "Setfield"]
