@@ -77,9 +77,9 @@ uuid = "313cdc1a-70c2-5d6a-ae34-0150d3930a38"
 version = "1.1.0"
 
 [[InitialValues]]
-git-tree-sha1 = "2a1382770e35bff42d6572b4245ab9b14b86bde8"
+git-tree-sha1 = "0caf95d90d3726abccd051c885ea0ac53f61bbe7"
 repo-rev = "master"
-repo-url = "https://github.com/tkf/InitialValues.jl"
+repo-url = "https://github.com/tkf/InitialValues.jl.git"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
 version = "0.2.2-DEV"
 
@@ -250,6 +250,12 @@ deps = ["Indexing", "Test"]
 git-tree-sha1 = "72eb364378c17e0f3dcde342b2953ad2bd55b5a1"
 uuid = "03a91e81-4c3e-53e1-a0a4-9c0c8f19dd66"
 version = "0.4.1"
+
+[[StaticArrays]]
+deps = ["LinearAlgebra", "Random", "Statistics"]
+git-tree-sha1 = "5a3bcb6233adabde68ebc97be66e95dcb787424c"
+uuid = "90137ffa-7385-5640-81b9-e52037218182"
+version = "0.12.1"
 
 [[Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]

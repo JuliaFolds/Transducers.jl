@@ -13,6 +13,10 @@ exec ${JULIA} "${BASH_SOURCE[0]}" "$@"
 
 include("utils.jl")
 using Literate
+
+import Random
+Random.seed!(1234)
+
 transducers_literate()
 transducers_makedocs()
 deploydocs(;

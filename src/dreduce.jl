@@ -1,8 +1,8 @@
 """
     dreduce(step, xform::Transducer, array; [init, simd, basesize, pool])
 
-Distributed.jl-based parallelization of `reduce`.  Input collection must
-be indexable.
+Distributed.jl-based parallelization of [`foldl`](@ref).  Input
+collection must be indexable.
 
 Unlike [`reduce`](@ref), early termination by [`reduced`](@ref) is not
 supported yet.

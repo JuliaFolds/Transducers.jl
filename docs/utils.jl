@@ -7,6 +7,7 @@ using Transducers
 
 EXAMPLE_PAGES = [
     "Tutorial: Missing values" => "examples/tutorial_missings.md",
+    "Tutorial: Parallelism" => "examples/tutorial_parallel.md",
     "Empty result handling" => "examples/empty_result_handling.md",
     "Parallel word count" => "examples/words.md",
     "Writing transducers" => "examples/transducers.md",
@@ -54,6 +55,7 @@ function transducers_makedocs(;
         modules = [Transducers],
         pages = [
             "Home" => "index.md",
+            "Parallelism" => "parallelism.md",
             "Manual" => "manual.md",
             "Interface" => "interface.md",
             "Examples" => examples,
