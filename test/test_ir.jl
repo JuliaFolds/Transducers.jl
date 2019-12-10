@@ -1,5 +1,12 @@
 module TestIR
 
+using CpuId
+
+show(stdout, "text/plain", cpuinfo())
+println()
+show(stdout, "text/plain", cpufeaturetable())
+println()
+
 using Test
 
 if Base.JLOptions().check_bounds == 1 || Base.JLOptions().code_coverage != 0
