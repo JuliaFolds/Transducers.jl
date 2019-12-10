@@ -34,6 +34,7 @@ nmatches(r, s) = count(_ -> true, eachmatch(r, s))
         # This test used to work but it wouldn't work now (unless the
         # compiler becomes _extremely_ smart).
         ir = llvm_ir(map!, (xf, ys, xs))
+        @debug "map!/history" LLVM_IR=Text(ir)
         @test_broken nmatches(r"fmul <4 x double>", ir) >= 4
         @test_broken nmatches(r"fcmp [a-z]* <4 x double>", ir) >= 4
     end
@@ -41,6 +42,7 @@ nmatches(r, s) = count(_ -> true, eachmatch(r, s))
     @testset for simd in [false, true, :ivdep]
         args = _prepare_map(xf, ys, xs, simd)
         ir = llvm_ir(_map!, args)
+        @debug "map!/simd=$simd" LLVM_IR=Text(ir)
         @test nmatches(r"fmul <4 x double>", ir) >= 4
         @test nmatches(r"fcmp [a-z]* <4 x double>", ir) >= 4
     end
@@ -51,6 +53,7 @@ end
     coll = [Float64[]]
     rf = maybe_usesimd(Reduction(Cat(), +), true)
     ir = llvm_ir(transduce, (rf, 0.0, coll))
+    @debug "Cat SIMD" LLVM_IR=Text(ir)
     @test_broken_if(
         VERSION < v"1.1-",
         nmatches(r"fadd (fast )?<4 x double>", ir) >= 9)
@@ -91,6 +94,7 @@ unsafe_setter(ys) =
         @test ys == 2xs
 
         ir = llvm_ir(transduce, (rf, nothing, xs))
+        @debug "foreach SIMD/$key" LLVM_IR=Text(ir)
         @test nmatches(r"fmul <4 x double>", ir) >= 4
     end
 end
@@ -108,10 +112,12 @@ end
     rf = Reduction(xf, +)
     val = start(rf, 0.0)
     ir = julia_ir(__foldl__, (rf, val, coll))
+    @debug "PartitionBy" LLVM_IR=Text(ir)
     @test anyunions(replace(ir, okunion => "")) == []
 
     # If Julia becomes clever enough to make `__simple_foldl__`
     # type-stable, there is no need to maintain current complex code:
     simple_ir = julia_ir(__simple_foldl__, (rf, val, coll))
+    @debug "PartitionBy/simple" LLVM_IR=Text(simple_ir)
     @test !isempty(anyunions(replace(simple_ir, okunion => "")))
 end
