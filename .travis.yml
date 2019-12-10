@@ -26,6 +26,7 @@ install:
   - julia -e 'using Pkg; pkg"add https://github.com/tkf/Run.jl"'
   - julia -e 'using Run; Run.prepare_test()'
 script:
+  - export JULIA_DEBUG="Main"
   - julia -e 'using Run; Run.test()'
 after_success:
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
