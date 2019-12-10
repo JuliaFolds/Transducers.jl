@@ -35,16 +35,16 @@ nmatches(r, s) = count(_ -> true, eachmatch(r, s))
         # compiler becomes _extremely_ smart).
         ir = llvm_ir(map!, (xf, ys, xs))
         @debug "map!/history" LLVM_IR=Text(ir)
-        @test_broken nmatches(r"fmul <4 x double>", ir) >= 4
-        @test_broken nmatches(r"fcmp [a-z]* <4 x double>", ir) >= 4
+        @test_broken nmatches(r"fmul <[0-9]+ x double>", ir) >= 4
+        @test_broken nmatches(r"fcmp [a-z]* <[0-9]+ x double>", ir) >= 4
     end
 
     @testset for simd in [false, true, :ivdep]
         args = _prepare_map(xf, ys, xs, simd)
         ir = llvm_ir(_map!, args)
         @debug "map!/simd=$simd" LLVM_IR=Text(ir)
-        @test nmatches(r"fmul <4 x double>", ir) >= 4
-        @test nmatches(r"fcmp [a-z]* <4 x double>", ir) >= 4
+        @test nmatches(r"fmul <[0-9]+ x double>", ir) >= 4
+        @test nmatches(r"fcmp [a-z]* <[0-9]+ x double>", ir) >= 4
     end
 end
 
@@ -56,7 +56,7 @@ end
     @debug "Cat SIMD" LLVM_IR=Text(ir)
     @test_broken_if(
         VERSION < v"1.1-",
-        nmatches(r"fadd (fast )?<4 x double>", ir) >= 9)
+        nmatches(r"fadd (fast )?<[0-9]+ x double>", ir) >= 9)
 end
 
 unsafe_setter(ys) =
@@ -95,7 +95,7 @@ unsafe_setter(ys) =
 
         ir = llvm_ir(transduce, (rf, nothing, xs))
         @debug "foreach SIMD/$key" LLVM_IR=Text(ir)
-        @test nmatches(r"fmul <4 x double>", ir) >= 4
+        @test nmatches(r"fmul <[0-9]+ x double>", ir) >= 4
     end
 end
 
