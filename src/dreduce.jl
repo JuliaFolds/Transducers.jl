@@ -78,3 +78,28 @@ function load_me_everywhere()
     pkgid = Base.PkgId(@__MODULE__)
     @everywhere Base.require($pkgid)
 end
+
+"""
+    dcopy(xf::Transducer, T, reducible; basesize) :: Union{T, Empty{T}}
+    dcopy(xf::Transducer, reducible::T; basesize) :: Union{T, Empty{T}}
+
+Distributed.jl-based parallel version of [`copy`](@ref).
+
+!!! compat "Transducers.jl 0.4.5"
+
+    New in version 0.4.5.
+"""
+dcopy(xf, T, reducible; kwargs...) =
+    dreduce(append!!, xf |> Map(SingletonVector), reducible; init = Empty(T), kwargs...)
+dcopy(xf, reducible::T; kwargs...) where {T} = dcopy(xf, T, reducible; kwargs...)
+
+"""
+    dcollect(xf::Transducer, reducible; basesize)
+
+Distributed.jl-based parallel version of [`collect`](@ref).
+
+!!! compat "Transducers.jl 0.4.5"
+
+    New in version 0.4.5.
+"""
+dcollect(xf, reducible; kwargs...) = dcopy(xf, Vector, reducible; kwargs...)

@@ -18,9 +18,13 @@ eduction
 map!
 copy!
 copy
+tcopy
+dcopy
 append!
 Transducers.append!!
 collect
+tcollect
+dcollect
 Channel
 ```
 

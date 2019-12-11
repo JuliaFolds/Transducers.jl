@@ -6,7 +6,7 @@ export Transducer, Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, Zip,
     TakeLast, FlagFirst, MapSplat, ScanEmit, Enumerate, NotA, OfType,
     transduce, eduction, setinput, Reduced, reduced, unreduced, ifunreduced,
     Completing, OnInit, CopyInit, right, reducingfunction, dreduce, dtransduce,
-    withprogress, AdHocFoldable
+    tcopy, tcollect, dcopy, dcollect, withprogress, AdHocFoldable
 
 # Deprecated:
 export Distinct
@@ -14,6 +14,7 @@ export Distinct
 using Base.Broadcast: Broadcasted
 
 using ArgCheck
+using BangBang.NoBang: SingletonVector
 using BangBang: BangBang, Empty, append!!, empty!!, push!!, setindex!!
 using Distributed: Distributed, @everywhere
 using Logging: LogLevel, @logmsg

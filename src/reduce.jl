@@ -170,3 +170,28 @@ Base.mapreduce(xform::Transducer, step, itr;
 
 Base.reduce(step, xform::Transducer, itr; kwargs...) =
     mapreduce(xform, Completing(step), itr; kwargs...)
+
+"""
+    tcopy(xf::Transducer, T, reducible; basesize) :: Union{T, Empty{T}}
+    tcopy(xf::Transducer, reducible::T; basesize) :: Union{T, Empty{T}}
+
+Thread-based parallel version of [`copy`](@ref).
+
+!!! compat "Transducers.jl 0.4.5"
+
+    New in version 0.4.5.
+"""
+tcopy(xf, T, reducible; kwargs...) =
+    reduce(append!!, xf |> Map(SingletonVector), reducible; init = Empty(T), kwargs...)
+tcopy(xf, reducible::T; kwargs...) where {T} = tcopy(xf, T, reducible; kwargs...)
+
+"""
+    tcollect(xf::Transducer, reducible; basesize)
+
+Thread-based parallel version of [`collect`](@ref).
+
+!!! compat "Transducers.jl 0.4.5"
+
+    New in version 0.4.5.
+"""
+tcollect(xf, reducible; kwargs...) = tcopy(xf, Vector, reducible; kwargs...)

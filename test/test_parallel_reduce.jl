@@ -1,5 +1,6 @@
 module TestParallelReduce
 include("preamble.jl")
+using StructArrays: StructVector
 
 struct Recorder
     records
@@ -50,6 +51,16 @@ end
         xf = ReduceIf(x -> x[2] >= p)
         @test reduce(right, xf, xs; basesize=basesize) == foldl(right, xf, xs)
     end
+end
+
+@testset "tcollect & tcopy" begin
+    @test tcollect(Filter(iseven), 1:10, basesize = 2) == 2:2:10
+    @test tcopy(
+        Map(x -> (a = x,)),
+        StructVector,
+        1:3,
+        basesize = 2,
+    ) == StructVector(a = 1:3)
 end
 
 @testset "withprogress" begin
