@@ -141,16 +141,19 @@ catch err; err; end                                                  # hide
 xf_compute = Filter(!ismissing) |> Map(x -> x^2)
 nothing                                                              # hide
 
-# Applying this to a collection and obtaining another collection
-# sequentially is as easy as using [`collect`](@ref) (or
-# [`copy`](@ref), [`copy!`](@ref), [`append!!`](@ref
-# Transducers.append!!), etc.):
+# Transducers.jl supports applying this to an input container and then
+# collecting the results into another container.  It can be done
+# sequentially ([`collect`](@ref), [`copy`](@ref), etc.) and in
+# parallel using threads ([`tcollect`](@ref), [`tcopy`](@ref)) or
+# using multiple processes ([`dcollect`](@ref), [`dcopy`](@ref)).  For
+# example:
 
 xs = [abs(x) > 1 ? missing : x for x in randn(10_000)]
 y1 = collect(xf_compute, xs)
 nothing                                                              # hide
 
-# It can also be done in parallel using this one-linear:
+# Doing this in parallel is as easy as using `tcollect` or `dcollect`.
+# However, it is easy to do this manually, too:
 
 using BangBang: append!!
 using StaticArrays: SVector
