@@ -586,8 +586,8 @@ complete(::R_{NoComplete}, result) = result  # don't call inner complete
     Completing(function)
 
 Wrap a `function` to add a no-op [`complete`](@ref) protocol.  Use it
-when passing a `function` without 1-argument arity to
-[`transduce`](@ref) etc.
+when passing a `function` without unary method to [`transduce`](@ref)
+etc.
 
 $(_thx_clj("completing"))
 """
