@@ -506,6 +506,10 @@ end
         ),
         [1, 2, 1, 2, 3],
     ) == Dict(2 => 4, 1 => 2)
+
+    err = @test_error GroupBy(identity, -)
+    @test err isa MissingInitError
+    @test occursin("No default identity element for -", sprint(showerror, err))
 end
 
 @testset "ReduceIf" begin

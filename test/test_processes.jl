@@ -275,6 +275,12 @@ end
     @test occursin("op = $unknownadd", msg)
 end
 
+@testset "MissingInitError" begin
+    err = @test_error foldl(-, Map(identity), 1:1)
+    @test err isa MissingInitError
+    @test occursin("No default identity element for -", sprint(showerror, err))
+end
+
 @testset "identityof error" begin
     @test_throws EmptyResultError mapfoldl(Map(identity), right, Any[])
     err = @test_error mapfoldl(Map(identity), +, Any[])
