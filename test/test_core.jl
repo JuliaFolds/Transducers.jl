@@ -20,6 +20,11 @@ using Transducers: has, reform
     end
 end
 
+@testset "reduced" begin
+    @test reduced(1) === Reduced(1)
+    @test reduced(reduced(1)) === Reduced(1)
+end
+
 @testset "has" begin
     @test has(Count(), Count)
     @test has(Map(identity) |> Count(), Count)
