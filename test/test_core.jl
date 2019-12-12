@@ -2,6 +2,24 @@ module TestCore
 include("preamble.jl")
 using Transducers: has, reform
 
+@testset "Reduced" begin
+    @testset "constructor" begin
+        @test Reduced(1) isa Reduced{Int}
+        @test Reduced(Reduced(1)) isa Reduced{Reduced{Int}}
+    end
+    @testset "=" begin
+        x = [1]
+        y = [2]
+        @test Reduced(x) !== Reduced(copy(x))
+        @test Reduced(x) == Reduced(copy(x))
+        @test Reduced(x) != Reduced(y)
+        @test Reduced(Reduced(x)) == Reduced(Reduced(copy(x)))
+        @test Reduced(Reduced(x)) != Reduced(Reduced(y))
+        @test Reduced(Reduced(x)) != Reduced(x)
+        @test Reduced(x) != Reduced(Reduced(x))
+    end
+end
+
 @testset "has" begin
     @test has(Count(), Count)
     @test has(Map(identity) |> Count(), Count)

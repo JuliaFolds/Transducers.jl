@@ -50,7 +50,6 @@ struct Reduced{T}
 end
 
 Base.:(==)(x::Reduced, y::Reduced) = x.value == y.value
-Base.:(==)(x::Reduced, ::Any) = false
 
 Base.show(io::IO, x::Reduced) = _default_show(io, x)
 
