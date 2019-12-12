@@ -267,10 +267,12 @@ end
 end
 
 @testset "IdentityNotDefinedError" begin
-    @test_throws(
-        IdentityNotDefinedError,
-        foldl((x, y) -> x + y, Map(identity), 1:1; init=Init),
-    )
+    unknownadd(x, y) = x + y
+    err = @test_error foldl(unknownadd, Map(identity), 1:1; init=Init)
+    @test err isa IdentityNotDefinedError
+    msg = sprint(showerror, err)
+    @test occursin("`Init(op)` is not defined", msg)
+    @test occursin("op = $unknownadd", msg)
 end
 
 @testset "identityof error" begin

@@ -57,4 +57,9 @@ end
     end
 end
 
+@testset "Reduced" begin
+    @test sprint(show, Reduced(1)) == "Transducers.Reduced(1)"
+    @test sprint(show, Reduced(1); context = :limit => true) == "Reduced(1)"
+end
+
 end  # module
