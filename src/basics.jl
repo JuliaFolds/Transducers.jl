@@ -1,20 +1,5 @@
 # --- Utilities
 
-valueof(::Val{x}) where x = x
-
-ieltype(T) =
-    if Base.IteratorEltype(T) isa Base.HasEltype
-        eltype(T)
-    else
-        Any
-    end
-
-ieltype(bc::Broadcasted) = Base.promote_op(bc.f, eltype.(bc.args)...)
-
-avaltype(x) = avaltype(typeof(x))
-avaltype(T::Type) = valtype(T)
-avaltype(T::Type{<:Union{AbstractArray,AbstractString}}) = eltype(T)
-
 prefixed_type_name(@nospecialize x) =
     sprint(show, typeof(x), context = :module => Base)
 # `:module => Base` to enforce that the type is prefixed even when
