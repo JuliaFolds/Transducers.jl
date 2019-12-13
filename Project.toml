@@ -17,7 +17,7 @@ Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
 ArgCheck = "1"
 BangBang = "0.3.7"
 InitialValues = "0.2"
-Requires = "0.5"
+Requires = "0.5, 1.0"
 Setfield = "0.3, 0.4, 0.5"
 julia = "1"
 
