@@ -42,6 +42,12 @@ else
     @eval const $(Symbol("@spawn")) = $(Symbol("@async"))
 end
 
+# Some upstream APIs that are frequently used with Transducers.jl.
+# From BangBang.jl:
+export Empty, append!!, push!!
+# From InitialValue.jl:
+export Init
+
 include("showutils.jl")
 include("basics.jl")
 include("core.jl")
