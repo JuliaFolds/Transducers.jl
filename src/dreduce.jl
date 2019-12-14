@@ -7,6 +7,9 @@ collection must be indexable.
 Unlike [`reduce`](@ref), early termination by [`reduced`](@ref) is not
 supported yet.
 
+Use [`dcollect`](@ref) or [`dcopy`](@ref) to collect results into a
+container.
+
 !!! compat "Transducers.jl 0.4.3"
 
     New in version 0.4.3.
@@ -22,14 +25,9 @@ supported yet.
 # Examples
 ```jldoctest
 julia> using Transducers
-       using Distributed
-       using BangBang
 
-julia> dreduce(append!!, Map(vcat), 1:3; init=Union{}[])
-3-element Array{Int64,1}:
- 1
- 2
- 3
+julia> dreduce(+, Map(exp) |> Map(log), 1:3)
+6.0
 ```
 """
 dreduce(step, xform::Transducer, itr; init=MissingInit(), kwargs...) =
@@ -43,11 +41,12 @@ See [`dreduce`](@ref) and [`transduce`](@ref).
 function dtransduce(
     xform::Transducer, step, init, coll;
     simd::SIMDFlag = Val(false),
-    basesize::Integer = length(coll) ÷ Distributed.nworkers(),
+    basesize::Integer = max(1, length(coll) ÷ Distributed.nworkers()),
     pool::Distributed.AbstractWorkerPool = Distributed.default_worker_pool(),
     _remote_foldl = _remote_foldl,
 )
     @argcheck basesize > 0
+    isempty(coll) && return init
     load_me_everywhere()
     rf = maybe_usesimd(Reduction(xform, step), simd)
     futures = map(firstindex(coll):basesize:lastindex(coll)) do start
@@ -83,7 +82,9 @@ end
     dcopy(xf::Transducer, T, reducible; basesize) :: Union{T, Empty{T}}
     dcopy(xf::Transducer, reducible::T; basesize) :: Union{T, Empty{T}}
 
-Distributed.jl-based parallel version of [`copy`](@ref).
+Distributed.jl-based parallel version of [`copy`](@ref).  Keyword
+arguments are passed to [`dreduce`](@ref).  For examples, see
+[`tcopy`](@ref).
 
 !!! compat "Transducers.jl 0.4.5"
 
@@ -97,6 +98,8 @@ dcopy(xf, reducible::T; kwargs...) where {T} = dcopy(xf, T, reducible; kwargs...
     dcollect(xf::Transducer, reducible; basesize)
 
 Distributed.jl-based parallel version of [`collect`](@ref).
+This is just a short-hand notation of `dcopy(xf, Vector, reducible)`.
+Use [`dcopy`](@ref) to get a container other than a `Vector`.
 
 !!! compat "Transducers.jl 0.4.5"
 

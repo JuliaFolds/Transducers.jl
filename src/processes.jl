@@ -247,6 +247,8 @@ Compose transducer `xf` with reducing step function `step` and reduce
 
 This API is modeled after $(_cljref("transduce")).
 
+For parallel versions, see [`reduce`](@ref) and [`dreduce`](@ref).
+
 See also: [Empty result handling](@ref).
 
 # Arguments
@@ -569,6 +571,8 @@ BangBang.append!!(xf::Transducer, to, from) =
 Process an iterable `itr` using a transducer `xf` and collect the result
 into a `Vector`.
 
+For parallel versions, see [`tcollect`](@ref) and [`dcollect`](@ref).
+
 # Examples
 ```jldoctest
 julia> using Transducers
@@ -604,6 +608,8 @@ filled with the result.  Return
 if the transducer does not produce anything.  (This is because there is no
 consistent interface to create an empty container given its type and not all
 containers support creating an empty container.)
+
+For parallel versions, see [`tcopy`](@ref) and [`dcopy`](@ref).
 
 !!! compat "Transducers.jl 0.4.4"
 

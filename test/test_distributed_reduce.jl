@@ -36,4 +36,12 @@ end
     @test dcopy(Map(makerow), StructVector, 1:3, basesize = 2) == StructVector(a = 1:3)
 end
 
+@testset "basesize > 0" begin
+    @test dcollect(Map(identity), [1]) == [1]
+end
+
+@testset "empty input" begin
+    @test isempty(dcollect(Map(identity), []))
+end
+
 end  # module
