@@ -5,6 +5,7 @@
 [![Travis Status][travis-img]][travis-url]
 [![codecov.io][codecov-img]][codecov-url]
 [![Coverage Status][coveralls-img]][coveralls-url]
+[![Aqua QA](https://img.shields.io/badge/Aqua.jl-%F0%9F%8C%A2-aqua.svg)](https://github.com/tkf/Aqua.jl)
 
 Transducers.jl provides composable algorithms on "sequence" of inputs.
 They are called _[transducers]_, first introduced in Clojure language
