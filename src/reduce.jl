@@ -239,8 +239,27 @@ julia> @assert reduce(
            Map(x -> DataFrame(a = [x])),
            1:2;
            basesize = 1,
-           init = Empty(DataFrame),
+           # init = Empty(DataFrame),
        ) == DataFrame(a = [1, 2])
+```
+
+Note that above snippet assumes that it is OK to mutate the dataframe
+returned by the transducer.  Use `init = Empty(DataFrame)` if this is
+not the case.
+
+This approach of using `reduce` works with other containers; e.g.,
+with `TypedTables.Table`:
+
+```jldoctest; setup = :(using Transducers)
+julia> using TypedTables
+
+julia> @assert reduce(
+           append!!,
+           Map(x -> Table(a = [x])),
+           1:2;
+           basesize = 1,
+           # init = Empty(Table),
+       ) == Table(a = [1, 2])
 ```
 """
 tcopy(xf, T, reducible; kwargs...) =
