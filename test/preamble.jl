@@ -9,6 +9,9 @@ using Transducers: Transducer, simple_transduce, Reduced, isexpansive,
 using InitialValues: Init
 using Logging: NullLogger, with_logger
 
+prettytypeof(x) = prettytypeof(typeof(x))
+prettytypeof(x::Type) = nameof(Transducers._constructorof(x))
+
 inc(x) = x + oneunit(x)
 
 isfiniteiter(iter) =

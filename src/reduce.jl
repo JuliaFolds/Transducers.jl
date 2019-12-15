@@ -268,7 +268,8 @@ julia> @assert reduce(
 """
 tcopy(xf, T, reducible; kwargs...) =
     reduce(append!!, xf |> Map(SingletonVector), reducible; init = Empty(T), kwargs...)
-tcopy(xf, reducible::T; kwargs...) where {T} = tcopy(xf, T, reducible; kwargs...)
+tcopy(xf, reducible::T; kwargs...) where {T} =
+    tcopy(xf, _constructorof(T), reducible; kwargs...)
 
 """
     tcollect(xf::Transducer, reducible; basesize)
