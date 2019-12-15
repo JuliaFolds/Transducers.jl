@@ -657,6 +657,7 @@ identityof(::typeof(right), ::Any) = nothing
 
 abstract type Reducible end
 abstract type Foldable <: Reducible end
+asfoldable(x) = x
 
 abstract type AbstractInitializer end
 

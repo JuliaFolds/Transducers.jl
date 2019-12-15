@@ -81,6 +81,9 @@ function __init__()
     @require OnlineStatsBase="925886fa-5bf2-5e8e-b522-a9147a512338" begin
         include("interop/onlinestats.jl")
     end
+    @require DataFrames="a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
+        include("interop/dataframes.jl")
+    end
 end
 
 end # module

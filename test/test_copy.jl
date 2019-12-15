@@ -1,7 +1,7 @@
 module TestCopy
 
 include("preamble.jl")
-using DataFrames: DataFrame
+using DataFrames: DataFrame, eachrow
 using StructArrays: StructVector
 using TypedTables: Table
 
@@ -14,10 +14,15 @@ end
 
 @testset "$copy" for copy in [copy, tcopy, dcopy]
     @testset "$copy(_, ::$(prettytypeof(src)))" for src in Any[
-        # DataFrame(a=[1], b=[2]),
+        DataFrame(a=[1], b=[2]),
         StructVector(a=[1:4;], b=[5:8;]),
         Table(a=[1:4;], b=[5:8;]),
     ]
+        if copy in (tcopy, dcopy) && src isa DataFrame
+            @test_broken copy(Map(identity), src) ==ₜ src
+            @test_broken copy(Map(identity), src; basesize=1) ==ₜ src
+            continue
+        end
         @test copy(Map(identity), src) ==ₜ src
         if copy in (tcopy, dcopy)
             @test copy(Map(identity), src; basesize=1) ==ₜ src
