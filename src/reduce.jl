@@ -13,7 +13,8 @@ theory).  Early termination requires Julia ≥ 1.3.
 Use [`tcollect`](@ref) or [`tcopy`](@ref) to collect results into a
 container.
 
-See [`foldl`](@ref), [`dreduce`](@ref).
+See also: [Parallel processing tutorial](@ref tutorial-parallel),
+[`foldl`](@ref), [`dreduce`](@ref).
 
 # Keyword Arguments
 - `basesize::Integer = length(reducible) ÷ nthreads()`: A size of
@@ -197,6 +198,9 @@ Base.reduce(step, xform::Transducer, itr; kwargs...) =
 Thread-based parallel version of [`copy`](@ref).
 Keyword arguments are passed to [`reduce`](@ref).
 
+See also: [Parallel processing tutorial](@ref tutorial-parallel)
+(especially [Example: parallel `collect`](@ref tutorial-parallel-collect)).
+
 !!! compat "Transducers.jl 0.4.5"
 
     New in version 0.4.5.
@@ -272,6 +276,9 @@ tcopy(xf, reducible::T; kwargs...) where {T} = tcopy(xf, T, reducible; kwargs...
 Thread-based parallel version of [`collect`](@ref).
 This is just a short-hand notation of `tcopy(xf, Vector, reducible)`.
 Use [`tcopy`](@ref) to get a container other than a `Vector`.
+
+See also: [Parallel processing tutorial](@ref tutorial-parallel)
+(especially [Example: parallel `collect`](@ref tutorial-parallel-collect)).
 
 !!! compat "Transducers.jl 0.4.5"
 

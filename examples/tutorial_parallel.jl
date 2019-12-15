@@ -134,7 +134,7 @@ catch err; err; end                                                  # hide
 # (see: [Splitting a string into words and counting them in
 # parallel](@ref parallel-word-count)).
 
-# ## Example: parallel `collect`
+# ## [Example: parallel `collect`](@id tutorial-parallel-collect)
 #
 # !!! note
 #     This section explains the _implementation ideas_ of parallel

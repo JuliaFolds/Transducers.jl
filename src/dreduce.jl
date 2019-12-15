@@ -10,6 +10,9 @@ supported yet.
 Use [`dcollect`](@ref) or [`dcopy`](@ref) to collect results into a
 container.
 
+See also: [Parallel processing tutorial](@ref tutorial-parallel),
+[`foldl`](@ref), [`reduce`](@ref).
+
 !!! compat "Transducers.jl 0.4.3"
 
     New in version 0.4.3.
@@ -86,6 +89,9 @@ Distributed.jl-based parallel version of [`copy`](@ref).  Keyword
 arguments are passed to [`dreduce`](@ref).  For examples, see
 [`tcopy`](@ref).
 
+See also: [Parallel processing tutorial](@ref tutorial-parallel)
+(especially [Example: parallel `collect`](@ref tutorial-parallel-collect)).
+
 !!! compat "Transducers.jl 0.4.5"
 
     New in version 0.4.5.
@@ -100,6 +106,9 @@ dcopy(xf, reducible::T; kwargs...) where {T} = dcopy(xf, T, reducible; kwargs...
 Distributed.jl-based parallel version of [`collect`](@ref).
 This is just a short-hand notation of `dcopy(xf, Vector, reducible)`.
 Use [`dcopy`](@ref) to get a container other than a `Vector`.
+
+See also: [Parallel processing tutorial](@ref tutorial-parallel)
+(especially [Example: parallel `collect`](@ref tutorial-parallel-collect)).
 
 !!! compat "Transducers.jl 0.4.5"
 
