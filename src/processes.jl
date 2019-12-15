@@ -636,7 +636,7 @@ julia> @assert copy(Map(x -> (a=x, b=x^2)), StructVector, 1:1) == StructVector(a
 ```
 """
 Base.copy(xf::Transducer, ::Type{T}, foldable) where {T} = append!!(xf, Empty(T), foldable)
-Base.copy(xf::Transducer, foldable::T) where {T} = copy(xf, _constructorof(T), foldable)
+Base.copy(xf::Transducer, foldable) = copy(xf, _materializer(foldable), foldable)
 
 """
     map!(xf::Transducer, dest, src; simd)

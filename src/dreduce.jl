@@ -98,8 +98,7 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel)
 """
 dcopy(xf, T, reducible; kwargs...) =
     dreduce(append!!, xf |> Map(SingletonVector), reducible; init = Empty(T), kwargs...)
-dcopy(xf, reducible::T; kwargs...) where {T} =
-    dcopy(xf, _constructorof(T), reducible; kwargs...)
+dcopy(xf, reducible; kwargs...) = dcopy(xf, _materializer(reducible), reducible; kwargs...)
 
 """
     dcollect(xf::Transducer, reducible; basesize)

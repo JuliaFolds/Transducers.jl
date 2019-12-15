@@ -20,6 +20,11 @@ end
     ]
         @test copy(Map(identity), src) == src
     end
+    @testset "$copy(_, eachrow(df))" begin
+        df = DataFrame(a=[1], b=[2])
+        @test_broken copy(Map(identity), eachrow(df)) == df
+        # requires https://github.com/JuliaData/DataFrames.jl/pull/2055
+    end
 end
 
 end  # module

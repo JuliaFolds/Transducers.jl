@@ -1,6 +1,11 @@
 # --- Utilities
 
-function _constructorof(::Type{T}) where T
+function _materializer(xs)
+    T = Tables.materializer(xs)
+    return T isa Type ? T : _materializer(typeof(xs))
+end
+
+function _materializer(::Type{T}) where T
     S = ConstructionBase.constructorof(T)
     return S isa Type ? S : T
 end

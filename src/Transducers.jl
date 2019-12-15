@@ -13,6 +13,7 @@ export Distinct
 
 using Base.Broadcast: Broadcasted
 
+import Tables
 using ArgCheck
 using BangBang.NoBang: SingletonVector
 using BangBang: BangBang, Empty, append!!, empty!!, push!!, setindex!!

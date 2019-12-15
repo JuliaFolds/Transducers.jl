@@ -10,7 +10,7 @@ using InitialValues: Init
 using Logging: NullLogger, with_logger
 
 prettytypeof(x) = prettytypeof(typeof(x))
-prettytypeof(x::Type) = nameof(Transducers._constructorof(x))
+prettytypeof(x::Type) = nameof(x)
 
 inc(x) = x + oneunit(x)
 
