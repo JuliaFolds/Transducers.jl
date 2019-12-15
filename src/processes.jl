@@ -634,6 +634,18 @@ julia> using StructArrays
 
 julia> @assert copy(Map(x -> (a=x, b=x^2)), StructVector, 1:1) == StructVector(a=[1], b=[1])
 ```
+
+As `DataFrame` does not have iteration interface yet, use `eachrow` to
+process rows of a dataframe.  Note that `copy` automatically use
+`DataFrame` as default output type in this case:
+
+```jldoctest; setup = :(using Transducers)
+julia> using DataFrames
+
+julia> @assert copy(
+           Map(x -> (A = x.a + 1, B = x.b + 1)),
+           eachrow(DataFrame(a = [1], b = [2])),
+       ) == DataFrame(A = [2], B = [3])
 """
 Base.copy(xf::Transducer, ::Type{T}, foldable) where {T} = append!!(xf, Empty(T), foldable)
 Base.copy(xf::Transducer, foldable) = copy(xf, _materializer(foldable), foldable)
