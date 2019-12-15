@@ -18,11 +18,11 @@ end
         StructVector(a=[1], b=[2]),
         Table(a=[1], b=[2]),
     ]
-        @test copy(Map(identity), src) == src
+        @test copy(Map(identity), src) ==ₜ src
     end
     @testset "$copy(_, eachrow(df))" begin
         df = DataFrame(a=[1], b=[2])
-        @test_broken copy(Map(identity), eachrow(df)) == df
+        @test_broken copy(Map(identity), eachrow(df)) ==ₜ df
         # requires https://github.com/JuliaData/DataFrames.jl/pull/2055
     end
 end
