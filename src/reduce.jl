@@ -10,7 +10,11 @@ Transducers composing `xf` must be stateless (e.g., [`Map`](@ref),
 Note that [`Scan`](@ref) is not supported (although possible in
 theory).  Early termination requires Julia ≥ 1.3.
 
-See [`foldl`](@ref), [`dreduce`](@ref).
+Use [`tcollect`](@ref) or [`tcopy`](@ref) to collect results into a
+container.
+
+See also: [Parallel processing tutorial](@ref tutorial-parallel),
+[`foldl`](@ref), [`dreduce`](@ref).
 
 # Keyword Arguments
 - `basesize::Integer = length(reducible) ÷ nthreads()`: A size of
@@ -20,6 +24,22 @@ See [`foldl`](@ref), [`dreduce`](@ref).
     * computation can be terminated by [`reduced`](@ref) or
       transducers using it, such as [`ReduceIf`](@ref)
 - For other keyword arguments, see [`foldl`](@ref).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> reduce(+, Map(exp) |> Map(log), 1:3)
+6.0
+
+julia> using BangBang: append!!
+
+julia> reduce(append!!, Map(x -> 1:x), 1:2; basesize=1, init=Union{}[])
+3-element Array{Int64,1}:
+ 1
+ 1
+ 2
+```
 """
 Base.reduce
 
@@ -176,19 +196,89 @@ Base.reduce(step, xform::Transducer, itr; kwargs...) =
     tcopy(xf::Transducer, reducible::T; basesize) :: Union{T, Empty{T}}
 
 Thread-based parallel version of [`copy`](@ref).
+Keyword arguments are passed to [`reduce`](@ref).
+
+See also: [Parallel processing tutorial](@ref tutorial-parallel)
+(especially [Example: parallel `collect`](@ref tutorial-parallel-collect)).
 
 !!! compat "Transducers.jl 0.4.5"
 
     New in version 0.4.5.
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> tcopy(Map(x -> x => x^2), Dict, 2:2)
+Dict{Int64,Int64} with 1 entry:
+  2 => 4
+
+julia> using TypedTables
+
+julia> @assert tcopy(Map(x -> (a=x,)), Table, 1:1) == Table(a=[1])
+
+julia> using StructArrays
+
+julia> @assert tcopy(Map(x -> (a=x,)), StructVector, 1:1) == StructVector(a=[1])
+```
+
+If you have [`Cat`](@ref) or [`MapCat`](@ref) at the end of the
+transducer, consider using [`reduce`](@ref) directly:
+
+```jldoctest
+julia> using Transducers
+       using DataFrames
+
+julia> @assert tcopy(
+           Map(x -> DataFrame(a = [x])) |> MapCat(eachrow),
+           DataFrame,
+           1:2;
+           basesize = 1,
+       ) == DataFrame(a = [1, 2])
+
+julia> using BangBang: Empty, append!!
+
+julia> @assert reduce(
+           append!!,
+           Map(x -> DataFrame(a = [x])),
+           1:2;
+           basesize = 1,
+           # init = Empty(DataFrame),
+       ) == DataFrame(a = [1, 2])
+```
+
+Note that above snippet assumes that it is OK to mutate the dataframe
+returned by the transducer.  Use `init = Empty(DataFrame)` if this is
+not the case.
+
+This approach of using `reduce` works with other containers; e.g.,
+with `TypedTables.Table`:
+
+```jldoctest; setup = :(using Transducers)
+julia> using TypedTables
+
+julia> @assert reduce(
+           append!!,
+           Map(x -> Table(a = [x])),
+           1:2;
+           basesize = 1,
+           # init = Empty(Table),
+       ) == Table(a = [1, 2])
+```
 """
 tcopy(xf, T, reducible; kwargs...) =
     reduce(append!!, xf |> Map(SingletonVector), reducible; init = Empty(T), kwargs...)
-tcopy(xf, reducible::T; kwargs...) where {T} = tcopy(xf, T, reducible; kwargs...)
+tcopy(xf, reducible; kwargs...) = tcopy(xf, _materializer(reducible), reducible; kwargs...)
 
 """
     tcollect(xf::Transducer, reducible; basesize)
 
 Thread-based parallel version of [`collect`](@ref).
+This is just a short-hand notation of `tcopy(xf, Vector, reducible)`.
+Use [`tcopy`](@ref) to get a container other than a `Vector`.
+
+See also: [Parallel processing tutorial](@ref tutorial-parallel)
+(especially [Example: parallel `collect`](@ref tutorial-parallel-collect)).
 
 !!! compat "Transducers.jl 0.4.5"
 

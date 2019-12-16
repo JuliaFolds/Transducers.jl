@@ -1,5 +1,15 @@
 # --- Utilities
 
+function _materializer(xs)
+    T = Tables.materializer(xs)
+    return T isa Type ? T : _materializer(typeof(xs))
+end
+
+function _materializer(::Type{T}) where T
+    S = ConstructionBase.constructorof(T)
+    return S isa Type ? S : T
+end
+
 prefixed_type_name(@nospecialize x) =
     sprint(show, typeof(x), context = :module => Base)
 # `:module => Base` to enforce that the type is prefixed even when

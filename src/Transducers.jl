@@ -13,6 +13,7 @@ export Distinct
 
 using Base.Broadcast: Broadcasted
 
+import Tables
 using ArgCheck
 using BangBang.NoBang: SingletonVector
 using BangBang: BangBang, Empty, append!!, empty!!, push!!, setindex!!
@@ -41,6 +42,12 @@ else
     # Mock `@spawn` using `@async`:
     @eval const $(Symbol("@spawn")) = $(Symbol("@async"))
 end
+
+# Some upstream APIs that are frequently used with Transducers.jl.
+# From BangBang.jl:
+export Empty, append!!, push!!
+# From InitialValue.jl:
+export Init
 
 include("showutils.jl")
 include("basics.jl")

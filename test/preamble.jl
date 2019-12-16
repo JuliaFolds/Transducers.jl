@@ -9,6 +9,17 @@ using Transducers: Transducer, simple_transduce, Reduced, isexpansive,
 using InitialValues: Init
 using Logging: NullLogger, with_logger
 
+"""
+    ==ₜ(x, y)
+
+Check that _type_ and value of `x` and `y` are equal.
+"""
+==ₜ(_, _) = false
+==ₜ(x::T, y::T) where T = x == y
+
+prettytypeof(x) = prettytypeof(typeof(x))
+prettytypeof(x::Type) = nameof(x)
+
 inc(x) = x + oneunit(x)
 
 isfiniteiter(iter) =
