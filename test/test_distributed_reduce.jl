@@ -5,11 +5,6 @@ using BangBang
 using Distributed
 using StructArrays: StructVector
 
-if get(ENV, "CI", "false") == "true"
-    addprocs(3)
-end
-@info "Testing with:" nworkers()
-
 @testset begin
     fname = gensym(:attach_pid)
     @everywhere $fname(x) = [(x, getpid())]
