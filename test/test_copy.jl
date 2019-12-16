@@ -15,13 +15,16 @@ end
 @testset "$copy" for copy in [copy, tcopy, dcopy]
     @testset "$copy(_, ::$(prettytypeof(src)))" for src in Any[
         # DataFrame(a=[1], b=[2]),
-        StructVector(a=[1], b=[2]),
-        Table(a=[1], b=[2]),
+        StructVector(a=[1:4;], b=[5:8;]),
+        Table(a=[1:4;], b=[5:8;]),
     ]
         @test copy(Map(identity), src) ==ₜ src
+        if copy in (tcopy, dcopy)
+            @test copy(Map(identity), src; basesize=1) ==ₜ src
+        end
     end
     @testset "$copy(_, eachrow(df))" begin
-        df = DataFrame(a=[1], b=[2])
+        df = DataFrame(a=[1:4;], b=[5:8;])
         @test_broken copy(Map(identity), eachrow(df)) ==ₜ df
         # requires https://github.com/JuliaData/DataFrames.jl/pull/2055
     end
