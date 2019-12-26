@@ -47,6 +47,7 @@ function transduce_commutative(
             return acc′
         end
     end
+    Base.sync_end(tasks)
     return foldl(combine_step(rf), Map(fetch), tasks)
 end
 

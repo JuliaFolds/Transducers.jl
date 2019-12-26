@@ -33,6 +33,21 @@ end
         @test sort!(unique(ys)) == [1, 2]
         @test length(ys) < length(input_data)
     end
+    @testset "error handling (no dangling tasks)" begin
+        input = Channel(Map(identity), 1:100)
+        trace = Channel(10)
+        ntasks = 10
+        xf = Map() do x
+            put!(trace, x)
+            x
+        end |> Map() do x
+            error("Throwing error with x = $x")
+        end
+        @test_throws Exception take!(channel_unordered(xf, input; ntasks=ntasks))
+        close(trace)
+        consumed = sort!(collect(trace))
+        @test consumed == 1:ntasks
+    end
 end
 
 end  # module
