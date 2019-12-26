@@ -74,6 +74,8 @@ into `output` in undefined order.
 
 See also [`channel_unordered`](@ref).
 
+$_experimental_warning
+
 # Examples
 ```jldoctest
 julia> using Transducers: Map, append_unordered!
@@ -118,6 +120,8 @@ Provide elements in `input` processed by a transducer `xf` through a
 `Channel`.
 
 Use [`append_unordered!`](@ref) to send outputs to an existing channel.
+
+$_experimental_warning
 
 # Keyword Arguments
 - `eltype::Type`: element type of returned channel
