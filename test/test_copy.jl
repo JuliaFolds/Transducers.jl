@@ -15,7 +15,7 @@ end
 
 @testset "$copy" for copy in [copy, tcopy, dcopy]
     @testset "$copy(_, ::$(prettytypeof(src)))" for src in Any[
-        DataFrame(a=[1], b=[2]),
+        DataFrame(a=[1:4;], b=[5:8;]),
         StructVector(a=[1:4;], b=[5:8;]),
         Table(a=[1:4;], b=[5:8;]),
     ]
