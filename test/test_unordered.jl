@@ -34,11 +34,18 @@ end
         @test length(ys) < length(input_data)
     end
     @testset "error handling (no dangling tasks)" begin
-        input = Channel(Map(identity), 1:100)
-        trace = Channel(10)
+        input_length = 100
+        input = Channel(Map(identity), 1:input_length)
+        trace = Channel(input_length)
         ntasks = 10
         xf = Map() do x
             put!(trace, x)
+
+            # Try to make sure all tasks hits above line.  This may
+            # not be required since `put!` would invoke task switch.
+            # But let's play on the safe side:
+            sleep(0.1)
+
             x
         end |> Map() do x
             error("Throwing error with x = $x")
@@ -47,6 +54,28 @@ end
         close(trace)
         consumed = sort!(collect(trace))
         @test consumed == 1:ntasks
+    end
+    @testset "error handling (terminate other tasks)" begin
+        input_length = 100
+        input = Channel(Map(identity), 1:input_length)
+        trace = Channel(input_length)
+        ntasks = 10
+        xf = Map() do x
+            put!(trace, x)
+            sleep(0.01)
+            x
+        end |> Map() do x
+            if x == 1
+                sleep(0.02)
+                error("Throwing error with x = $x")
+            end
+            x
+        end
+        @test_throws Exception collect(channel_unordered(xf, input; ntasks=ntasks))
+        close(trace)
+        consumed = sort!(collect(trace))
+        @test length(consumed) > ntasks
+        @test length(consumed) < input_length
     end
 end
 

@@ -23,7 +23,7 @@ function transduce_commutative(
     rf = reducingfunction(xform, step; simd = simd)
     stop = Threads.Atomic{Bool}(false)
     tasks = map(1:ntasks) do _
-        @spawn begin
+        @spawn try
             acc′ = _start_init(rf, init)
             finished = false
             while !finished
@@ -45,6 +45,9 @@ function transduce_commutative(
                 finished |= stop[]
             end
             return acc′
+        catch
+            stop[] = true
+            rethrow()
         end
     end
     Base.sync_end(tasks)
