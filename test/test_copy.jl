@@ -1,6 +1,7 @@
 module TestCopy
 
 include("preamble.jl")
+import Tables
 using DataFrames: DataFrame, eachrow
 using StructArrays: StructVector
 using TypedTables: Table
@@ -30,8 +31,16 @@ end
     end
     @testset "$copy(_, eachrow(df))" begin
         df = DataFrame(a=[1:4;], b=[5:8;])
-        @test_broken copy(Map(identity), eachrow(df)) ==ₜ df
-        # requires https://github.com/JuliaData/DataFrames.jl/pull/2055
+        if Tables.materializer(eachrow(df)) == DataFrame
+            # requires https://github.com/JuliaData/DataFrames.jl/pull/2055
+            if copy in (tcopy, dcopy)
+                @test copy(Map(identity), eachrow(df); basesize=1) ==ₜ df
+            else
+                @test copy(Map(identity), eachrow(df)) ==ₜ df
+            end
+        else
+            @test_broken copy(Map(identity), eachrow(df)) ==ₜ df
+        end
     end
 end
 
