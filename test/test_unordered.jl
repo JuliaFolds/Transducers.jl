@@ -1,6 +1,13 @@
 module TestUnordered
 include("preamble.jl")
-using Transducers: append_unordered!, channel_unordered
+using Transducers: append_unordered!, channel_unordered, transduce_commutative
+
+@testset "transduce_commutative" begin
+    @testset "Map(inc)(+)" begin
+        input = Channel(Map(identity), 1:100)
+        @test transduce_commutative(Map(inc), +, 0, input) == sum((1:100) .+ 1)
+    end
+end
 
 @testset "append_unordered!" begin
     input = Channel(Map(identity), 1:100)
