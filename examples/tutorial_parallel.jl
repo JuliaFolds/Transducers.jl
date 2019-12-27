@@ -19,7 +19,7 @@ foldl(+, Map(sin), xs)
 reduce(+, Map(sin), xs)
 
 # (In my laptop (4 core machine) I start seeing some speedup around
-# `length(xs) ≥ 100_000` for this transducers and reducing function.)
+# `length(xs) ≥ 100_000` for this transducer and reducing function.)
 
 # ### Process-based parallelism
 
@@ -30,6 +30,26 @@ dreduce(+, Map(sin), xs)
 
 # (Note: there is likely no speedup for light-weight computation and
 # large input data like this, when using `dreduce`.)
+
+# ### Parallel processing with iterator comprehensions
+
+# You can also use [`eduction`](@ref) to use iterator comprehension
+# with multi-thread `reduce`:
+
+reduce(+, eduction(sin(x) for x in xs if abs(x) < 1))
+
+# You can omit `eduction` when using Transducers.jl-specific functions
+# like [`tcollect`](@ref)/[`dcollect`](@ref):
+
+tcollect(sin(x) for x in xs if abs(x) < 1)
+
+# and [`tcopy`](@ref)/[`dcopy`](@ref):
+
+using StructArrays: StructVector
+table = StructVector(a = [1, 2, 3], b = [5, 6, 7])
+
+@test StructVector(A = [2, 4], B = [4, 6]) ==                          #src
+tcopy((A = row.a + 1, B = row.b - 1) for row in table if isodd(row.a))
 
 # ## When can I use `reduce` and `dreduce`?
 
