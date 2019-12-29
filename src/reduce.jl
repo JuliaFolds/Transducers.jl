@@ -297,14 +297,14 @@ tcopy(xf, T, reducible; kwargs...) =
     reduce(append!!, xf |> Map(SingletonVector), reducible; init = Empty(T), kwargs...)
 tcopy(xf, reducible; kwargs...) = tcopy(xf, _materializer(reducible), reducible; kwargs...)
 
-function tcopy(::Type{T}, itr) where {T}
+function tcopy(::Type{T}, itr; kwargs...) where {T}
     xf, foldable = induction(eduction(itr))
-    return tcopy(xf, T, foldable)
+    return tcopy(xf, T, foldable; kwargs...)
 end
 
-function tcopy(itr)
+function tcopy(itr; kwargs...)
     xf, foldable = induction(eduction(itr))
-    return tcopy(xf, foldable)
+    return tcopy(xf, foldable; kwargs...)
 end
 
 """
