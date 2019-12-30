@@ -1,25 +1,29 @@
 """
     _foldl_blockarray(rf, acc, coll::BlockArrays.BlockArray)
 """
-_foldl_blockarray(rf, acc, coll) =
-    complete(rf, @return_if_reduced _foldl_blockarray(
+function _foldl_blockarray(rf, acc, coll)
+    # `isempty` is required for `map(first, blockaxes(coll))` below
+    isempty(coll) && return complete(rf, acc)
+    return complete(rf, @return_if_reduced _foldl_blockarray(
         rf, acc, coll,
-        (),  # (outer) block indices
+        (),  # (outer) `Block`s
         (),  # (outer) offset indices
         Val(ndims(coll) - 1),  # stop recursion when `== Val(length(block))`
     ))
+end
 
 # Looping over outer/right dimensions; i.e., one of `b`, `c`, `d` in
 # `coll[a, b, c, d]` but not `a`.
 @inline function _foldl_blockarray(rf, acc, coll, block, offset, ValN₋₁)
-    nblocks = BlockArrays.nblocks
-    blocksize = BlockArrays.blocksize
+    blockaxes = BlockArrays.blockaxes
 
-    i = ndims(coll) - length(block)
-    for j in 1:nblocks(coll, i)
-        for k in 1:blocksize(coll, i, j)
+    d = ndims(coll) - length(block)
+    sample_block_template = map(first, blockaxes(coll))
+    for b in blockaxes(coll, d)
+        sample_block = @set sample_block_template[d] = b
+        for k in axes(coll[sample_block...], d)
             acc = @return_if_reduced _foldl_blockarray(
-                rf, acc, coll, (j, block...), (k, offset...), ValN₋₁,
+                rf, acc, coll, (b, block...), (k, offset...), ValN₋₁,
             )
         end
     end
@@ -31,18 +35,16 @@ end
     rf,
     acc,
     coll,
-    block::NTuple{N₋₁, Int},
+    block::NTuple{N₋₁, Any},
     offset::NTuple{N₋₁, Int},
     ::Val{N₋₁},
 ) where {N₋₁}
 
-    nblocks = BlockArrays.nblocks
-    blocksize = BlockArrays.blocksize
-    Block = BlockArrays.Block
+    blockaxes = BlockArrays.blockaxes
 
-    @inbounds for j in 1:nblocks(coll, 1)
-        array = coll[Block(j, block...)]
-        @simd_if rf for k in 1:blocksize(coll, 1, j)
+    @inbounds for b in blockaxes(coll, 1)
+        array = coll[b, block...]
+        @simd_if rf for k in axes(array, 1)
             acc = @next(rf, acc, array[k, offset...])
         end
     end
