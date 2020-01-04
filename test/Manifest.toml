@@ -20,11 +20,11 @@ version = "0.1.5"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "07c084d0b0b70469ede8b16c7d6992921adf1116"
+git-tree-sha1 = "8e2b4a9cfdec3eab3ae4268fb018b4ada7fa0b69"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
-version = "0.3.10-DEV"
+version = "0.3.11-DEV"
 
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
@@ -36,10 +36,10 @@ uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
 version = "0.10.2"
 
 [[CategoricalArrays]]
-deps = ["Compat", "DataAPI", "Future", "JSON", "Missings", "Printf", "Reexport", "Unicode"]
-git-tree-sha1 = "9c3fd1ebb503d271943c4ea94332d55ea900c9cb"
+deps = ["Compat", "DataAPI", "Future", "JSON", "Missings", "Printf", "Reexport", "Statistics", "Unicode"]
+git-tree-sha1 = "9127b0c2ee1bfd810921dd688dd8d73be1d9fb57"
 uuid = "324d7699-5711-5eae-9e2f-1d82baa6b597"
-version = "0.7.4"
+version = "0.7.5"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
@@ -94,9 +94,9 @@ version = "0.8.1"
 
 [[Documenter]]
 deps = ["Base64", "Dates", "DocStringExtensions", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Test", "Unicode"]
-git-tree-sha1 = "0be9bf63e854a2408c2ecd3c600d68d4d87d8a73"
+git-tree-sha1 = "885467cebde4639a3d81953652cc53ff5a73cb87"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-version = "0.24.2"
+version = "0.24.3"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
@@ -227,9 +227,10 @@ deps = ["Dates", "LibGit2", "Markdown", "Printf", "REPL", "Random", "SHA", "UUID
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[PooledArrays]]
-git-tree-sha1 = "6e8c38927cb6e9ae144f7277c753714861b27d14"
+deps = ["DataAPI"]
+git-tree-sha1 = "b1333d4eced1826e15adbdf01a4ecaccca9d353c"
 uuid = "2dfb63ee-cc39-5dd5-95bd-886bf059d720"
-version = "0.5.2"
+version = "0.5.3"
 
 [[Printf]]
 deps = ["Unicode"]
@@ -268,9 +269,9 @@ uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 
 [[Setfield]]
 deps = ["ConstructionBase", "Future", "MacroTools", "Requires"]
-git-tree-sha1 = "161fc4aaee52eabf584d9506d2143d83f60411c2"
+git-tree-sha1 = "ed5045722fcdacf263a90fb9eb9f258598ccebac"
 uuid = "efcf1570-3423-57d1-acb7-fd33fddbac46"
-version = "0.5.3"
+version = "0.5.4"
 
 [[SharedArrays]]
 deps = ["Distributed", "Mmap", "Random", "Serialization"]
@@ -312,10 +313,10 @@ uuid = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 version = "0.32.0"
 
 [[StructArrays]]
-deps = ["PooledArrays", "Requires"]
-git-tree-sha1 = "8b4ea677c4dfbcb538695e853207a9f70f84be20"
+deps = ["PooledArrays", "Tables", "WeakRefStrings"]
+git-tree-sha1 = "e860d3808176ace576a45d658ba80d7c815bf1ce"
 uuid = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
-version = "0.4.0"
+version = "0.4.1"
 
 [[SweepOperator]]
 deps = ["LinearAlgebra"]
@@ -357,6 +358,12 @@ uuid = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
 [[Unicode]]
 uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
+
+[[WeakRefStrings]]
+deps = ["Random", "Test"]
+git-tree-sha1 = "9a0bb82eede528debe631b642eeb48a631a69bc2"
+uuid = "ea10d353-3f73-51f8-a26c-33c1cb351aa5"
+version = "0.6.1"
 
 [[ZygoteRules]]
 deps = ["MacroTools"]
