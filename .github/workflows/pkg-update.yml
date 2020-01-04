@@ -25,6 +25,11 @@ jobs:
         with:
           version: 1.2
           projects: test docs
+      - name: Update test/environments/jl10/Manifest.toml
+        uses: tkf/julia-update-manifests@v1
+        with:
+          version: '1.0'
+          projects: test/environments/jl10
 
       # https://github.com/peter-evans/create-pull-request
       # https://github.com/marketplace/actions/create-pull-request
