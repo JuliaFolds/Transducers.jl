@@ -29,6 +29,7 @@ true
 ```
 """
 eduction(itr::Comprehension) = eduction(extractxf(itr)...)
+eduction(ed::Eduction) = ed
 
 """
     Transducer(iterator::Iterators.Generator)
