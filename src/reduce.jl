@@ -194,6 +194,7 @@ Base.reduce(step, xform::Transducer, itr; kwargs...) =
 """
     tcopy(xf::Transducer, T, reducible; basesize) :: Union{T, Empty{T}}
     tcopy(xf::Transducer, reducible::T; basesize) :: Union{T, Empty{T}}
+    tcopy([T,] itr; basesize) :: Union{T, Empty{T}}
 
 Thread-based parallel version of [`copy`](@ref).
 Keyword arguments are passed to [`reduce`](@ref).
@@ -204,6 +205,10 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel)
 !!! compat "Transducers.jl 0.4.5"
 
     New in version 0.4.5.
+
+!!! compat "Transducers.jl 0.4.8"
+
+    `tcopy` now accepts iterator comprehensions and eductions.
 
 # Examples
 ```jldoctest
@@ -220,6 +225,28 @@ julia> @assert tcopy(Map(x -> (a=x,)), Table, 1:1) == Table(a=[1])
 julia> using StructArrays
 
 julia> @assert tcopy(Map(x -> (a=x,)), StructVector, 1:1) == StructVector(a=[1])
+```
+
+`tcopy` works with iterator comprehensions and eductions (unlike
+[`copy`](@ref), there is no need for manual conversion with
+[`eduction`](@ref)):
+
+```jldoctest; setup = :(using Transducers, StructArrays, DataFrames)
+julia> table = StructVector(a = [1, 2, 3], b = [5, 6, 7]);
+
+julia> @assert tcopy(
+           (A = row.a + 1, B = row.b - 1) for row in table if isodd(row.a)
+       ) == StructVector(A = [2, 4], B = [4, 6])
+
+julia> @assert tcopy(
+           DataFrame,
+           (A = row.a + 1, B = row.b - 1) for row in table if isodd(row.a)
+       ) == DataFrame(A = [2, 4], B = [4, 6])
+
+julia> @assert tcopy(eduction(
+           Filter(row -> isodd(row.a)) |> Map(row -> (A = row.a + 1, B = row.b - 1)),
+           table,
+       )) == StructVector(A = [2, 4], B = [4, 6])
 ```
 
 If you have [`Cat`](@ref) or [`MapCat`](@ref) at the end of the
@@ -270,8 +297,19 @@ tcopy(xf, T, reducible; kwargs...) =
     reduce(append!!, xf |> Map(SingletonVector), reducible; init = Empty(T), kwargs...)
 tcopy(xf, reducible; kwargs...) = tcopy(xf, _materializer(reducible), reducible; kwargs...)
 
+function tcopy(::Type{T}, itr; kwargs...) where {T}
+    xf, foldable = induction(eduction(itr))
+    return tcopy(xf, T, foldable; kwargs...)
+end
+
+function tcopy(itr; kwargs...)
+    xf, foldable = induction(eduction(itr))
+    return tcopy(xf, foldable; kwargs...)
+end
+
 """
-    tcollect(xf::Transducer, reducible; basesize)
+    tcollect(xf::Transducer, reducible; basesize) :: Union{Vector, Empty{Vector}}
+    tcollect(itr; basesize) :: Union{Vector, Empty{Vector}}
 
 Thread-based parallel version of [`collect`](@ref).
 This is just a short-hand notation of `tcopy(xf, Vector, reducible)`.
@@ -283,5 +321,25 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel)
 !!! compat "Transducers.jl 0.4.5"
 
     New in version 0.4.5.
+
+!!! compat "Transducers.jl 0.4.8"
+
+    `tcollect` now accepts iterator comprehensions and eductions.
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> tcollect(Map(x -> x^2), 1:2)
+2-element Array{Int64,1}:
+ 1
+ 4
+
+julia> tcollect(x^2 for x in 1:2)
+2-element Array{Int64,1}:
+ 1
+ 4
+```
 """
 tcollect(xf, reducible; kwargs...) = tcopy(xf, Vector, reducible; kwargs...)
+tcollect(itr; kwargs...) = tcollect(induction(eduction(itr))...; kwargs...)

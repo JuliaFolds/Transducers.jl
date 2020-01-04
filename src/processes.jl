@@ -345,7 +345,8 @@ _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
     # `darkritual` below to work.
     rf = maybe_usesimd(rf0, simd)
     state = _start_init(rf, init)
-    result = __foldl__(rf, state, coll)
+    foldable = asfoldable(coll)
+    result = __foldl__(rf, state, foldable)
     if unreduced(result) isa DefaultInit
         throw(EmptyResultError(rf0))
         # Should I check if `init` is a `MissingInit`?
@@ -366,7 +367,7 @@ _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
         # not change the return type.
         realtype = _nonidtype(Core.Compiler.return_type(
             _unreduced__foldl__,
-            typeof((rf0, state, coll)),
+            typeof((rf0, state, foldable)),
         ))
         if realtype isa Type
             realvalue = convert(realtype, ur_result)
@@ -566,12 +567,17 @@ BangBang.append!!(xf::Transducer, to, from) =
     unreduced(transduce(xf, Completing(push!!), to, from))
 
 """
-    collect(xf::Transducer, itr)
+    collect(xf::Transducer, itr) :: Vector
+    collect(ed::Eduction) :: Vector
 
 Process an iterable `itr` using a transducer `xf` and collect the result
 into a `Vector`.
 
 For parallel versions, see [`tcollect`](@ref) and [`dcollect`](@ref).
+
+!!! compat "Transducers.jl 0.4.8"
+
+    `collect` now accepts eductions.
 
 # Examples
 ```jldoctest
@@ -598,9 +604,12 @@ function Base.collect(xf::Transducer, coll)
 end
 # Base.collect(xf, coll) = append!([], xf, coll)
 
+Base.collect(ed::Eduction) = collect(induction(ed)...)
+
 """
     copy(xf::Transducer, T, foldable) :: Union{T, Empty{T}}
     copy(xf::Transducer, foldable::T) :: Union{T, Empty{T}}
+    copy([T,] eduction::Eduction) :: Union{T, Empty{T}}
 
 Process `foldable` with a transducer `xf` and then create a container of type `T`
 filled with the result.  Return
@@ -614,6 +623,10 @@ For parallel versions, see [`tcopy`](@ref) and [`dcopy`](@ref).
 !!! compat "Transducers.jl 0.4.4"
 
     New in version 0.4.4.
+
+!!! compat "Transducers.jl 0.4.8"
+
+    `copy` now accepts eductions.
 
 # Examples
 ```jldoctest
@@ -633,10 +646,26 @@ julia> @assert copy(Map(x -> (a=x, b=x^2)), Table, 1:1) == Table(a=[1], b=[1])
 julia> using StructArrays
 
 julia> @assert copy(Map(x -> (a=x, b=x^2)), StructVector, 1:1) == StructVector(a=[1], b=[1])
-```
+
+julia> using DataFrames
+
+julia> @assert copy(
+           Map(x -> (A = x.a + 1, B = x.b + 1)),
+           DataFrame(a = [1], b = [2]),
+       ) == DataFrame(A = [2], B = [3])
 """
 Base.copy(xf::Transducer, ::Type{T}, foldable) where {T} = append!!(xf, Empty(T), foldable)
 Base.copy(xf::Transducer, foldable) = copy(xf, _materializer(foldable), foldable)
+
+function Base.copy(::Type{T}, ed::Eduction) where {T}
+    xf, foldable = induction(ed)
+    return copy(xf, T, foldable)
+end
+
+function Base.copy(ed::Eduction)
+    xf, foldable = induction(ed)
+    return copy(xf, foldable)
+end
 
 """
     map!(xf::Transducer, dest, src; simd)
