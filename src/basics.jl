@@ -1,5 +1,12 @@
 # --- Utilities
 
+if VERSION < v"1.3"
+    _Channel(f, ::Type{T}, size; kwargs...) where {T} =
+        Channel(f; ctype = T, csize = size, kwargs...)
+else
+    _Channel(f, ::Type{T}, size; kwargs...) where {T} = Channel{T}(f, size; kwargs...)
+end
+
 function _materializer(xs)
     T = Tables.materializer(xs)
     return T isa Type ? T : _materializer(typeof(xs))

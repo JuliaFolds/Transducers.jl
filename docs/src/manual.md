@@ -28,6 +28,13 @@ dcollect
 Channel
 ```
 
+### Experimental transducible processes
+
+```@docs
+Transducers.channel_unordered
+Transducers.append_unordered!
+```
+
 ## Transducers
 
 ```@autodocs
@@ -36,7 +43,7 @@ Private = false
 Filter = Transducers.is_transducer_type
 ```
 
-### Experimental
+### Experimental transducers
 
 ```@docs
 Transducers.TeeZip

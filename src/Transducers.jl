@@ -6,7 +6,8 @@ export Transducer, Map, Filter, Cat, MapCat, Take, PartitionBy, Scan, Zip,
     TakeLast, FlagFirst, MapSplat, ScanEmit, Enumerate, NotA, OfType,
     transduce, eduction, setinput, Reduced, reduced, unreduced, ifunreduced,
     Completing, OnInit, CopyInit, right, reducingfunction, dreduce, dtransduce,
-    tcopy, tcollect, dcopy, dcollect, withprogress, AdHocFoldable
+    tcopy, tcollect, dcopy, dcollect, channel_unordered, withprogress,
+    AdHocFoldable
 
 # Deprecated:
 export Distinct
@@ -21,7 +22,7 @@ using Distributed: Distributed, @everywhere
 using Logging: LogLevel, @logmsg
 using Requires
 using InitialValues: InitialValues, InitialValue, SpecificInitialValue, Init,
-    hasinitialvalue
+    hasinitialvalue, asmonoid
 
 import Setfield
 using Setfield: @lens, @set, set
@@ -57,6 +58,7 @@ include("simd.jl")
 include("processes.jl")
 include("reduce.jl")
 include("dreduce.jl")
+include("unordered.jl")
 include("air.jl")
 include("lister.jl")
 include("show.jl")
