@@ -166,18 +166,16 @@ function _reduce_threads_for(rf, init, reducible::SizedReducible{<:AbstractArray
             end
             results[i] = foldl_nocomplete(rf, _start_init(rf, init), chunk)
         end
-        i = findfirst(isreduced, results)
-        i === nothing || return results[i]
         # It can be done in `log2(n)` for loops but it's not clear if
         # `combine` is compute-intensive enough so that launching
         # threads is worth enough.  Let's merge the `results`
         # sequentially for now.
-        c = foldl(results) do a, b
-            combine(rf, a, b)
-        end
-        return c
+        return foldl(combine_step(rf), Map(identity), results)
     end
 end
+
+combine_step(rf) =
+    asmonoid((a, b) -> combine(rf, (@return_if_reduced a), (@return_if_reduced b)))
 
 # AbstractArray for disambiguation
 Base.mapreduce(xform::Transducer, step, itr::AbstractArray;

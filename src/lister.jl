@@ -3,6 +3,8 @@ import Markdown
 _unexported_public_api = (
     ## ../docs/src/manual.md
     # Experimental
+    channel_unordered,
+    append_unordered!,
     TeeZip,
     GetIndex,
     SetIndex,

@@ -996,6 +996,14 @@ Base.Channel(xform::Transducer, itr; kwargs...) =
 Base.Channel(ed::Eduction; kwargs...) =
     Channel(Transducer(ed), ed.coll; kwargs...)
 
+Base.Channel{T}(xform::Transducer, itr, size=0; kwargs...) where {T} =
+    _Channel(T, size; kwargs...) do chan
+        foreach(x -> put!(chan, x), xform, itr)
+        return
+    end
+
+Base.Channel{T}(ed::Eduction, size=0; kwargs...) where {T} =
+    Channel{T}(Transducer(ed), ed.coll, size; kwargs...)
 
 """
     AdHocFoldable(foldl, [collection = nothing])
