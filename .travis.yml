@@ -56,8 +56,8 @@ jobs:
       install:
         - julia -e 'using Run; Run.prepare("benchmark")'
       before_script:
-        - git fetch origin '+refs/heads/master:refs/remotes/origin/master'
-        - git branch master origin/master
+        - git fetch origin '+refs/heads/parallel-benchmark:refs/remotes/origin/parallel-benchmark'
+        - git branch parallel-benchmark origin/parallel-benchmark
         # Run benchmark outside `script` so that it's hidden by default:
         - julia -e 'using Run; Run.script("benchmark/runjudge_multi_thread.jl")'
       script:
