@@ -72,11 +72,28 @@ end
 
 """
     append_unordered!(output, xf, input; ntasks, basesize)
+    append_unordered!(output, itr; ntasks, basesize)
 
 Process `input` elements through a transducer `xf` and then `push!` them
 into `output` in undefined order.
 
+Binary method `append_unordered!(output, itr)` is like
+`append!(output, itr)` but without order guarantee.  Iterator
+comprehensions and [`eduction`](@ref)s can be passed as the input
+`itr`.
+
+`output` (typically a `Channel`) must implement thread-safe
+`push!(output, x)` method.
+
 See also [`channel_unordered`](@ref).
+
+!!! compat "Transducers.jl 0.4.8"
+
+    New in version 0.4.8.
+
+!!! compat "Transducers.jl 0.4.9"
+
+    Binary method `append_unordered!(output, itr)` requires Transducers.jl 0.4.9.
 
 $_experimental_warning
 
@@ -99,6 +116,23 @@ julia> sort!(collect(output))
  2
  3
  4
+
+julia> input = Channel(Map(identity), 1:3);
+
+julia> output = Channel{Int}(0);
+
+julia> task = @async try
+           append_unordered!(output, (y for x in input if isodd(x) for y in 1:x))
+       finally
+           close(output)
+       end;
+
+julia> sort!(collect(output))
+4-element Array{Int64,1}:
+ 1
+ 1
+ 2
+ 3
 ```
 """
 function append_unordered!(output, xf, input; kwargs...)
@@ -117,13 +151,30 @@ end
 # "Fusing" the `Map` and `step` yields the invocation of
 # `transduce_commutative` in `append_unordered!`.
 
+append_unordered!(output, itr; kwargs...) =
+    append_unordered!(output, induction(eduction(itr))...; kwargs...)
+
 """
     channel_unordered(xf, input; eltype, size, ntasks, basesize) :: Channel{eltype}
+    channel_unordered(itr; eltype, size, ntasks, basesize) :: Channel{eltype}
 
 Provide elements in `input` processed by a transducer `xf` through a
 `Channel`.
 
+Unary method `channel_unordered(itr)` produces a `Channel` that
+provides elements in the input iterator `itr` with possibly different
+order.  Iterator comprehensions and [`eduction`](@ref)s can be passed
+as the input `itr`.
+
 Use [`append_unordered!`](@ref) to send outputs to an existing channel.
+
+!!! compat "Transducers.jl 0.4.8"
+
+    New in version 0.4.8.
+
+!!! compat "Transducers.jl 0.4.9"
+
+    Unary method `channel_unordered(itr)` requires Transducers.jl 0.4.9.
 
 $_experimental_warning
 
@@ -146,6 +197,13 @@ julia> sort!(collect(channel_unordered(Map(x -> x + 1), input)))
  2
  3
  4
+
+julia> input = Channel(Map(identity), 1:3);
+
+julia> sort!(collect(channel_unordered(x + 1 for x in input if isodd(x))))
+2-element Array{Any,1}:
+ 2
+ 4
 ```
 """
 channel_unordered(xf, input; eltype=Any, size=Inf, kwargs...) =
@@ -153,3 +211,6 @@ channel_unordered(xf, input; eltype=Any, size=Inf, kwargs...) =
         append_unordered!(output, xf, input; kwargs...)
         return
     end
+
+channel_unordered(itr; kwargs...) =
+    channel_unordered(induction(eduction(itr))...; kwargs...)
