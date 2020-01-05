@@ -15,9 +15,10 @@ matrix:
 notifications:
   email: false
 
-# Do not build my PR twice.  Use the build on branch.
-# https://github.com/travis-ci/travis-ci/issues/1147#issuecomment-76296437
-if: NOT (type == pull_request AND head_repo == tkf/Transducers.jl)
+# Only build branches via PR to avoid running CI twice.
+# https://docs.travis-ci.com/user/conditional-builds-stages-jobs
+# https://docs.travis-ci.com/user/conditions-v1
+if: branch = master OR tag IS present OR type != push
 
 before_install:
   - unset JULIA_PROJECT
