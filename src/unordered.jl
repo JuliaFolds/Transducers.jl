@@ -34,24 +34,22 @@ function transduce_commutative!(
 )
     @argcheck ntasks > 0
     @argcheck basesize > 0
-    rf = reducingfunction(xform, step; simd = simd)
+    rf = reducingfunction(Cat() |> xform, step; simd = simd)
     stop = Threads.Atomic{Bool}(false)
     tasks = map(1:ntasks) do _
-        @spawn try
+        @async try
             acc′ = _start_init(rf, init)
             finished = false
+            xs = Union{}[]
             while !finished
+                xs = append!!(empty!(xs), Iterators.take(input, basesize))
+                isempty(xs) && return acc′
                 acc′, finished = let acc′′ = acc′
                     @spawn begin
-                        acc = acc′′
-                        for _ in 1:basesize
-                            x = maybe_popfirst!(input)
-                            x === nothing && return acc, true
-                            acc = next(rf, acc, something(x))
-                            if isreduced(acc)
-                                stop[] = true
-                                return acc, true
-                            end
+                        acc = next(rf, acc′′, xs)
+                        if isreduced(acc)
+                            stop[] = true
+                            return acc, true
                         end
                         return acc, false
                     end
