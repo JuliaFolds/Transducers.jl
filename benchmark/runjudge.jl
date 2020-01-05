@@ -25,7 +25,7 @@ group_target = benchmarkpkg(
 
 group_baseline = benchmarkpkg(
     dirname(@__DIR__),
-    mkconfig(id = "master"),
+    mkconfig(id = "baseline"),
     progressoptions = progressoptions,
     resultfile = joinpath(@__DIR__, "result-baseline.json"),
 )

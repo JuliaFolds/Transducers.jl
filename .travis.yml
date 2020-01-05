@@ -45,26 +45,26 @@ jobs:
         - julia -e 'using Run; Run.prepare("benchmark")'
       before_script:
         - git fetch origin '+refs/heads/master:refs/remotes/origin/master'
-        - git branch master origin/master
+        - git branch baseline origin/master
         # Run benchmark outside `script` so that it's hidden by default:
         - julia -e 'using Run; Run.script("benchmark/runjudge.jl")'
       script:
         - julia -e 'using Run; Run.script("benchmark/pprintjudge.jl")'
       after_success: skip
-      if: NOT (branch = master)
+      if: type != push
     - name: "Benchmark (Multi-thread)"
       os: linux
       install:
         - julia -e 'using Run; Run.prepare("benchmark")'
       before_script:
         - git fetch origin '+refs/heads/master:refs/remotes/origin/master'
-        - git branch master origin/master
+        - git branch baseline origin/master
         # Run benchmark outside `script` so that it's hidden by default:
         - julia -e 'using Run; Run.script("benchmark/runjudge_multi_thread.jl")'
       script:
         - julia -e 'using Run; Run.script("benchmark/pprintjudge_multi_thread.jl")'
       after_success: skip
-      if: NOT (branch = master)
+      if: type != push
     - stage: "Documentation"
       os: linux
       install:
