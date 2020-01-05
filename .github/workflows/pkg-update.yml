@@ -15,7 +15,7 @@ jobs:
 
       # https://github.com/tkf/julia-merge-except-manifests
       - name: 'Merge master to create-pull-request/pkg-update'
-        uses: tkf/julia-merge-except-manifests@dev
+        uses: tkf/julia-merge-except-manifests@v1
         with:
           target: create-pull-request/pkg-update
 
