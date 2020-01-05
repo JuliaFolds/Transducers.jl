@@ -1,6 +1,6 @@
 module BenchWords
 using BenchmarkTools
-include("../examples/words.jl")
+include("../../examples/words.jl")
 
 suite = BenchmarkGroup()
 
