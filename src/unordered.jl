@@ -1,3 +1,17 @@
+aschannel(input::Channel, _) = input
+function aschannel(input, size)
+    if Base.IteratorEltype(input) isa Base.HasEltype
+        T = eltype(input)
+    else
+        T = Any
+    end
+    return _Channel(T, size) do ch
+        for x in input
+            put!(ch, x)
+        end
+    end
+end
+
 maybe_popfirst!(input::AbstractChannel) =
     try
         Some(take!(input))
@@ -135,8 +149,23 @@ julia> sort!(collect(output))
  3
 ```
 """
-function append_unordered!(output, xf, input; kwargs...)
-    transduce_commutative(xf, _push!, output, input; kwargs...)
+function append_unordered!(
+    output,
+    xf,
+    input;
+    ntasks::Integer = Threads.nthreads(),
+    basesize::Integer = 1,
+    kwargs...,
+)
+    transduce_commutative(
+        xf,
+        _push!,
+        output,
+        aschannel(input, ntasks * basesize);
+        ntasks = ntasks,
+        basesize = basesize,
+        kwargs...,
+    )
     return output
 end
 # Strictly speaking, this invocation of `transduce_commutative` does
@@ -190,17 +219,13 @@ $_experimental_warning
 ```jldoctest
 julia> using Transducers: Map, channel_unordered
 
-julia> input = Channel(Map(identity), 1:3);
-
-julia> sort!(collect(channel_unordered(Map(x -> x + 1), input)))
+julia> sort!(collect(channel_unordered(Map(x -> x + 1), 1:3)))
 3-element Array{Any,1}:
  2
  3
  4
 
-julia> input = Channel(Map(identity), 1:3);
-
-julia> sort!(collect(channel_unordered(x + 1 for x in input if isodd(x))))
+julia> sort!(collect(channel_unordered(x + 1 for x in 1:3 if isodd(x))))
 2-element Array{Any,1}:
  2
  4
