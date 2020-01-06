@@ -20,7 +20,7 @@ hist_comm(xf, xs; kwargs...) =
     reduce_commutative(mergehist!, xf, xs; init=initializer, kwargs...)
 
 xf = Map() do x
-    for _ in 1:1000
+    for _ in 1:10
         x = sin(x)
     end
     return SingletonDict(round(x, digits=4), 1)
