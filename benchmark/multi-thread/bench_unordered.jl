@@ -11,7 +11,7 @@ function collect_unordered(xf, xs; basesize = 1, kwargs...)
         T,
         channel_unordered(
             xf,
-            Channel{T}(Map(identity), xs, basesize);
+            xs;
             eltype = T,
             size = basesize,
             basesize = basesize,
