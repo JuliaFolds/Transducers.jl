@@ -23,7 +23,7 @@ maybe_popfirst!(input::AbstractChannel) =
         end
     end
 
-function transduce_commutative(
+function transduce_commutative!(
     xform::Transducer,
     step,
     init,
@@ -70,7 +70,7 @@ end
 
 #=
 reduce_commutative(step, xform::Transducer, itr; kwargs...) =
-    unreduced(transduce_commutative(xform, Completing(step), itr; kwargs...))
+    unreduced(transduce_commutative!(xform, Completing(step), itr; kwargs...))
 =#
 
 function _push!(output, x)
@@ -157,7 +157,7 @@ function append_unordered!(
     basesize::Integer = 1,
     kwargs...,
 )
-    transduce_commutative(
+    transduce_commutative!(
         xf,
         _push!,
         output,
@@ -168,17 +168,17 @@ function append_unordered!(
     )
     return output
 end
-# Strictly speaking, this invocation of `transduce_commutative` does
+# Strictly speaking, this invocation of `transduce_commutative!` does
 # not make sense as `_push!` is not even a magma/groupoid (let alone a
 # commutative monoid).  It should really be written as (roughly
 # speaking)
 #
 #     xf′ = xf |> Map(x -> [x])
 #     step(a, b) = foldl(_push!, b; init=a)
-#     transduce_commutative(xf′, step, input; init = channel)
+#     transduce_commutative!(xf′, step, input; init = channel)
 #
 # "Fusing" the `Map` and `step` yields the invocation of
-# `transduce_commutative` in `append_unordered!`.
+# `transduce_commutative!` in `append_unordered!`.
 
 append_unordered!(output, itr; kwargs...) =
     append_unordered!(output, induction(eduction(itr))...; kwargs...)
