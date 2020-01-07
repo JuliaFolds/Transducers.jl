@@ -1,11 +1,11 @@
 module TestUnordered
 include("preamble.jl")
-using Transducers: append_unordered!, channel_unordered, transduce_commutative
+using Transducers: append_unordered!, channel_unordered, transduce_commutative!
 
-@testset "transduce_commutative" begin
+@testset "transduce_commutative!" begin
     @testset "Map(inc)(+)" begin
         input = Channel(Map(identity), 1:100)
-        @test transduce_commutative(Map(inc), +, 0, input) == sum((1:100) .+ 1)
+        @test transduce_commutative!(Map(inc), +, 0, input) == sum((1:100) .+ 1)
     end
 end
 
@@ -18,10 +18,29 @@ end
     @test ys == (1:100) .+ 1
 end
 
+@testset "append_unordered!(output, (x + 1 for x in input))" begin
+    input = Channel(Map(identity), 1:100)
+    output = Channel{Int}(Inf)
+    append_unordered!(output, (x + 1 for x in input))
+    close(output)
+    ys = sort!(collect(output))
+    @test ys == (1:100) .+ 1
+end
+
 @testset "channel_unordered" begin
     @testset "Map(inc)" begin
         input = Channel(Map(identity), 1:100)
         ys = sort!(collect(channel_unordered(Map(inc), input)))
+        @test ys == (1:100) .+ 1
+    end
+    @testset "x + 1 for x in input" begin
+        input = Channel(Map(identity), 1:100)
+        ys = sort!(collect(channel_unordered(x + 1 for x in input)))
+        @test ys == (1:100) .+ 1
+    end
+    @testset "eduction(x + 1 for x in input)" begin
+        input = Channel(Map(identity), 1:100)
+        ys = sort!(collect(channel_unordered(eduction(x + 1 for x in input))))
         @test ys == (1:100) .+ 1
     end
     @testset "ReduceIf(isodd): early termination" begin

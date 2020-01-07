@@ -1,3 +1,17 @@
+aschannel(input::Channel, _) = input
+function aschannel(input, size)
+    if Base.IteratorEltype(input) isa Base.HasEltype
+        T = eltype(input)
+    else
+        T = Any
+    end
+    return _Channel(T, size) do ch
+        for x in input
+            put!(ch, x)
+        end
+    end
+end
+
 maybe_popfirst!(input::AbstractChannel) =
     try
         Some(take!(input))
@@ -9,7 +23,7 @@ maybe_popfirst!(input::AbstractChannel) =
         end
     end
 
-function transduce_commutative(
+function transduce_commutative!(
     xform::Transducer,
     step,
     init,
@@ -56,7 +70,7 @@ end
 
 #=
 reduce_commutative(step, xform::Transducer, itr; kwargs...) =
-    unreduced(transduce_commutative(xform, Completing(step), itr; kwargs...))
+    unreduced(transduce_commutative!(xform, Completing(step), itr; kwargs...))
 =#
 
 function _push!(output, x)
@@ -72,11 +86,28 @@ end
 
 """
     append_unordered!(output, xf, input; ntasks, basesize)
+    append_unordered!(output, itr; ntasks, basesize)
 
 Process `input` elements through a transducer `xf` and then `push!` them
 into `output` in undefined order.
 
+Binary method `append_unordered!(output, itr)` is like
+`append!(output, itr)` but without order guarantee.  Iterator
+comprehensions and [`eduction`](@ref)s can be passed as the input
+`itr`.
+
+`output` (typically a `Channel`) must implement thread-safe
+`push!(output, x)` method.
+
 See also [`channel_unordered`](@ref).
+
+!!! compat "Transducers.jl 0.4.8"
+
+    New in version 0.4.8.
+
+!!! compat "Transducers.jl 0.4.9"
+
+    Binary method `append_unordered!(output, itr)` requires Transducers.jl 0.4.9.
 
 $_experimental_warning
 
@@ -99,31 +130,80 @@ julia> sort!(collect(output))
  2
  3
  4
+
+julia> input = Channel(Map(identity), 1:3);
+
+julia> output = Channel{Int}(0);
+
+julia> task = @async try
+           append_unordered!(output, (y for x in input if isodd(x) for y in 1:x))
+       finally
+           close(output)
+       end;
+
+julia> sort!(collect(output))
+4-element Array{Int64,1}:
+ 1
+ 1
+ 2
+ 3
 ```
 """
-function append_unordered!(output, xf, input; kwargs...)
-    transduce_commutative(xf, _push!, output, input; kwargs...)
+function append_unordered!(
+    output,
+    xf,
+    input;
+    ntasks::Integer = Threads.nthreads(),
+    basesize::Integer = 1,
+    kwargs...,
+)
+    transduce_commutative!(
+        xf,
+        _push!,
+        output,
+        aschannel(input, ntasks * basesize);
+        ntasks = ntasks,
+        basesize = basesize,
+        kwargs...,
+    )
     return output
 end
-# Strictly speaking, this invocation of `transduce_commutative` does
+# Strictly speaking, this invocation of `transduce_commutative!` does
 # not make sense as `_push!` is not even a magma/groupoid (let alone a
 # commutative monoid).  It should really be written as (roughly
 # speaking)
 #
 #     xf′ = xf |> Map(x -> [x])
 #     step(a, b) = foldl(_push!, b; init=a)
-#     transduce_commutative(xf′, step, input; init = channel)
+#     transduce_commutative!(xf′, step, input; init = channel)
 #
 # "Fusing" the `Map` and `step` yields the invocation of
-# `transduce_commutative` in `append_unordered!`.
+# `transduce_commutative!` in `append_unordered!`.
+
+append_unordered!(output, itr; kwargs...) =
+    append_unordered!(output, induction(eduction(itr))...; kwargs...)
 
 """
     channel_unordered(xf, input; eltype, size, ntasks, basesize) :: Channel{eltype}
+    channel_unordered(itr; eltype, size, ntasks, basesize) :: Channel{eltype}
 
 Provide elements in `input` processed by a transducer `xf` through a
 `Channel`.
 
+Unary method `channel_unordered(itr)` produces a `Channel` that
+provides elements in the input iterator `itr` with possibly different
+order.  Iterator comprehensions and [`eduction`](@ref)s can be passed
+as the input `itr`.
+
 Use [`append_unordered!`](@ref) to send outputs to an existing channel.
+
+!!! compat "Transducers.jl 0.4.8"
+
+    New in version 0.4.8.
+
+!!! compat "Transducers.jl 0.4.9"
+
+    Unary method `channel_unordered(itr)` requires Transducers.jl 0.4.9.
 
 $_experimental_warning
 
@@ -139,12 +219,15 @@ $_experimental_warning
 ```jldoctest
 julia> using Transducers: Map, channel_unordered
 
-julia> input = Channel(Map(identity), 1:3);
-
-julia> sort!(collect(channel_unordered(Map(x -> x + 1), input)))
+julia> sort!(collect(channel_unordered(Map(x -> x + 1), 1:3)))
 3-element Array{Any,1}:
  2
  3
+ 4
+
+julia> sort!(collect(channel_unordered(x + 1 for x in 1:3 if isodd(x))))
+2-element Array{Any,1}:
+ 2
  4
 ```
 """
@@ -153,3 +236,6 @@ channel_unordered(xf, input; eltype=Any, size=Inf, kwargs...) =
         append_unordered!(output, xf, input; kwargs...)
         return
     end
+
+channel_unordered(itr; kwargs...) =
+    channel_unordered(induction(eduction(itr))...; kwargs...)
