@@ -68,10 +68,24 @@ function transduce_commutative!(
     return foldl(combine_step(rf), Map(fetch), tasks)
 end
 
-#=
-reduce_commutative(step, xform::Transducer, itr; kwargs...) =
-    unreduced(transduce_commutative!(xform, Completing(step), itr; kwargs...))
-=#
+reduce_commutative!(step, xform::Transducer, itr; init = MissingInit(), kwargs...) =
+    unreduced(transduce_commutative!(xform, Completing(step), init, itr; kwargs...))
+
+reduce_commutative(
+    step,
+    xform::Transducer,
+    itr;
+    ntasks::Integer = Threads.nthreads(),
+    basesize::Integer = 1,
+    kwargs...,
+) = reduce_commutative!(
+    step,
+    xform,
+    aschannel(itr, ntasks * basesize);
+    ntasks = ntasks,
+    basesize = basesize,
+    kwargs...,
+)
 
 function _push!(output, x)
     push!(output, x)
