@@ -184,26 +184,34 @@ else
         )
 end
 
-struct RemoteFoldlWithLogging{C} <: Function
+struct RemoteReduceWithLogging{C} <: Function
     chan::C
     progress_interval::Float64
 end
 # Manually create a closure to make it work nicely with Revise.jl:
 # https://github.com/timholy/Revise.jl/pull/157
 
-function (foldl::RemoteFoldlWithLogging)(rf0, init, coll)
+function (foldl::RemoteReduceWithLogging)(rf0, init, coll, basesize)
     xf = ScanEmit((0, time())) do (n, t0), x
         t1 = time()
         n += 1
         if t1 - t0 > foldl.progress_interval
-            put!(foldl.chan, n)
+            put!(chan, n)
             n = 0
         end
         x, (n, t1)
     end
     rf = Reduction(xf, rf0)
-    acc = _start_init(rf, init)
-    result = foldl_nocomplete(rf, acc, coll)
+    chan = _Channel(eltype(foldl.chan), 0) do chan
+        while true
+            put!(foldl.chan, take!(chan))
+        end
+    end
+    result = try
+        _transduce_assoc_nocomplete(rf, init, coll, basesize)
+    finally
+        close(chan)
+    end
     result isa Reduced && return result
     _, iresult = unwrap(rf, result)  # manually unwrap ScanEmit's private state
     return iresult
@@ -214,7 +222,7 @@ function dtransduce(
     kwargs...,
 )
     chan = Distributed.RemoteChannel()
-    remote_foldl_with_logging = RemoteFoldlWithLogging(chan, coll.interval)
+    remote_reduce_with_logging = RemoteReduceWithLogging(chan, coll.interval)
     progress_task = @async let n = length(coll.foldable)
         __progress() do id
             i = 0
@@ -237,7 +245,7 @@ function dtransduce(
     try
         return dtransduce(
             xform, step, init, coll.foldable;
-            _remote_foldl = remote_foldl_with_logging,
+            _remote_reduce = remote_reduce_with_logging,
             kwargs...,
         )
     finally

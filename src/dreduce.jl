@@ -45,8 +45,9 @@ function dtransduce(
     xform::Transducer, step, init, coll;
     simd::SIMDFlag = Val(false),
     basesize::Integer = max(1, length(coll) ÷ Distributed.nworkers()),
+    threads_basesize::Integer = basesize,
     pool::Distributed.AbstractWorkerPool = Distributed.default_worker_pool(),
-    _remote_foldl = _remote_foldl,
+    _remote_reduce = _transduce_assoc_nocomplete,
 )
     @argcheck basesize > 0
     isempty(coll) && return init
@@ -54,11 +55,12 @@ function dtransduce(
     rf = maybe_usesimd(Reduction(xform, step), simd)
     futures = map(firstindex(coll):basesize:lastindex(coll)) do start
         Distributed.remotecall(
-            _remote_foldl,
+            _remote_reduce,
             pool,
             rf,
             init,
             coll[start:min(end, start - 1 + basesize)],
+            threads_basesize,
         )
     end
     # TODO: Cancel remote computation when there is a Reduced.
@@ -69,11 +71,6 @@ function dtransduce(
         combine(rf, a, b)
     end
     return complete(rf, c)
-end
-
-function _remote_foldl(rf, init, coll)
-    acc = _start_init(rf, init)
-    return foldl_nocomplete(rf, acc, coll)
 end
 
 function load_me_everywhere()
