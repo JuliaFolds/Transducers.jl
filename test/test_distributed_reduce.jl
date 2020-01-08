@@ -27,6 +27,7 @@ const ProgressLevel = LogLevel(-1)
             (basesize = 1,),
             (basesize = 1, threads_basesize = 1),
             (basesize = 4, threads_basesize = 2),
+            (basesize = 4, threads_basesize = 2, simd = true),
         ]
 
         ys = dreduce(append!!, Map(fun), xs; init = Union{}[], kwargs...)
@@ -59,6 +60,7 @@ end
         # Keyword arguments to `dreduce`:
         (),
         (basesize = 4, threads_basesize = 2),
+        (basesize = 4, threads_basesize = 2, simd = true),
     ]
         logs, ans = collect_test_logs(min_level = ProgressLevel) do
             dreduce(+, Map(identity), withprogress(xs; interval = 0.0); kwargs...)
