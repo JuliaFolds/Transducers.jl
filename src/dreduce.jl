@@ -23,6 +23,12 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
   `array` that is processed by each worker.  A smaller size may be
   required when computation time for processing each item can
   fluctuate a lot.
+- `threads_basesize::Integer = basesize ÷ nthreads()`: A size of chunk
+  in `array` that is processed by each task in each worker process.
+  The default setting assumes that the number of threads used in all
+  workers are the same.  For heterogeneous setup where each worker
+  process has different number of threads, it may be required to use
+  smaller `threads_basesize` _and_ `basesize` to get a good performance.
 - For other keyword arguments, see [`foldl`](@ref).
 
 # Examples
@@ -45,8 +51,9 @@ function dtransduce(
     xform::Transducer, step, init, coll;
     simd::SIMDFlag = Val(false),
     basesize::Integer = max(1, length(coll) ÷ Distributed.nworkers()),
+    threads_basesize::Integer = max(1, basesize ÷ Threads.nthreads()),
     pool::Distributed.AbstractWorkerPool = Distributed.default_worker_pool(),
-    _remote_foldl = _remote_foldl,
+    _remote_reduce = _transduce_assoc_nocomplete,
 )
     @argcheck basesize > 0
     isempty(coll) && return init
@@ -54,11 +61,12 @@ function dtransduce(
     rf = maybe_usesimd(Reduction(xform, step), simd)
     futures = map(firstindex(coll):basesize:lastindex(coll)) do start
         Distributed.remotecall(
-            _remote_foldl,
+            _remote_reduce,
             pool,
             rf,
             init,
             coll[start:min(end, start - 1 + basesize)],
+            threads_basesize,
         )
     end
     # TODO: Cancel remote computation when there is a Reduced.
@@ -69,11 +77,6 @@ function dtransduce(
         combine(rf, a, b)
     end
     return complete(rf, c)
-end
-
-function _remote_foldl(rf, init, coll)
-    acc = _start_init(rf, init)
-    return foldl_nocomplete(rf, acc, coll)
 end
 
 function load_me_everywhere()

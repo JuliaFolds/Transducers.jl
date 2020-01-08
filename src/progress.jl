@@ -132,7 +132,7 @@ start(rf::R_{LogProgressOnCombine}, result) =
     return wrap(rf, (tc, nc), irc)
 end
 
-function _reduce_progress(reduce_impl, rf0, init, coll)
+function setup_logprogressoncombine(rf0, interval, chan)
     if rf0 isa R_{UseSIMD}
         xf0 = xform(rf0)
         rfinner = inner(rf0)
@@ -141,10 +141,14 @@ function _reduce_progress(reduce_impl, rf0, init, coll)
         rfinner = rf0
     end
 
-    chan = Channel{Int}(0)
-    xf = xf0 |> LogProgressOnCombine(chan, coll.reducible.interval)
+    xf = xf0 |> LogProgressOnCombine(chan, interval)
     rf = Reduction(xf, rfinner)
+    return rf
+end
 
+function _reduce_progress(reduce_impl, rf0, init, coll)
+    chan = Channel{Int}(0)
+    rf = setup_logprogressoncombine(rf0, coll.reducible.interval, chan)
     reducible = @set coll.reducible = coll.reducible.foldable
     progress_task = @async let n = length(coll.reducible.foldable)
         __progress() do id
@@ -184,28 +188,29 @@ else
         )
 end
 
-struct RemoteFoldlWithLogging{C} <: Function
+struct RemoteReduceWithLogging{C} <: Function
     chan::C
     progress_interval::Float64
 end
 # Manually create a closure to make it work nicely with Revise.jl:
 # https://github.com/timholy/Revise.jl/pull/157
 
-function (foldl::RemoteFoldlWithLogging)(rf0, init, coll)
-    xf = ScanEmit((0, time())) do (n, t0), x
-        t1 = time()
-        n += 1
-        if t1 - t0 > foldl.progress_interval
-            put!(foldl.chan, n)
-            n = 0
+function (foldl::RemoteReduceWithLogging)(rf0, init, coll, basesize)
+    chan = _Channel(eltype(foldl.chan), 0) do chan
+        while true
+            put!(foldl.chan, take!(chan))
         end
-        x, (n, t1)
     end
-    rf = Reduction(xf, rf0)
-    acc = _start_init(rf, init)
-    result = foldl_nocomplete(rf, acc, coll)
+    local rf
+    result = try
+        rf = setup_logprogressoncombine(rf0, foldl.progress_interval, chan)
+        _transduce_assoc_nocomplete(rf, init, coll, basesize)
+    finally
+        close(chan)
+    end
     result isa Reduced && return result
-    _, iresult = unwrap(rf, result)  # manually unwrap ScanEmit's private state
+    # Manually unwrap LogProgressOnCombine's private state:
+    _, iresult = unwrap(rf, result)
     return iresult
 end
 
@@ -214,7 +219,7 @@ function dtransduce(
     kwargs...,
 )
     chan = Distributed.RemoteChannel()
-    remote_foldl_with_logging = RemoteFoldlWithLogging(chan, coll.interval)
+    remote_reduce_with_logging = RemoteReduceWithLogging(chan, coll.interval)
     progress_task = @async let n = length(coll.foldable)
         __progress() do id
             i = 0
@@ -237,7 +242,7 @@ function dtransduce(
     try
         return dtransduce(
             xform, step, init, coll.foldable;
-            _remote_foldl = remote_foldl_with_logging,
+            _remote_reduce = remote_reduce_with_logging,
             kwargs...,
         )
     finally
