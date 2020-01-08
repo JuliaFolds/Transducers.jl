@@ -3,7 +3,11 @@ module TestDistributedReduce
 include("preamble.jl")
 using BangBang
 using Distributed
+using Logging: LogLevel
 using StructArrays: StructVector
+using Test: collect_test_logs
+
+const ProgressLevel = LogLevel(-1)
 
 @testset "dreduce" begin
     fname = gensym(:attach_pid)
@@ -47,6 +51,24 @@ end
 
 @testset "empty input" begin
     @test isempty(dcollect(Map(identity), []))
+end
+
+@testset "withprogress" begin
+    xs = 1:10
+    @testset "dreduce(..., withprogress(xs; interval=0); $kwargs...)" for kwargs in Any[
+        # Keyword arguments to `dreduce`:
+        (),
+        (basesize = 4, threads_basesize = 2),
+    ]
+        logs, ans = collect_test_logs(min_level = ProgressLevel) do
+            dreduce(+, Map(identity), withprogress(xs; interval = 0.0); kwargs...)
+        end
+        @test ans == sum(xs)
+        @test length(logs) > 2
+        @test logs[1].kwargs[:progress] === 0.0
+        @test all(l.kwargs[:progress] isa Float64 for l in logs[2:end-1])
+        @test logs[end].kwargs[:progress] === "done"
+    end
 end
 
 end  # module
