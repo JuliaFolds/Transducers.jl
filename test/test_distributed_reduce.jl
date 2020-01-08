@@ -5,20 +5,29 @@ using BangBang
 using Distributed
 using StructArrays: StructVector
 
-@testset begin
+@testset "dreduce" begin
     fname = gensym(:attach_pid)
     @everywhere $fname(x) = [(x, getpid())]
     fun = getproperty(Main, fname)
 
     pids = fetch.(map(id -> remotecall(getpid, id), workers()))
-    xs = 1:10
-    ys = dreduce(append!!, Map(fun), xs; init=Union{}[])
-    @test first.(ys) == xs
-    @test Set(last.(ys)) == Set(pids)
+    xs0 = 1:10
+    @testset "dreduce(..., $xslabel; $kwargs...)" for (xslabel, xs) in Any[
+            # Input containers:
+            ("$xs0", xs0),
+            ("withprogress(xs; interval=0)", withprogress(xs0; interval = 0)),
+        ],
+        kwargs in Any[
+            # Keyword arguments to `dreduce`:
+            (),
+            (basesize = 1,),
+            (basesize = 1, threads_basesize = 1),
+        ]
 
-    ys = dreduce(append!!, Map(fun), withprogress(xs; interval=0); init=Union{}[])
-    @test first.(ys) == xs
-    @test Set(last.(ys)) == Set(pids)
+        ys = dreduce(append!!, Map(fun), xs; init = Union{}[], kwargs...)
+        @test first.(ys) == xs0
+        @test Set(last.(ys)) == Set(pids)
+    end
 end
 
 @testset "dcollect & dcopy" begin
