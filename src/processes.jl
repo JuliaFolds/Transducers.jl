@@ -653,6 +653,7 @@ julia> @assert copy(
            Map(x -> (A = x.a + 1, B = x.b + 1)),
            DataFrame(a = [1], b = [2]),
        ) == DataFrame(A = [2], B = [3])
+```
 """
 Base.copy(xf::Transducer, ::Type{T}, foldable) where {T} = append!!(xf, Empty(T), foldable)
 Base.copy(xf::Transducer, foldable) = copy(xf, _materializer(foldable), foldable)
