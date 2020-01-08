@@ -22,6 +22,7 @@ using StructArrays: StructVector
             (),
             (basesize = 1,),
             (basesize = 1, threads_basesize = 1),
+            (basesize = 4, threads_basesize = 2),
         ]
 
         ys = dreduce(append!!, Map(fun), xs; init = Union{}[], kwargs...)
