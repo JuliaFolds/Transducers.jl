@@ -161,7 +161,7 @@ function _reduce_progress(reduce_impl, rf0, init, coll)
         result = reduce_impl(rf, init, reducible)
         result isa Reduced && return result
         # Manually unwrap LogProgressOnCombine's private state:
-        _, iresult = unwrap(rf, result)
+        _, iresult = unwrap(rf isa R_{UseSIMD} ? inner(rf) : rf, result)
         return iresult
     finally
         close(chan)
@@ -210,7 +210,7 @@ function (foldl::RemoteReduceWithLogging)(rf0, init, coll, basesize)
     end
     result isa Reduced && return result
     # Manually unwrap LogProgressOnCombine's private state:
-    _, iresult = unwrap(rf, result)
+    _, iresult = unwrap(rf isa R_{UseSIMD} ? inner(rf) : rf, result)
     return iresult
 end
 
