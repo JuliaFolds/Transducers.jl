@@ -8,12 +8,14 @@ julia:
 env:
    global:
      - JULIA_NUM_THREADS=2
+     - COVERALLS_PARALLEL=true
 matrix:
   allow_failures:
     - julia: nightly
   fast_finish: true
 notifications:
   email: false
+  webhooks: https://coveralls.io/webhook
 
 # Only build branches via PR to avoid running CI twice.
 # https://docs.travis-ci.com/user/conditional-builds-stages-jobs
