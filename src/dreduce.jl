@@ -1,5 +1,5 @@
 """
-    dreduce(step, xform::Transducer, array; [init, simd, basesize, pool])
+    dreduce(step, xform::Transducer, array; [init, simd, basesize, threads_basesize, pool])
 
 Distributed.jl-based parallelization of [`foldl`](@ref).  Input
 collection must be indexable.
@@ -43,7 +43,7 @@ dreduce(step, xform::Transducer, itr; init=MissingInit(), kwargs...) =
     unreduced(dtransduce(xform, Completing(step), init, itr; kwargs...))
 
 """
-    dtransduce(xform::Transducer, step, init, array; [simd, basesize, pool])
+    dtransduce(xform::Transducer, step, init, array; [simd, basesize, threads_basesize, pool])
 
 See [`dreduce`](@ref) and [`transduce`](@ref).
 """
@@ -85,9 +85,9 @@ function load_me_everywhere()
 end
 
 """
-    dcopy(xf::Transducer, T, reducible; basesize) :: Union{T, Empty{T}}
-    dcopy(xf::Transducer, reducible::T; basesize) :: Union{T, Empty{T}}
-    dcopy([T,] itr) :: Union{T, Empty{T}}
+    dcopy(xf::Transducer, T, reducible; [basesize, threads_basesize]) :: Union{T, Empty{T}}
+    dcopy(xf::Transducer, reducible::T; [basesize, threads_basesize]) :: Union{T, Empty{T}}
+    dcopy([T,] itr; [basesize, threads_basesize]) :: Union{T, Empty{T}}
 
 Distributed.jl-based parallel version of [`copy`](@ref).  Keyword
 arguments are passed to [`dreduce`](@ref).  For examples, see
@@ -119,8 +119,8 @@ function dcopy(itr; kwargs...)
 end
 
 """
-    dcollect(xf::Transducer, reducible; basesize) :: Union{Vector, Empty{Vector}}
-    dcollect(itr; basesize) :: Union{Vector, Empty{Vector}}
+    dcollect(xf::Transducer, reducible; [basesize, threads_basesize]) :: Union{Vector, Empty{Vector}}
+    dcollect(itr; [basesize, threads_basesize]) :: Union{Vector, Empty{Vector}}
 
 Distributed.jl-based parallel version of [`collect`](@ref).
 This is just a short-hand notation of `dcopy(xf, Vector, reducible)`.
