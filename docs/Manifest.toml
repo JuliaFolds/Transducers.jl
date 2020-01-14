@@ -41,7 +41,9 @@ version = "1.1.0"
 
 [[DataFrames]]
 deps = ["CategoricalArrays", "Compat", "DataAPI", "Future", "InvertedIndices", "IteratorInterfaceExtensions", "Missings", "PooledArrays", "Printf", "REPL", "Reexport", "SortingAlgorithms", "Statistics", "TableTraits", "Tables", "Unicode"]
-git-tree-sha1 = "00136fcd39d503e66ab1b2eab800c47deaf7ca04"
+git-tree-sha1 = "baf04c37cf8a231af7577575ffee91c0c5db9ec3"
+repo-rev = "master"
+repo-url = "https://github.com/JuliaData/DataFrames.jl.git"
 uuid = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 version = "0.20.0"
 
