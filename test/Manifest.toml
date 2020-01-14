@@ -20,7 +20,7 @@ version = "0.1.5"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "80249fe7e1cfbf4c3a53370c042d9ceefa3356ea"
+git-tree-sha1 = "bceb44f38090800202a6b91469597ddb3b48677a"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
@@ -150,9 +150,9 @@ version = "0.21.0"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "StaticArrays"]
-git-tree-sha1 = "d10de258d0c999350d433e4eed35201c9d790bcd"
+git-tree-sha1 = "6e818d550c2158def13c236c3b825fc14995160c"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.14.11"
+version = "0.15.0"
 
 [[LearnBase]]
 deps = ["LinearAlgebra", "SparseArrays", "StatsBase", "Test"]
