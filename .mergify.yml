@@ -9,6 +9,7 @@ pull_request_rules:
       - base=master
       - "#approved-reviews-by>=1"
       - status-success=Travis CI - Pull Request
+      - -status-failure=vanilla-test
       - label=ready-to-merge:squash
       - label!=work-in-progress
     actions:
@@ -19,6 +20,7 @@ pull_request_rules:
       - base=master
       - "#approved-reviews-by>=1"
       - status-success=Travis CI - Pull Request
+      - -status-failure=vanilla-test
       - label=ready-to-merge:rebase
       - label!=work-in-progress
     actions:
@@ -29,6 +31,7 @@ pull_request_rules:
       - base=master
       - "#approved-reviews-by>=1"
       - status-success=Travis CI - Pull Request
+      - -status-failure=vanilla-test
       - label=ready-to-merge:merge
       - label!=work-in-progress
     actions:
@@ -39,6 +42,7 @@ pull_request_rules:
       - author=tkf
       - base=master
       - status-success=Travis CI - Pull Request
+      - -status-failure=vanilla-test
       - label~=ready-to-merge:.*
     actions:
       review: {}
