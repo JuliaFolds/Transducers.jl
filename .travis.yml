@@ -25,9 +25,9 @@ before_install:
   - unset JULIA_PROJECT
   - julia -e 'using Pkg; pkg"add https://github.com/tkf/Run.jl"'
 install:
-  - julia -e 'using Run; Run.prepare_test()'
+  - julia -e 'using Run; Run.prepare("test/environments/main")'
 script:
-  - julia -e 'using Run; Run.test()'
+  - julia -e 'using Run; Run.test(project="test/environments/main")'
 after_success:
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
