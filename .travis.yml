@@ -35,12 +35,6 @@ after_success:
 
 jobs:
   include:
-    - name: "Test via Pkg.test()"
-      before_install: skip
-      install:
-        - julia --color=yes -e 'using Pkg; Pkg.build()'
-      script:
-        - julia --color=yes --check-bounds=yes -e 'using Pkg; Pkg.test(coverage=true)'
     - julia: 1.0
       os: linux
       install:
