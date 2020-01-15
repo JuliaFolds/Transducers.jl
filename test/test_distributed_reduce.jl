@@ -59,6 +59,7 @@ end
     @testset "dreduce(..., withprogress(xs; interval=0); $kwargs...)" for kwargs in Any[
         # Keyword arguments to `dreduce`:
         (),
+        (basesize = 4, threads_basesize = typemax(Int)),
         (basesize = 4, threads_basesize = 2),
         (basesize = 4, threads_basesize = 2, simd = true),
     ]
