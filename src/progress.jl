@@ -112,6 +112,7 @@ start(rf::R_{LogProgressOnCombine}, result) =
 
 @inline complete(rf::R_{LogProgressOnCombine}, result) =
     complete(inner(rf), unwrap(rf, result)[2])
+# TODO: `put!` on complete as well
 
 # Send number of processed item to progress channel:
 @inline function combine(rf::R_{LogProgressOnCombine}, a, b)
@@ -210,7 +211,10 @@ function (foldl::RemoteReduceWithLogging)(rf0, init, coll, basesize)
     end
     result isa Reduced && return result
     # Manually unwrap LogProgressOnCombine's private state:
-    _, iresult = unwrap(rf isa R_{UseSIMD} ? inner(rf) : rf, result)
+    (_t0, n), iresult = unwrap(rf isa R_{UseSIMD} ? inner(rf) : rf, result)
+    if n > 0
+        put!(foldl.chan, n)
+    end
     return iresult
 end
 
