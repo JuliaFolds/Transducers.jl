@@ -22,3 +22,4 @@ jobs:
       - uses: julia-actions/julia-runtest@latest
         env:
           CI: "true"
+          JULIA_NUM_THREADS: "2"
