@@ -39,6 +39,9 @@ julia> reduce(append!!, Map(x -> 1:x), 1:2; basesize=1, init=Union{}[])
  1
  1
  2
+
+julia> reduce(+, eduction(x * y for x in 1:3, y in 1:3))
+36
 ```
 """
 Base.reduce
@@ -80,6 +83,19 @@ function halve(arr::AbstractArray)
     left = @view arr[firstindex(arr):firstindex(arr) - 1 + mid]
     right = @view arr[firstindex(arr) + mid:end]
     return (left, right)
+end
+
+function halve(product::Iterators.ProductIterator)
+    i = findfirst(x -> length(x) > 1, product.iterators)
+    if i === nothing
+        error(
+            "Unreachable reached. A bug in `issmall`?",
+            " length(product) = ",
+            length(product),
+        )
+    end
+    left, right = halve(product.iterators[i])
+    return (@set(product.iterators[i] = left), @set(product.iterators[i] = right))
 end
 
 struct TaskContext
