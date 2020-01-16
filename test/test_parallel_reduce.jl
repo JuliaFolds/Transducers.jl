@@ -56,7 +56,7 @@ end
 
 @testset "`complete` should not be called on `Reduced`" begin
     rf(_, x) = x
-    rf(x::Reduced) = error("rf(", typeof(x), ") is called")
+    rf(x::Reduced) = error("rf(", x, ") is called")
     rf(x) = x
 
     xf = ReduceIf(!ismissing)
