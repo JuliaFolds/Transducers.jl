@@ -194,6 +194,9 @@ Base.mapreduce(xform::Transducer, step, itr;
 Base.reduce(step, xform::Transducer, itr; kwargs...) =
     mapreduce(xform, Completing(step), itr; kwargs...)
 
+Base.reduce(step, foldable::Foldable; kwargs...) =
+    reduce(step, induction(foldable)...; kwargs...)
+
 """
     tcopy(xf::Transducer, T, reducible; basesize) :: Union{T, Empty{T}}
     tcopy(xf::Transducer, reducible::T; basesize) :: Union{T, Empty{T}}
