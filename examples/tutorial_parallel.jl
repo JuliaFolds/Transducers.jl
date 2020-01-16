@@ -36,7 +36,7 @@ dreduce(+, Map(sin), xs)
 # You can also use [`eduction`](@ref) to use iterator comprehension
 # with multi-thread `reduce`:
 
-reduce(+, eduction(sin(x) for x in xs if abs(x) < 1))
+reduce(+, eduction(sin(x) for x in xs if abs(x) < 1); basesize = 500_000)
 
 # You can omit `eduction` when using Transducers.jl-specific functions
 # like [`tcollect`](@ref)/[`dcollect`](@ref):
