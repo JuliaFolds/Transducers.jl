@@ -64,7 +64,6 @@ end
 
     @test transduce(xf, rf, Union{}[], coll) == reduced(1)
     @testset for basesize in 1:(length(coll)+1)
-        @info "Testing with basesize = $basesize"
         @test transduce_assoc(xf, rf, Union{}[], coll; basesize = basesize) ==
               reduced(1)
     end
