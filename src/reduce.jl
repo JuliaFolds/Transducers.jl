@@ -39,9 +39,6 @@ julia> reduce(append!!, Map(x -> 1:x), 1:2; basesize=1, init=Union{}[])
  1
  1
  2
-
-julia> reduce(+, eduction(x * y for x in 1:3, y in 1:3))
-36
 ```
 """
 Base.reduce

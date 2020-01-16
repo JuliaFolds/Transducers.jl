@@ -38,6 +38,13 @@ dreduce(+, Map(sin), xs)
 
 reduce(+, eduction(sin(x) for x in xs if abs(x) < 1))
 
+#-
+
+if VERSION >= v"1.3"                                                   #src
+@test 36 ==                                                            #src
+reduce(+, eduction(x * y for x in 1:3, y in 1:3))
+end                                                                    #src
+
 # You can omit `eduction` when using Transducers.jl-specific functions
 # like [`tcollect`](@ref)/[`dcollect`](@ref):
 
