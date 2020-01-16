@@ -55,17 +55,18 @@ end
 end
 
 @testset "`complete` should not be called on `Reduced`" begin
-    rf!(x, y) = append!!(x, y)
-    rf!(x::Reduced) = error("rf!(", typeof(xf), ") is called")
-    rf!(x) = x
+    rf(_, x) = x
+    rf(x::Reduced) = error("rf(", typeof(xf), ") is called")
+    rf(x) = x
 
-    xf = TakeWhile(x -> x > 0)
-    coll = [1, 2, 3, -1, 1, 2, 0]
+    xf = ReduceIf(!ismissing)
+    coll = [missing, missing, 1, missing, 2, 3, missing]
 
-    @test transduce(xf, rf!, Union{}[], coll) == reduced([1, 2, 3])
+    @test transduce(xf, rf, Union{}[], coll) == reduced(1)
     @testset for basesize in 1:(length(coll)+1)
-        @test transduce_assoc(xf, rf!, Union{}[], coll; basesize = basesize) ==
-              reduced([1, 2, 3])
+        @info "Testing with basesize = $basesize"
+        @test transduce_assoc(xf, rf, Union{}[], coll; basesize = basesize) ==
+              reduced(1)
     end
 end
 
