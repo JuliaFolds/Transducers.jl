@@ -661,8 +661,6 @@ asfoldable(x) = x
 
 abstract type AbstractInitializer end
 
-initvalue(x) = x
-
 _initvalue(rf::Reduction) = initvalue(xform(rf).init)
 
 """
@@ -899,13 +897,6 @@ _realbottomrf(op) = op
 _realbottomrf(rf::AbstractReduction) = _realbottomrf(as(rf, BottomRF).inner)
 _realbottomrf(rf::Completing) = rf.f
 
-provide_init(rf, init) = initvalue(init)
-function provide_init(rf, ::MissingInit)
-    op = _realbottomrf(rf)
-    hasinitialvalue(op) && return DefaultInit(op)
-    throw(MissingInitError(op))
-end
-
 struct IdentityNotDefinedError <: Exception
     op
     idfactory
@@ -921,6 +912,25 @@ function Base.showerror(io::IO, e::IdentityNotDefinedError)
     Note that `op` must be a well known binary operations like `+` or `*`.
     See InitialValues.jl documentation for more information.
     """))
+end
+
+# Materialize initial value (by `provide_init`) and then construct
+# accumulator state (by `start`):
+_start_init(rf, init) = start(rf, provide_init(rf, init))
+
+# Handle `init=0` (vanilla value), `init=OnInit(...)`,
+# `init=CopyInit(...)`, etc.:
+provide_init(_rf, init) = initvalue(init)
+
+# If `init` is not an `AbstractInitializer` (like `OnInit), just use
+# it as-is:
+initvalue(x) = x
+
+# Handle default case:
+function provide_init(rf, ::MissingInit)
+    op = _realbottomrf(rf)
+    hasinitialvalue(op) && return DefaultInit(op)
+    throw(MissingInitError(op))
 end
 
 # Handle `init=Init` and `init=OptInit`
