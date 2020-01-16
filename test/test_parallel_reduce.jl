@@ -1,5 +1,6 @@
 module TestParallelReduce
 include("preamble.jl")
+using Transducers: transduce_assoc
 using StructArrays: StructVector
 
 struct Recorder
@@ -50,6 +51,21 @@ end
         xs = collect(enumerate(rand(rng, 1:100, 100 * basesize)))
         xf = ReduceIf(x -> x[2] >= p)
         @test reduce(right, xf, xs; basesize=basesize) == foldl(right, xf, xs)
+    end
+end
+
+@testset "`complete` should not be called on `Reduced`" begin
+    rf(_, x) = x
+    rf(x::Reduced) = error("rf(", x, ") is called")
+    rf(x) = x
+
+    xf = ReduceIf(!ismissing)
+    coll = [missing, missing, 1, missing, 2, 3, missing]
+
+    @test transduce(xf, rf, nothing, coll) == reduced(1)
+    @testset for basesize in 1:(length(coll)+1)
+        @test transduce_assoc(xf, rf, nothing, coll; basesize = basesize) ==
+              reduced(1)
     end
 end
 

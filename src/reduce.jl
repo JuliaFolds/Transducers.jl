@@ -116,18 +116,17 @@ function transduce_assoc(
     basesize::Integer = length(coll) ÷ Threads.nthreads(),
 )
     rf = maybe_usesimd(Reduction(xform, step), simd)
-    acc = _transduce_assoc_nocomplete(rf, init, coll, basesize)
+    acc = @return_if_reduced _transduce_assoc_nocomplete(rf, init, coll, basesize)
     return complete(rf, acc)
 end
 
 function _transduce_assoc_nocomplete(rf, init, coll, basesize)
     reducible = SizedReducible(coll, basesize)
     @static if VERSION >= v"1.3-alpha"
-        acc = @return_if_reduced _reduce(TaskContext(), rf, init, reducible)
+        return _reduce(TaskContext(), rf, init, reducible)
     else
-        acc = @return_if_reduced _reduce_threads_for(rf, init, reducible)
+        return _reduce_threads_for(rf, init, reducible)
     end
-    return acc
 end
 
 function _reduce(ctx, rf, init, reducible::Reducible)
@@ -175,7 +174,8 @@ function _reduce_threads_for(rf, init, reducible::SizedReducible{<:AbstractArray
         # `combine` is compute-intensive enough so that launching
         # threads is worth enough.  Let's merge the `results`
         # sequentially for now.
-        return foldl(combine_step(rf), Map(identity), results)
+        step = combine_step(rf)
+        return transduce(ensurerf(Completing(step)), Init(step), results)
     end
 end
 
