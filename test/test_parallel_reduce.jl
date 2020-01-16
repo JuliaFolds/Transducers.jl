@@ -62,9 +62,9 @@ end
     xf = ReduceIf(!ismissing)
     coll = [missing, missing, 1, missing, 2, 3, missing]
 
-    @test transduce(xf, rf, Union{}[], coll) == reduced(1)
+    @test transduce(xf, rf, nothing, coll) == reduced(1)
     @testset for basesize in 1:(length(coll)+1)
-        @test transduce_assoc(xf, rf, Union{}[], coll; basesize = basesize) ==
+        @test transduce_assoc(xf, rf, nothing, coll; basesize = basesize) ==
               reduced(1)
     end
 end
