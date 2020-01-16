@@ -174,7 +174,8 @@ function _reduce_threads_for(rf, init, reducible::SizedReducible{<:AbstractArray
         # `combine` is compute-intensive enough so that launching
         # threads is worth enough.  Let's merge the `results`
         # sequentially for now.
-        return foldl(combine_step(rf), Map(identity), results)
+        step = combine_step(rf)
+        return transduce(ensurerf(Completing(step)), Init(step), results)
     end
 end
 
