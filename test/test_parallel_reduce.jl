@@ -63,7 +63,10 @@ end
     coll = [1, 2, 3, -1, 1, 2, 0]
 
     @test transduce(xf, rf!, Union{}[], coll) == reduced([1, 2, 3])
-    @test transduce_assoc(xf, rf!, Union{}[], coll) == reduced([1, 2, 3])
+    @testset for basesize in 1:(length(coll)+1)
+        @test transduce_assoc(xf, rf!, Union{}[], coll; basesize = basesize) ==
+              reduced([1, 2, 3])
+    end
 end
 
 @testset "tcollect & tcopy" begin
