@@ -79,6 +79,18 @@ end
     ) == StructVector(a = 1:3)
 end
 
+@testset "product" begin
+    if VERSION >= v"1.3"
+        @test reduce(+, MapSplat(*), Iterators.product(1:3, 1:3); basesize = 1) == 36
+        @test reduce(+, eduction(x * y for x in 1:3, y in 1:3); basesize = 1) == 36
+    end
+
+    @test_throws(
+        ErrorException("Unreachable reached. A bug in `issmall`? length(product) = 0"),
+        Transducers.halve(Iterators.product((), ()))
+    )
+end
+
 @testset "withprogress" begin
     xf = Map() do x
         x

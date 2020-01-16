@@ -82,6 +82,19 @@ function halve(arr::AbstractArray)
     return (left, right)
 end
 
+function halve(product::Iterators.ProductIterator)
+    i = findfirst(x -> length(x) > 1, product.iterators)
+    if i === nothing
+        error(
+            "Unreachable reached. A bug in `issmall`?",
+            " length(product) = ",
+            length(product),
+        )
+    end
+    left, right = halve(product.iterators[i])
+    return (@set(product.iterators[i] = left), @set(product.iterators[i] = right))
+end
+
 struct TaskContext
     listening::Vector{Threads.Atomic{Bool}}
     cancellables::Vector{Threads.Atomic{Bool}}
