@@ -590,7 +590,7 @@ julia> collect(Interpose(missing), 1:3)
 ```
 """
 function Base.collect(xf::Transducer, coll)
-    rf = Reduction(xf, Completing(push!!))
+    rf = Reduction(xf |> Map(SingletonVector), Completing(append!!))
     to = Union{}[]
     result = unreduced(transduce(rf, to, coll))
     if result isa Vector{Union{}}

@@ -96,8 +96,8 @@ end
     @testset "Map(oneto) |> TCat(1)" begin
         xf = Map(oneto) |> TCat(1)
         desired = [1, 1, 2, 1, 2, 3]
-        @test_broken collect(xf, 1:3) ==ₜ desired
-        @test_broken collect(xf, 0:3) ==ₜ desired
+        @test collect(xf, 1:3) ==ₜ desired
+        @test collect(xf, 0:3) ==ₜ desired
         @test tcollect(xf, 1:3) ==ₜ desired
         @test tcollect(xf, 0:3) ==ₜ desired
     end
@@ -105,8 +105,8 @@ end
         noop(u, x) = x, u
         xf = Map(oneto) |> TCat(1) |> Map(oneto) |> TCat(1)
         desired = [1, 1, 1, 2, 1, 1, 2, 1, 2, 3]
-        @test_broken collect(xf, 1:3) ==ₜ desired
-        @test_broken collect(xf, 0:3) ==ₜ desired
+        @test collect(xf, 1:3) ==ₜ desired
+        @test collect(xf, 0:3) ==ₜ desired
         @test tcollect(xf, 1:3) ==ₜ desired
         @test tcollect(xf, 0:3) ==ₜ desired
     end
@@ -115,8 +115,8 @@ end
         desired = [1, 1, 2, 3, 1, 2, 3, 4, 5, 6]
         @test foldl(vcat, xf, 1:3; init=Union{}[]) == desired
         @test foldl(vcat, xf, 0:3; init=Union{}[]) == desired
-        @test_broken collect(xf, 1:3) == desired
-        @test_broken collect(xf, 0:3) == desired
+        @test collect(xf, 1:3) == desired
+        @test collect(xf, 0:3) == desired
     end
 end
 
