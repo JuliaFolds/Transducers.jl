@@ -1,5 +1,6 @@
 module TestParallelReduce
 include("preamble.jl")
+using Transducers: transduce_assoc
 using StructArrays: StructVector
 
 struct Recorder
@@ -53,6 +54,21 @@ end
     end
 end
 
+@testset "`complete` should not be called on `Reduced`" begin
+    rf(_, x) = x
+    rf(x::Reduced) = error("rf(", x, ") is called")
+    rf(x) = x
+
+    xf = ReduceIf(!ismissing)
+    coll = [missing, missing, 1, missing, 2, 3, missing]
+
+    @test transduce(xf, rf, nothing, coll) == reduced(1)
+    @testset for basesize in 1:(length(coll)+1)
+        @test transduce_assoc(xf, rf, nothing, coll; basesize = basesize) ==
+              reduced(1)
+    end
+end
+
 @testset "tcollect & tcopy" begin
     @test tcollect(Filter(iseven), 1:10, basesize = 2) == 2:2:10
     @test tcopy(
@@ -61,6 +77,18 @@ end
         1:3,
         basesize = 2,
     ) == StructVector(a = 1:3)
+end
+
+@testset "product" begin
+    if VERSION >= v"1.3"
+        @test reduce(+, MapSplat(*), Iterators.product(1:3, 1:3); basesize = 1) == 36
+        @test reduce(+, eduction(x * y for x in 1:3, y in 1:3); basesize = 1) == 36
+    end
+
+    @test_throws(
+        ErrorException("Unreachable reached. A bug in `issmall`? length(product) = 0"),
+        Transducers.halve(Iterators.product((), ()))
+    )
 end
 
 @testset "withprogress" begin

@@ -333,9 +333,6 @@ function transduce(xform::Transducer, f, init, coll; kwargs...)
     return transduce(rf, init, coll; kwargs...)
 end
 
-# Materialize initial value and then call start.
-_start_init(rf, init) = start(rf, provide_init(rf, init))
-
 _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
 
 # TODO: should it be an internal?
