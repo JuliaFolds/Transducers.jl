@@ -38,7 +38,18 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: Update */Manifest.toml
-          title: '[AUTO] Update */Manifest.toml'
+          title: 'Update */Manifest.toml'
+          body: |
+            ## Commit Message
+            Update */Manifest.toml
+
+          # When merging PR via Mergify using squash method, it can
+          # create large commit message by listing titles of all
+          # commits (default behavior of GitHub squash merge).
+          # Overriding the message here by using Mergify's API.
+          #
+          # --- Commit Message and squash Method
+          # https://doc.mergify.io/actions.html#commit-message-and-squash-method
           labels: no changelog
           branch: create-pull-request/pkg-update
           branch-suffix: none
