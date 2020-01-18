@@ -24,6 +24,9 @@ jobs:
         env:
           JULIA_NUM_THREADS: '2'
       - name: Post results
-        run: julia -e "using BenchmarkCI; BenchmarkCI.postjudge()"
+        run: julia -e '
+          using BenchmarkCI;
+          BenchmarkCI.postjudge(title = "Multi-thread benchmark result")
+          '
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
