@@ -531,6 +531,7 @@ end
     @test_throws ArgumentError Partition(0)
     @test_throws ArgumentError Partition(0, 1)
     @test_throws ArgumentError Partition(1, 0)
+    @test_throws ArgumentError TCat(0)
 end
 
 end  # module

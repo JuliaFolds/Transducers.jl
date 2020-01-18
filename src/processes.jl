@@ -561,7 +561,7 @@ julia> append!!(Drop(2) |> Map(x -> x + 0.0), [-1, -2], 1:5)
 ```
 """
 BangBang.append!!(xf::Transducer, to, from) =
-    unreduced(transduce(xf, Completing(push!!), to, from))
+    unreduced(transduce(xf |> Map(SingletonVector), Completing(append!!), to, from))
 
 """
     collect(xf::Transducer, itr) :: Vector
@@ -590,9 +590,7 @@ julia> collect(Interpose(missing), 1:3)
 ```
 """
 function Base.collect(xf::Transducer, coll)
-    rf = Reduction(xf, Completing(push!!))
-    to = Union{}[]
-    result = unreduced(transduce(rf, to, coll))
+    result = append!!(xf, Union{}[], coll)
     if result isa Vector{Union{}}
         et = @default_finaltype(xf, coll)
         return et[]
