@@ -98,9 +98,9 @@ version = "0.8.1"
 
 [[Documenter]]
 deps = ["Base64", "Dates", "DocStringExtensions", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Test", "Unicode"]
-git-tree-sha1 = "885467cebde4639a3d81953652cc53ff5a73cb87"
+git-tree-sha1 = "51f0c7df46abb9c07d80e529718951e634670afb"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-version = "0.24.3"
+version = "0.24.4"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
