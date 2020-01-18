@@ -201,7 +201,7 @@ julia> tcollect(Map(x -> 1:x) |> TCat(1), 1:3)
  2
  3
 
-julia> foldl(vcat, Scan(+) |> Map(x -> 1:x) |> TCat(1), 1:3; init=Union{}[])
+julia> collect(Scan(+) |> Map(x -> 1:x) |> TCat(1), 1:3)
 10-element Array{Int64,1}:
  1
  1
