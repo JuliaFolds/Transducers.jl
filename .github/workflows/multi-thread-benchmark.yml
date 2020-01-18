@@ -15,14 +15,13 @@ jobs:
         run: julia -e 'using Pkg; pkg"add PkgBenchmark https://github.com/tkf/BenchmarkCI.jl#dev"'
       - name: Run benchmarks
         run: julia -e '
-          using BenchmarkCI;
+          using PkgBenchmark, BenchmarkCI;
           BenchmarkCI.judge(
+            PkgBenchmark.BenchmarkConfig(env = Dict("JULIA_NUM_THREADS" => "2"));
             script = "benchmark/multi-thread/benchmarks.jl",
             project = "benchmark",
           );
           '
-        env:
-          JULIA_NUM_THREADS: '2'
       - name: Post results
         run: julia -e '
           using BenchmarkCI;
