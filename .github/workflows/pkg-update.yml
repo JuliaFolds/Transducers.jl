@@ -34,7 +34,7 @@ jobs:
       # https://github.com/peter-evans/create-pull-request
       # https://github.com/marketplace/actions/create-pull-request
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v2
+        uses: peter-evans/create-pull-request@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: Update */Manifest.toml
@@ -52,6 +52,7 @@ jobs:
           # https://doc.mergify.io/actions.html#commit-message-and-squash-method
           labels: no changelog
           branch: create-pull-request/pkg-update
+          branch-suffix: none
           base: master
       - name: Check output environment variable
         run: echo "Pull Request Number - ${{ env.PULL_REQUEST_NUMBER }}"
