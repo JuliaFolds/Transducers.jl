@@ -174,6 +174,86 @@ const MapCat = Composition{<:Map, <:Cat}
 
 MapCat(f) = Map(f) |> Cat()
 
+"""
+    TCat(basesize::Integer)
+
+Threaded version of [`Cat`](@ref) (concatenate/flatten).
+
+To use this transducer, all the downstream (inner) transducers must be
+stateless (or of type [`ScanEmit`](@ref)) and the reducing function
+must be associative.  See also: [Parallel processing tutorial](@ref
+tutorial-parallel).
+
+Note that the upstream (outer) transducers need not to be stateless as
+long as it is called with non-parallel reduction such as
+[`foldl`](@ref) and [`collect`](@ref).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> tcollect(Map(x -> 1:x) |> TCat(1), 1:3)
+6-element Array{Int64,1}:
+ 1
+ 1
+ 2
+ 1
+ 2
+ 3
+
+julia> collect(Scan(+) |> Map(x -> 1:x) |> TCat(1), 1:3)
+10-element Array{Int64,1}:
+ 1
+ 1
+ 2
+ 3
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+```
+"""
+struct TCat <: Transducer
+    basesize::Int
+    function TCat(basesize::Integer)
+        @argcheck basesize > 0
+        return new(Int(basesize))
+    end
+end
+
+# Do not recurse into `start(inner(rf), ...)`; it's called via transduce
+start(rf::R_{TCat}, init) = wrap(rf, init, Unseen())
+
+function complete(rf::R_{TCat}, result)
+    init, iresult = unwrap(rf, result)
+    iresult isa Unseen && return init  # `next` never called
+    return complete(inner(rf), iresult)
+end
+
+next(rf::R_{TCat}, result, input) =
+    wrapping(rf, result) do init, acc
+        subresult = _transduce_assoc_nocomplete(
+            inner(rf),
+            init,
+            input,
+            xform(rf).basesize,
+        )
+        subresult isa Reduced && return init, subresult
+        acc isa Unseen && return init, subresult
+        return init, combine(inner(rf), acc, subresult)
+    end
+
+function combine(rf::R_{TCat}, a, b)
+    ua, ira = unwrap(rf, a)
+    ira isa Unseen && return b  # this handles `irb isa Unseen` as well
+    ub, irb = unwrap(rf, b)
+    # @assert ua == ub  # == init
+    irc = combine(inner(rf), ira, irb)
+    return wrap(rf, ua, irc)
+end
+
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/filter
 # https://clojuredocs.org/clojure.core/filter
 """
