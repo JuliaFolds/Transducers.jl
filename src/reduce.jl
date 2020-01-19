@@ -157,8 +157,9 @@ function _reduce(ctx, rf, init, reducible::Reducible)
         a0 = _reduce(fg, rf, init, left)
         b0 = fetch(task)
         a = @return_if_reduced a0
-        b = @return_if_reduced b0
         should_abort(ctx) && return a  # slight optimization
+        b = unreduced(b0)
+        b0 isa Reduced && return Reduced(combine(rf, a, b))
         return combine(rf, a, b)
     end
 end
@@ -187,13 +188,22 @@ function _reduce_threads_for(rf, init, reducible::SizedReducible{<:AbstractArray
         # `combine` is compute-intensive enough so that launching
         # threads is worth enough.  Let's merge the `results`
         # sequentially for now.
-        step = combine_step(rf)
-        return transduce(ensurerf(Completing(step)), Init(step), results)
+        return combine_all(rf, results)
     end
 end
 
+function combine_all(rf, results)
+    step = combine_step(rf)
+    return transduce(ensurerf(Completing(step)), Init(step), results)
+end
+
 combine_step(rf) =
-    asmonoid((a, b) -> combine(rf, (@return_if_reduced a), (@return_if_reduced b)))
+    asmonoid() do a0, b0
+        a = @return_if_reduced a0
+        b = unreduced(b0)
+        b0 isa Reduced && return Reduced(combine(rf, a, b))
+        return combine(rf, a, b)
+    end
 
 # AbstractArray for disambiguation
 Base.mapreduce(xform::Transducer, step, itr::AbstractArray;

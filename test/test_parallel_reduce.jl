@@ -120,6 +120,13 @@ end
     end
 end
 
+@testset "TakeWhile" begin
+    coll = 1:10
+    @testset for basesize in 1:(length(coll)+1)
+        @test tcollect(TakeWhile(x -> x < 5), coll; basesize = basesize) == 1:4
+    end
+end
+
 @testset "withprogress" begin
     xf = Map() do x
         x
