@@ -47,9 +47,13 @@ end
 end
 
 @testset "TakeWhile" begin
+    fname = gensym(:lessthan5)
+    @everywhere $fname(x) = x < 5
+    lessthan5 = getproperty(Main, fname)
+
     coll = 1:10
     @testset for basesize in 1:(length(coll)+1)
-        @test dcollect(TakeWhile(x -> x < 5), coll; basesize = basesize) == 1:4
+        @test dcollect(TakeWhile(lessthan5), coll; basesize = basesize) == 1:4
     end
 end
 
