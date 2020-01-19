@@ -24,7 +24,7 @@ xs = range(0, 1, length = 2^18)
 
 # for m in 1:10
 for m in [5, 10]
-    n = 100m
+    n = 1000m
     xf = searching(n)
     @assert foldl(right, xf, xs) == reduce(right, xf, xs; basesize = 2^9)
     # @show n, foldl(right, xf |> Enumerate(), xs)
