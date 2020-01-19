@@ -159,7 +159,7 @@ function _reduce(ctx, rf, init, reducible::Reducible)
         a = @return_if_reduced a0
         should_abort(ctx) && return a  # slight optimization
         b = unreduced(b0)
-        b0 isa Reduced && return Reduced(combine(rf, a, b))
+        b0 isa Reduced && return reduced(combine(rf, a, b))
         return combine(rf, a, b)
     end
 end
@@ -201,7 +201,7 @@ combine_step(rf) =
     asmonoid() do a0, b0
         a = @return_if_reduced a0
         b = unreduced(b0)
-        b0 isa Reduced && return Reduced(combine(rf, a, b))
+        b0 isa Reduced && return reduced(combine(rf, a, b))
         return combine(rf, a, b)
     end
 
