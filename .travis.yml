@@ -55,6 +55,7 @@ jobs:
       script:
         - julia -e 'using Run; Run.script("benchmark/pprintjudge.jl")'
       after_success: skip
+      after_script: lscpu
       if: type != push
     - name: "Benchmark (Multi-thread)"
       os: linux
@@ -68,6 +69,7 @@ jobs:
       script:
         - julia -e 'using Run; Run.script("benchmark/pprintjudge_multi_thread.jl")'
       after_success: skip
+      after_script: lscpu
       if: type != push
     - stage: "Documentation"
       os: linux
