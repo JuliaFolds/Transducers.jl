@@ -9,10 +9,6 @@ env:
    global:
      - JULIA_NUM_THREADS=2
      - COVERALLS_PARALLEL=true
-matrix:
-  allow_failures:
-    - julia: nightly
-  fast_finish: true
 notifications:
   email: false
   webhooks: https://coveralls.io/webhook
@@ -34,6 +30,9 @@ after_success:
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
 
 jobs:
+  allow_failures:
+    - julia: nightly
+  fast_finish: true
   include:
     - name: JULIA_NUM_THREADS=1
       env:
