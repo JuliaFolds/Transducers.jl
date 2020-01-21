@@ -32,7 +32,7 @@ jobs:
               git merge "origin/$xfailbranch"
               git log --graph --oneline -n10
               julia -e 'using Pkg; pkg"add https://github.com/tkf/Run.jl"'
-              julia -e 'using Pkg; Run.test(project = "test/environments/main", xfail = true)'
+              julia -e 'using Run; Run.test(project = "test/environments/main", xfail = true)'
           else
               echo "No branch named $xfailbranch"
           fi
