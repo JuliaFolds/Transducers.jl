@@ -9,10 +9,6 @@ env:
    global:
      - JULIA_NUM_THREADS=2
      - COVERALLS_PARALLEL=true
-matrix:
-  allow_failures:
-    - julia: nightly
-  fast_finish: true
 notifications:
   email: false
   webhooks: https://coveralls.io/webhook
@@ -34,6 +30,9 @@ after_success:
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
 
 jobs:
+  allow_failures:
+    - julia: nightly
+  fast_finish: true
   include:
     - name: JULIA_NUM_THREADS=1
       env:
@@ -56,6 +55,7 @@ jobs:
       script:
         - julia -e 'using Run; Run.script("benchmark/pprintjudge.jl")'
       after_success: skip
+      after_script: lscpu
       if: type != push
     - name: "Benchmark (Multi-thread)"
       os: linux
@@ -69,6 +69,7 @@ jobs:
       script:
         - julia -e 'using Run; Run.script("benchmark/pprintjudge_multi_thread.jl")'
       after_success: skip
+      after_script: lscpu
       if: type != push
     - stage: "Documentation"
       os: linux

@@ -120,6 +120,40 @@ end
     end
 end
 
+@testset "TakeWhile" begin
+    coll = 1:10
+    @testset for basesize in 1:(length(coll)+1)
+        @test tcollect(TakeWhile(x -> x < 5), coll; basesize = basesize) == 1:4
+    end
+end
+
+@testset "`reduced(...)` in reducing function" begin
+    # Not sure if using `reduced` inside a reducing function is the
+    # right style, but it was in the tutorial in v0.4.x series so
+    # let's keep testing it.
+
+    @test reduce(
+        Map(x -> x % 3 == 0 ? x : nothing),
+        1:10;
+        init = nothing,
+        basesize = 1,
+    ) do a, b
+        c = something(a, b, Some(nothing))
+        c === nothing ? nothing : reduced(c)
+    end == 3
+
+    @test reduce(
+        Map(x -> x % 3 == 0 ? x : nothing),
+        1:10;
+        init = nothing,
+        basesize = 1,
+    ) do a, b
+        c = something(a, b, Some(nothing))
+        c == 3 && sleep(0.1)  # give other tasks a chance to finish first
+        c === nothing ? nothing : reduced(c)
+    end == 3
+end
+
 @testset "withprogress" begin
     xf = Map() do x
         x

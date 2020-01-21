@@ -410,14 +410,10 @@ end
 # Find the _first_ element that is multiple of three:
 
 ans =                                                                  #src
-reduce(Map(x -> x % 3 == 0 ? x : nothing), 1:10; init = nothing, basesize = 1) do a, b
-    c = something(a, b, Some(nothing))
-
+reduce(ReduceIf(x -> x % 3 == 0), 1:10; init = nothing, basesize = 1) do _, x
     ## # Uncomment for demo:
-    ## c == 3 && sleep(0.1)  # give other tasks a chance to finish first
-    ## c === nothing || @show c
-
-    c === nothing ? nothing : reduced(c)
+    ## x == 3 ? sleep(0.1) : @show x  # give other tasks a chance to finish first
+    return x
 end
 @test ans == 3                                                         #src
 

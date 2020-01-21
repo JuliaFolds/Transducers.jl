@@ -1,4 +1,4 @@
-name: Run benchmarks
+name: Run multi-thread benchmarks
 
 on:
   pull_request:
@@ -17,15 +17,15 @@ jobs:
         run: julia -e '
           using PkgBenchmark, BenchmarkCI;
           BenchmarkCI.judge(
-              PkgBenchmark.BenchmarkConfig(
-                  env = Dict(
-                      "JULIA_NUM_THREADS" => "1",
-                      "OMP_NUM_THREADS" => "1",
-                  ),
-              );
+            PkgBenchmark.BenchmarkConfig(env = Dict("JULIA_NUM_THREADS" => "2"));
+            script = "benchmark/multi-thread/benchmarks.jl",
+            project = "benchmark",
           );
           '
       - name: Post results
-        run: julia -e "using BenchmarkCI; BenchmarkCI.postjudge()"
+        run: julia -e '
+          using BenchmarkCI;
+          BenchmarkCI.postjudge(title = "Multi-thread benchmark result")
+          '
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
