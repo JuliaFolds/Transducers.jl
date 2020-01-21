@@ -158,13 +158,11 @@ function _reduce(ctx, rf, init, reducible::Reducible)
         b0 = fetch(task)
         a = @return_if_reduced a0
         should_abort(ctx) && return a  # slight optimization
-        b0 isa Reduced && return combine_right_reduced(rf, a, b0)
-        return combine(rf, a, b0)
+        b = unreduced(b0)
+        b0 isa Reduced && return reduced(combine(rf, a, b))
+        return combine(rf, a, b)
     end
 end
-
-combine_right_reduced(rf, a, b0::Reduced) =
-    reduced(combine(_realbottomrf(rf), a, unreduced(b0)))
 
 function _reduce_threads_for(rf, init, reducible::SizedReducible{<:AbstractArray})
     arr = reducible.reducible
@@ -202,8 +200,9 @@ end
 combine_step(rf) =
     asmonoid() do a0, b0
         a = @return_if_reduced a0
-        b0 isa Reduced && return combine_right_reduced(rf, a, b0)
-        return combine(rf, a, b0)
+        b = unreduced(b0)
+        b0 isa Reduced && return reduced(combine(rf, a, b))
+        return combine(rf, a, b)
     end
 
 # AbstractArray for disambiguation
