@@ -40,3 +40,5 @@ jobs:
         # It seems `$GITHUB_HEAD_REF` contains the correct branch name.
         # See also GitHub context `github.head_ref`:
         # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/contexts-and-expression-syntax-for-github-actions#github-context
+        env:
+          JULIA_NUM_THREADS: '2'
