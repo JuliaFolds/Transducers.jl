@@ -168,9 +168,9 @@ end
     @test reduce(right, xf2, withprogress(1:100; interval=0); basesize=1) == 5050
     @test reduce(right, xf2, withprogress(1:100; interval=0); basesize=1, simd=true) == 5050
 
-    xf3 = ReduceIf(x -> x > 100)
-    @test reduce(right, xf3, withprogress(1:1000; interval=0); basesize=1) == 5050
-    @test reduce(right, xf3, withprogress(1:1000; interval=0); basesize=1, simd=true) == 5050
+    xf3 = ReduceIf(x -> x == 100)
+    @test reduce(right, xf3, withprogress(1:1000; interval=0); basesize=1) == 100
+    @test reduce(right, xf3, withprogress(1:1000; interval=0); basesize=1, simd=true) == 100
 end
 
 end  # module
