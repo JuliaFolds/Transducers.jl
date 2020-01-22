@@ -123,6 +123,9 @@ function cancel!(ctx::TaskContext)
     end
 end
 
+struct DummyTask end
+Base.schedule(::DummyTask) = nothing
+
 function transduce_assoc(
     xform::Transducer, step, init, coll;
     simd::SIMDFlag = Val(false),
@@ -136,15 +139,22 @@ end
 function _transduce_assoc_nocomplete(rf, init, coll, basesize)
     reducible = SizedReducible(coll, basesize)
     @static if VERSION >= v"1.3-alpha"
-        return _reduce(TaskContext(), rf, init, reducible)
+        return _reduce(TaskContext(), DummyTask(), rf, init, reducible)
     else
         return _reduce_threads_for(rf, init, reducible)
     end
 end
 
-function _reduce(ctx, rf, init, reducible::Reducible)
-    should_abort(ctx) && return init
+function _reduce(ctx, next_task, rf, init, reducible::Reducible)
+    if should_abort(ctx)
+        # As other tasks may be calling `fetch` on `next_task`, it
+        # _must_ be scheduled at some point to avoid dead lock:
+        schedule(next_task)
+        # Maybe use `error=false`?  Or pass something and get it via `yieldto`?
+        return init
+    end
     if issmall(reducible)
+        schedule(next_task)
         acc = foldl_nocomplete(rf, _start_init(rf, init), foldable(reducible))
         if acc isa Reduced
             cancel!(ctx)
@@ -153,8 +163,8 @@ function _reduce(ctx, rf, init, reducible::Reducible)
     else
         left, right = halve(reducible)
         fg, bg = splitcontext(ctx)
-        task = @spawn _reduce(bg, rf, init, right)
-        a0 = _reduce(fg, rf, init, left)
+        task = nonsticky!(@task _reduce(bg, next_task, rf, init, right))
+        a0 = _reduce(fg, task, rf, init, left)
         b0 = fetch(task)
         a = @return_if_reduced a0
         should_abort(ctx) && return a  # slight optimization

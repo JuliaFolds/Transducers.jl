@@ -170,9 +170,9 @@ function _reduce_progress(reduce_impl, rf0, init, coll)
     end
 end
 
-_reduce(ctx, rf, init, coll::SizedReducible{<:ProgressLoggingFoldable}) =
+_reduce(ctx, task, rf, init, coll::SizedReducible{<:ProgressLoggingFoldable}) =
     _reduce_progress(rf, init, coll) do rf, init, coll
-        _reduce(ctx, rf, init, coll)
+        _reduce(ctx, task, rf, init, coll)
     end
 
 if VERSION >= v"1.2"

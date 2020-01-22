@@ -39,9 +39,14 @@ end
 
 @static if VERSION >= v"1.3-alpha"
     using Base.Threads: @spawn
+    function nonsticky!(task)
+        task.sticky = false
+        return task
+    end
 else
     # Mock `@spawn` using `@async`:
     @eval const $(Symbol("@spawn")) = $(Symbol("@async"))
+    nonsticky!(task) = task
 end
 
 # Some upstream APIs that are frequently used with Transducers.jl.
