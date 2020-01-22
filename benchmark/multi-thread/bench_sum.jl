@@ -16,7 +16,7 @@ end
 xf = Map(slow_computation)
 
 n = 2^14
-maxworkload = 10
+maxworkload = 100
 inputtable = [
     ("uniform", fill(maxworkload ÷ 2, n)),
     ("random", rand(1:maxworkload, n)),
