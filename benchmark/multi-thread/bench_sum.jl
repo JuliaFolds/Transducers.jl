@@ -15,7 +15,7 @@ end
 
 xf = Map(slow_computation)
 
-n = 2^11
+n = 2^14
 inputtable = [
     ("uniform", fill(500, n)),
     ("random", rand(1:1000, n)),
@@ -41,7 +41,7 @@ for (label, xs) in inputtable
     s1 = suite[label] = BenchmarkGroup()
     s1["foldl"] = @benchmarkable foldl(+, $xf, $xs; simd = true)
     s2 = s1["reduce"] = BenchmarkGroup()
-    for basesize in 2 .^ (4:6)
+    for basesize in 2 .^ (7:9)
         s2["basesize=$basesize"] = @benchmarkable reduce(
             +,
             $xf,
