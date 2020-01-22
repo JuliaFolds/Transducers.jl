@@ -45,29 +45,44 @@ jobs:
         - julia -e 'using Run; Run.test(project="test/environments/jl10")'
     - name: "Benchmark (Sequential)"
       os: linux
+      before_install:
+        - unset JULIA_PROJECT
+        - julia -e 'using Pkg; pkg"add PkgBenchmark https://github.com/tkf/BenchmarkCI.jl"'
       install:
-        - julia -e 'using Run; Run.prepare("benchmark")'
-      before_script:
-        - git fetch origin '+refs/heads/master:refs/remotes/origin/master'
-        - git branch baseline origin/master
         # Run benchmark outside `script` so that it's hidden by default:
-        - julia -e 'using Run; Run.script("benchmark/runjudge.jl")'
+        - julia -e '
+          using PkgBenchmark, BenchmarkCI;
+          BenchmarkCI.judge(
+              PkgBenchmark.BenchmarkConfig(
+                  env = Dict(
+                      "JULIA_NUM_THREADS" => "1",
+                      "OMP_NUM_THREADS" => "1",
+                  ),
+              );
+          );
+          '
       script:
-        - julia -e 'using Run; Run.script("benchmark/pprintjudge.jl")'
+        - julia -e 'using BenchmarkCI; BenchmarkCI.displayjudgement()'
       after_success: skip
       after_script: lscpu
       if: type != push
     - name: "Benchmark (Multi-thread)"
       os: linux
+      before_install:
+        - unset JULIA_PROJECT
+        - julia -e 'using Pkg; pkg"add PkgBenchmark https://github.com/tkf/BenchmarkCI.jl"'
       install:
-        - julia -e 'using Run; Run.prepare("benchmark")'
-      before_script:
-        - git fetch origin '+refs/heads/master:refs/remotes/origin/master'
-        - git branch baseline origin/master
         # Run benchmark outside `script` so that it's hidden by default:
-        - julia -e 'using Run; Run.script("benchmark/runjudge_multi_thread.jl")'
+        - julia -e '
+          using PkgBenchmark, BenchmarkCI;
+          BenchmarkCI.judge(
+            PkgBenchmark.BenchmarkConfig(env = Dict("JULIA_NUM_THREADS" => "2"));
+            script = "benchmark/multi-thread/benchmarks.jl",
+            project = "benchmark",
+          );
+          '
       script:
-        - julia -e 'using Run; Run.script("benchmark/pprintjudge_multi_thread.jl")'
+        - julia -e 'using BenchmarkCI; BenchmarkCI.displayjudgement()'
       after_success: skip
       after_script: lscpu
       if: type != push
