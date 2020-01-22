@@ -1,4 +1,4 @@
-module BenchUnordered
+module BenchCollect
 
 using BenchmarkTools
 using Transducers
@@ -39,7 +39,15 @@ let
     @assert ys == ys_unordered_1024
 end
 
-suite["collect"] = @benchmarkable collect($xf, $xs)
+suite["seq"] = @benchmarkable collect($xf, $xs)
+suite_assoc = suite["assoc"] = BenchmarkGroup()
+for basesize in [1, 2^5, 2^10]
+    suite_assoc["basesize=$basesize"] = @benchmarkable tcollect(
+        $xf,
+        $xs;
+        basesize = $basesize,
+    )
+end
 suite_unordered = suite["unordered"] = BenchmarkGroup()
 for basesize in [1, 2^5, 2^10]
     suite_unordered["basesize=$basesize"] =
@@ -47,4 +55,4 @@ for basesize in [1, 2^5, 2^10]
 end
 
 end  # module
-BenchUnordered.suite
+BenchCollect.suite
