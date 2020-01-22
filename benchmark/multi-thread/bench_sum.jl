@@ -16,23 +16,24 @@ end
 xf = Map(slow_computation)
 
 n = 2^14
+maxworkload = 100
 inputtable = [
-    ("uniform", fill(500, n)),
-    ("random", rand(1:1000, n)),
-    ("increasing", ceil.(Int, range(1, 1000, length = n))),
-    ("decreasing", ceil.(Int, range(1000, 1, length = n))),
+    ("uniform", fill(maxworkload ÷ 2, n)),
+    ("random", rand(1:maxworkload, n)),
+    ("increasing", ceil.(Int, range(1, maxworkload, length = n))),
+    ("decreasing", ceil.(Int, range(maxworkload, 1, length = n))),
     (
         "mountain",
         vcat(
-            ceil.(Int, range(1, 1000, length = n ÷ 2)),
-            ceil.(Int, range(1000, 1, length = n ÷ 2)),
+            ceil.(Int, range(1, maxworkload, length = n ÷ 2)),
+            ceil.(Int, range(maxworkload, 1, length = n ÷ 2)),
         ),
     ),
     (
         "valley",
         vcat(
-            ceil.(Int, range(1000, 1, length = n ÷ 2)),
-            ceil.(Int, range(1, 1000, length = n ÷ 2)),
+            ceil.(Int, range(maxworkload, 1, length = n ÷ 2)),
+            ceil.(Int, range(1, maxworkload, length = n ÷ 2)),
         ),
     ),
 ]
