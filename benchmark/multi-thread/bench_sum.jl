@@ -15,7 +15,7 @@ end
 
 xf = Map(slow_computation)
 
-n = 2^18
+n = 2^14
 inputtable = [
     ("uniform", fill(500, n)),
     ("random", rand(1:1000, n)),
