@@ -20,6 +20,7 @@ maxworkload = 100
 inputtable = [
     ("uniform", fill(maxworkload ÷ 2, n)),
     ("random", rand(1:maxworkload, n)),
+    #=
     ("increasing", ceil.(Int, range(1, maxworkload, length = n))),
     ("decreasing", ceil.(Int, range(maxworkload, 1, length = n))),
     (
@@ -29,6 +30,7 @@ inputtable = [
             ceil.(Int, range(maxworkload, 1, length = n ÷ 2)),
         ),
     ),
+    =#
     (
         "valley",
         vcat(
