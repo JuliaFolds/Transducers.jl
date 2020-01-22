@@ -1,4 +1,4 @@
-module BenchUnordered
+module BenchCollect
 
 using BenchmarkTools
 using Transducers
@@ -47,4 +47,4 @@ for basesize in [1, 2^5, 2^10]
 end
 
 end  # module
-BenchUnordered.suite
+BenchCollect.suite
