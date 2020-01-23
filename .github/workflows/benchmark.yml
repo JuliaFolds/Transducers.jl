@@ -28,4 +28,4 @@ jobs:
       - name: Post results
         run: julia -e "using BenchmarkCI; BenchmarkCI.postjudge()"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
