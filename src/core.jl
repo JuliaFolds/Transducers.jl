@@ -306,11 +306,11 @@ const R_{X} = Reduction{<:X}
 end
 
 @inline _normalize(xf) = xf
-@inline _normalize(xf::Composition{<:Composition}) =
-    _normalize(xf.outer.outer |> _normalize(xf.outer.inner |> xf.inner))
+@inline _normalize(xf::Composition{<:Composition}) = xf.outer |> xf.inner
 
 # Not sure if this a good idea... (But it's easier to type)
-@inline Base.:|>(f::Transducer, g::Transducer) = _normalize(Composition(f, g))
+@inline Base.:|>(f::Composition, g::Transducer) = f.outer |> (f.inner |> g)
+@inline Base.:|>(f::Transducer, g::Transducer) = Composition(f, g)
 # Base.∘(f::Transducer, g::Transducer) = Composition(f, g)
 # Base.∘(f::Composition, g::Transducer) = f.outer ∘ (f.inner ∘ g)
 @inline Base.:|>(::IdentityTransducer, f::Transducer) = f
