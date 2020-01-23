@@ -561,7 +561,7 @@ julia> append!!(Drop(2) |> Map(x -> x + 0.0), [-1, -2], 1:5)
 ```
 """
 BangBang.append!!(xf::Transducer, to, from) =
-    unreduced(transduce(xf |> Map(x -> SingletonVector(x)), Completing(append!!), to, from))
+    unreduced(transduce(xf |> Map(SingletonVector), Completing(append!!), to, from))
 
 """
     collect(xf::Transducer, itr) :: Vector
