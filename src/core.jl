@@ -315,6 +315,7 @@ end
 # Base.∘(f::Composition, g::Transducer) = f.outer ∘ (f.inner ∘ g)
 @inline Base.:|>(::IdentityTransducer, f::Transducer) = f
 @inline Base.:|>(f::Transducer, ::IdentityTransducer) = f
+@inline Base.:|>(f::Composition, ::IdentityTransducer) = f  # disambiguation
 
 """
     reform(rf, f)
