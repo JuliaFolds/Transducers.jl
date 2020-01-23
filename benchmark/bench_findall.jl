@@ -3,6 +3,17 @@ module BenchFindall
 using BenchmarkTools
 using Transducers
 
+struct Mapping{F, T}
+    f::F
+    itr::T
+end
+
+function Base.iterate(itr::Mapping, state...)
+    y = iterate(itr.itr, state...)
+    y === nothing && return nothing
+    return itr.f(y[1]), y[2]
+end
+
 needle = 123.0
 xs = rand(100_000)
 xs[xs.>0.001] .= needle
@@ -15,7 +26,7 @@ suite["xf-array"] = @benchmarkable collect(
 )
 suite["xf-iter"] = @benchmarkable collect(
     Enumerate() |> Filter(isequal($needle) ∘ last) |> Map(first),
-    (x for x in $xs),
+    Mapping(identity, $xs),
 )
 
 end  # module
