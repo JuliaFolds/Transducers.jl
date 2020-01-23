@@ -122,12 +122,16 @@ const FOLDL_RECURSION_LIMIT = Val(10)
 _dec(::Nothing) = nothing
 _dec(::Val{n}) where n = Val(n - 1)
 
-function __foldl__(rf, init, coll)
+function __foldl__(rf, init::T, coll) where {T}
     ret = iterate(coll)
     ret === nothing && return complete(rf, init)
     x, state = ret
     val = @next(rf, init, x)
-    return _foldl_iter(rf, val, coll, state, FOLDL_RECURSION_LIMIT)
+    if val isa T
+        return _foldl_iter(rf, val, coll, state, FOLDL_RECURSION_LIMIT)
+    else
+        return _foldl_iter(rf, val, coll, state, FOLDL_RECURSION_LIMIT)
+    end
 end
 
 @inline function _foldl_iter(rf, val::T, iter, state, counter) where T
