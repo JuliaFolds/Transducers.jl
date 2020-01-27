@@ -417,7 +417,7 @@ complete(rf::AbstractReduction, result) =
 This is an optional interface for a transducer.  If transducer `X` is
 stateful (i.e., [`wrap`](@ref) is used in [`start`](@ref)), it has to
 be able to combine the private states to support fold functions that
-requires associative reducing functions such as [`reduce`](@ref).
+require an associative reducing function such as [`reduce`](@ref).
 Typical implementation takes the following form:
 
 ```julia
