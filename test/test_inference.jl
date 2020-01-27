@@ -60,6 +60,10 @@ end
     @testset for xs in collections
         @test_inferred collect(Map(exp), xs)
         @test_inferred collect(Map(exp) |> Filter(x -> x > 0), xs)
+        @test_inferred collect(
+            Enumerate() |> Map(last) |> Map(exp) |> Filter(x -> x > 0),
+            xs,
+        )
     end
 end
 

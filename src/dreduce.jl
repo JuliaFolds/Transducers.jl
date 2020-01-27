@@ -71,12 +71,7 @@ function dtransduce(
     end
     # TODO: Cancel remote computation when there is a Reduced.
     results = map(fetch, futures)
-    i = findfirst(isreduced, results)
-    i === nothing || return results[i]
-    c = foldl(results) do a, b
-        combine(rf, a, b)
-    end
-    return complete(rf, c)
+    return complete(rf, combine_all(rf, results))
 end
 
 function load_me_everywhere()
