@@ -11,6 +11,8 @@ export JULIA_LOAD_PATH="@"
 exec ${JULIA} "${BASH_SOURCE[0]}" "$@"
 =#
 
+error("xfail")
+
 include("utils.jl")
 import JSON
 using Literate
