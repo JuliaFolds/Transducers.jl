@@ -12,6 +12,7 @@ exec ${JULIA} "${BASH_SOURCE[0]}" "$@"
 =#
 
 include("utils.jl")
+import JSON
 using Literate
 
 import Random

@@ -1,10 +1,9 @@
 import BangBang
-import JSON
 import OnlineStats
 using Documenter
 using Transducers
-# Not importing `Literate` here so that this file can be included from
-# test.
+# Not importing `JSON` and `Literate` here so that this file can be
+# included from test without adding them as dependencies.
 
 EXAMPLE_PAGES = [
     "Tutorial: Missing values" => "examples/tutorial_missings.md",
