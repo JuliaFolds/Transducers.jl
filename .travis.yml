@@ -86,10 +86,3 @@ jobs:
       after_success: skip
       after_script: lscpu
       if: type != push
-    - stage: "Documentation"
-      os: linux
-      install:
-        - julia -e 'using Run; Run.prepare_docs()'
-      script:
-        - julia -e 'using Run; Run.docs()'
-      after_success: skip

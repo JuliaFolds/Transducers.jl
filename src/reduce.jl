@@ -63,8 +63,31 @@ end
 
 foldable(reducible::SizedReducible) = reducible.reducible
 
+"""
+    Transducers.issmall(reducible, basesize) :: Bool
+
+Check if `reducible` collection is considered small compared to
+`basesize` (an integer).  Fold functions such as [`reduce`](@ref)
+switches to sequential `__foldl__` when `issmall` returns `true`.
+
+Default implementation is `length(reducible) <= basesize`.
+"""
+issmall
+
+issmall(reducible, basesize) = length(reducible) <= basesize
+
 issmall(reducible::SizedReducible) =
-    length(reducible.reducible) <= max(reducible.basesize, 1)
+    issmall(reducible.reducible, max(reducible.basesize, 1))
+
+"""
+    Transducers.halve(reducible) -> (reducible_left, reducible_right)
+
+Split `reducible` collection (roughly) in half.
+
+Default implementation for `AbstractArray` creates two views for the
+first half and the last half.
+"""
+halve
 
 function halve(reducible::SizedReducible)
     left, right = halve(reducible.reducible)

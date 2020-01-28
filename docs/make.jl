@@ -12,6 +12,7 @@ exec ${JULIA} "${BASH_SOURCE[0]}" "$@"
 =#
 
 include("utils.jl")
+import JSON
 using Literate
 
 import Random
@@ -21,4 +22,5 @@ transducers_literate()
 transducers_makedocs()
 deploydocs(;
     repo="github.com/tkf/Transducers.jl",
+    push_preview = should_push_preview(),
 )
