@@ -91,6 +91,12 @@ end
     )
 end
 
+@testset "zip" begin
+    if VERSION >= v"1.3"
+        @test reduce(+, MapSplat(*), zip(1:5, 1:5); basesize = 1) == 55
+    end
+end
+
 @testset "TCat" begin
     oneto(x) = 1:x
     @testset "Map(oneto) |> TCat(1)" begin

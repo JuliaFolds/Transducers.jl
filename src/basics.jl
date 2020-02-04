@@ -1,5 +1,24 @@
 # --- Utilities
 
+"""
+    _unzip(xs::Tuple)
+
+# Examples
+```jldoctest; setup = :(using Transducers: _unzip)
+julia> _unzip(((1, 2, 3), (4, 5, 6)))
+((1, 4), (2, 5), (3, 6))
+```
+"""
+_unzip(xs::Tuple{Vararg{NTuple{N,Any}}}) where {N} = ntuple(i -> map(x -> x[i], xs), N)
+
+if isdefined(Iterators, :Zip1)  # VERSION < v"1.1-"
+    arguments(xs::Iterators.Zip1) = (xs.a,)
+    arguments(xs::Iterators.Zip2) = (xs.a, xs.b)
+    arguments(xs::Iterators.Zip) = (xs.a, arguments(xs.z)...)
+else
+    arguments(xs::Iterators.Zip) = xs.is
+end
+
 if VERSION < v"1.3"
     _Channel(f, ::Type{T}, size; kwargs...) where {T} =
         Channel(f; ctype = T, csize = size, kwargs...)

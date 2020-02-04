@@ -118,6 +118,11 @@ function halve(product::Iterators.ProductIterator)
     return (@set(product.iterators[i] = left), @set(product.iterators[i] = right))
 end
 
+@inline function halve(xs::Iterators.Zip)
+    lefts, rights = _unzip(map(halve, arguments(xs)))
+    return zip(lefts...), zip(rights...)
+end
+
 struct TaskContext
     listening::Vector{Threads.Atomic{Bool}}
     cancellables::Vector{Threads.Atomic{Bool}}
