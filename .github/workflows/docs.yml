@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - actions/trigger/docs
     tags: '*'
   pull_request:
 
