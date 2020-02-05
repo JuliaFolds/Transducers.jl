@@ -161,8 +161,15 @@ function transduce_assoc(
     return complete(rf, acc)
 end
 
+if VERSION >= v"1.3-alpha"
+    maybe_collect(coll) = coll
+else
+    maybe_collect(coll::AbstractArray) = coll
+    maybe_collect(coll) = collect(coll)
+end
+
 function _transduce_assoc_nocomplete(rf, init, coll, basesize)
-    reducible = SizedReducible(coll, basesize)
+    reducible = SizedReducible(maybe_collect(coll), basesize)
     @static if VERSION >= v"1.3-alpha"
         return _reduce(TaskContext(), rf, init, reducible)
     else

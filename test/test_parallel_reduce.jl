@@ -80,10 +80,8 @@ end
 end
 
 @testset "product" begin
-    if VERSION >= v"1.3"
-        @test reduce(+, MapSplat(*), Iterators.product(1:3, 1:3); basesize = 1) == 36
-        @test reduce(+, eduction(x * y for x in 1:3, y in 1:3); basesize = 1) == 36
-    end
+    @test reduce(+, MapSplat(*), Iterators.product(1:3, 1:3); basesize = 1) == 36
+    @test reduce(+, eduction(x * y for x in 1:3, y in 1:3); basesize = 1) == 36
 
     @test_throws(
         ErrorException("Unreachable reached. A bug in `issmall`? length(product) = 0"),
@@ -92,9 +90,7 @@ end
 end
 
 @testset "zip" begin
-    if VERSION >= v"1.3"
-        @test reduce(+, MapSplat(*), zip(1:5, 1:5); basesize = 1) == 55
-    end
+    @test reduce(+, MapSplat(*), zip(1:5, 1:5); basesize = 1) == 55
 end
 
 @testset "TCat" begin
