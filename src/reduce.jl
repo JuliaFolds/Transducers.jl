@@ -118,6 +118,11 @@ function halve(product::Iterators.ProductIterator)
     return (@set(product.iterators[i] = left), @set(product.iterators[i] = right))
 end
 
+@inline function halve(xs::Iterators.Zip)
+    lefts, rights = _unzip(map(halve, arguments(xs)))
+    return zip(lefts...), zip(rights...)
+end
+
 struct TaskContext
     listening::Vector{Threads.Atomic{Bool}}
     cancellables::Vector{Threads.Atomic{Bool}}
@@ -156,8 +161,15 @@ function transduce_assoc(
     return complete(rf, acc)
 end
 
+if VERSION >= v"1.3-alpha"
+    maybe_collect(coll) = coll
+else
+    maybe_collect(coll::AbstractArray) = coll
+    maybe_collect(coll) = collect(coll)
+end
+
 function _transduce_assoc_nocomplete(rf, init, coll, basesize)
-    reducible = SizedReducible(coll, basesize)
+    reducible = SizedReducible(maybe_collect(coll), basesize)
     @static if VERSION >= v"1.3-alpha"
         return _reduce(TaskContext(), rf, init, reducible)
     else
