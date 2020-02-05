@@ -18,7 +18,7 @@ version = "0.1.5"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "163233162bebc3887752d25faa38978581be1ae8"
+git-tree-sha1 = "f44922197a667064f21d24634b18ef4680bb9055"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
@@ -98,9 +98,9 @@ version = "0.8.1"
 
 [[Documenter]]
 deps = ["Base64", "Dates", "DocStringExtensions", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Test", "Unicode"]
-git-tree-sha1 = "51f0c7df46abb9c07d80e529718951e634670afb"
+git-tree-sha1 = "d497bcc45bb98a1fbe19445a774cfafeabc6c6df"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-version = "0.24.4"
+version = "0.24.5"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
@@ -119,7 +119,7 @@ uuid = "313cdc1a-70c2-5d6a-ae34-0150d3930a38"
 version = "1.1.0"
 
 [[InitialValues]]
-git-tree-sha1 = "4b9a9a026b41ccaa4f0f4fb4948f5ce11a066ace"
+git-tree-sha1 = "4c2864b6f89a4538be7edb773a6b3609874b24cd"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/InitialValues.jl.git"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
@@ -179,9 +179,9 @@ version = "0.5.1"
 
 [[MacroTools]]
 deps = ["DataStructures", "Markdown", "Random"]
-git-tree-sha1 = "e2fc7a55bb2224e203bbd8b59f72b91323233458"
+git-tree-sha1 = "07ee65e03e28ca88bc9a338a3726ae0c3efaa94b"
 uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
-version = "0.5.3"
+version = "0.5.4"
 
 [[Markdown]]
 deps = ["Base64"]
@@ -216,9 +216,9 @@ version = "1.1.0"
 
 [[Parsers]]
 deps = ["Dates", "Test"]
-git-tree-sha1 = "0139ba59ce9bc680e2925aec5b7db79065d60556"
+git-tree-sha1 = "d112c19ccca00924d5d3a38b11ae2b4b268dda39"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "0.3.10"
+version = "0.3.11"
 
 [[PenaltyFunctions]]
 deps = ["InteractiveUtils", "LearnBase", "LinearAlgebra", "RecipesBase", "Reexport", "Test"]
@@ -261,9 +261,9 @@ version = "0.2.0"
 
 [[Requires]]
 deps = ["UUIDs"]
-git-tree-sha1 = "999513b7dea8ac17359ed50ae8ea089e4464e35e"
+git-tree-sha1 = "d37400976e98018ee840e0ca4f9d20baa231dc6b"
 uuid = "ae029012-a4dd-5104-9daa-d747884805df"
-version = "1.0.0"
+version = "1.0.1"
 
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
@@ -348,7 +348,7 @@ uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 deps = ["ArgCheck", "BangBang", "Distributed", "InitialValues", "Logging", "Markdown", "Requires", "Setfield", "Tables"]
 path = "../../.."
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
-version = "0.4.15-DEV"
+version = "0.4.16-DEV"
 
 [[TypedTables]]
 deps = ["SplitApplyCombine", "Tables", "Unicode"]
