@@ -74,7 +74,9 @@ end
 function should_push_preview(event_path = get(ENV, "GITHUB_EVENT_PATH", nothing))
     event_path === nothing && return false
     event = JSON.parsefile(event_path)
-    labels = [x["name"] for x in event["pull_request"]["labels"]]
+    pull_request = get(event, "pull_request", nothing)
+    pull_request === nothing && return false
+    labels = [x["name"] for x in pull_request["labels"]]
     # https://developer.github.com/v3/activity/events/types/#pullrequestevent
     yes = "push_preview" in labels
     if yes
