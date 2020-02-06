@@ -5,7 +5,10 @@ using Test
 using Transducers
 
 @testset "doctest" begin
-    if VERSION >= v"1.5-"
+    if lowercase(get(ENV, "JULIA_PKGEVAL", "false")) == "true"
+        @info "Skipping doctests on PkgEval."
+        return
+    elseif VERSION >= v"1.5-"
         @info "Skipping doctests on Julia $VERSION."
         return
     end
