@@ -42,10 +42,10 @@ uuid = "324d7699-5711-5eae-9e2f-1d82baa6b597"
 version = "0.7.7"
 
 [[Compat]]
-deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "06be57f11a029927e10d050a6c5496a8695a5437"
+deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
+git-tree-sha1 = "5adc932a02f86512c2f4a0e74dafb4bcedcfa37c"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "3.3.0"
+version = "3.3.1"
 
 [[ConstructionBase]]
 git-tree-sha1 = "a2a6a5fea4d6f730ec4c18a76d27ec10e8ec1c50"
@@ -200,9 +200,9 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[OnlineStats]]
 deps = ["Dates", "LearnBase", "LinearAlgebra", "LossFunctions", "OnlineStatsBase", "OrderedCollections", "PenaltyFunctions", "Random", "RecipesBase", "Reexport", "Statistics", "StatsBase", "SweepOperator"]
-git-tree-sha1 = "d7caf945b59e36917bbd4203dc98bdd23c78b92f"
+git-tree-sha1 = "a558f6ef79e0191308b7fab4a04426f5cb4374cf"
 uuid = "a15396b6-48d5-5d58-9928-6d29437db91e"
-version = "1.0.2"
+version = "1.0.3"
 
 [[OnlineStatsBase]]
 deps = ["Dates", "LearnBase", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
