@@ -1,5 +1,5 @@
 module TestUnordered
-include("preamble.jl")
+include("../preamble.jl")
 using Transducers: append_unordered!, channel_unordered, reduce_commutative
 
 @testset "reduce_commutative" begin

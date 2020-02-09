@@ -1,5 +1,5 @@
 module TestParallelReduce
-include("preamble.jl")
+include("../preamble.jl")
 using Transducers: transduce_assoc
 using StructArrays: StructVector
 
