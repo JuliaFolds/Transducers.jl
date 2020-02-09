@@ -1,4 +1,6 @@
 module TestTransducers
+
+import PerformanceTestTools
 using Distributed: addprocs, nworkers
 using Test
 
@@ -16,6 +18,9 @@ end
     include(file)
 end
 
-include("threads/runtests.jl")
+PerformanceTestTools.@include_foreach(
+    "threads/runtests.jl",
+    [nothing, ["JULIA_NUM_THREADS" => Threads.nthreads() > 1 ? "1" : "2"]],
+)
 
 end  # module
