@@ -226,6 +226,12 @@ git-tree-sha1 = "b0baaa5218ca0ffd6a8ae37ef0b58e0df688ac8b"
 uuid = "06bb1623-fdd5-5ca2-a01c-88eae3ea319e"
 version = "0.1.2"
 
+[[PerformanceTestTools]]
+deps = ["Test"]
+git-tree-sha1 = "18c699615f3f04f0df2808b7cdcf0ffaeea0e22f"
+uuid = "dc46b164-d16f-48ec-a853-60448fc869fe"
+version = "0.1.0"
+
 [[Pkg]]
 deps = ["Dates", "LibGit2", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
