@@ -16,4 +16,6 @@ end
     include(file)
 end
 
+include("threads/runtests.jl")
+
 end  # module
