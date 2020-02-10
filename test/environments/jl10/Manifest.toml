@@ -41,9 +41,9 @@ version = "0.7.7"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "5adc932a02f86512c2f4a0e74dafb4bcedcfa37c"
+git-tree-sha1 = "5a5e0e21707cabade4f2e197976f550333a24165"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "3.3.1"
+version = "3.4.0"
 
 [[ConstructionBase]]
 git-tree-sha1 = "a2a6a5fea4d6f730ec4c18a76d27ec10e8ec1c50"
