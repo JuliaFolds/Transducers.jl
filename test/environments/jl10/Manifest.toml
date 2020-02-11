@@ -18,7 +18,7 @@ version = "0.1.5"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "f44922197a667064f21d24634b18ef4680bb9055"
+git-tree-sha1 = "f6685451a52acd92a18abf934d886f5c06c4ef58"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
@@ -119,7 +119,7 @@ uuid = "313cdc1a-70c2-5d6a-ae34-0150d3930a38"
 version = "1.1.0"
 
 [[InitialValues]]
-git-tree-sha1 = "4c2864b6f89a4538be7edb773a6b3609874b24cd"
+git-tree-sha1 = "c01222308b05abab5e045eb6e07fb245800d3154"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/InitialValues.jl.git"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
@@ -228,9 +228,9 @@ version = "0.1.2"
 
 [[PerformanceTestTools]]
 deps = ["Test"]
-git-tree-sha1 = "18c699615f3f04f0df2808b7cdcf0ffaeea0e22f"
+git-tree-sha1 = "8bbb405491d89997900c37d5fcc94b6d0d849331"
 uuid = "dc46b164-d16f-48ec-a853-60448fc869fe"
-version = "0.1.0"
+version = "0.1.1"
 
 [[Pkg]]
 deps = ["Dates", "LibGit2", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
