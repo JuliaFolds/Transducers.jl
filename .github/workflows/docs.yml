@@ -22,5 +22,6 @@ jobs:
         run: julia -e 'using Run; Run.prepare_docs()'
       - name: Build and deploy
         env:
-          GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCUMENTER_KEY: ${{ secrets.SSH_KEY }}
         run: julia -e 'using Run; Run.docs()'
