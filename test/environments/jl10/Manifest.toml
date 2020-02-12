@@ -228,9 +228,11 @@ version = "0.1.2"
 
 [[PerformanceTestTools]]
 deps = ["Test"]
-git-tree-sha1 = "8bbb405491d89997900c37d5fcc94b6d0d849331"
+git-tree-sha1 = "0fdf13ef312cb2ec9cae5cb20d5df39e3f98aee0"
+repo-rev = "include-foreach"
+repo-url = "https://github.com/tkf/PerformanceTestTools.jl.git"
 uuid = "dc46b164-d16f-48ec-a853-60448fc869fe"
-version = "0.1.1"
+version = "0.1.1-DEV"
 
 [[Pkg]]
 deps = ["Dates", "LibGit2", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
