@@ -1,6 +1,6 @@
 module TestDistributedReduce
 
-include("preamble.jl")
+include("../preamble.jl")
 using BangBang
 using Distributed
 using Logging: LogLevel
