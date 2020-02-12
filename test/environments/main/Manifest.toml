@@ -230,9 +230,9 @@ version = "0.1.2"
 
 [[PerformanceTestTools]]
 deps = ["Test"]
-git-tree-sha1 = "8bbb405491d89997900c37d5fcc94b6d0d849331"
+git-tree-sha1 = "af3b90e28080f6603468309a3de321b02b048350"
 uuid = "dc46b164-d16f-48ec-a853-60448fc869fe"
-version = "0.1.1"
+version = "0.1.2"
 
 [[Pkg]]
 deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Test", "UUIDs"]
