@@ -20,7 +20,7 @@ BangBang = "0.3.7"
 InitialValues = "0.2.1"
 Requires = "0.5, 1.0"
 Setfield = "0.3, 0.4, 0.5, 0.6"
-Tables = "0.2"
+Tables = "0.2, 1.0"
 julia = "1"
 
 [extras]
