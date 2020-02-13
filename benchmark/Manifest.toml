@@ -1,14 +1,13 @@
 # This file is machine-generated - editing it directly is not advised
 
 [[ArgCheck]]
-deps = ["Random"]
-git-tree-sha1 = "dab25d711a1dedb707a55dbc1eb9fd578f76ff32"
+git-tree-sha1 = "e14de95bcfacd85e00f5369958a38bb72827bce2"
 uuid = "dce04be8-c92d-5529-be00-80e4d2c0e197"
-version = "1.0.1"
+version = "1.1.0"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "f44922197a667064f21d24634b18ef4680bb9055"
+git-tree-sha1 = "f6685451a52acd92a18abf934d886f5c06c4ef58"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
@@ -25,9 +24,9 @@ version = "0.4.3"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "5adc932a02f86512c2f4a0e74dafb4bcedcfa37c"
+git-tree-sha1 = "a4839bd26e3e7f4869a4cf6c31f9f93f47aac7c5"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "3.3.1"
+version = "3.5.0"
 
 [[ConstructionBase]]
 git-tree-sha1 = "a2a6a5fea4d6f730ec4c18a76d27ec10e8ec1c50"
@@ -153,7 +152,7 @@ deps = ["Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [[Referenceables]]
-git-tree-sha1 = "0a4cb75bf87f2d593850209be03d863689174fd2"
+git-tree-sha1 = "15bdf02083a280b6578e78699ee4aa900e22f94c"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/Referenceables.jl"
 uuid = "42d2dcc6-99eb-4e98-b66c-637b7d73030e"
