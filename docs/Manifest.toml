@@ -40,9 +40,9 @@ version = "1.1.0"
 
 [[DataFrames]]
 deps = ["CategoricalArrays", "Compat", "DataAPI", "Future", "InvertedIndices", "IteratorInterfaceExtensions", "Missings", "PooledArrays", "Printf", "REPL", "Reexport", "SortingAlgorithms", "Statistics", "TableTraits", "Tables", "Unicode"]
-git-tree-sha1 = "00136fcd39d503e66ab1b2eab800c47deaf7ca04"
+git-tree-sha1 = "096d198e0b4afcf995187f36a50dc83f0bdbcb14"
 uuid = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
-version = "0.20.0"
+version = "0.20.1"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "OrderedCollections"]
@@ -294,10 +294,10 @@ uuid = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 version = "0.32.0"
 
 [[StructArrays]]
-deps = ["PooledArrays", "Tables", "WeakRefStrings"]
-git-tree-sha1 = "e860d3808176ace576a45d658ba80d7c815bf1ce"
+deps = ["PooledArrays", "Requires"]
+git-tree-sha1 = "8b4ea677c4dfbcb538695e853207a9f70f84be20"
 uuid = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
-version = "0.4.1"
+version = "0.4.0"
 
 [[SweepOperator]]
 deps = ["LinearAlgebra"]
@@ -313,9 +313,9 @@ version = "1.0.0"
 
 [[Tables]]
 deps = ["DataAPI", "DataValueInterfaces", "IteratorInterfaceExtensions", "LinearAlgebra", "TableTraits", "Test"]
-git-tree-sha1 = "aaed7b3b00248ff6a794375ad6adf30f30ca5591"
+git-tree-sha1 = "f2a8dae52736dd30921b2aea384551a2f982bce2"
 uuid = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
-version = "0.2.11"
+version = "1.0.0"
 
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
@@ -339,12 +339,6 @@ uuid = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
 [[Unicode]]
 uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
-
-[[WeakRefStrings]]
-deps = ["DataAPI", "Random", "Test"]
-git-tree-sha1 = "28807f85197eaad3cbd2330386fac1dcb9e7e11d"
-uuid = "ea10d353-3f73-51f8-a26c-33c1cb351aa5"
-version = "0.6.2"
 
 [[ZygoteRules]]
 deps = ["MacroTools"]
