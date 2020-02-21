@@ -158,7 +158,12 @@ function transduce_assoc(
 )
     rf = maybe_usesimd(Reduction(xform, step), simd)
     acc = @return_if_reduced _transduce_assoc_nocomplete(rf, init, coll, basesize)
-    return complete(rf, acc)
+    result = complete(rf, acc)
+    if unreduced(result) isa DefaultInit
+        throw(EmptyResultError(rf))
+        # See how `transduce(rf, init, coll)` is implemented in ./processes.jl
+    end
+    return result
 end
 
 if VERSION >= v"1.3-alpha"
