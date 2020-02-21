@@ -23,4 +23,12 @@ end
     Aqua.test_undefined_exports(Transducers)
 end
 
+@testset "Compare Project.toml and test/Project.toml" begin
+    Aqua.test_project_extras(Transducers)
+    @testset "... and test/environments/main/Project.toml" begin
+        @test Text(read(joinpath(@__DIR__, "Project.toml"), String)) ==
+            Text(read(joinpath(@__DIR__, "environments", "main", "Project.toml"), String))
+    end
+end
+
 end  # module
