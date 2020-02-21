@@ -54,6 +54,12 @@ end
     end
 end
 
+@testset "empty case" begin
+    err = @test_error reduce(+, Map(identity), 1:0)
+    msg = sprint(showerror, err)
+    @test occursin("The input collection is empty or", msg)
+end
+
 @testset "`complete` should not be called on `Reduced`" begin
     rf(_, x) = x
     rf(x::Reduced) = error("rf(", x, ") is called")
