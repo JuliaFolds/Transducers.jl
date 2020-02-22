@@ -50,6 +50,9 @@ export Empty, append!!, push!!
 # From InitialValue.jl:
 export Init
 
+include("AutoObjectsReStacker.jl")
+using .AutoObjectsReStacker: restack
+
 include("showutils.jl")
 include("basics.jl")
 include("core.jl")
