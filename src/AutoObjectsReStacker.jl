@@ -9,24 +9,33 @@ in the stack.
 """
 restack
 
-_inline(x) = Expr(:block, Expr(:meta, :inline), x)
+_getlength(::Type{<:NTuple{N,Any}}) where N = N
+_getnames(::Type{<:NamedTuple{names}}) where names = names
 
-@generated restack(x::NTuple{N,Any}) where {N} =
-    _inline(:(($(map(i -> :(restack(x[$i])), 1:N)...),)))
-
-@generated restack(x::NamedTuple{names}) where {names} =
-    _inline(:((; $(map(n -> Expr(:kw, n, :(restack(x.$n))), names)...))))
-
-@generated restack(x) =
-    if parentmodule(x) === Core
+# Not using dispatch, to check `issingletontype` first.
+@generated function restack(x)
+    if Base.issingletontype(x)
+        ex = x.instance :: x
+    elseif x <: Tuple
+        N = _getlength(x)
+        ex = :(($(map(i -> :(restack(x[$i])), 1:N)...),))
+    elseif x <: NamedTuple
+        names = _getnames(x)
+        ex = :((; $(map(n -> Expr(:kw, n, :(restack(x.$n))), names)...)))
+    elseif parentmodule(x) === Core
         # Workaround the issue with `isstructtype(String)` and
         #  `isstructtype(Symbol)`.
         # https://github.com/JuliaLang/julia/issues/30210
-        :x
+        ex = :x
     elseif isstructtype(x)
-        Expr(:new, x, map(n -> :(restack(x.$n)), fieldnames(x))...)
+        new = Expr(:new, x, map(n -> :(restack(x.$n)), fieldnames(x))...)
+        ex = quote
+            isimmutable(x) ? $new : x
+        end
     else
-        :x
-    end |> _inline
+        ex = :x
+    end
+    return Expr(:block, Expr(:meta, :inline), ex)
+end
 
 end  # module
