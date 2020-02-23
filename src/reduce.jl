@@ -182,10 +182,16 @@ function _transduce_assoc_nocomplete(rf, init, coll, basesize)
     end
 end
 
-function _reduce(ctx, rf, init, reducible::Reducible)
+@noinline _reduce_basecase(rf::F, init::I, reducible) where {F,I} =
+    restack(foldl_nocomplete(rf, _start_init(rf, init), foldable(reducible)))
+# `restack` here is crucial when using heap-allocated accumulator.
+# See `ThreadsX.unique` and the MWE extracted from it:
+# https://github.com/tkf/Restacker.jl/blob/master/benchmark/bench_unique.jl
+
+function _reduce(ctx, rf::R, init::I, reducible::Reducible) where {R, I}
     should_abort(ctx) && return init
     if issmall(reducible)
-        acc = foldl_nocomplete(rf, _start_init(rf, init), foldable(reducible))
+        acc = _reduce_basecase(rf, init, reducible)
         if acc isa Reduced
             cancel!(ctx)
         end
