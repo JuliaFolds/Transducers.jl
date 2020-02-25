@@ -158,7 +158,12 @@ function transduce_assoc(
 )
     rf = maybe_usesimd(Reduction(xform, step), simd)
     acc = @return_if_reduced _transduce_assoc_nocomplete(rf, init, coll, basesize)
-    return complete(rf, acc)
+    result = complete(rf, acc)
+    if unreduced(result) isa DefaultInit
+        throw(EmptyResultError(rf))
+        # See how `transduce(rf, init, coll)` is implemented in ./processes.jl
+    end
+    return result
 end
 
 if VERSION >= v"1.3-alpha"
@@ -177,10 +182,16 @@ function _transduce_assoc_nocomplete(rf, init, coll, basesize)
     end
 end
 
-function _reduce(ctx, rf, init, reducible::Reducible)
+@noinline _reduce_basecase(rf::F, init::I, reducible) where {F,I} =
+    restack(foldl_nocomplete(rf, _start_init(rf, init), foldable(reducible)))
+# `restack` here is crucial when using heap-allocated accumulator.
+# See `ThreadsX.unique` and the MWE extracted from it:
+# https://github.com/tkf/Restacker.jl/blob/master/benchmark/bench_unique.jl
+
+function _reduce(ctx, rf::R, init::I, reducible::Reducible) where {R, I}
     should_abort(ctx) && return init
     if issmall(reducible)
-        acc = foldl_nocomplete(rf, _start_init(rf, init), foldable(reducible))
+        acc = _reduce_basecase(rf, init, reducible)
         if acc isa Reduced
             cancel!(ctx)
         end
