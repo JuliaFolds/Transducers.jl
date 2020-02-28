@@ -106,7 +106,7 @@ function halve(arr::AbstractArray)
 end
 
 function halve(product::Iterators.ProductIterator)
-    i = findfirst(x -> length(x) > 1, product.iterators)
+    i = findlast(x -> length(x) > 1, product.iterators)
     if i === nothing
         error(
             "Unreachable reached. A bug in `issmall`?",

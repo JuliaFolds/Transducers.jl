@@ -86,6 +86,10 @@ end
 end
 
 @testset "product" begin
+    @testset for basesize in 1:6
+        @test tcollect(Map(identity), Iterators.product(1:3, 4:5); basesize = basesize) ==
+              vec(collect(Iterators.product(1:3, 4:5)))
+    end
     @test reduce(+, MapSplat(*), Iterators.product(1:3, 1:3); basesize = 1) == 36
     @test reduce(+, eduction(x * y for x in 1:3, y in 1:3); basesize = 1) == 36
 
