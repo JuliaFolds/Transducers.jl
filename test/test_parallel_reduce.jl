@@ -99,6 +99,12 @@ end
     @test reduce(+, MapSplat(*), zip(1:5, 1:5); basesize = 1) == 55
 end
 
+@testset "partition" begin
+    @testset for n in 1:10, basesize in 1:cld(10, n)
+        @test tcollect(Cat(), Iterators.partition(1:10, n); basesize = basesize) == 1:10
+    end
+end
+
 @testset "TCat" begin
     oneto(x) = 1:x
     @testset "Map(oneto) |> TCat(1)" begin
