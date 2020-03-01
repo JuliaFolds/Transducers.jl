@@ -106,7 +106,7 @@ function halve(arr::AbstractArray)
 end
 
 function halve(product::Iterators.ProductIterator)
-    i = findfirst(x -> length(x) > 1, product.iterators)
+    i = findlast(x -> length(x) > 1, product.iterators)
     if i === nothing
         error(
             "Unreachable reached. A bug in `issmall`?",
@@ -121,6 +121,17 @@ end
 @inline function halve(xs::Iterators.Zip)
     lefts, rights = _unzip(map(halve, arguments(xs)))
     return zip(lefts...), zip(rights...)
+end
+
+function halve(xs::Iterators.PartitionIterator)
+    coll = xs.c
+    n = xs.n
+    m = n * cld(div(length(coll), n), 2)
+    offset = firstindex(coll) - 1
+    return (
+        Iterators.partition(view(coll, offset .+ (1:m)), n),
+        Iterators.partition(view(coll, offset .+ (m+1:length(coll))), n),
+    )
 end
 
 struct TaskContext
