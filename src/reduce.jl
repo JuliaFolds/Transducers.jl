@@ -385,12 +385,12 @@ tcopy(xf, T, reducible; kwargs...) =
 tcopy(xf, reducible; kwargs...) = tcopy(xf, _materializer(reducible), reducible; kwargs...)
 
 function tcopy(::Type{T}, itr; kwargs...) where {T}
-    xf, foldable = induction(eduction(itr))
+    xf, foldable = _extract_xf(itr)
     return tcopy(xf, T, foldable; kwargs...)
 end
 
 function tcopy(itr; kwargs...)
-    xf, foldable = induction(eduction(itr))
+    xf, foldable = _extract_xf(itr)
     return tcopy(xf, foldable; kwargs...)
 end
 

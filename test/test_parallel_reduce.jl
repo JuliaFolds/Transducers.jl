@@ -100,27 +100,19 @@ end
     end
 end
 
-@testset "tcopy(Map(identity), Set, ...)" begin
+@testset "tcopy(Set, ...)" begin
     @testset for xs in [[1], [1, 1], [1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1, 1]]
-        @test tcopy(Map(identity), Set, xs::Transducers.PartitionableArray) == Set([1])
+        @test tcopy(Set, xs::Transducers.PartitionableArray) == Set([1])
         @testset for basesize in 1:3
-            @test tcopy(
-                Map(identity),
-                Set,
-                xs::Transducers.PartitionableArray,
-                basesize = basesize,
-            ) == Set([1])
+            @test tcopy(Set, xs::Transducers.PartitionableArray, basesize = basesize) ==
+                Set([1])
         end
     end
     @testset "empty" begin
-        @test tcopy(Map(identity), Set, Int[]::Transducers.PartitionableArray) === Empty(Set)
+        @test tcopy(Set, Int[]::Transducers.PartitionableArray) === Empty(Set)
         @testset for basesize in 1:3
-            @test tcopy(
-                Map(identity),
-                Set,
-                Int[]::Transducers.PartitionableArray,
-                basesize = basesize,
-            ) == Empty(Set)
+            @test tcopy(Set, Int[]::Transducers.PartitionableArray, basesize = basesize) ==
+                Empty(Set)
         end
     end
 end
