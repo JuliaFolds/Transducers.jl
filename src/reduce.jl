@@ -394,6 +394,27 @@ function tcopy(itr; kwargs...)
     return tcopy(xf, foldable; kwargs...)
 end
 
+tcopy(xf, T::Type{<:AbstractSet}, reducible; kwargs...) =
+    reduce(union!!, xf |> Map(SingletonVector), reducible; init = Empty(T), kwargs...)
+
+function tcopy(
+    ::typeof(Map(identity)),
+    T::Type{<:AbstractSet},
+    array::PartitionableArray;
+    basesize::Integer = max(1, length(array) ÷ Threads.nthreads()),
+    kwargs...,
+)
+    @argcheck basesize >= 1
+    return reduce(
+        union!!,
+        Map(identity),
+        Iterators.partition(array, basesize);
+        init = Empty(T),
+        basesize = 1,
+        kwargs...,
+    )
+end
+
 """
     tcollect(xf::Transducer, reducible; basesize) :: Union{Vector, Empty{Vector}}
     tcollect(itr; basesize) :: Union{Vector, Empty{Vector}}

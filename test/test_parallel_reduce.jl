@@ -85,6 +85,46 @@ end
     ) == StructVector(a = 1:3)
 end
 
+@testset "tcopy(xf, Set, ...)" begin
+    @testset "1:$n" for n in 1:5
+        @test tcopy(Map(_ -> 'a'), Set, 1:n) == Set(['a'])
+        @testset for basesize in 1:3
+            @test tcopy(Map(_ -> 'a'), Set, 1:n, basesize = basesize) == Set(['a'])
+        end
+    end
+    @testset "empty" begin
+        @test isempty(tcopy(Filter(_ -> false), Set, [1, 2, 3]))
+        @testset for basesize in 1:3
+            @test isempty(tcopy(Filter(_ -> false), Set, [1, 2, 3], basesize = basesize))
+        end
+    end
+end
+
+@testset "tcopy(Map(identity), Set, ...)" begin
+    @testset for xs in [[1], [1, 1], [1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1, 1]]
+        @test tcopy(Map(identity), Set, xs::Transducers.PartitionableArray) == Set([1])
+        @testset for basesize in 1:3
+            @test tcopy(
+                Map(identity),
+                Set,
+                xs::Transducers.PartitionableArray,
+                basesize = basesize,
+            ) == Set([1])
+        end
+    end
+    @testset "empty" begin
+        @test tcopy(Map(identity), Set, Int[]::Transducers.PartitionableArray) === Empty(Set)
+        @testset for basesize in 1:3
+            @test tcopy(
+                Map(identity),
+                Set,
+                Int[]::Transducers.PartitionableArray,
+                basesize = basesize,
+            ) == Empty(Set)
+        end
+    end
+end
+
 @testset "product" begin
     @testset for basesize in 1:6
         @test tcollect(Map(identity), Iterators.product(1:3, 4:5); basesize = basesize) ==
