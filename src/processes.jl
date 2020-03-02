@@ -497,6 +497,9 @@ function is).
 induction(ed::Eduction) = (Transducer(ed.rf), ed.coll)
 induction(coll) = (Map(identity), coll)  # TODO: use `IdentityTransducer`
 
+_extract_xf(array::AbstractArray) = induction(array)
+_extract_xf(itr) = induction(eduction(itr))
+
 """
     setinput(ed::Eduction, coll)
 

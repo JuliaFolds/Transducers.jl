@@ -385,13 +385,34 @@ tcopy(xf, T, reducible; kwargs...) =
 tcopy(xf, reducible; kwargs...) = tcopy(xf, _materializer(reducible), reducible; kwargs...)
 
 function tcopy(::Type{T}, itr; kwargs...) where {T}
-    xf, foldable = induction(eduction(itr))
+    xf, foldable = _extract_xf(itr)
     return tcopy(xf, T, foldable; kwargs...)
 end
 
 function tcopy(itr; kwargs...)
-    xf, foldable = induction(eduction(itr))
+    xf, foldable = _extract_xf(itr)
     return tcopy(xf, foldable; kwargs...)
+end
+
+tcopy(xf, T::Type{<:AbstractSet}, reducible; kwargs...) =
+    reduce(union!!, xf |> Map(SingletonVector), reducible; init = Empty(T), kwargs...)
+
+function tcopy(
+    ::typeof(Map(identity)),
+    T::Type{<:AbstractSet},
+    array::PartitionableArray;
+    basesize::Integer = max(1, length(array) ÷ Threads.nthreads()),
+    kwargs...,
+)
+    @argcheck basesize >= 1
+    return reduce(
+        union!!,
+        Map(identity),
+        Iterators.partition(array, basesize);
+        init = Empty(T),
+        basesize = 1,
+        kwargs...,
+    )
 end
 
 """
