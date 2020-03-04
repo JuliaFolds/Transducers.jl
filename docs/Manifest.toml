@@ -141,9 +141,9 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Literate]]
 deps = ["Base64", "JSON", "REPL"]
-git-tree-sha1 = "1237e824184149798082d89a60805a67b577bc75"
+git-tree-sha1 = "82a49cc6c1a38980c537edef7f9998a1843b441d"
 uuid = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
-version = "2.2.1"
+version = "2.3.0"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
