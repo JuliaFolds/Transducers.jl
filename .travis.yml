@@ -34,9 +34,6 @@ jobs:
     - julia: nightly
   fast_finish: true
   include:
-    - name: JULIA_NUM_THREADS=1
-      env:
-        - JULIA_NUM_THREADS=1
     - julia: 1.0
       os: linux
       install:

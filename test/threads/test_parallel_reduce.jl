@@ -1,5 +1,5 @@
 module TestParallelReduce
-include("preamble.jl")
+include("../preamble.jl")
 using Transducers: transduce_assoc
 using StructArrays: StructVector
 
@@ -124,11 +124,6 @@ end
     end
     @test reduce(+, MapSplat(*), Iterators.product(1:3, 1:3); basesize = 1) == 36
     @test reduce(+, eduction(x * y for x in 1:3, y in 1:3); basesize = 1) == 36
-
-    @test_throws(
-        ErrorException("Unreachable reached. A bug in `issmall`? length(product) = 0"),
-        Transducers.halve(Iterators.product((), ()))
-    )
 end
 
 @testset "zip" begin

@@ -23,6 +23,7 @@ using Logging: LogLevel, @logmsg
 using Requires
 using InitialValues: InitialValues, InitialValue, SpecificInitialValue, Init,
     hasinitialvalue, asmonoid
+using SplittablesBase: halve
 
 import Setfield
 using Setfield: @lens, @set, set
