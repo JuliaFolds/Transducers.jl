@@ -79,48 +79,12 @@ issmall(reducible, basesize) = length(reducible) <= basesize
 issmall(reducible::SizedReducible) =
     issmall(reducible.reducible, max(reducible.basesize, 1))
 
-"""
-    Transducers.halve(reducible) -> (reducible_left, reducible_right)
-
-Split `reducible` collection (roughly) in half.
-
-Default implementation for `AbstractArray` creates two views for the
-first half and the last half.
-"""
-halve
-
-function halve(reducible::SizedReducible)
+function _halve(reducible::SizedReducible)
     left, right = halve(reducible.reducible)
     return (
         SizedReducible(left, reducible.basesize),
         SizedReducible(right, reducible.basesize),
     )
-end
-
-function halve(arr::AbstractArray)
-    # TODO: support "slow" arrays
-    mid = length(arr) ÷ 2
-    left = @view arr[firstindex(arr):firstindex(arr) - 1 + mid]
-    right = @view arr[firstindex(arr) + mid:end]
-    return (left, right)
-end
-
-function halve(product::Iterators.ProductIterator)
-    i = findfirst(x -> length(x) > 1, product.iterators)
-    if i === nothing
-        error(
-            "Unreachable reached. A bug in `issmall`?",
-            " length(product) = ",
-            length(product),
-        )
-    end
-    left, right = halve(product.iterators[i])
-    return (@set(product.iterators[i] = left), @set(product.iterators[i] = right))
-end
-
-@inline function halve(xs::Iterators.Zip)
-    lefts, rights = _unzip(map(halve, arguments(xs)))
-    return zip(lefts...), zip(rights...)
 end
 
 struct TaskContext
@@ -197,7 +161,7 @@ function _reduce(ctx, rf::R, init::I, reducible::Reducible) where {R, I}
         end
         return acc
     else
-        left, right = halve(reducible)
+        left, right = _halve(reducible)
         fg, bg = splitcontext(ctx)
         task = @spawn _reduce(bg, rf, init, right)
         a0 = _reduce(fg, rf, init, left)
@@ -374,13 +338,34 @@ tcopy(xf, T, reducible; kwargs...) =
 tcopy(xf, reducible; kwargs...) = tcopy(xf, _materializer(reducible), reducible; kwargs...)
 
 function tcopy(::Type{T}, itr; kwargs...) where {T}
-    xf, foldable = induction(eduction(itr))
+    xf, foldable = _extract_xf(itr)
     return tcopy(xf, T, foldable; kwargs...)
 end
 
 function tcopy(itr; kwargs...)
-    xf, foldable = induction(eduction(itr))
+    xf, foldable = _extract_xf(itr)
     return tcopy(xf, foldable; kwargs...)
+end
+
+tcopy(xf, T::Type{<:AbstractSet}, reducible; kwargs...) =
+    reduce(union!!, xf |> Map(SingletonVector), reducible; init = Empty(T), kwargs...)
+
+function tcopy(
+    ::typeof(Map(identity)),
+    T::Type{<:AbstractSet},
+    array::PartitionableArray;
+    basesize::Integer = max(1, length(array) ÷ Threads.nthreads()),
+    kwargs...,
+)
+    @argcheck basesize >= 1
+    return reduce(
+        union!!,
+        Map(identity),
+        Iterators.partition(array, basesize);
+        init = Empty(T),
+        basesize = 1,
+        kwargs...,
+    )
 end
 
 """
