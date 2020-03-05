@@ -1,6 +1,6 @@
 module TestExamplesWords
-include("preamble.jl")
-include("../examples/words.jl")
+include("../preamble.jl")
+include("../../examples/words.jl")
 
 N_SAMPLES = 100
 # N_SAMPLES = 1  # for debug
