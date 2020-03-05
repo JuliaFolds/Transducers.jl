@@ -79,58 +79,11 @@ issmall(reducible, basesize) = length(reducible) <= basesize
 issmall(reducible::SizedReducible) =
     issmall(reducible.reducible, max(reducible.basesize, 1))
 
-"""
-    Transducers.halve(reducible) -> (reducible_left, reducible_right)
-
-Split `reducible` collection (roughly) in half.
-
-Default implementation for `AbstractArray` creates two views for the
-first half and the last half.
-"""
-halve
-
-function halve(reducible::SizedReducible)
+function _halve(reducible::SizedReducible)
     left, right = halve(reducible.reducible)
     return (
         SizedReducible(left, reducible.basesize),
         SizedReducible(right, reducible.basesize),
-    )
-end
-
-function halve(arr::AbstractArray)
-    # TODO: support "slow" arrays
-    mid = length(arr) ÷ 2
-    left = @view arr[firstindex(arr):firstindex(arr) - 1 + mid]
-    right = @view arr[firstindex(arr) + mid:end]
-    return (left, right)
-end
-
-function halve(product::Iterators.ProductIterator)
-    i = findlast(x -> length(x) > 1, product.iterators)
-    if i === nothing
-        error(
-            "Unreachable reached. A bug in `issmall`?",
-            " length(product) = ",
-            length(product),
-        )
-    end
-    left, right = halve(product.iterators[i])
-    return (@set(product.iterators[i] = left), @set(product.iterators[i] = right))
-end
-
-@inline function halve(xs::Iterators.Zip)
-    lefts, rights = _unzip(map(halve, arguments(xs)))
-    return zip(lefts...), zip(rights...)
-end
-
-function halve(xs::Iterators.PartitionIterator)
-    coll = xs.c
-    n = xs.n
-    m = n * cld(div(length(coll), n), 2)
-    offset = firstindex(coll) - 1
-    return (
-        Iterators.partition(view(coll, offset .+ (1:m)), n),
-        Iterators.partition(view(coll, offset .+ (m+1:length(coll))), n),
     )
 end
 
@@ -208,7 +161,7 @@ function _reduce(ctx, rf::R, init::I, reducible::Reducible) where {R, I}
         end
         return acc
     else
-        left, right = halve(reducible)
+        left, right = _halve(reducible)
         fg, bg = splitcontext(ctx)
         task = @spawn _reduce(bg, rf, init, right)
         a0 = _reduce(fg, rf, init, left)
