@@ -45,6 +45,13 @@ prefixed_type_name(@nospecialize x) =
 const DenseSubVector{T} =
     SubArray{T, 1, Vector{T}, Tuple{UnitRange{Int64}}, true}
 
+# https://github.com/JuliaLang/julia/pull/33533
+if VERSION < v"1.4"
+    const PartitionableArray = Vector
+else
+    const PartitionableArray = AbstractArray
+end
+
 
 const _non_executable_transducer_msg = """
 Output type of the transducer is inferred to be a `Union{}`.  This
