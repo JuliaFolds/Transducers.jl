@@ -164,7 +164,7 @@ deps = ["Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [[Referenceables]]
-git-tree-sha1 = "15bdf02083a280b6578e78699ee4aa900e22f94c"
+git-tree-sha1 = "d60e025446374e2ca727a8c122e4bcaab80af248"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/Referenceables.jl"
 uuid = "42d2dcc6-99eb-4e98-b66c-637b7d73030e"
