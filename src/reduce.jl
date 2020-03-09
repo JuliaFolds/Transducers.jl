@@ -1,5 +1,5 @@
 """
-    reduce(step, xf, reducible; [init, simd, basesize]) :: T
+    reduce(step, xf, reducible; [init, simd, basesize, terminatable]) :: T
 
 Thread-based parallelization of [`foldl`](@ref).  The "bottom"
 reduction function `step(::T, ::T) :: T` must be associative and
@@ -23,6 +23,10 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
     * computation time for processing each item fluctuates a lot
     * computation can be terminated by [`reduced`](@ref) or
       transducers using it, such as [`ReduceIf`](@ref)
+- `terminatable::Bool = true`: Transducers.jl's `reduce` has a slight overhead
+  for supporting terminatable reduction with [`reduced`](@ref).  Although it is
+  negligible in normal workload, it can be disabled by passing
+  `terminatable = false`.
 - For other keyword arguments, see [`foldl`](@ref).
 
 # Examples
@@ -125,7 +129,7 @@ function transduce_assoc(
     coll;
     simd::SIMDFlag = Val(false),
     basesize::Integer = length(coll) ÷ Threads.nthreads(),
-    terminatable = true,
+    terminatable::Bool = true,
 )
     rf = maybe_usesimd(Reduction(xform, step), simd)
     acc = @return_if_reduced _transduce_assoc_nocomplete(
