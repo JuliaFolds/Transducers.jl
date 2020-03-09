@@ -1,5 +1,5 @@
 module TestParallelReduce
-include("preamble.jl")
+include("../preamble.jl")
 using Transducers: transduce_assoc
 using StructArrays: StructVector
 
@@ -54,6 +54,12 @@ end
     end
 end
 
+@testset "empty case" begin
+    err = @test_error reduce(+, Map(identity), 1:0)
+    msg = sprint(showerror, err)
+    @test occursin("The input collection is empty or", msg)
+end
+
 @testset "`complete` should not be called on `Reduced`" begin
     rf(_, x) = x
     rf(x::Reduced) = error("rf(", x, ") is called")
@@ -79,16 +85,55 @@ end
     ) == StructVector(a = 1:3)
 end
 
-@testset "product" begin
-    if VERSION >= v"1.3"
-        @test reduce(+, MapSplat(*), Iterators.product(1:3, 1:3); basesize = 1) == 36
-        @test reduce(+, eduction(x * y for x in 1:3, y in 1:3); basesize = 1) == 36
+@testset "tcopy(xf, Set, ...)" begin
+    @testset "1:$n" for n in 1:5
+        @test tcopy(Map(_ -> 'a'), Set, 1:n) == Set(['a'])
+        @testset for basesize in 1:3
+            @test tcopy(Map(_ -> 'a'), Set, 1:n, basesize = basesize) == Set(['a'])
+        end
     end
+    @testset "empty" begin
+        @test isempty(tcopy(Filter(_ -> false), Set, [1, 2, 3]))
+        @testset for basesize in 1:3
+            @test isempty(tcopy(Filter(_ -> false), Set, [1, 2, 3], basesize = basesize))
+        end
+    end
+end
 
-    @test_throws(
-        ErrorException("Unreachable reached. A bug in `issmall`? length(product) = 0"),
-        Transducers.halve(Iterators.product((), ()))
-    )
+@testset "tcopy(Set, ...)" begin
+    @testset for xs in [[1], [1, 1], [1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1, 1]]
+        @test tcopy(Set, xs::Transducers.PartitionableArray) == Set([1])
+        @testset for basesize in 1:3
+            @test tcopy(Set, xs::Transducers.PartitionableArray, basesize = basesize) ==
+                Set([1])
+        end
+    end
+    @testset "empty" begin
+        @test tcopy(Set, Int[]::Transducers.PartitionableArray) === Empty(Set)
+        @testset for basesize in 1:3
+            @test tcopy(Set, Int[]::Transducers.PartitionableArray, basesize = basesize) ==
+                Empty(Set)
+        end
+    end
+end
+
+@testset "product" begin
+    @testset for basesize in 1:6
+        @test tcollect(Map(identity), Iterators.product(1:3, 4:5); basesize = basesize) ==
+              vec(collect(Iterators.product(1:3, 4:5)))
+    end
+    @test reduce(+, MapSplat(*), Iterators.product(1:3, 1:3); basesize = 1) == 36
+    @test reduce(+, eduction(x * y for x in 1:3, y in 1:3); basesize = 1) == 36
+end
+
+@testset "zip" begin
+    @test reduce(+, MapSplat(*), zip(1:5, 1:5); basesize = 1) == 55
+end
+
+@testset "partition" begin
+    @testset for n in 1:10, basesize in 1:cld(10, n)
+        @test tcollect(Cat(), Iterators.partition(1:10, n); basesize = basesize) == 1:10
+    end
 end
 
 @testset "TCat" begin

@@ -34,9 +34,6 @@ jobs:
     - julia: nightly
   fast_finish: true
   include:
-    - name: JULIA_NUM_THREADS=1
-      env:
-        - JULIA_NUM_THREADS=1
     - julia: 1.0
       os: linux
       install:
@@ -86,10 +83,3 @@ jobs:
       after_success: skip
       after_script: lscpu
       if: type != push
-    - stage: "Documentation"
-      os: linux
-      install:
-        - julia -e 'using Run; Run.prepare_docs()'
-      script:
-        - julia -e 'using Run; Run.docs()'
-      after_success: skip

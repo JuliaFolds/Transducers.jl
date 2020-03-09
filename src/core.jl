@@ -411,6 +411,30 @@ complete(rf::AbstractReduction, result) =
         complete(inner(rf), result)
     end
 
+"""
+    Transducers.combine(rf::R_{X}, state_left, state_right)
+
+This is an optional interface for a transducer.  If transducer `X` is
+stateful (i.e., [`wrap`](@ref) is used in [`start`](@ref)), it has to
+be able to combine the private states to support fold functions that
+require an associative reducing function such as [`reduce`](@ref).
+Typical implementation takes the following form:
+
+```julia
+function combine(rf::R_{X}, a, b)
+    #   ,---- `ua` and `ub` are the private state of the transducer `X`
+    #  /  ,-- `ira` and `irb` are the states of inner reducing functions
+    # /  /
+    ua, ira = unwrap(rf, a)
+    ub, irb = unwrap(rf, b)
+    irc = combine(inner(rf), ira, irb)
+    uc = # somehow combine private states `ua` and `ub`
+    return wrap(rf, uc, irc)
+end
+```
+
+See [`ScanEmit`](@ref), etc. for real-world examples.
+"""
 combine(f, a, b) = f(a, b)
 combine(rf::Reduction, a, b) =
     # Not using dispatch to avoid ambiguity

@@ -349,7 +349,7 @@ _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
 @inline function transduce(rf0::AbstractReduction, init, coll;
                            simd::SIMDFlag = Val(false))
     # Inlining `transduce` and `__foldl__` were essential for the
-    # `darkritual` below to work.
+    # `restack` below to work.
     rf = maybe_usesimd(rf0, simd)
     state = _start_init(rf, init)
     foldable = asfoldable(coll)
@@ -496,6 +496,9 @@ function is).
 """
 induction(ed::Eduction) = (Transducer(ed.rf), ed.coll)
 induction(coll) = (Map(identity), coll)  # TODO: use `IdentityTransducer`
+
+_extract_xf(array::AbstractArray) = induction(array)
+_extract_xf(itr) = induction(eduction(itr))
 
 """
     setinput(ed::Eduction, coll)
@@ -709,22 +712,16 @@ function Base.map!(xf::Transducer, dest::AbstractArray, src::AbstractArray;
     return dest
 end
 
-_map!(rf, coll, dest) = transduce(darkritual(rf), nothing, coll)
+_map!(rf, coll, dest) = transduce(restack(rf), nothing, coll)
 
+# The idea behind `restack` (previously called `darkritual`):
 # Deep-copy `AbstractReduction` so that compiler can treat the all
 # reducing function tree nodes as local variables (???).  Aslo, it
 # tells compiler that `dest` is a local variable so that it won't
 # fetch `dest` via `getproperty` in each iteration.  (This is too much
 # magic...  My reasoning of how it works could be completely wrong.
 # But at least it should not change the semantics of the function.)
-@inline darkritual(x) = x
-@inline darkritual(xf::SetIndex) = typeof(xf)(xf.array)
-@inline darkritual(rf::R) where {R <: Reduction} =
-    R(darkritual(xform(rf)), darkritual(inner(rf)))
-@inline darkritual(rf::R) where {R <: Joiner} =
-    R(darkritual(inner(rf)))
-@inline darkritual(rf::R) where {R <: Splitter} =
-    R(darkritual(inner(rf)))
+# Probably related: https://github.com/JuliaLang/julia/pull/18632
 
 function _prepare_map(xf, dest, src, simd)
     isexpansive(xf) && error("map! only supports non-expanding transducer")

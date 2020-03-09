@@ -63,36 +63,28 @@ end
 
 foldable(reducible::SizedReducible) = reducible.reducible
 
-issmall(reducible::SizedReducible) =
-    length(reducible.reducible) <= max(reducible.basesize, 1)
+"""
+    Transducers.issmall(reducible, basesize) :: Bool
 
-function halve(reducible::SizedReducible)
+Check if `reducible` collection is considered small compared to
+`basesize` (an integer).  Fold functions such as [`reduce`](@ref)
+switches to sequential `__foldl__` when `issmall` returns `true`.
+
+Default implementation is `length(reducible) <= basesize`.
+"""
+issmall
+
+issmall(reducible, basesize) = length(reducible) <= basesize
+
+issmall(reducible::SizedReducible) =
+    issmall(reducible.reducible, max(reducible.basesize, 1))
+
+function _halve(reducible::SizedReducible)
     left, right = halve(reducible.reducible)
     return (
         SizedReducible(left, reducible.basesize),
         SizedReducible(right, reducible.basesize),
     )
-end
-
-function halve(arr::AbstractArray)
-    # TODO: support "slow" arrays
-    mid = length(arr) ÷ 2
-    left = @view arr[firstindex(arr):firstindex(arr) - 1 + mid]
-    right = @view arr[firstindex(arr) + mid:end]
-    return (left, right)
-end
-
-function halve(product::Iterators.ProductIterator)
-    i = findfirst(x -> length(x) > 1, product.iterators)
-    if i === nothing
-        error(
-            "Unreachable reached. A bug in `issmall`?",
-            " length(product) = ",
-            length(product),
-        )
-    end
-    left, right = halve(product.iterators[i])
-    return (@set(product.iterators[i] = left), @set(product.iterators[i] = right))
 end
 
 struct TaskContext
@@ -133,11 +125,23 @@ function transduce_assoc(
 )
     rf = maybe_usesimd(Reduction(xform, step), simd)
     acc = @return_if_reduced _transduce_assoc_nocomplete(rf, init, coll, basesize)
-    return complete(rf, acc)
+    result = complete(rf, acc)
+    if unreduced(result) isa DefaultInit
+        throw(EmptyResultError(rf))
+        # See how `transduce(rf, init, coll)` is implemented in ./processes.jl
+    end
+    return result
+end
+
+if VERSION >= v"1.3-alpha"
+    maybe_collect(coll) = coll
+else
+    maybe_collect(coll::AbstractArray) = coll
+    maybe_collect(coll) = collect(coll)
 end
 
 function _transduce_assoc_nocomplete(rf, init, coll, basesize)
-    reducible = SizedReducible(coll, basesize)
+    reducible = SizedReducible(maybe_collect(coll), basesize)
     @static if VERSION >= v"1.3-alpha"
         return _reduce(TaskContext(), DummyTask(), rf, init, reducible)
     else
@@ -145,7 +149,13 @@ function _transduce_assoc_nocomplete(rf, init, coll, basesize)
     end
 end
 
-function _reduce(ctx, next_task, rf, init, reducible::Reducible)
+@noinline _reduce_basecase(rf::F, init::I, reducible) where {F,I} =
+    restack(foldl_nocomplete(rf, _start_init(rf, init), foldable(reducible)))
+# `restack` here is crucial when using heap-allocated accumulator.
+# See `ThreadsX.unique` and the MWE extracted from it:
+# https://github.com/tkf/Restacker.jl/blob/master/benchmark/bench_unique.jl
+
+function _reduce(ctx, next_task, rf::R, init::I, reducible::Reducible) where {R, I}
     if should_abort(ctx)
         # As other tasks may be calling `fetch` on `next_task`, it
         # _must_ be scheduled at some point to avoid dead lock:
@@ -155,13 +165,13 @@ function _reduce(ctx, next_task, rf, init, reducible::Reducible)
     end
     if issmall(reducible)
         schedule(next_task)
-        acc = foldl_nocomplete(rf, _start_init(rf, init), foldable(reducible))
+        acc = _reduce_basecase(rf, init, reducible)
         if acc isa Reduced
             cancel!(ctx)
         end
         return acc
     else
-        left, right = halve(reducible)
+        left, right = _halve(reducible)
         fg, bg = splitcontext(ctx)
         task = nonsticky!(@task _reduce(bg, next_task, rf, init, right))
         a0 = _reduce(fg, task, rf, init, left)
@@ -338,13 +348,34 @@ tcopy(xf, T, reducible; kwargs...) =
 tcopy(xf, reducible; kwargs...) = tcopy(xf, _materializer(reducible), reducible; kwargs...)
 
 function tcopy(::Type{T}, itr; kwargs...) where {T}
-    xf, foldable = induction(eduction(itr))
+    xf, foldable = _extract_xf(itr)
     return tcopy(xf, T, foldable; kwargs...)
 end
 
 function tcopy(itr; kwargs...)
-    xf, foldable = induction(eduction(itr))
+    xf, foldable = _extract_xf(itr)
     return tcopy(xf, foldable; kwargs...)
+end
+
+tcopy(xf, T::Type{<:AbstractSet}, reducible; kwargs...) =
+    reduce(union!!, xf |> Map(SingletonVector), reducible; init = Empty(T), kwargs...)
+
+function tcopy(
+    ::typeof(Map(identity)),
+    T::Type{<:AbstractSet},
+    array::PartitionableArray;
+    basesize::Integer = max(1, length(array) ÷ Threads.nthreads()),
+    kwargs...,
+)
+    @argcheck basesize >= 1
+    return reduce(
+        union!!,
+        Map(identity),
+        Iterators.partition(array, basesize);
+        init = Empty(T),
+        basesize = 1,
+        kwargs...,
+    )
 end
 
 """

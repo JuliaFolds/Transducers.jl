@@ -189,6 +189,11 @@ else
         )
 end
 
+if VERSION < v"1.3-alpha"
+    maybe_collect(coll::ProgressLoggingFoldable) =
+        @set coll.foldable = maybe_collect(coll.foldable)
+end
+
 struct RemoteReduceWithLogging{C} <: Function
     chan::C
     progress_interval::Float64
