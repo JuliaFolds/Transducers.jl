@@ -38,9 +38,14 @@ end
 end
 
 @testset "early termination (grid)" begin
-    @testset for needle in 1:20, len in 1:20
-        @test reduce(right, ReduceIf(x -> x >= needle), 1:len; basesize=1) ==
-            min(needle, len)
+    @testset for needle in 1:20, len in 1:20, terminatable in [true, false]
+        @test reduce(
+            right,
+            ReduceIf(x -> x >= needle),
+            1:len;
+            basesize = 1,
+            terminatable = terminatable,
+        ) == min(needle, len)
     end
 end
 
@@ -51,6 +56,8 @@ end
         xs = collect(enumerate(rand(rng, 1:100, 100 * basesize)))
         xf = ReduceIf(x -> x[2] >= p)
         @test reduce(right, xf, xs; basesize=basesize) == foldl(right, xf, xs)
+        @test reduce(right, xf, xs; basesize = basesize, terminatable = false) ==
+            foldl(right, xf, xs)
     end
 end
 

@@ -1,5 +1,5 @@
 """
-    reduce(step, xf, reducible; [init, simd, basesize]) :: T
+    reduce(step, xf, reducible; [init, simd, basesize, terminatable]) :: T
 
 Thread-based parallelization of [`foldl`](@ref).  The "bottom"
 reduction function `step(::T, ::T) :: T` must be associative and
@@ -23,6 +23,10 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
     * computation time for processing each item fluctuates a lot
     * computation can be terminated by [`reduced`](@ref) or
       transducers using it, such as [`ReduceIf`](@ref)
+- `terminatable::Bool = true`: Transducers.jl's `reduce` has a slight overhead
+  for supporting terminatable reduction with [`reduced`](@ref).  Although it is
+  negligible in normal workload, it can be disabled by passing
+  `terminatable = false`.
 - For other keyword arguments, see [`foldl`](@ref).
 
 # Examples
@@ -115,13 +119,26 @@ function cancel!(ctx::TaskContext)
     end
 end
 
+struct DummyTask end
+Base.schedule(::DummyTask) = nothing
+
 function transduce_assoc(
-    xform::Transducer, step, init, coll;
+    xform::Transducer,
+    step,
+    init,
+    coll;
     simd::SIMDFlag = Val(false),
     basesize::Integer = length(coll) ÷ Threads.nthreads(),
+    terminatable::Bool = true,
 )
     rf = maybe_usesimd(Reduction(xform, step), simd)
-    acc = @return_if_reduced _transduce_assoc_nocomplete(rf, init, coll, basesize)
+    acc = @return_if_reduced _transduce_assoc_nocomplete(
+        rf,
+        init,
+        coll,
+        basesize,
+        terminatable,
+    )
     result = complete(rf, acc)
     if unreduced(result) isa DefaultInit
         throw(EmptyResultError(rf))
@@ -137,10 +154,10 @@ else
     maybe_collect(coll) = collect(coll)
 end
 
-function _transduce_assoc_nocomplete(rf, init, coll, basesize)
+function _transduce_assoc_nocomplete(rf, init, coll, basesize, terminatable = true)
     reducible = SizedReducible(maybe_collect(coll), basesize)
     @static if VERSION >= v"1.3-alpha"
-        return _reduce(TaskContext(), rf, init, reducible)
+        return _reduce(TaskContext(), terminatable, DummyTask(), rf, init, reducible)
     else
         return _reduce_threads_for(rf, init, reducible)
     end
@@ -152,9 +169,23 @@ end
 # See `ThreadsX.unique` and the MWE extracted from it:
 # https://github.com/tkf/Restacker.jl/blob/master/benchmark/bench_unique.jl
 
-function _reduce(ctx, rf::R, init::I, reducible::Reducible) where {R, I}
-    should_abort(ctx) && return init
+function _reduce(
+    ctx,
+    terminatable,
+    next_task,
+    rf::R,
+    init::I,
+    reducible::Reducible,
+) where {R,I}
+    if should_abort(ctx)
+        # As other tasks may be calling `fetch` on `next_task`, it
+        # _must_ be scheduled at some point to avoid dead lock:
+        terminatable && schedule(next_task)
+        # Maybe use `error=false`?  Or pass something and get it via `yieldto`?
+        return init
+    end
     if issmall(reducible)
+        terminatable && schedule(next_task)
         acc = _reduce_basecase(rf, init, reducible)
         if acc isa Reduced
             cancel!(ctx)
@@ -163,8 +194,9 @@ function _reduce(ctx, rf::R, init::I, reducible::Reducible) where {R, I}
     else
         left, right = _halve(reducible)
         fg, bg = splitcontext(ctx)
-        task = @spawn _reduce(bg, rf, init, right)
-        a0 = _reduce(fg, rf, init, left)
+        task = nonsticky!(@task _reduce(bg, terminatable, next_task, rf, init, right))
+        terminatable || schedule(task)
+        a0 = _reduce(fg, terminatable, task, rf, init, left)
         b0 = fetch(task)
         a = @return_if_reduced a0
         should_abort(ctx) && return a  # slight optimization
