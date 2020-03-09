@@ -6,7 +6,8 @@ using Transducers
 suite = BenchmarkGroup()
 
 let n = 64
-    s = suite["n=$n"] = BenchmarkGroup()
+    # s = suite["n=$n"] = BenchmarkGroup()
+    s = suite  # there is only one `n` for now
     s["terminatable=true"] = @benchmarkable reduce(
         right,
         Map(_ -> nothing),
