@@ -1,6 +1,6 @@
 module TestCopy
 
-include("preamble.jl")
+include("../preamble.jl")
 import Tables
 using DataFrames: DataFrame, eachrow
 using StructArrays: StructVector, StructArray
