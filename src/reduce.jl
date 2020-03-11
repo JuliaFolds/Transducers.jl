@@ -23,10 +23,11 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
     * computation time for processing each item fluctuates a lot
     * computation can be terminated by [`reduced`](@ref) or
       transducers using it, such as [`ReduceIf`](@ref)
-- `terminatable::Bool = true`: Transducers.jl's `reduce` has a slight overhead
-  for supporting terminatable reduction with [`reduced`](@ref).  Although it is
-  negligible in normal workload, it can be disabled by passing
-  `terminatable = false`.
+- `terminatable::Bool`: [This option usually does not have to be set
+  manually.]  Transducers.jl's `reduce` has a slight overhead for
+  supporting terminatable reduction with [`reduced`](@ref).  It can be
+  disabled by passing `terminatable = false`.  It is automatically set
+  when needed.
 - For other keyword arguments, see [`foldl`](@ref).
 
 # Examples
@@ -129,9 +130,12 @@ function transduce_assoc(
     coll;
     simd::SIMDFlag = Val(false),
     basesize::Integer = length(coll) ÷ Threads.nthreads(),
-    terminatable::Bool = true,
+    terminatable::Union{Bool,Nothing} = nothing,
 )
     rf = maybe_usesimd(Reduction(xform, step), simd)
+    if terminatable === nothing
+        terminatable = _might_return_reduced(rf, init, coll)
+    end
     acc = @return_if_reduced _transduce_assoc_nocomplete(
         rf,
         init,
@@ -247,6 +251,34 @@ combine_step(rf) =
         b0 isa Reduced && return combine_right_reduced(rf, a, b0)
         return combine(rf, a, b0)
     end
+
+# The output of `reduce` is correct regardless of the value of
+# `terminatable`.  Thus, we can use `return_type` here purely for
+# optimization.
+_might_return_reduced(rf, init, coll) =
+    Base.typeintersect(
+        Core.Compiler.return_type(
+            _reduce_dummy,  # simulate the output type of `_reduce`
+            typeof((rf, init, coll)),
+        ),
+        Reduced,
+    ) !== Union{}
+
+_reduce_dummy(rf, init, coll) =
+    __reduce_dummy(rf, init, SizedReducible(maybe_collect(coll), 1))
+
+function __reduce_dummy(rf, init, reducible)
+    if issmall(reducible)
+        return _reduce_basecase(rf, init, reducible)
+    else
+        left, right = halve(reducible)
+        a = _reduce_dummy(rf, init, left)
+        b = _reduce_dummy(rf, init, right)
+        a isa Reduced && return a
+        b isa Reduced && return combine_right_reduced(rf, a, b)
+        return combine(rf, a, b)
+    end
+end
 
 # AbstractArray for disambiguation
 Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
