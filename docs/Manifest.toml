@@ -24,9 +24,9 @@ version = "0.7.7"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "c437ba8bb82f5ec9a5d8cb881031ffa2dbe1038c"
+git-tree-sha1 = "2e23d71ad695ec28ca58ddd44869f07afa33cc76"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "3.6.0"
+version = "3.7.0"
 
 [[ConstructionBase]]
 git-tree-sha1 = "a2a6a5fea4d6f730ec4c18a76d27ec10e8ec1c50"
@@ -175,15 +175,15 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[OnlineStats]]
 deps = ["Dates", "LearnBase", "LinearAlgebra", "LossFunctions", "OnlineStatsBase", "OrderedCollections", "PenaltyFunctions", "Random", "RecipesBase", "Reexport", "Statistics", "StatsBase", "SweepOperator"]
-git-tree-sha1 = "a558f6ef79e0191308b7fab4a04426f5cb4374cf"
+git-tree-sha1 = "e1179f70d8843a6f70f67a2bf5f9c250237c917d"
 uuid = "a15396b6-48d5-5d58-9928-6d29437db91e"
-version = "1.0.3"
+version = "1.0.4"
 
 [[OnlineStatsBase]]
-deps = ["Dates", "LearnBase", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "f375c3a187436278bae1e1e8eaae853449737097"
+deps = ["Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
+git-tree-sha1 = "b30b64c600a77c67c7e3613a5a1d71f5ff8a83e3"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.0.2"
+version = "1.1.0"
 
 [[OrderedCollections]]
 deps = ["Random", "Serialization", "Test"]
