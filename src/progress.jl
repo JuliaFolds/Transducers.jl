@@ -172,14 +172,14 @@ end
 
 _reduce(
     ctx,
-    terminatable,
+    stoppable,
     task,
     rf,
     init,
     coll::SizedReducible{<:ProgressLoggingFoldable},
 ) =
     _reduce_progress(rf, init, coll) do rf, init, coll
-        _reduce(ctx, terminatable, task, rf, init, coll)
+        _reduce(ctx, stoppable, task, rf, init, coll)
     end
 
 if VERSION >= v"1.2"
