@@ -1,5 +1,5 @@
 """
-    reduce(step, xf, reducible; [init, simd, basesize, terminatable]) :: T
+    reduce(step, xf, reducible; [init, simd, basesize, stoppable]) :: T
 
 Thread-based parallelization of [`foldl`](@ref).  The "bottom"
 reduction function `step(::T, ::T) :: T` must be associative and
@@ -23,10 +23,10 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
     * computation time for processing each item fluctuates a lot
     * computation can be terminated by [`reduced`](@ref) or
       transducers using it, such as [`ReduceIf`](@ref)
-- `terminatable::Bool`: [This option usually does not have to be set
+- `stoppable::Bool`: [This option usually does not have to be set
   manually.]  Transducers.jl's `reduce` has a slight overhead for
-  supporting terminatable reduction with [`reduced`](@ref).  It can be
-  disabled by passing `terminatable = false`.  It is automatically set
+  supporting stoppable reduction with [`reduced`](@ref).  It can be
+  disabled by passing `stoppable = false`.  It is automatically set
   when needed.
 - For other keyword arguments, see [`foldl`](@ref).
 
@@ -130,18 +130,18 @@ function transduce_assoc(
     coll;
     simd::SIMDFlag = Val(false),
     basesize::Integer = length(coll) ÷ Threads.nthreads(),
-    terminatable::Union{Bool,Nothing} = nothing,
+    stoppable::Union{Bool,Nothing} = nothing,
 )
     rf = maybe_usesimd(Reduction(xform, step), simd)
-    if terminatable === nothing
-        terminatable = _might_return_reduced(rf, init, coll)
+    if stoppable === nothing
+        stoppable = _might_return_reduced(rf, init, coll)
     end
     acc = @return_if_reduced _transduce_assoc_nocomplete(
         rf,
         init,
         coll,
         basesize,
-        terminatable,
+        stoppable,
     )
     result = complete(rf, acc)
     if unreduced(result) isa DefaultInit
@@ -158,10 +158,10 @@ else
     maybe_collect(coll) = collect(coll)
 end
 
-function _transduce_assoc_nocomplete(rf, init, coll, basesize, terminatable = true)
+function _transduce_assoc_nocomplete(rf, init, coll, basesize, stoppable = true)
     reducible = SizedReducible(maybe_collect(coll), basesize)
     @static if VERSION >= v"1.3-alpha"
-        return _reduce(TaskContext(), terminatable, DummyTask(), rf, init, reducible)
+        return _reduce(TaskContext(), stoppable, DummyTask(), rf, init, reducible)
     else
         return _reduce_threads_for(rf, init, reducible)
     end
@@ -175,7 +175,7 @@ end
 
 function _reduce(
     ctx,
-    terminatable,
+    stoppable,
     next_task,
     rf::R,
     init::I,
@@ -184,12 +184,12 @@ function _reduce(
     if should_abort(ctx)
         # As other tasks may be calling `fetch` on `next_task`, it
         # _must_ be scheduled at some point to avoid dead lock:
-        terminatable && schedule(next_task)
+        stoppable && schedule(next_task)
         # Maybe use `error=false`?  Or pass something and get it via `yieldto`?
         return init
     end
     if issmall(reducible)
-        terminatable && schedule(next_task)
+        stoppable && schedule(next_task)
         acc = _reduce_basecase(rf, init, reducible)
         if acc isa Reduced
             cancel!(ctx)
@@ -198,9 +198,9 @@ function _reduce(
     else
         left, right = _halve(reducible)
         fg, bg = splitcontext(ctx)
-        task = nonsticky!(@task _reduce(bg, terminatable, next_task, rf, init, right))
-        terminatable || schedule(task)
-        a0 = _reduce(fg, terminatable, task, rf, init, left)
+        task = nonsticky!(@task _reduce(bg, stoppable, next_task, rf, init, right))
+        stoppable || schedule(task)
+        a0 = _reduce(fg, stoppable, task, rf, init, left)
         b0 = fetch(task)
         a = @return_if_reduced a0
         should_abort(ctx) && return a  # slight optimization
@@ -253,7 +253,7 @@ combine_step(rf) =
     end
 
 # The output of `reduce` is correct regardless of the value of
-# `terminatable`.  Thus, we can use `return_type` here purely for
+# `stoppable`.  Thus, we can use `return_type` here purely for
 # optimization.
 _might_return_reduced(rf, init, coll) =
     Base.typeintersect(

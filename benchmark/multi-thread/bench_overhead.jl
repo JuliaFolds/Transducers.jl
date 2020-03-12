@@ -13,21 +13,21 @@ let n = 64
         Map(_ -> nothing),
         1:$n;
         basesize = 1,
-        # terminatable = nothing,
+        # stoppable = nothing,
     )
-    s["terminatable=true"] = @benchmarkable reduce(
+    s["stoppable=true"] = @benchmarkable reduce(
         right,
         Map(_ -> nothing),
         1:$n;
         basesize = 1,
-        terminatable = true,
+        stoppable = true,
     )
-    s["terminatable=false"] = @benchmarkable reduce(
+    s["stoppable=false"] = @benchmarkable reduce(
         right,
         Map(_ -> nothing),
         1:$n;
         basesize = 1,
-        terminatable = false,
+        stoppable = false,
     )
 end
 
