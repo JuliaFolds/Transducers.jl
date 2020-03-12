@@ -24,11 +24,17 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
     * computation can be terminated by [`reduced`](@ref) or
       transducers using it, such as [`ReduceIf`](@ref)
 - `stoppable::Bool`: [This option usually does not have to be set
-  manually.]  Transducers.jl's `reduce` has a slight overhead for
-  supporting stoppable reduction with [`reduced`](@ref).  It can be
-  disabled by passing `stoppable = false`.  It is automatically set
-  when needed.
+  manually.]  Transducers.jl's `reduce` executed in the "stoppable"
+  mode used for optimizing reduction with [`reduced`](@ref) has a
+  slight overhead if `reduced` is not used.  This mode can be disabled
+  by passing `stoppable = false`.  It is usually automatically
+  detected and set appropriately.  Note that this option is purely for
+  optimization and does not affect the result value.
 - For other keyword arguments, see [`foldl`](@ref).
+
+!!! compat "Transducers.jl 0.4.23"
+
+    Keyword option `stoppable` requires at least Transducers.jl 0.4.23.
 
 # Examples
 ```jldoctest
