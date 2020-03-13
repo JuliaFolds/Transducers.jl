@@ -1,5 +1,5 @@
 """
-    reduce(step, xf, reducible; [init, simd, basesize, terminatable]) :: T
+    reduce(step, xf, reducible; [init, simd, basesize, stoppable]) :: T
 
 Thread-based parallelization of [`foldl`](@ref).  The "bottom"
 reduction function `step(::T, ::T) :: T` must be associative and
@@ -23,11 +23,18 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
     * computation time for processing each item fluctuates a lot
     * computation can be terminated by [`reduced`](@ref) or
       transducers using it, such as [`ReduceIf`](@ref)
-- `terminatable::Bool = true`: Transducers.jl's `reduce` has a slight overhead
-  for supporting terminatable reduction with [`reduced`](@ref).  Although it is
-  negligible in normal workload, it can be disabled by passing
-  `terminatable = false`.
+- `stoppable::Bool`: [This option usually does not have to be set
+  manually.]  Transducers.jl's `reduce` executed in the "stoppable"
+  mode used for optimizing reduction with [`reduced`](@ref) has a
+  slight overhead if `reduced` is not used.  This mode can be disabled
+  by passing `stoppable = false`.  It is usually automatically
+  detected and set appropriately.  Note that this option is purely for
+  optimization and does not affect the result value.
 - For other keyword arguments, see [`foldl`](@ref).
+
+!!! compat "Transducers.jl 0.4.23"
+
+    Keyword option `stoppable` requires at least Transducers.jl 0.4.23.
 
 # Examples
 ```jldoctest
@@ -129,15 +136,18 @@ function transduce_assoc(
     coll;
     simd::SIMDFlag = Val(false),
     basesize::Integer = length(coll) ÷ Threads.nthreads(),
-    terminatable::Bool = true,
+    stoppable::Union{Bool,Nothing} = nothing,
 )
     rf = maybe_usesimd(Reduction(xform, step), simd)
+    if stoppable === nothing
+        stoppable = _might_return_reduced(rf, init, coll)
+    end
     acc = @return_if_reduced _transduce_assoc_nocomplete(
         rf,
         init,
         coll,
         basesize,
-        terminatable,
+        stoppable,
     )
     result = complete(rf, acc)
     if unreduced(result) isa DefaultInit
@@ -154,10 +164,10 @@ else
     maybe_collect(coll) = collect(coll)
 end
 
-function _transduce_assoc_nocomplete(rf, init, coll, basesize, terminatable = true)
+function _transduce_assoc_nocomplete(rf, init, coll, basesize, stoppable = true)
     reducible = SizedReducible(maybe_collect(coll), basesize)
     @static if VERSION >= v"1.3-alpha"
-        return _reduce(TaskContext(), terminatable, DummyTask(), rf, init, reducible)
+        return _reduce(TaskContext(), stoppable, DummyTask(), rf, init, reducible)
     else
         return _reduce_threads_for(rf, init, reducible)
     end
@@ -171,7 +181,7 @@ end
 
 function _reduce(
     ctx,
-    terminatable,
+    stoppable,
     next_task,
     rf::R,
     init::I,
@@ -180,12 +190,12 @@ function _reduce(
     if should_abort(ctx)
         # As other tasks may be calling `fetch` on `next_task`, it
         # _must_ be scheduled at some point to avoid dead lock:
-        terminatable && schedule(next_task)
+        stoppable && schedule(next_task)
         # Maybe use `error=false`?  Or pass something and get it via `yieldto`?
         return init
     end
     if issmall(reducible)
-        terminatable && schedule(next_task)
+        stoppable && schedule(next_task)
         acc = _reduce_basecase(rf, init, reducible)
         if acc isa Reduced
             cancel!(ctx)
@@ -194,9 +204,9 @@ function _reduce(
     else
         left, right = _halve(reducible)
         fg, bg = splitcontext(ctx)
-        task = nonsticky!(@task _reduce(bg, terminatable, next_task, rf, init, right))
-        terminatable || schedule(task)
-        a0 = _reduce(fg, terminatable, task, rf, init, left)
+        task = nonsticky!(@task _reduce(bg, stoppable, next_task, rf, init, right))
+        stoppable || schedule(task)
+        a0 = _reduce(fg, stoppable, task, rf, init, left)
         b0 = fetch(task)
         a = @return_if_reduced a0
         should_abort(ctx) && return a  # slight optimization
@@ -247,6 +257,34 @@ combine_step(rf) =
         b0 isa Reduced && return combine_right_reduced(rf, a, b0)
         return combine(rf, a, b0)
     end
+
+# The output of `reduce` is correct regardless of the value of
+# `stoppable`.  Thus, we can use `return_type` here purely for
+# optimization.
+_might_return_reduced(rf, init, coll) =
+    Base.typeintersect(
+        Core.Compiler.return_type(
+            _reduce_dummy,  # simulate the output type of `_reduce`
+            typeof((rf, init, coll)),
+        ),
+        Reduced,
+    ) !== Union{}
+
+_reduce_dummy(rf, init, coll) =
+    __reduce_dummy(rf, init, SizedReducible(maybe_collect(coll), 1))
+
+function __reduce_dummy(rf, init, reducible)
+    if issmall(reducible)
+        return _reduce_basecase(rf, init, reducible)
+    else
+        left, right = halve(reducible)
+        a = _reduce_dummy(rf, init, left)
+        b = _reduce_dummy(rf, init, right)
+        a isa Reduced && return a
+        b isa Reduced && return combine_right_reduced(rf, a, b)
+        return combine(rf, a, b)
+    end
+end
 
 # AbstractArray for disambiguation
 Base.mapreduce(xform::Transducer, step, itr::AbstractArray;

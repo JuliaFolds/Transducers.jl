@@ -8,18 +8,26 @@ suite = BenchmarkGroup()
 let n = 64
     # s = suite["n=$n"] = BenchmarkGroup()
     s = suite  # there is only one `n` for now
-    s["terminatable=true"] = @benchmarkable reduce(
+    s["default"] = @benchmarkable reduce(
         right,
         Map(_ -> nothing),
         1:$n;
         basesize = 1,
+        # stoppable = nothing,
     )
-    s["terminatable=false"] = @benchmarkable reduce(
+    s["stoppable=true"] = @benchmarkable reduce(
         right,
         Map(_ -> nothing),
         1:$n;
         basesize = 1,
-        terminatable = false,
+        stoppable = true,
+    )
+    s["stoppable=false"] = @benchmarkable reduce(
+        right,
+        Map(_ -> nothing),
+        1:$n;
+        basesize = 1,
+        stoppable = false,
     )
 end
 
