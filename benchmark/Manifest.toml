@@ -151,9 +151,9 @@ uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[ProgressLogging]]
 deps = ["Logging", "SHA", "UUIDs"]
-git-tree-sha1 = "6b36b871d7779f56b3355fb08c3a2d160adaf20b"
+git-tree-sha1 = "e47914361d124d8760f5e356403daeb7f3b81633"
 uuid = "33c8b6b6-d38a-422a-b730-caa89a2f386c"
-version = "0.1.1"
+version = "0.1.2"
 
 [[REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets"]
@@ -237,7 +237,7 @@ uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 deps = ["ArgCheck", "BangBang", "Distributed", "InitialValues", "Logging", "Markdown", "Requires", "Setfield", "SplittablesBase", "Tables"]
 path = ".."
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
-version = "0.4.23-DEV"
+version = "0.4.24-DEV"
 
 [[UUIDs]]
 deps = ["Random", "SHA"]

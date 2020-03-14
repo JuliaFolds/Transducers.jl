@@ -199,9 +199,9 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[OnlineStats]]
 deps = ["Dates", "LearnBase", "LinearAlgebra", "LossFunctions", "OnlineStatsBase", "OrderedCollections", "PenaltyFunctions", "Random", "RecipesBase", "Reexport", "Statistics", "StatsBase", "SweepOperator"]
-git-tree-sha1 = "e1179f70d8843a6f70f67a2bf5f9c250237c917d"
+git-tree-sha1 = "f16f9e093ddd97e7b942b7097228ac1a9a4db8c7"
 uuid = "a15396b6-48d5-5d58-9928-6d29437db91e"
-version = "1.0.4"
+version = "1.1.0"
 
 [[OnlineStatsBase]]
 deps = ["Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
@@ -363,7 +363,7 @@ uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 deps = ["ArgCheck", "BangBang", "Distributed", "InitialValues", "Logging", "Markdown", "Requires", "Setfield", "SplittablesBase", "Tables"]
 path = "../../.."
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
-version = "0.4.23-DEV"
+version = "0.4.24-DEV"
 
 [[TypedTables]]
 deps = ["SplitApplyCombine", "Tables", "Unicode"]
