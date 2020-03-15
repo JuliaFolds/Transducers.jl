@@ -69,6 +69,21 @@ include("preamble.jl")
         end
     end
 
+    @testset "zip-of-products" begin
+        @testset "$i" for (i, products) in enumerate([
+            (Iterators.product(10:12, 20:23), Iterators.product(30:32, 40:43)),
+            (CartesianIndices((3, 4)), Iterators.product(30:32, 40:43)),
+            (Iterators.product(10:12, 20:23), CartesianIndices((0:2, 0:3))),
+            (CartesianIndices((3, 4)), CartesianIndices((0:2, 0:3))),
+            (Iterators.product(10:12, 20:23), randn(3, 4)),
+            (randn(3, 4), Iterators.product(30:32, 40:43)),
+        ])
+            VERSION >= v"1.1-" || break
+            xs = zip(products...)
+            @test collect(Map(identity), xs) == vec(collect(xs))
+        end
+    end
+
     @testset "broadcast" begin
         @testset for xs in iterator_variants(1:3)
             ys = @~ xs.^2
