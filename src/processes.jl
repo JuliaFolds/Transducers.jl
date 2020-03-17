@@ -186,6 +186,55 @@ end
     end
 end
 
+## Convert zip-of-products (ZoP) to product-of-zips (PoZ).
+
+# Arguments for `product` and alike:
+unproduct(x::Iterators.ProductIterator) = x.iterators
+unproduct(x::CartesianIndices) = x.indices
+unproduct(x::AbstractArray) = axes(x)
+
+# After ZoP-to-PoZ transformation, we need to re-shape the value in
+# the form that would be fed to the reducing function if it were
+# folding `ZoP`:
+@inline function _make_zop_getvalues(iterators)
+    # Avoid including `iterators` themselves in the closure if
+    # possible:
+    iterinfo = map(iterators) do itr
+        if itr isa CartesianIndices
+            Val(CartesianIndices)
+        elseif itr isa AbstractArray
+            itr
+        else
+            nothing
+        end
+    end
+    return function (xs)
+        map(_unzip((iterinfo, _unzip(xs)))) do (it, x)
+            if it === Val(CartesianIndices)
+                return CartesianIndex(x)
+            elseif it isa AbstractArray
+                return @inbounds it[x...]
+            else
+                return x
+            end
+        end
+    end
+end
+
+@static if VERSION >= v"1.1-"
+    @inline __foldl__(
+        rf,
+        init,
+        zs::Iterators.Zip{<:Tuple{
+            Vararg{Union{AbstractArray,Iterators.ProductIterator}},
+        }},
+    ) = __foldl__(
+        Reduction(Map(_make_zop_getvalues(zs.is)), rf),
+        init,
+        Iterators.product(map(Base.splat(zip), _unzip(map(unproduct, zs.is)))...),
+    )
+end
+
 @inline function __foldl__(
         rf, init,
         prod::Iterators.ProductIterator{<:Tuple{Any,Any,Vararg{Any}}})
