@@ -201,15 +201,15 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[OnlineStats]]
 deps = ["Dates", "LearnBase", "LinearAlgebra", "LossFunctions", "OnlineStatsBase", "OrderedCollections", "PenaltyFunctions", "Random", "RecipesBase", "Reexport", "Statistics", "StatsBase", "SweepOperator"]
-git-tree-sha1 = "f16f9e093ddd97e7b942b7097228ac1a9a4db8c7"
+git-tree-sha1 = "d1061f274104421d5dfbe1b885e0707469d0ac3a"
 uuid = "a15396b6-48d5-5d58-9928-6d29437db91e"
-version = "1.1.0"
+version = "1.2.0"
 
 [[OnlineStatsBase]]
 deps = ["Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "b30b64c600a77c67c7e3613a5a1d71f5ff8a83e3"
+git-tree-sha1 = "41da79f8e8a0b92126d6b6d4d9b0516f4a3e813d"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.1.0"
+version = "1.2.3"
 
 [[OrderedCollections]]
 deps = ["Random", "Serialization", "Test"]
