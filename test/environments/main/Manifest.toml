@@ -207,9 +207,9 @@ version = "1.2.0"
 
 [[OnlineStatsBase]]
 deps = ["Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "17b11eadbb1ebaff4eb052b4d3d6fea74582209d"
+git-tree-sha1 = "6198ca94059f709db1deebb045dfa1abf634532a"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.2.4"
+version = "1.2.7"
 
 [[OrderedCollections]]
 deps = ["Random", "Serialization", "Test"]
