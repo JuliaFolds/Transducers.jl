@@ -149,9 +149,9 @@ version = "0.21.0"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "StaticArrays"]
-git-tree-sha1 = "6e818d550c2158def13c236c3b825fc14995160c"
+git-tree-sha1 = "b799f90cd9a1d90a54038f8263e701023bce1af8"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.15.0"
+version = "0.15.1"
 
 [[LearnBase]]
 deps = ["LinearAlgebra", "SparseArrays", "StatsBase", "Test"]
