@@ -1,5 +1,11 @@
 # This file is machine-generated - editing it directly is not advised
 
+[[Adapt]]
+deps = ["LinearAlgebra"]
+git-tree-sha1 = "c88cfc7f9c1f9f8633cddf0b56e86302b70f64c5"
+uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
+version = "1.0.1"
+
 [[ArgCheck]]
 git-tree-sha1 = "59c256cf71c3982484ae4486ee86a3d7da891dea"
 uuid = "dce04be8-c92d-5529-be00-80e4d2c0e197"
@@ -81,9 +87,9 @@ version = "0.8.1"
 
 [[Documenter]]
 deps = ["Base64", "Dates", "DocStringExtensions", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Test", "Unicode"]
-git-tree-sha1 = "3bacd94d853a6bccaee1d0104d8b06d29a7506ac"
+git-tree-sha1 = "646ebc3db49889ffeb4c36f89e5d82c6a26295ff"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-version = "0.24.6"
+version = "0.24.7"
 
 [[Future]]
 deps = ["Random"]
@@ -155,10 +161,10 @@ uuid = "30fc2ffe-d236-52d8-8643-a9d8f7c094a7"
 version = "0.5.1"
 
 [[MacroTools]]
-deps = ["DataStructures", "Markdown", "Random"]
-git-tree-sha1 = "07ee65e03e28ca88bc9a338a3726ae0c3efaa94b"
+deps = ["Markdown", "Random"]
+git-tree-sha1 = "f7d2e3f654af75f01ec49be82c231c382214223a"
 uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
-version = "0.5.4"
+version = "0.5.5"
 
 [[Markdown]]
 deps = ["Base64"]
@@ -302,10 +308,10 @@ uuid = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 version = "0.32.2"
 
 [[StructArrays]]
-deps = ["DataAPI", "Tables"]
-git-tree-sha1 = "ad1f5fd155426dcc879ec6ede9f74eb3a2d582df"
+deps = ["Adapt", "DataAPI", "Tables"]
+git-tree-sha1 = "10ee2e9b8a222ef7aac886b12cc8c050db9a8a45"
 uuid = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
-version = "0.4.2"
+version = "0.4.3"
 
 [[SweepOperator]]
 deps = ["LinearAlgebra"]
