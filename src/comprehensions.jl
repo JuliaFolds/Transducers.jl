@@ -92,13 +92,13 @@ iterinner(iter::Iterators.Flatten) = iter.it
 
 # Examples
 ```jldoctest
-julia> using Transducers: extract_transducer
+julia> using Transducers
 
 julia> double(x) = 2x;
 
 julia> xs = 1:10;
 
-julia> xf, foldable = extract_transducer(double(x) for x in xs);
+julia> xf, foldable = Transducers.extract_transducer(double(x) for x in xs);
 
 julia> xf == Map(double)
 true
