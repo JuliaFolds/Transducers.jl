@@ -299,7 +299,7 @@ Base.reduce(step, xform::Transducer, itr; kwargs...) =
     mapreduce(xform, Completing(step), itr; kwargs...)
 
 Base.reduce(step, foldable::Foldable; kwargs...) =
-    reduce(step, induction(foldable)...; kwargs...)
+    reduce(step, extract_transducer(foldable)...; kwargs...)
 
 """
     tcopy(xf::Transducer, T, reducible; basesize) :: Union{T, Empty{T}}
@@ -408,12 +408,12 @@ tcopy(xf, T, reducible; kwargs...) =
 tcopy(xf, reducible; kwargs...) = tcopy(xf, _materializer(reducible), reducible; kwargs...)
 
 function tcopy(::Type{T}, itr; kwargs...) where {T}
-    xf, foldable = _extract_xf(itr)
+    xf, foldable = extract_transducer(itr)
     return tcopy(xf, T, foldable; kwargs...)
 end
 
 function tcopy(itr; kwargs...)
-    xf, foldable = _extract_xf(itr)
+    xf, foldable = extract_transducer(itr)
     return tcopy(xf, foldable; kwargs...)
 end
 
@@ -473,4 +473,4 @@ julia> tcollect(x^2 for x in 1:2)
 ```
 """
 tcollect(xf, reducible; kwargs...) = tcopy(xf, Vector, reducible; kwargs...)
-tcollect(itr; kwargs...) = tcollect(induction(eduction(itr))...; kwargs...)
+tcollect(itr; kwargs...) = tcollect(extract_transducer(itr)...; kwargs...)

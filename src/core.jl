@@ -289,6 +289,11 @@ Transducer(rf::Reduction) =
         Composition(xform(rf), Transducer(inner(rf)))
     end
 
+# This is a non-ideal definition as it may not return a `Reduction`.
+# Making this less non-ideal requires to replace all call/overloads of
+# `Reduction` to `AbstractReduction`.
+Reduction(::IdentityTransducer, inner) = ensurerf(inner)
+
 """
     Transducers.R_{X}
 

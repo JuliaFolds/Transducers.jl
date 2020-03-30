@@ -70,6 +70,7 @@ end
         StructVector(a=[1:4;], b=[5:8;]),
      ]
         @test collect(Map(identity), src) ==ₜ Base.collect(src)
+        @test collect(IdentityTransducer(), src) ==ₜ Base.collect(src)
         @test collect(eduction(identity(x) for x in src)) ==ₜ Base.collect(src)
         if collect in (tcollect, dcollect)
             @test collect(Map(identity), src; basesize=1) ==ₜ Base.collect(src)

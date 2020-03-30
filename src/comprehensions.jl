@@ -28,7 +28,7 @@ julia> collect(iter) == collect(ed)
 true
 ```
 """
-eduction(itr::Comprehension) = eduction(extractxf(itr)...)
+eduction(itr::Comprehension) = eduction(extract_transducer(itr)...)
 eduction(ed::Eduction) = ed
 
 """
@@ -61,7 +61,7 @@ true
 ```
 """
 function Transducer(iter::Comprehension)
-    xf, dataiter = extractxf(iter)
+    xf, dataiter = extract_transducer(iter)
     dataiter === nothing && return xf
 
     if dataiter isa Iterators.ProductIterator
@@ -85,19 +85,42 @@ iterinner(iter::Iterators.Flatten) = iter.it
 # iterf(iter::Iterators.Generate) = iter.f
 # iterf(iter::Iterators.Filter) = iter.flt
 
-extractxf(iter) = IdentityTransducer(), iter
+"""
+    extract_transducer(foldable) -> (xf, foldable′)
 
-function extractxf(iter::Iterators.Generator)
-    xf, bottom = extractxf(iterinner(iter))
+"Reverse" of [`eduction`](@ref).
+
+# Examples
+```jldoctest
+julia> using Transducers: extract_transducer
+
+julia> double(x) = 2x;
+
+julia> xs = 1:10;
+
+julia> xf, foldable = extract_transducer(double(x) for x in xs);
+
+julia> xf == Map(double)
+true
+
+julia> foldable == xs
+true
+```
+"""
+extract_transducer(iter) = IdentityTransducer(), iter
+extract_transducer(ed::Eduction) = Transducer(ed.rf), ed.coll
+
+function extract_transducer(iter::Iterators.Generator)
+    xf, bottom = extract_transducer(iterinner(iter))
     return xf |> Map(iter.f), bottom
 end
 
-function extractxf(iter::Iterators.Filter)
-    xf, bottom = extractxf(iterinner(iter))
+function extract_transducer(iter::Iterators.Filter)
+    xf, bottom = extract_transducer(iterinner(iter))
     return xf |> Filter(iter.flt), bottom
 end
 
-function extractxf(iter::Iterators.Flatten)
-    xf, bottom = extractxf(iterinner(iter))
+function extract_transducer(iter::Iterators.Flatten)
+    xf, bottom = extract_transducer(iterinner(iter))
     return xf |> Cat(), bottom
 end
