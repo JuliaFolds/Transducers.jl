@@ -104,12 +104,12 @@ dcopy(xf, T, reducible; kwargs...) =
 dcopy(xf, reducible; kwargs...) = dcopy(xf, _materializer(reducible), reducible; kwargs...)
 
 function dcopy(::Type{T}, itr; kwargs...) where {T}
-    xf, foldable = induction(eduction(itr))
+    xf, foldable = extract_transducer(itr)
     return dcopy(xf, T, foldable; kwargs...)
 end
 
 function dcopy(itr; kwargs...)
-    xf, foldable = induction(eduction(itr))
+    xf, foldable = extract_transducer(itr)
     return dcopy(xf, foldable; kwargs...)
 end
 
@@ -133,4 +133,4 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel)
     `dcollect` now accepts iterator comprehensions and eductions.
 """
 dcollect(xf, reducible; kwargs...) = dcopy(xf, Vector, reducible; kwargs...)
-dcollect(itr; kwargs...) = dcollect(induction(eduction(itr))...; kwargs...)
+dcollect(itr; kwargs...) = dcollect(extract_transducer(itr)...; kwargs...)

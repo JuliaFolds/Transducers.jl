@@ -538,18 +538,6 @@ eduction(xform, coll) = Eduction(xform, coll)
 # `skipmissing` so maybe this is better for more uniform API.
 
 """
-    induction(foldable) -> (xf, foldable′)
-
-Reverse of `eduction` (I have no idea what the right name of this
-function is).
-"""
-induction(ed::Eduction) = (Transducer(ed.rf), ed.coll)
-induction(coll) = (Map(identity), coll)  # TODO: use `IdentityTransducer`
-
-_extract_xf(array::AbstractArray) = induction(array)
-_extract_xf(itr) = induction(eduction(itr))
-
-"""
     setinput(ed::Eduction, coll)
 
 Set input collection of eduction `ed` to `coll`.
@@ -661,7 +649,7 @@ function Base.collect(xf::Transducer, coll)
 end
 # Base.collect(xf, coll) = append!([], xf, coll)
 
-Base.collect(ed::Eduction) = collect(induction(ed)...)
+Base.collect(ed::Eduction) = collect(extract_transducer(ed)...)
 
 """
     copy(xf::Transducer, T, foldable) :: Union{T, Empty{T}}
@@ -716,12 +704,12 @@ Base.copy(xf::Transducer, ::Type{T}, foldable) where {T} = append!!(xf, Empty(T)
 Base.copy(xf::Transducer, foldable) = copy(xf, _materializer(foldable), foldable)
 
 function Base.copy(::Type{T}, ed::Eduction) where {T}
-    xf, foldable = induction(ed)
+    xf, foldable = extract_transducer(ed)
     return copy(xf, T, foldable)
 end
 
 function Base.copy(ed::Eduction)
-    xf, foldable = induction(ed)
+    xf, foldable = extract_transducer(ed)
     return copy(xf, foldable)
 end
 
@@ -815,7 +803,7 @@ function Base.foldl(step, xform::Transducer, itr;
 end
 
 @inline function Base.foldl(step, foldable::Foldable; init=MissingInit(), kwargs...)
-    xf, coll = induction(foldable)
+    xf, coll = extract_transducer(foldable)
     return unreduced(transduce(xf, Completing(step), init, coll; kwargs...))
 end
 
@@ -965,7 +953,7 @@ false
 Base.foreach(eff, xform::Transducer, coll; kwargs...) =
     transduce(xform, SideEffect(eff), nothing, coll; kwargs...)
 function Base.foreach(eff, reducible::Reducible; kwargs...)
-    xf, coll = induction(reducible)
+    xf, coll = extract_transducer(reducible)
     return transduce(xf, SideEffect(eff), nothing, coll; kwargs...)
 end
 
