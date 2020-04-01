@@ -195,7 +195,7 @@ end
 # `transduce_commutative!` in `append_unordered!`.
 
 append_unordered!(output, itr; kwargs...) =
-    append_unordered!(output, induction(eduction(itr))...; kwargs...)
+    append_unordered!(output, extract_transducer(itr)...; kwargs...)
 
 """
     channel_unordered(xf, input; eltype, size, ntasks, basesize) :: Channel{eltype}
@@ -252,4 +252,4 @@ channel_unordered(xf, input; eltype=Any, size=Inf, kwargs...) =
     end
 
 channel_unordered(itr; kwargs...) =
-    channel_unordered(induction(eduction(itr))...; kwargs...)
+    channel_unordered(extract_transducer(itr)...; kwargs...)
