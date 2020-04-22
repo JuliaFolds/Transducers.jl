@@ -87,7 +87,7 @@ julia> transduce(rf_good, "", 1:3)
 ```
 """
 @inline reducingfunction(xf::Transducer, step; simd::SIMDFlag = Val(false)) =
-    maybe_usesimd(Reduction(xf, step), simd)
+    maybe_usesimd(Reduction(xf, asmonoid(step)), simd)
 
 """
     __foldl__(rf, init, reducible::T)
@@ -388,7 +388,7 @@ Finishing with state = 4.0
 mapfoldl
 
 function transduce(xform::Transducer, f, init, coll; kwargs...)
-    rf = Reduction(xform, f)
+    rf = reducingfunction(xform, f)
     return transduce(rf, init, coll; kwargs...)
 end
 
