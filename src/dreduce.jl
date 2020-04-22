@@ -58,7 +58,7 @@ function dtransduce(
     @argcheck basesize > 0
     isempty(coll) && return init
     load_me_everywhere()
-    rf = reducingfunction(xform, step; simd = simd)
+    rf = _reducingfunction(xform, step; init = init, simd = simd)
     futures = map(firstindex(coll):basesize:lastindex(coll)) do start
         Distributed.remotecall(
             _remote_reduce,

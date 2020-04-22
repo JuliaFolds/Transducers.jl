@@ -23,6 +23,13 @@ include("preamble.jl")
         @test transduce(xf, string, "", xs) == Reduced("135791113151719")
     end
 
+    @testset "no init" begin
+        @test foldl(+, Map(identity), 1:4) == 10
+        @test foldl((a, b) -> a + b, Map(identity), 1:4) == 10
+        @test foldl(-, Map(x -> parse(Int, x)), "1234") == -8
+        @test foldl((a, b) -> a - b, Map(x -> parse(Int, x)), "1234") == -8
+    end
+
     @testset "empty" begin
         xf = Filter(_ -> false)
         iter = 1:4
@@ -288,12 +295,6 @@ end
     msg = sprint(showerror, err)
     @test occursin("`Init(op)` is not defined", msg)
     @test occursin("op = $unknownadd", msg)
-end
-
-@testset "MissingInitError" begin
-    err = @test_error foldl(-, Map(identity), 1:1)
-    @test err isa MissingInitError
-    @test occursin("No default identity element for -", sprint(showerror, err))
 end
 
 @testset "identityof error" begin
