@@ -1851,7 +1851,7 @@ next(rf::R_{Enumerate}, result, input) =
 
 Group the input stream by a function `key` and then fan-out each group
 of key-value pairs to the reducing function `rf`.  For example, if
-`GroupBy` is composed as follows
+`GroupBy` is used as in:
 
     Map(upstream) |> GroupBy(key, rf, init) |> Map(downstream)
 
@@ -1868,12 +1868,14 @@ That is to say,
   the group key (of type `K`).
 
 * For each new group key, a new transducible process is started with
-  the initial state `init :: Y` (which is shared by all transducible
-  processes).
+  the initial state `init :: Y`.  Pass [`OnInit`](@ref) or
+  [`CopyInit`](@ref) object to `init` for creating a dedicated
+  (possibly mutable) state for each group.
 
 * After one "nested" reducing function `rf` is called, the
   intermediate result dictionary (of type `Dict{K, Y}`) accumulating
-  the previous results is then fed into the `downstream`.
+  the current and all preceding results is then fed into the
+  `downstream`.
 
 See also `groupreduce` in
 [SplitApplyCombine.jl](https://github.com/JuliaData/SplitApplyCombine.jl).
