@@ -113,7 +113,7 @@ would be lowered to:
 ```jldoctest manual-composition; output = false
 function map_filter_iterators(xs, init)
     ret = iterate(xs)
-    ret === nothing && return
+    ret === nothing && return init
     acc = init
     @goto filter
     local state, x
@@ -129,7 +129,6 @@ function map_filter_iterators(xs, init)
         acc += y    # +     :              :          :
     end             # :     :              :          :
     #                 + <-- imap <-------- filter <-- input
-    return acc
 end
 
 # output
