@@ -1850,8 +1850,9 @@ next(rf::R_{Enumerate}, result, input) =
     GroupBy(key, xf::Transducer, [step = right, [init]])
 
 Group the input stream by a function `key` and then fan-out each group
-of key-value pairs to the reducing function `rf`.  For example, if
-`GroupBy` is used as in:
+of key-value pairs to the reducing function `rf`.
+
+For example, if `GroupBy` is used as in:
 
     Map(upstream) |> GroupBy(key, rf, init) |> Map(downstream)
 
