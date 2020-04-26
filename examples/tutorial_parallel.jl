@@ -357,19 +357,19 @@ xf = Map(abs) |>
     end
 nothing                                                              # hide
 
-# The singleton solutions can be merged using `merge!(+, a, b)`.  Note
-# that we need to cover the "edge cases" where the first and/or second
-# arguments are the initial values.  Note that passing `init =
-# Dict{Int,Int}()` to `reduce` is not correct as multiple tasks would
-# share and try to mutate the same dictionary this way.  One option is
-# to use [`init = OnInit(Dict{Int,Int})`](@ref OnInit).  Another
-# option is to use
-# [`asmonoid`](https://tkf.github.io/InitialValues.jl/dev/#InitialValues.asmonoid)
-# for handling the initial values:
+# The singleton solutions can be merged using `merge!(+, a, b)`:
 
-using InitialValues: asmonoid
-merge₊! = asmonoid((a, b) -> merge!(+, a, b))
+merge₊!(a, b) = merge!(+, a, b)
+## merge₊! = mergewith!(+)  # in Julia >= 1.5
 nothing                                                              # hide
+
+# Note that it is OK to use in-place function `merge!` here because
+# the dictionary passed as `a` is created by `xf` and not shared by
+# anyone.  When there is no such guarantee, passing [`init =
+# OnInit(Dict{Int,Int})`](@ref OnInit) is a good option.  Note that
+# passing `init = Dict{Int,Int}()` to `reduce` is not correct as
+# multiple tasks would share and try to mutate the same dictionary
+# this way.
 
 # Let's try this with some random data:
 
