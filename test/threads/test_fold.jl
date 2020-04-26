@@ -9,7 +9,12 @@ const add = let fname = gensym(:add)
 end
 const parseint = Base.Fix1(parse, Int)
 
-@testset "$fold" for fold in [foldl, reduce, dreduce]
+@testset "$_fold" for _fold in [foldl, reduce, dreduce]
+    if _fold === foldl
+        fold = _fold
+    else
+        fold(args...; kw...) = _fold(args...; basesize = 1, kw...)
+    end
     @testset "no init" begin
         @test fold(+, Map(identity), 1:4) == 10
         @test fold(add, Map(identity), 1:4) == 10
