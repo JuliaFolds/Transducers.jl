@@ -1,5 +1,11 @@
 # This file is machine-generated - editing it directly is not advised
 
+[[AbstractTrees]]
+deps = ["Markdown"]
+git-tree-sha1 = "33e450545eaf7699da1a6e755f9ea65f14077a45"
+uuid = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
+version = "0.3.3"
+
 [[Adapt]]
 deps = ["LinearAlgebra"]
 git-tree-sha1 = "c88cfc7f9c1f9f8633cddf0b56e86302b70f64c5"
@@ -87,9 +93,9 @@ version = "0.8.1"
 
 [[Documenter]]
 deps = ["Base64", "Dates", "DocStringExtensions", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Test", "Unicode"]
-git-tree-sha1 = "bc99c157ff2957c058a1067061d16c2c83d1ec42"
+git-tree-sha1 = "dcdea9bcd4126be143b4367b32affaff12bd4d08"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-version = "0.24.9"
+version = "0.24.10"
 
 [[Future]]
 deps = ["Random"]
@@ -186,10 +192,10 @@ uuid = "a15396b6-48d5-5d58-9928-6d29437db91e"
 version = "1.2.0"
 
 [[OnlineStatsBase]]
-deps = ["Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "6198ca94059f709db1deebb045dfa1abf634532a"
+deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
+git-tree-sha1 = "24c8ecda9640b079163bc68463aea7cd38b21edb"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.2.7"
+version = "1.2.8"
 
 [[OrderedCollections]]
 deps = ["Random", "Serialization", "Test"]
