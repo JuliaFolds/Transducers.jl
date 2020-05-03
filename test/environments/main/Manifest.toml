@@ -44,9 +44,9 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[BlockArrays]]
 deps = ["ArrayLayouts", "LinearAlgebra"]
-git-tree-sha1 = "eea334ad60f4257519357b1f217e7e2cfe35eae0"
+git-tree-sha1 = "a3f4fa5421863a988fbc2d945684d39b4c10604a"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.12.3"
+version = "0.12.4"
 
 [[CategoricalArrays]]
 deps = ["Compat", "DataAPI", "Future", "JSON", "Missings", "Printf", "Reexport", "Statistics", "Unicode"]
