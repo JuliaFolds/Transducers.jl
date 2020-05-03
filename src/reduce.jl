@@ -138,7 +138,7 @@ function transduce_assoc(
     basesize::Integer = length(coll) ÷ Threads.nthreads(),
     stoppable::Union{Bool,Nothing} = nothing,
 )
-    rf = maybe_usesimd(Reduction(xform, step), simd)
+    rf = _reducingfunction(xform, step; init = init, simd = simd)
     if stoppable === nothing
         stoppable = _might_return_reduced(rf, init, coll)
     end

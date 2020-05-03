@@ -897,14 +897,13 @@ _nonidtype(::Type{Union{S, T}}) where {T, S <: InferableInit} = T
 
 struct MissingInit end
 
-struct MissingInitError <: Exception
-    op
-end
-
-function Base.showerror(io::IO, e::MissingInitError)
-    println(io, "No default identity element for ", e.op)
-    # TODO: improve error message
-end
+# Defining `_asmonoid` internally as the resulting reducing function
+# is not really a monoid (only the bottom reducing function becomes a
+# monoid).
+@inline _asmonoid(rf) = asmonoid(rf)
+@inline _asmonoid(rf::Reduction) = Reduction(xform(rf), _asmonoid(inner(rf)))
+@inline _asmonoid(rf::BottomRF) = BottomRF(_asmonoid(inner(rf)))
+@inline _asmonoid(rf::Completing) = Completing(_asmonoid(rf.f))
 
 struct EmptyResultError <: Exception
     rf
@@ -959,8 +958,8 @@ initvalue(x) = x
 # Handle default case:
 function provide_init(rf, ::MissingInit)
     op = _realbottomrf(rf)
-    hasinitialvalue(op) && return DefaultInit(op)
-    throw(MissingInitError(op))
+    @assert hasinitialvalue(op)
+    return DefaultInit(op)
 end
 
 # Handle `init=Init` and `init=OptInit`

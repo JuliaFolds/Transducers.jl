@@ -1929,7 +1929,7 @@ struct GroupBy{K, R, T} <: Transducer
 end
 
 function GroupBy(key, xf::Transducer, step = right, init = MissingInit())
-    rf = reducingfunction(xf, step)
+    rf = _reducingfunction(xf, step; init = init)
     if init isa MissingInit
         return GroupBy(key, rf)
     else
@@ -1937,9 +1937,9 @@ function GroupBy(key, xf::Transducer, step = right, init = MissingInit())
     end
 end
 
-function GroupBy(key, rf)
+function GroupBy(key, rf0)
+    rf = _asmonoid(rf0)
     op = _realbottomrf(rf)
-    hasinitialvalue(op) || throw(MissingInitError(op))
     return GroupBy(key, rf, DefaultInit(op))
 end
 
