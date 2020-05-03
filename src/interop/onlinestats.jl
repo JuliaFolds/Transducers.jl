@@ -119,19 +119,22 @@ Base.foldl(stat::OnlineStatsBase.OnlineStat, xform::Transducer, itr; kwargs...) 
     foldl(reducingfunction(stat), xform, itr; kwargs...)
 
 Base.foldl(stat::OnlineStatsBase.OnlineStat, foldable::Foldable; kwargs...) =
-    foldl(reducingfunction(stat), induction(foldable)...; kwargs...)
+    foldl(reducingfunction(stat), extract_transducer(foldable)...; kwargs...)
 
 Base.reduce(stat::OnlineStatsBase.OnlineStat, xform::Transducer, itr; kwargs...) =
     reduce(reducingfunction(validate_reduce_ostat(stat)), xform, itr; kwargs...)
 
-Base.reduce(stat::OnlineStatsBase.OnlineStat, foldable::Foldable; kwargs...) =
-    reduce(reducingfunction(validate_reduce_ostat(stat)), induction(foldable)...; kwargs...)
+Base.reduce(stat::OnlineStatsBase.OnlineStat, foldable::Foldable; kwargs...) = reduce(
+    reducingfunction(validate_reduce_ostat(stat)),
+    extract_transducer(foldable)...;
+    kwargs...,
+)
 
 dreduce(stat::OnlineStatsBase.OnlineStat, xform::Transducer, itr; kwargs...) =
     dreduce(reducingfunction(validate_reduce_ostat(stat)), xform, itr; kwargs...)
 
 dreduce(stat::OnlineStatsBase.OnlineStat, foldable::Foldable; kwargs...) = dreduce(
     reducingfunction(validate_reduce_ostat(stat)),
-    induction(foldable)...;
+    extract_transducer(foldable)...;
     kwargs...,
 )
