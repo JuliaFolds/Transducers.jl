@@ -48,18 +48,15 @@ Mean: n=4 | value=7.5
 julia> reduce(Mean(), Map(x -> x^2), 1:4)  # threaded
 Mean: n=4 | value=7.5
 
-julia> dreduce(Mean(), Map(x -> x^2), 1:4)  # distributed
-Mean: n=4 | value=7.5
-
 julia> foldl(Mean(), eduction(x^2 for x in 1:4))  # ditto
 Mean: n=4 | value=7.5
 
 julia> reduce(Mean(), eduction(x^2 for x in 1:4))  # ditto
 Mean: n=4 | value=7.5
-
-julia> dreduce(Mean(), eduction(x^2 for x in 1:4))  # ditto
-Mean: n=4 | value=7.5
 ```
+
+[`dreduce`](@ref) can be used instead of `reduce`.  However the usual caveats
+of code availability for Distributed.jl apply.
 """
 reducingfunction(xf::Transducer, stat::OnlineStatsBase.OnlineStat; kwargs...) =
     reducingfunction(xf, reducingfunction(stat); kwargs...)
