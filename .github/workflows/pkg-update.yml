@@ -23,7 +23,7 @@ jobs:
       - name: Update */Manifest.toml
         uses: tkf/julia-update-manifests@v1
         with:
-          version: '1.3'
+          version: '1.4'
           projects: test/environments/main docs benchmark
       - name: Update test/environments/jl10/Manifest.toml
         uses: tkf/julia-update-manifests@v1
