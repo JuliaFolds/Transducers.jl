@@ -142,6 +142,7 @@ uuid = "7f8f8fb0-2700-5f03-b4bd-41f8cfc144b6"
 version = "0.3.0"
 
 [[LibGit2]]
+deps = ["Printf"]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 
 [[Libdl]]
@@ -216,7 +217,7 @@ uuid = "06bb1623-fdd5-5ca2-a01c-88eae3ea319e"
 version = "0.2.2"
 
 [[Pkg]]
-deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Test", "UUIDs"]
+deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[PooledArrays]]
