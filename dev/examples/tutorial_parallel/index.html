@@ -6,25 +6,25 @@ foldl(+, Map(sin), xs)</code></pre><pre><code class="language-none">-2340.292974
 addprocs(4)
 
 dreduce(+, Map(sin), xs)</code></pre><pre><code class="language-none">-2340.2929743858017</code></pre><p>(Note: there is likely no speedup for light-weight computation and large input data like this, when using <code>dreduce</code>.)</p><h3 id="Parallel-processing-with-iterator-comprehensions-1"><a class="docs-heading-anchor" href="#Parallel-processing-with-iterator-comprehensions-1">Parallel processing with iterator comprehensions</a><a class="docs-heading-anchor-permalink" href="#Parallel-processing-with-iterator-comprehensions-1" title="Permalink"></a></h3><p>You can also use <a href="../../manual/#Transducers.eduction"><code>eduction</code></a> to use iterator comprehension with multi-thread <code>reduce</code>:</p><pre><code class="language-julia">reduce(+, eduction(sin(x) for x in xs if abs(x) &lt; 1); basesize = 500_000)</code></pre><pre><code class="language-none">-3167.478470348497</code></pre><pre><code class="language-julia">reduce(+, eduction(x * y for x in 1:3, y in 1:3))</code></pre><pre><code class="language-none">36</code></pre><p>You can omit <code>eduction</code> when using Transducers.jl-specific functions like <a href="../../manual/#Transducers.tcollect"><code>tcollect</code></a>/<a href="../../manual/#Transducers.dcollect"><code>dcollect</code></a>:</p><pre><code class="language-julia">tcollect(sin(x) for x in xs if abs(x) &lt; 1)</code></pre><pre><code class="language-none">6827549-element Array{Float64,1}:
-  0.7626156550067762 
- -0.7844096913908877 
- -0.4745729061527835 
- -0.7851351347423469 
-  0.7607067950159715 
-  0.5079586572154261 
- -0.2684035583971558 
-  0.4814729436611737 
- -0.4942602095564562 
- -0.5316108924849388 
-  ⋮                  
- -0.3753659273797594 
+  0.7626156550067762
+ -0.7844096913908877
+ -0.4745729061527835
+ -0.7851351347423469
+  0.7607067950159715
+  0.5079586572154261
+ -0.2684035583971558
+  0.4814729436611737
+ -0.4942602095564562
+ -0.5316108924849388
+  ⋮
+ -0.3753659273797594
   0.05103170021395358
  -0.04726259472308379
-  0.7622634044030482 
- -0.3559821294336072 
-  0.7635896400786347 
-  0.1054366554857598 
- -0.2638314113600457 
+  0.7622634044030482
+ -0.3559821294336072
+  0.7635896400786347
+  0.1054366554857598
+ -0.2638314113600457
  -0.45884079699087804</code></pre><p>and <a href="../../manual/#Transducers.tcopy"><code>tcopy</code></a>/<a href="../../manual/#Transducers.dcopy"><code>dcopy</code></a>:</p><pre><code class="language-julia">using StructArrays: StructVector
 table = StructVector(a = [1, 2, 3], b = [5, 6, 7])
 
@@ -70,12 +70,12 @@ while isready(chan)
     push!(records, take!(chan))
 end
 records</code></pre><pre><code class="language-none">7-element Array{Pair,1}:
- (Union{}[], [1]) =&gt; [1]         
- (Union{}[], [3]) =&gt; [3]         
- (Union{}[], [2]) =&gt; [2]         
- (Union{}[], [4]) =&gt; [4]         
-       ([1], [2]) =&gt; [1, 2]      
-       ([3], [4]) =&gt; [3, 4]      
+ (Union{}[], [1]) =&gt; [1]
+ (Union{}[], [3]) =&gt; [3]
+ (Union{}[], [2]) =&gt; [2]
+ (Union{}[], [4]) =&gt; [4]
+       ([1], [2]) =&gt; [1, 2]
+       ([3], [4]) =&gt; [3, 4]
  ([1, 2], [3, 4]) =&gt; [1, 2, 3, 4]</code></pre><p>This recorded inputs and outputs of <code>append!!</code> show that its &quot;call tree&quot; is:</p><pre><code class="language-none">          [1,2,3,4] &lt;------------- append!!([1,2], [3,4]) == [1,2,3,4]
          /         \
     [1,2]           [3,4] &lt;------- append!!([3], [4]) == [3, 4]
@@ -113,14 +113,14 @@ counts1 = reduce(merge₊!, xf, xs)</code></pre><p>Compare the result with <code
 @assert counts1 == counts2</code></pre><p>Hopefully the result is close to the <a href="https://en.wikipedia.org/wiki/Benford%27s_law">Benford&#39;s law - Wikipedia</a>:</p><pre><code class="language-julia">let n = sum(values(counts1))
     sort!(keys(counts1) .=&gt; values(counts1) ./ n)
 end</code></pre><pre><code class="language-none">9-element Array{Pair{Int64,Float64},1}:
- 1 =&gt; 0.3594109594109594  
- 2 =&gt; 0.1289192289192289  
- 3 =&gt; 0.0864905864905865  
- 4 =&gt; 0.08106238106238106 
- 5 =&gt; 0.07738827738827739 
- 6 =&gt; 0.07341567341567341 
- 7 =&gt; 0.06907636907636908 
- 8 =&gt; 0.06452906452906453 
+ 1 =&gt; 0.3594109594109594
+ 2 =&gt; 0.1289192289192289
+ 3 =&gt; 0.0864905864905865
+ 4 =&gt; 0.08106238106238106
+ 5 =&gt; 0.07738827738827739
+ 6 =&gt; 0.07341567341567341
+ 7 =&gt; 0.06907636907636908
+ 8 =&gt; 0.06452906452906453
  9 =&gt; 0.059707459707459706</code></pre><p>Since we are counting only nine elements, it is actually better to use fixed-size container such as a tuple in this case:</p><pre><code class="language-julia">xf2 = Map(abs) |&gt;
     Filter(x -&gt; x &gt; 1) |&gt;
     Map() do x
@@ -135,4 +135,4 @@ end
     # # Uncomment for demo:
     # x == 3 ? sleep(0.1) : @show x  # give other tasks a chance to finish first
     return x
-end</code></pre><pre><code class="language-none">3</code></pre><p>This snippet always returns <code>3</code>, even though the reductions for <code>c = 6</code> and <code>c = 9</code> may finish first.</p><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tutorial_missings/">« Tutorial: Missing values</a><a class="docs-footer-nextpage" href="../empty_result_handling/">Empty result handling »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Monday 4 May 2020 01:12">Monday 4 May 2020</span>. Using Julia version 1.3.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+end</code></pre><pre><code class="language-none">3</code></pre><p>This snippet always returns <code>3</code>, even though the reductions for <code>c = 6</code> and <code>c = 9</code> may finish first.</p><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tutorial_missings/">« Tutorial: Missing values</a><a class="docs-footer-nextpage" href="../empty_result_handling/">Empty result handling »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Monday 4 May 2020 06:05">Monday 4 May 2020</span>. Using Julia version 1.4.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
