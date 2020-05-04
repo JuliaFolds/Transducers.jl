@@ -89,6 +89,10 @@ julia> transduce(rf_good, "", 1:3)
 @inline reducingfunction(xf::Transducer, step; simd::SIMDFlag = Val(false)) =
     maybe_usesimd(Reduction(xf, step), simd)
 
+# Use `_asmonoid` automatically only when `init` is not specified:
+@inline _reducingfunction(xf, step; init = MissingInit(), simd::SIMDFlag = Val(false), _...) =
+    maybe_usesimd(Reduction(xf, init isa MissingInit ? _asmonoid(step) : step), simd)
+
 """
     __foldl__(rf, init, reducible::T)
 
@@ -388,7 +392,7 @@ Finishing with state = 4.0
 mapfoldl
 
 function transduce(xform::Transducer, f, init, coll; kwargs...)
-    rf = Reduction(xform, f)
+    rf = _reducingfunction(xform, f; init = init, kwargs...)
     return transduce(rf, init, coll; kwargs...)
 end
 
