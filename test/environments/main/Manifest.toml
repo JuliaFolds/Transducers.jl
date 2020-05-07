@@ -27,9 +27,9 @@ version = "2.0.0"
 
 [[ArrayLayouts]]
 deps = ["FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "a504dca2ac7eda8761c8f7c1ed52427a1be75a3c"
+git-tree-sha1 = "cee952c726065d21a6b9a0abe04e201debdffc20"
 uuid = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
-version = "0.2.6"
+version = "0.3.0"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
@@ -44,9 +44,9 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[BlockArrays]]
 deps = ["ArrayLayouts", "LinearAlgebra"]
-git-tree-sha1 = "46baefe84cec9484d57abf741b854d2d5abdbc88"
+git-tree-sha1 = "0fdda22cfaf7638d67f6fc7bc9d6aa0cad27678e"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.12.5"
+version = "0.12.6"
 
 [[CategoricalArrays]]
 deps = ["DataAPI", "Future", "JSON", "Missings", "Printf", "Statistics", "Unicode"]
@@ -163,9 +163,9 @@ version = "0.21.0"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "MatrixFactorizations", "StaticArrays"]
-git-tree-sha1 = "e58d57d3d623f2445a1f4ad7823fee8af4b8d989"
+git-tree-sha1 = "ca90f6dee7180e0af9b4604bccb33d949daebe1b"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.16.7"
+version = "0.16.8"
 
 [[LearnBase]]
 deps = ["LinearAlgebra", "StatsBase"]
@@ -205,9 +205,9 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[MatrixFactorizations]]
 deps = ["ArrayLayouts", "LinearAlgebra", "Random"]
-git-tree-sha1 = "b1b61c7904e8c226ec87c60d102c30f90d932f45"
+git-tree-sha1 = "69454f168628adeff74264837fc4c9d258dcc444"
 uuid = "a3b82374-2e81-5b9e-98ce-41277c0e4c87"
-version = "0.4.0"
+version = "0.4.1"
 
 [[Missings]]
 deps = ["DataAPI"]
@@ -226,9 +226,9 @@ version = "1.4.0"
 
 [[OnlineStatsBase]]
 deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "87e0eebf813293362b94dbcaa8c3f99e78b7a97e"
+git-tree-sha1 = "49ed4443e3a92d722d99c0fd03c72766b51ead68"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.3.1"
+version = "1.4.0"
 
 [[OrderedCollections]]
 git-tree-sha1 = "12ce190210d278e12644bcadf5b21cbdcf225cd3"
@@ -237,9 +237,9 @@ version = "1.2.0"
 
 [[Parsers]]
 deps = ["Dates", "Test"]
-git-tree-sha1 = "f8f5d2d4b4b07342e5811d2b6428e45524e241df"
+git-tree-sha1 = "72c3451932513427caffbd8bab15643ad693804b"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "1.0.2"
+version = "1.0.3"
 
 [[PenaltyFunctions]]
 deps = ["InteractiveUtils", "LearnBase", "LinearAlgebra", "RecipesBase"]
