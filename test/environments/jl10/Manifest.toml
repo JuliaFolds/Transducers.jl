@@ -1,3 +1,9 @@
+[[AbstractTrees]]
+deps = ["Markdown"]
+git-tree-sha1 = "33e450545eaf7699da1a6e755f9ea65f14077a45"
+uuid = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
+version = "0.3.3"
+
 [[Adapt]]
 deps = ["LinearAlgebra"]
 git-tree-sha1 = "c88cfc7f9c1f9f8633cddf0b56e86302b70f64c5"
@@ -160,10 +166,10 @@ uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
 version = "0.16.8"
 
 [[LearnBase]]
-deps = ["LinearAlgebra", "SparseArrays", "StatsBase", "Test"]
-git-tree-sha1 = "c4b5da6d68517f46f70ed5157b28336b56cd2ff3"
+deps = ["LinearAlgebra", "StatsBase"]
+git-tree-sha1 = "47e6f4623c1db88570c7a7fa66c6528b92ba4725"
 uuid = "7f8f8fb0-2700-5f03-b4bd-41f8cfc144b6"
-version = "0.2.2"
+version = "0.3.0"
 
 [[LibGit2]]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
@@ -179,10 +185,10 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
 [[LossFunctions]]
-deps = ["InteractiveUtils", "LearnBase", "Markdown", "Random", "RecipesBase", "SparseArrays", "Statistics", "StatsBase", "Test"]
-git-tree-sha1 = "08d87fec43e7d335811dfae5b55dbfc5690e915b"
+deps = ["InteractiveUtils", "LearnBase", "Markdown", "RecipesBase", "SparseArrays", "StatsBase"]
+git-tree-sha1 = "9e7609c29736460e258bacfc5c35c3d31bfa90dd"
 uuid = "30fc2ffe-d236-52d8-8643-a9d8f7c094a7"
-version = "0.5.1"
+version = "0.6.0"
 
 [[MacroTools]]
 deps = ["Markdown", "Random"]
@@ -210,16 +216,16 @@ version = "0.4.3"
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[OnlineStats]]
-deps = ["Dates", "LearnBase", "LinearAlgebra", "LossFunctions", "OnlineStatsBase", "OrderedCollections", "PenaltyFunctions", "Random", "RecipesBase", "Reexport", "Statistics", "StatsBase", "SweepOperator"]
-git-tree-sha1 = "f16f9e093ddd97e7b942b7097228ac1a9a4db8c7"
+deps = ["Dates", "LearnBase", "LinearAlgebra", "LossFunctions", "OnlineStatsBase", "OrderedCollections", "PenaltyFunctions", "Random", "RecipesBase", "Statistics", "StatsBase", "SweepOperator"]
+git-tree-sha1 = "fe374eafa12f2b7579f76d1ec5076ea264bde651"
 uuid = "a15396b6-48d5-5d58-9928-6d29437db91e"
-version = "1.1.0"
+version = "1.4.1"
 
 [[OnlineStatsBase]]
-deps = ["Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "b30b64c600a77c67c7e3613a5a1d71f5ff8a83e3"
+deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
+git-tree-sha1 = "49ed4443e3a92d722d99c0fd03c72766b51ead68"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.1.0"
+version = "1.4.0"
 
 [[OrderedCollections]]
 git-tree-sha1 = "12ce190210d278e12644bcadf5b21cbdcf225cd3"
@@ -233,10 +239,10 @@ uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
 version = "1.0.3"
 
 [[PenaltyFunctions]]
-deps = ["InteractiveUtils", "LearnBase", "LinearAlgebra", "RecipesBase", "Reexport", "Test"]
-git-tree-sha1 = "b0baaa5218ca0ffd6a8ae37ef0b58e0df688ac8b"
+deps = ["InteractiveUtils", "LearnBase", "LinearAlgebra", "RecipesBase"]
+git-tree-sha1 = "e48c434a800f98d4ff549fd52020c8f1c12f1c75"
 uuid = "06bb1623-fdd5-5ca2-a01c-88eae3ea319e"
-version = "0.1.2"
+version = "0.2.2"
 
 [[PerformanceTestTools]]
 deps = ["Test"]
@@ -267,9 +273,9 @@ deps = ["Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [[RecipesBase]]
-git-tree-sha1 = "b4ed4a7f988ea2340017916f7c9e5d7560b52cae"
+git-tree-sha1 = "54f8ceb165a0f6d083f0d12cb4996f5367c6edbc"
 uuid = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
-version = "0.8.0"
+version = "1.0.1"
 
 [[Reexport]]
 deps = ["Pkg"]
@@ -338,9 +344,9 @@ uuid = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [[StatsBase]]
 deps = ["DataAPI", "DataStructures", "LinearAlgebra", "Missings", "Printf", "Random", "SortingAlgorithms", "SparseArrays", "Statistics"]
-git-tree-sha1 = "19bfcb46245f69ff4013b3df3b977a289852c3a1"
+git-tree-sha1 = "a6102b1f364befdb05746f386b67c6b7e3262c45"
 uuid = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
-version = "0.32.2"
+version = "0.33.0"
 
 [[StructArrays]]
 deps = ["Adapt", "DataAPI", "Tables"]

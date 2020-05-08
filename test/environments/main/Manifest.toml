@@ -220,9 +220,9 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[OnlineStats]]
 deps = ["Dates", "LearnBase", "LinearAlgebra", "LossFunctions", "OnlineStatsBase", "OrderedCollections", "PenaltyFunctions", "Random", "RecipesBase", "Statistics", "StatsBase", "SweepOperator"]
-git-tree-sha1 = "9bc910a2b0fdac0b822be54e5ba8468f77a007e0"
+git-tree-sha1 = "fe374eafa12f2b7579f76d1ec5076ea264bde651"
 uuid = "a15396b6-48d5-5d58-9928-6d29437db91e"
-version = "1.4.0"
+version = "1.4.1"
 
 [[OnlineStatsBase]]
 deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
