@@ -56,9 +56,9 @@ version = "0.8.0"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "fecfed095803b86cc06fd7ee09d3d2c98fad4dac"
+git-tree-sha1 = "b0ae6133d365da2dbc88bc43d997b1b95c9df5f6"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "3.9.0"
+version = "3.9.1"
 
 [[ConstructionBase]]
 git-tree-sha1 = "a2a6a5fea4d6f730ec4c18a76d27ec10e8ec1c50"
@@ -163,9 +163,9 @@ version = "0.21.0"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "MatrixFactorizations", "StaticArrays"]
-git-tree-sha1 = "ca90f6dee7180e0af9b4604bccb33d949daebe1b"
+git-tree-sha1 = "95d9fd25f6e8a4d6b4b2c63627822eb2b73c1312"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.16.8"
+version = "0.16.9"
 
 [[LearnBase]]
 deps = ["LinearAlgebra", "StatsBase"]
