@@ -17,7 +17,7 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
 [`foldl`](@ref), [`dreduce`](@ref).
 
 # Keyword Arguments
-- `basesize::Integer = length(reducible) ÷ nthreads()`: A size of
+- `basesize::Integer = ⌈length(reducible) / nthreads()⌉`: bA size of
   chunk in `reducible` that is processed by each worker.  A smaller
   size may be required when:
     * computation time for processing each item fluctuates a lot
@@ -135,7 +135,7 @@ function transduce_assoc(
     init,
     coll;
     simd::SIMDFlag = Val(false),
-    basesize::Integer = length(coll) ÷ Threads.nthreads(),
+    basesize::Integer = cld(length(coll), Threads.nthreads()),
     stoppable::Union{Bool,Nothing} = nothing,
 )
     rf = _reducingfunction(xform, step; init = init, simd = simd)
@@ -424,7 +424,7 @@ function tcopy(
     ::typeof(Map(identity)),
     T::Type{<:AbstractSet},
     array::PartitionableArray;
-    basesize::Integer = max(1, length(array) ÷ Threads.nthreads()),
+    basesize::Integer = max(1, cld(length(array), Threads.nthreads())),
     kwargs...,
 )
     @argcheck basesize >= 1
