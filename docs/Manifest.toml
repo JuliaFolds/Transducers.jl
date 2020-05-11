@@ -279,11 +279,11 @@ version = "1.0.0"
 
 [[SplittablesBase]]
 deps = ["Setfield", "Test"]
-git-tree-sha1 = "66813cea8bdd5b4713b5ff93ebe7f155706bffe8"
+git-tree-sha1 = "1af78869dfc6ebc890064f72f8e0b58a0fbafc0b"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/SplittablesBase.jl.git"
 uuid = "171d559e-b47b-412a-8079-5efa626c420e"
-version = "0.1.1-DEV"
+version = "0.1.2-DEV"
 
 [[StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]

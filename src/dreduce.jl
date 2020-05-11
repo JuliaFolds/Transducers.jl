@@ -19,7 +19,7 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
 
 # Keyword Arguments
 - `pool::AbstractWorkerPool`: Passed to `Distributed.remotecall`.
-- `basesize::Integer = length(array) ÷ nworkers()`: A size of chunk in
+- `basesize::Integer = amount(array) ÷ nworkers()`: A size of chunk in
   `array` that is processed by each worker.  A smaller size may be
   required when computation time for processing each item can
   fluctuate a lot.
@@ -50,7 +50,7 @@ See [`dreduce`](@ref) and [`transduce`](@ref).
 function dtransduce(
     xform::Transducer, step, init, coll;
     simd::SIMDFlag = Val(false),
-    basesize::Integer = max(1, length(coll) ÷ Distributed.nworkers()),
+    basesize::Integer = max(1, amount(coll) ÷ Distributed.nworkers()),
     threads_basesize::Integer = max(1, basesize ÷ Threads.nthreads()),
     pool::Distributed.AbstractWorkerPool = Distributed.default_worker_pool(),
     _remote_reduce = _transduce_assoc_nocomplete,
