@@ -17,7 +17,7 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
 [`foldl`](@ref), [`dreduce`](@ref).
 
 # Keyword Arguments
-- `basesize::Integer = length(reducible) ÷ nthreads()`: A size of
+- `basesize::Integer = amount(reducible) ÷ nthreads()`: A size of
   chunk in `reducible` that is processed by each worker.  A smaller
   size may be required when:
     * computation time for processing each item fluctuates a lot
@@ -81,11 +81,11 @@ Check if `reducible` collection is considered small compared to
 `basesize` (an integer).  Fold functions such as [`reduce`](@ref)
 switches to sequential `__foldl__` when `issmall` returns `true`.
 
-Default implementation is `length(reducible) <= basesize`.
+Default implementation is `amount(reducible) <= basesize`.
 """
 issmall
 
-issmall(reducible, basesize) = length(reducible) <= basesize
+issmall(reducible, basesize) = amount(reducible) <= basesize
 
 issmall(reducible::SizedReducible) =
     issmall(reducible.reducible, max(reducible.basesize, 1))
@@ -135,7 +135,7 @@ function transduce_assoc(
     init,
     coll;
     simd::SIMDFlag = Val(false),
-    basesize::Integer = length(coll) ÷ Threads.nthreads(),
+    basesize::Integer = amount(coll) ÷ Threads.nthreads(),
     stoppable::Union{Bool,Nothing} = nothing,
 )
     rf = _reducingfunction(xform, step; init = init, simd = simd)

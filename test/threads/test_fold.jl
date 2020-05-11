@@ -21,6 +21,13 @@ const parseint = Base.Fix1(parse, Int)
         @test fold(+, Map(parseint), "1234") == 10
         @test fold(add, Map(parseint), "1234") == 10
     end
+    @testset "dict" begin
+        dict = Dict(zip("1234", 1:4))
+        @test fold(+, Map(last), dict) == 10
+        @test fold(add, Map(last), dict) == 10
+        @test fold(+, Map(parseint ∘ first), dict) == 10
+        @test fold(add, Map(parseint ∘ first), dict) == 10
+    end
     @testset "IdentityTransducer" begin
         @test fold(+, IdentityTransducer(), 1:10) == sum(1:10)
     end
