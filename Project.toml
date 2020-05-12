@@ -1,7 +1,7 @@
 name = "Transducers"
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 authors = ["Takafumi Arakaki <aka.tkf@gmail.com>"]
-version = "0.4.27-DEV"
+version = "0.4.28-DEV"
 
 [deps]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
@@ -21,7 +21,7 @@ BangBang = "0.3.18"
 InitialValues = "0.2.1"
 Requires = "0.5, 1.0"
 Setfield = "0.3, 0.4, 0.5, 0.6"
-SplittablesBase = "0.1"
+SplittablesBase = "0.1.2"
 Tables = "0.2, 1.0"
 julia = "1"
 

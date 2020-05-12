@@ -23,6 +23,27 @@ maybe_popfirst!(input::AbstractChannel) =
         end
     end
 
+# This function assumes that `tasks` does not grow.
+function _unsafe_sync_end(tasks)
+    exceptions = []
+    for t in tasks
+        try
+            wait(t)
+        catch err
+            push!(exceptions, err)
+        end
+    end
+    if !isempty(exceptions)
+        throw(CompositeException(exceptions))
+    end
+end
+
+if VERSION < v"1.5-"
+    const sync_end = Base.sync_end
+else
+    const sync_end = _unsafe_sync_end
+end
+
 function transduce_commutative!(
     xform::Transducer,
     step,
@@ -64,7 +85,7 @@ function transduce_commutative!(
             rethrow()
         end
     end
-    Base.sync_end(tasks)
+    sync_end(tasks)
     return foldl(combine_step(rf), Map(fetch), tasks)
 end
 
