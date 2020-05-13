@@ -4,7 +4,7 @@ using SparseArrays: issparse, sparse
 using Statistics: mean
 using Transducers
 using Transducers: Transducer, simple_transduce, Reduced, isexpansive,
-    TeeZip, GetIndex, SetIndex, Inject, @~, IdentityTransducer,
+    ZipSource, GetIndex, SetIndex, Inject, @~, IdentityTransducer,
     EmptyResultError, IdentityNotDefinedError, AbortIf, @next
 using InitialValues: Init
 using Logging: NullLogger, with_logger

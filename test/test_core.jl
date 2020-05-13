@@ -36,7 +36,7 @@ end
     @testset for xf in [
             Count(),
             Map(identity) |> Count(),
-            TeeZip(Map(identity) |> Count()),
+            ZipSource(Map(identity) |> Count()),
             ]
         rf = eduction(xf, 1:1).rf
         @test rf === reform(rf, f)

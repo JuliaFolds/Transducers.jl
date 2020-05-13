@@ -770,7 +770,7 @@ function _prepare_map(xf, dest, src, simd)
     indices = eachindex(dest, src)
 
     rf = reducingfunction(
-        TeeZip(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
+        ZipSource(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
         (::Vararg) -> nothing,
         simd = simd)
 

@@ -46,7 +46,7 @@ Filter = Transducers.is_transducer_type
 ### Experimental transducers
 
 ```@docs
-Transducers.TeeZip
+Transducers.ZipSource
 Transducers.GetIndex
 Transducers.SetIndex
 Transducers.Inject
