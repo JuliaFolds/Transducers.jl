@@ -16,6 +16,7 @@ using Base.Broadcast: Broadcasted
 
 import Tables
 using ArgCheck
+using BangBang.Experimental: modify!!
 using BangBang.NoBang: SingletonVector
 using BangBang: BangBang, Empty, append!!, empty!!, push!!, setindex!!, union!!
 using Distributed: Distributed, @everywhere

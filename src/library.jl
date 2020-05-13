@@ -1942,23 +1942,6 @@ function GroupBy(key, rf0)
     return GroupBy(key, rf, DefaultInit(op))
 end
 
-# "Bangbang" version of `set!(f, dict, key)` interface I proposed in
-# https://github.com/JuliaLang/julia/pull/31367#issuecomment-504561329
-# TODO: specialize for `Dict` to minimize hashing
-function dictset!!(f, d0, key)
-    if haskey(d0, key)
-        y = f(Some(d0[key]))
-    else
-        y = f(nothing)
-    end
-    if y === nothing
-        d = delete!!(d0, key)
-    else
-        d = setindex!!(d0, something(y), key)
-    end
-    return d, y
-end
-
 function start(rf::R_{GroupBy}, result)
     gstate = Dict{Union{},Union{}}()
     gresult = Dict{Union{},Union{}}()
@@ -1970,7 +1953,7 @@ complete(rf::R_{GroupBy}, result) = complete(inner(rf), unwrap(rf, result)[2])
 @inline function next(rf::R_{GroupBy}, result, input)
     wrapping(rf, result) do (gstate, gresult), iresult
         key = xform(rf).key(input)
-        gstate, somegr = dictset!!(gstate, key) do value
+        gstate, somegr = modify!!(gstate, key) do value
             if value === nothing
                 gr0 = start(xform(rf).rf, initvalue(xform(rf).init))
             else
