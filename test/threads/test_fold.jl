@@ -24,6 +24,10 @@ const parseint = Base.Fix1(parse, Int)
     @testset "IdentityTransducer" begin
         @test fold(+, IdentityTransducer(), 1:10) == sum(1:10)
     end
+    @testset "GroupBy" begin
+        @test fold(right, GroupBy(isodd, Map(last), +), 1:10) ==
+              Dict(true => 25, false => 30)
+    end
 end
 
 # TODO: make them work with `dreduce`
