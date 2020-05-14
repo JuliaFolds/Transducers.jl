@@ -70,7 +70,7 @@ unsafe_setter(ys) =
 
     params = [
         :Enumerate => xf_double |> Enumerate(),
-        :TeeZip => xf_double |> Transducers.TeeZip(Count()) |> Map(reverse),
+        :ZipSource => xf_double |> Transducers.ZipSource(Count()) |> Map(reverse),
         #= Zip was working before...
         :Zip => Zip(Count(), xf_double),
         =#

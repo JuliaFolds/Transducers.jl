@@ -3,7 +3,7 @@
 ```@meta
 DocTestSetup = quote
     using Transducers
-    using Transducers: TeeZip
+    using Transducers: ZipSource
 end
 ```
 
@@ -13,28 +13,28 @@ Map(sin) |>
     Map(cos) |>
     Map(tan)
 
-julia> TeeZip(Map(sin) |> TeeZip(Map(tan)))
-TeeZip(
+julia> ZipSource(Map(sin) |> ZipSource(Map(tan)))
+ZipSource(
     Map(sin) |>
-        TeeZip(Map(tan))
+        ZipSource(Map(tan))
 )
 
-julia> TeeZip(Map(sin) |> TeeZip(Map(tan) |> Filter(isfinite)) |> MapSplat(*))
-TeeZip(
+julia> ZipSource(Map(sin) |> ZipSource(Map(tan) |> Filter(isfinite)) |> MapSplat(*))
+ZipSource(
     Map(sin) |>
-        TeeZip(
+        ZipSource(
             Map(tan) |>
                 Filter(isfinite)
         ) |>
         MapSplat(*)
 )
 
-julia> TeeZip(Map(sin) |>
-              TeeZip(Map(tan) |> Filter(isfinite)) |>
+julia> ZipSource(Map(sin) |>
+              ZipSource(Map(tan) |> Filter(isfinite)) |>
               MapSplat(*)) |> MapSplat(+)
-TeeZip(
+ZipSource(
     Map(sin) |>
-        TeeZip(
+        ZipSource(
             Map(tan) |>
                 Filter(isfinite)
         ) |>
@@ -42,8 +42,8 @@ TeeZip(
 ) |>
     MapSplat(+)
 
-julia> TeeZip(OfType(Float64)) |> MapSplat(+)
-TeeZip(OfType(Float64)) |>
+julia> ZipSource(OfType(Float64)) |> MapSplat(+)
+ZipSource(OfType(Float64)) |>
     MapSplat(+)
 ```
 

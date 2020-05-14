@@ -1446,17 +1446,17 @@ next(rf::R_{Count}, result, ::Any) =
     end
 
 """
-    TeeZip(xform::Transducer)
+    ZipSource(xform::Transducer)
 
 Branch input into two "flows", inject one into `xform` and then merge
-the output of `xform` with the original input.
+(zip) the output of `xform` with the original (source) input.
 
 $_experimental_warning
 
 To illustrate how it works, consider the following usage
 
 ```
-xf0 |> TeeZip(xf1) |> xf2
+xf0 |> ZipSource(xf1) |> xf2
 ```
 
 where `xf0`, `xf1`, and `xf2` are some transducers.  Schematically,
@@ -1467,22 +1467,21 @@ xf0      xf1                       xf2
 ---- y0 ------ y1 ---.-- (y0, y1) ----->
       |              |
        `-------------'
-    "Tee"          "Zip"
 ```
 
 # Examples
 ```jldoctest
 julia> using Transducers
-       using Transducers: TeeZip
+       using Transducers: ZipSource
 
-julia> collect(TeeZip(Filter(isodd) |> Map(x -> x + 1)), 1:5)
+julia> collect(ZipSource(Filter(isodd) |> Map(x -> x + 1)), 1:5)
 3-element Array{Tuple{Int64,Int64},1}:
  (1, 2)
  (3, 4)
  (5, 6)
 ```
 """
-struct TeeZip{T} <: Transducer
+struct ZipSource{T} <: Transducer
     xform::T
 end
 # The idea is to insert an object `Joiner` to the bottom of
@@ -1492,7 +1491,7 @@ end
 # Consider a transducer:
 #
 #     Map(identity) |>
-#         TeeZip(
+#         ZipSource(
 #             Count() |> Filter(isodd)
 #         ) |>
 #         MapSplat(*)
@@ -1526,13 +1525,13 @@ setinner(rf::Joiner, inner) = Joiner(inner)
 reform(rf::Joiner, f) = Joiner(reform(inner(rf), f))
 
 # It's ugly that `Reduction` returns a non-`Reduction` type!  TODO: fix it
-function Reduction(xf::Composition{<:TeeZip}, f)
+function Reduction(xf::Composition{<:ZipSource}, f)
     @nospecialize
     rf = _teezip_rf(xf.outer.xform, (xf.inner, f))
     return Splitter(rf)
 end
 
-function Reduction(xf::TeeZip, f)
+function Reduction(xf::ZipSource, f)
     @nospecialize
     rf = _teezip_rf(xf.xform, (nothing, f))
     return Splitter(rf)
@@ -1596,11 +1595,11 @@ next(rf::Joiner, result, input) =
     end
 # Putting `state` back to make it type stable.
 
-isexpansive(xf::TeeZip) = isexpansive(xf.xform)
+isexpansive(xf::ZipSource) = isexpansive(xf.xform)
 
 function Transducer(rf::Splitter)
     xf_split, rf_ds = _rf_to_teezip(inner(rf))
-    return TeeZip(xf_split) |> Transducer(rf_ds)
+    return ZipSource(xf_split) |> Transducer(rf_ds)
 end
 
 function _rf_to_teezip(rf::Reduction)
@@ -1613,12 +1612,12 @@ _rf_to_teezip(rf::Joiner) = IdentityTransducer(), inner(rf)
 function _rf_to_teezip(rf::Splitter)
     xf_split, rf_inner = _rf_to_teezip(inner(rf))
     xf_inner, rf_ds = _rf_to_teezip(rf_inner)
-    return TeeZip(xf_split) |> xf_inner, rf_ds
+    return ZipSource(xf_split) |> xf_inner, rf_ds
 end
 
 
 # add joint
-# Base.adjoint(xf::Transducer) = TeeZip(xf)
+# Base.adjoint(xf::Transducer) = ZipSource(xf)
 
 """
     Zip(xforms...)
@@ -1650,7 +1649,7 @@ Zip(xforms...) =
 
 _Zip() = IdentityTransducer()
 _Zip(xf1, xforms...) =
-    TeeZip(Map(first) |> xf1) |> Map(_zip_between) |> _Zip(xforms...)
+    ZipSource(Map(first) |> xf1) |> Map(_zip_between) |> _Zip(xforms...)
 
 _zip_init(y0) = (y0, ())
 _zip_between(((y0, ys), yn)) = (y0, (ys..., yn))
@@ -1736,7 +1735,7 @@ next(rf::R_{SetIndex{true}}, result, input::NTuple{2, Any}) =
     next(inner(rf), result, (@inbounds xform(rf).array[input[1]] = input[2];))
 next(rf::R_{SetIndex{false}}, result, input::NTuple{2, Any}) =
     next(inner(rf), result, (xform(rf).array[input[1]] = input[2];))
-# Index is `input[1]` due to `TeeZip`'s definition.  Is it better to
+# Index is `input[1]` due to `ZipSource`'s definition.  Is it better to
 # flip, to be compatible with `Base.setindex!`?
 
 Base.:(==)(xf1::SetIndex{inbounds,A},

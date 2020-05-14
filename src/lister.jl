@@ -5,7 +5,7 @@ _unexported_public_api = (
     # Experimental
     channel_unordered,
     append_unordered!,
-    TeeZip,
+    ZipSource,
     GetIndex,
     SetIndex,
     Inject,

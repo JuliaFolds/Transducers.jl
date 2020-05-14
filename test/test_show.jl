@@ -14,15 +14,15 @@ xforms = [
     Map(sin),
     Filter(isfinite),
     Scan(*),
-    TeeZip(Filter(isfinite)),
-    TeeZip(Filter(isfinite) |> Map(sin)),
-    TeeZip(Filter(isfinite) |> Map(sin)) |> Map(sum),
-    let xf = TeeZip(Filter(isfinite) |> Map(sin))
+    ZipSource(Filter(isfinite)),
+    ZipSource(Filter(isfinite) |> Map(sin)),
+    ZipSource(Filter(isfinite) |> Map(sin)) |> Map(sum),
+    let xf = ZipSource(Filter(isfinite) |> Map(sin))
         xf |> Map(sum) |> xf
     end,
     let xf = Map(first) |> Map(last)
-        xf = TeeZip(TeeZip(xf) |> Map(identity)) |> xf
-        xf |> TeeZip(xf) |> xf
+        xf = ZipSource(ZipSource(xf) |> Map(identity)) |> xf
+        xf |> ZipSource(xf) |> xf
     end,
     # Zip(Map(sin), Map(cos), Map(tan)) |> Map(prod),
 ]
