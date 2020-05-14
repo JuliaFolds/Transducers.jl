@@ -63,6 +63,12 @@ uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 deps = ["Mmap"]
 uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
+[[Dictionaries]]
+deps = ["Indexing", "Random"]
+git-tree-sha1 = "a09aff60a525650db2575907411734c4cceabd93"
+uuid = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
+version = "0.2.1"
+
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
@@ -70,6 +76,12 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 [[Future]]
 deps = ["Random"]
 uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
+
+[[Indexing]]
+deps = ["Test"]
+git-tree-sha1 = "0cf3ac621cd74b1d03af0cc4275f680b2070a5cc"
+uuid = "313cdc1a-70c2-5d6a-ae34-0150d3930a38"
+version = "1.1.0"
 
 [[InitialValues]]
 git-tree-sha1 = "ef18588a15dcd6aff37a09108d7b3754093d73be"
@@ -198,6 +210,12 @@ uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
 [[SparseArrays]]
 deps = ["LinearAlgebra", "Random"]
 uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+
+[[SplitApplyCombine]]
+deps = ["Dictionaries", "Indexing"]
+git-tree-sha1 = "02845fc448cf504681508057ce697b46d4385e21"
+uuid = "03a91e81-4c3e-53e1-a0a4-9c0c8f19dd66"
+version = "1.0.0"
 
 [[SplittablesBase]]
 deps = ["Setfield", "Test"]
