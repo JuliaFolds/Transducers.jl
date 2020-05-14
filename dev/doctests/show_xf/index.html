@@ -4,28 +4,28 @@ Map(sin) |&gt;
     Map(cos) |&gt;
     Map(tan)
 
-julia&gt; TeeZip(Map(sin) |&gt; TeeZip(Map(tan)))
-TeeZip(
+julia&gt; ZipSource(Map(sin) |&gt; ZipSource(Map(tan)))
+ZipSource(
     Map(sin) |&gt;
-        TeeZip(Map(tan))
+        ZipSource(Map(tan))
 )
 
-julia&gt; TeeZip(Map(sin) |&gt; TeeZip(Map(tan) |&gt; Filter(isfinite)) |&gt; MapSplat(*))
-TeeZip(
+julia&gt; ZipSource(Map(sin) |&gt; ZipSource(Map(tan) |&gt; Filter(isfinite)) |&gt; MapSplat(*))
+ZipSource(
     Map(sin) |&gt;
-        TeeZip(
+        ZipSource(
             Map(tan) |&gt;
                 Filter(isfinite)
         ) |&gt;
         MapSplat(*)
 )
 
-julia&gt; TeeZip(Map(sin) |&gt;
-              TeeZip(Map(tan) |&gt; Filter(isfinite)) |&gt;
+julia&gt; ZipSource(Map(sin) |&gt;
+              ZipSource(Map(tan) |&gt; Filter(isfinite)) |&gt;
               MapSplat(*)) |&gt; MapSplat(+)
-TeeZip(
+ZipSource(
     Map(sin) |&gt;
-        TeeZip(
+        ZipSource(
             Map(tan) |&gt;
                 Filter(isfinite)
         ) |&gt;
@@ -33,6 +33,6 @@ TeeZip(
 ) |&gt;
     MapSplat(+)
 
-julia&gt; TeeZip(OfType(Float64)) |&gt; MapSplat(+)
-TeeZip(OfType(Float64)) |&gt;
-    MapSplat(+)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../internals/">« Internals</a><a class="docs-footer-nextpage" href="../show_rf/">Show method for reducing functions »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Monday 11 May 2020 08:11">Monday 11 May 2020</span>. Using Julia version 1.4.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+julia&gt; ZipSource(OfType(Float64)) |&gt; MapSplat(+)
+ZipSource(OfType(Float64)) |&gt;
+    MapSplat(+)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../internals/">« Internals</a><a class="docs-footer-nextpage" href="../show_rf/">Show method for reducing functions »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 14 May 2020 03:55">Thursday 14 May 2020</span>. Using Julia version 1.4.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
