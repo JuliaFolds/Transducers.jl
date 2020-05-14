@@ -1980,6 +1980,23 @@ end
 # This view dictionary has to check `DefaultInit` in `getindex` etc. to
 # pretend that it's not there.
 
+function combine(rf::R_{GroupBy}, a, b)
+    (gstate_a, _), ira = unwrap(rf, a)
+    (gstate_b, _), irb = unwrap(rf, b)
+    gstate_c = mergewith!!(gstate_a, gstate_b) do ua, ub
+        combine(xform(rf).rf, ua, ub)
+    end
+    if DefaultInit(_realbottomrf(xform(rf).rf)) isa valtype(gstate_c)
+        gresult_c = Dict(
+            k => v for (k, v) in gstate_c if v !== DefaultInit(_realbottomrf(xform(rf).rf))
+        )
+    else
+        gresult_c = copy(gstate_c)
+    end
+    irc = combine(inner(rf), ira, irb)
+    irc = next(inner(rf), irc, gresult_c)
+    return wrap(rf, (gstate_c, gresult_c), irc)
+end
 
 """
     ReduceIf(pred)
