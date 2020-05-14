@@ -1942,16 +1942,61 @@ function GroupBy(key, rf0)
     return GroupBy(key, rf, DefaultInit(op))
 end
 
+# `GroupByViewDict` wraps a dictionary whose values are the
+# (composite) states of the reducing function and provides a view such
+# that the its values are the state/result/accumulator of the bottom
+# reducing function.
+struct GroupByViewDict{K,V,S<:DefaultInit,D<:AbstractDict{K}} <: AbstractDict{K,V}
+    state::D
+end
+
+# https://github.com/JuliaLang/julia/issues/30751
+_typesubtract(::Type{Larger}, ::Type{Smaller}) where {Larger,Smaller} =
+    _typesubtract_impl(Smaller, Larger)
+_typesubtract_impl(::Type{T}, ::Type{T}) where {T} = Union{}
+_typesubtract_impl(::Type{T}, ::Type{Union{T,S}}) where {S,T} = S
+_typesubtract_impl(::Type, ::Type{S}) where {S} = S
+
+function GroupByViewDict(state::AbstractDict{K,V0}, xf::GroupBy) where {K,V0}
+    S = typeof(DefaultInit(_realbottomrf(xf.rf)))
+    V = _typesubtract(V0, S)
+    return GroupByViewDict{K,V,S,typeof(state)}(state)
+end
+
+struct _NoValue end
+
+Base.IteratorSize(::Type{<:GroupByViewDict}) = Base.SizeUnknown()
+function Base.iterate(dict::GroupByViewDict{<:Any,<:Any,S}, state = _NoValue()) where {S}
+    y = state isa _NoValue ? iterate(dict.state) : iterate(dict.state, state)
+    y === nothing && return nothing
+    while true
+        (k, v), state = y
+        v isa S || return (k => unwrap_all(unreduced(v))), state
+        y = iterate(dict.state, state)
+        y === nothing && return nothing
+    end
+end
+
+Base.length(dict::GroupByViewDict) = count(true for _ in dict)
+function Base.showarg(io::IO, dict::GroupByViewDict, _toplevel)
+    print(io, GroupByViewDict, '{', keytype(dict), ',', valtype(dict), ",…}")
+end
+
+function Base.getindex(dict::GroupByViewDict{<:Any,<:Any,S}, key) where {S}
+    value = unwrap_all(unreduced(dict.state[key]))
+    value isa S && throw(KeyError(key))
+    return value
+end
+
 function start(rf::R_{GroupBy}, result)
     gstate = Dict{Union{},Union{}}()
-    gresult = Dict{Union{},Union{}}()
-    return wrap(rf, (gstate, gresult), start(inner(rf), result))
+    return wrap(rf, gstate, start(inner(rf), result))
 end
 
 complete(rf::R_{GroupBy}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 @inline function next(rf::R_{GroupBy}, result, input)
-    wrapping(rf, result) do (gstate, gresult), iresult
+    wrapping(rf, result) do gstate, iresult
         key = xform(rf).key(input)
         gstate, somegr = modify!!(gstate, key) do value
             if value === nothing
@@ -1962,40 +2007,24 @@ complete(rf::R_{GroupBy}, result) = complete(inner(rf), unwrap(rf, result)[2])
             return Some(next(xform(rf).rf, gr0, key => input))  # Some(gr)
         end
         gr = something(somegr)
-        bresult = unwrap_all(unreduced(gr))
-        if bresult !== DefaultInit(_realbottomrf(xform(rf).rf))
-            gresult = setindex!!(gresult, bresult, key)
-        end
-        iresult = next(inner(rf), iresult, gresult)
+        iresult = next(inner(rf), iresult, GroupByViewDict(gstate, xform(rf)))
         if gr isa Reduced && !(iresult isa Reduced)
-            return (gstate, gresult), reduced(complete(inner(rf), iresult))
+            return gstate, reduced(complete(inner(rf), iresult))
         else
-            return (gstate, gresult), iresult
+            return gstate, iresult
         end
     end
 end
-# It may be useful to avoid computing hash twice by storing `key =>
-# (gr, unreduced(gr))` in a single dictionary.  A read-only view of
-# `key => unreduced(gr)` can be passed to the downstream transducer.
-# This view dictionary has to check `DefaultInit` in `getindex` etc. to
-# pretend that it's not there.
 
 function combine(rf::R_{GroupBy}, a, b)
-    (gstate_a, _), ira = unwrap(rf, a)
-    (gstate_b, _), irb = unwrap(rf, b)
+    gstate_a, ira = unwrap(rf, a)
+    gstate_b, irb = unwrap(rf, b)
     gstate_c = mergewith!!(gstate_a, gstate_b) do ua, ub
         combine(xform(rf).rf, ua, ub)
     end
-    if DefaultInit(_realbottomrf(xform(rf).rf)) isa valtype(gstate_c)
-        gresult_c = Dict(
-            k => v for (k, v) in gstate_c if v !== DefaultInit(_realbottomrf(xform(rf).rf))
-        )
-    else
-        gresult_c = copy(gstate_c)
-    end
     irc = combine(inner(rf), ira, irb)
-    irc = next(inner(rf), irc, gresult_c)
-    return wrap(rf, (gstate_c, gresult_c), irc)
+    irc = next(inner(rf), irc, GroupByViewDict(gstate_c, xform(rf)))
+    return wrap(rf, gstate_c, irc)
 end
 
 """
