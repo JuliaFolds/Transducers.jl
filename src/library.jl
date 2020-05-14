@@ -1976,8 +1976,7 @@ complete(rf::R_{GroupBy}, result) = complete(inner(rf), unwrap(rf, result)[2])
             else
                 gr0 = something(value)
             end
-            gr = next(xform(rf).rf, gr0, key => input)
-            return Some(gr)
+            return Some(next(xform(rf).rf, gr0, key => input))  # Some(gr)
         end
         gr = something(somegr)
         bresult = unwrap_all(unreduced(gr))
