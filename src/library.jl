@@ -1890,7 +1890,7 @@ julia> using Transducers
        using BangBang  # for `push!!`
 
 julia> foldl(right, GroupBy(string, Map(last), push!!), [1, 2, 1, 2, 3])
-Dict{String,Array{Int64,1}} with 3 entries:
+Transducers.GroupByViewDict{String,Array{Int64,1},…} with 3 entries:
   "1" => [1, 1]
   "2" => [2, 2]
   "3" => [3]
@@ -1916,7 +1916,7 @@ julia> result isa Reduced
 true
 
 julia> unreduced(result)
-Dict{String,Int64} with 2 entries:
+Transducers.GroupByViewDict{String,Any,…} with 2 entries:
   "1" => 2
   "2" => 4
 ```
