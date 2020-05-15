@@ -157,7 +157,7 @@ end
     return complete(rf, val)
 end
 
-__foldl__(rf, init, coll::Tuple) =
+@inline __foldl__(rf, init, coll::Tuple) =
     complete(rf, @return_if_reduced foldlargs(rf, init, coll...))
 
 # TODO: use IndexStyle
@@ -293,7 +293,7 @@ end
 
 Call [`__foldl__`](@ref) without calling [`complete`](@ref).
 """
-foldl_nocomplete(rf, init, coll) = __foldl__(skipcomplete(rf), init, coll)
+@inline foldl_nocomplete(rf, init, coll) = __foldl__(skipcomplete(rf), init, coll)
 
 """
     foldl(step, xf::Transducer, reducible; init, simd) :: T
