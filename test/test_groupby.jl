@@ -12,6 +12,11 @@ include("preamble.jl")
     ) == Dict(2 => 4, 1 => 2)
 end
 
+@testset "post-groupby filtering" begin
+    @test foldl(right, GroupBy(isodd, Map(last) |> Filter(isodd), +), 1:10) ==
+          Dict(true => 25)
+end
+
 @testset "automatic asmonoid" begin
     @test foldl(right, GroupBy(identity, Map(first), (a, b) -> a + b), [1, 2, 1, 2, 3]) ==
           Dict(1 => 2, 2 => 4, 3 => 3)
