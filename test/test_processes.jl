@@ -225,17 +225,17 @@ end
     # testing Transducer(::Eduction) which calls Transducer(::Reduction)
     @testset for xf in [
             Map(sin),
-            TeeZip(Filter(isfinite) |> Map(tan)),
-            Map(sin) |> TeeZip(Filter(isfinite) |> Map(tan)) |>
+            ZipSource(Filter(isfinite) |> Map(tan)),
+            Map(sin) |> ZipSource(Filter(isfinite) |> Map(tan)) |>
                 Map(cos),
-            TeeZip(Map(sin) |> TeeZip(Map(tan))),
-            TeeZip(TeeZip(Map(tan)) |> Map(identity)),
-            TeeZip(Map(sin) |> TeeZip(Map(tan)) |> Map(identity)),
-            Map(cos) |> TeeZip(Map(sin) |> TeeZip(Map(tan)) |> Map(identity)),
+            ZipSource(Map(sin) |> ZipSource(Map(tan))),
+            ZipSource(ZipSource(Map(tan)) |> Map(identity)),
+            ZipSource(Map(sin) |> ZipSource(Map(tan)) |> Map(identity)),
+            Map(cos) |> ZipSource(Map(sin) |> ZipSource(Map(tan)) |> Map(identity)),
             Map(cos) |>
-                TeeZip(Map(sin) |> TeeZip(Map(tan)) |> Map(identity)) |>
+                ZipSource(Map(sin) |> ZipSource(Map(tan)) |> Map(identity)) |>
                 Map(first),
-            TeeZip(TeeZip(Map(tan))),
+            ZipSource(ZipSource(Map(tan))),
             ]
         @test Transducer(eduction(xf, 1:1)) === xf
     end
@@ -249,7 +249,7 @@ end
     ]
     @testset for xf in expansives
         @test isexpansive(xf)
-        @test isexpansive(TeeZip(xf))
+        @test isexpansive(ZipSource(xf))
     end
     nonexpansives = [
         Map(identity)
@@ -257,7 +257,7 @@ end
     ]
     @testset for xf in nonexpansives
         @test !isexpansive(xf)
-        @test !isexpansive(TeeZip(xf))
+        @test !isexpansive(ZipSource(xf))
     end
 end
 

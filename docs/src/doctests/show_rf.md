@@ -3,7 +3,7 @@
 ```@meta
 DocTestSetup = quote
     using Transducers
-    using Transducers: Reduction, TeeZip
+    using Transducers: Reduction, ZipSource
 end
 ```
 
@@ -33,7 +33,7 @@ Reduction(
 
 ```jldoctest
 rf = Reduction(
-    TeeZip(Filter(isodd) |> Map(identity) |> TeeZip(Map(identity))),
+    ZipSource(Filter(isodd) |> Map(identity) |> ZipSource(Map(identity))),
     right,
 )
 
