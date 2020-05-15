@@ -1,5 +1,6 @@
 module TestGroupBy
 include("preamble.jl")
+using Transducers: DefaultInit
 
 @testset begin
     @test foldl(right, GroupBy(string, Map(last), push!!), [1, 2, 1, 2, 3]) ==
@@ -13,8 +14,11 @@ include("preamble.jl")
 end
 
 @testset "post-groupby filtering" begin
-    @test foldl(right, GroupBy(isodd, Map(last) |> Filter(isodd), +), 1:10) ==
-          Dict(true => 25)
+    d = foldl(right, GroupBy(isodd, Map(last) |> Filter(isodd), +), 1:10)
+    @test d == Dict(true => 25)
+    @test d.state == Dict(true => 25, false => DefaultInit(+))
+    @test valtype(d) <: Int
+    @test valtype(d.state) <: Union{Int,typeof(DefaultInit(+))}
 end
 
 @testset "automatic asmonoid" begin

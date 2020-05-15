@@ -84,9 +84,11 @@ uuid = "313cdc1a-70c2-5d6a-ae34-0150d3930a38"
 version = "1.1.0"
 
 [[InitialValues]]
-git-tree-sha1 = "ef18588a15dcd6aff37a09108d7b3754093d73be"
+git-tree-sha1 = "25909a52dd7116e9e261afb0e9e3beafaa994ea1"
+repo-rev = "master"
+repo-url = "https://github.com/tkf/InitialValues.jl.git"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
-version = "0.2.2"
+version = "0.2.3-DEV"
 
 [[InteractiveUtils]]
 deps = ["Markdown"]
