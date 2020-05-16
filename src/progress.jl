@@ -59,6 +59,11 @@ struct ProgressLoggingFoldable{T} <: Foldable
     interval::Float64
 end
 
+Base.IteratorSize(::Type{ProgressLoggingFoldable{T}}) where {T} = Base.IteratorSize(T)
+Base.IteratorEltype(::Type{ProgressLoggingFoldable{T}}) where {T} = Base.IteratorEltype(T)
+Base.length(foldable::ProgressLoggingFoldable) = length(foldable.foldable)
+Base.eltype(::Type{ProgressLoggingFoldable{T}}) where {T} = eltype(T)
+
 # Use Juno/Atom-compatible log-level.  See:
 # https://github.com/JunoLab/Atom.jl/blob/v0.11.1/src/progress.jl#L75-L76
 const PROGRESSLEVEL = LogLevel(-1)

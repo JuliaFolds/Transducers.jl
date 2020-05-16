@@ -245,7 +245,7 @@ ensurerf(f) = BottomRF(f)
 # Not calling rf.inner(result, input) etc. directly since it can be
 # `Completing` etc.
 start(rf::BottomRF, result) = start(inner(rf), result)
-next(rf::BottomRF, result, input) = next(inner(rf), result, input)
+@inline next(rf::BottomRF, result, input) = next(inner(rf), result, input)
 complete(rf::BottomRF, result) = complete(inner(rf), result)
 combine(rf::BottomRF, a, b) = combine(inner(rf), a, b)
 
@@ -379,7 +379,7 @@ macro form [`@next`](@ref).  See the details in its documentation.
 See [`Map`](@ref), [`Filter`](@ref), [`Cat`](@ref), etc. for
 real-world examples.
 """
-next(f, result, input) = f(result, input)
+@inline next(f, result, input) = f(result, input)
 
 # done(rf, result)
 
@@ -625,7 +625,7 @@ struct Completing{F}  # Note: not a Transducer
 end
 
 start(rf::Completing, result) = start(rf.f, result)
-next(rf::Completing, result, input)  = next(rf.f, result, input)
+@inline next(rf::Completing, result, input)  = next(rf.f, result, input)
 complete(::Completing, result) = result
 combine(rf::Completing, a, b) = combine(rf.f, a, b)
 
@@ -644,7 +644,7 @@ end
 
 start(rf::SideEffect, result) = start(rf.f, result)
 complete(::SideEffect, result) = result
-next(rf::SideEffect, _, input) = rf.f(input)
+@inline next(rf::SideEffect, _, input) = rf.f(input)
 
 """
     right([l, ]r) -> r
