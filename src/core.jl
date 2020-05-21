@@ -871,7 +871,7 @@ function _getoutput(xf, x)
 end
 
 _real_state_type(T) = T
-_real_state_type(::Type{Union{T, _FakeState}}) where T = T
+_real_state_type(::Type{Union{T, _FakeState}}) where {T} = @isdefined(T) ? T : Any
 
 
 """
