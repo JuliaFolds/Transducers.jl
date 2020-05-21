@@ -644,7 +644,7 @@ julia> collect(Interpose(missing), 1:3)
 ```
 """
 function Base.collect(xf::Transducer, coll)
-    result = append!!(xf, Union{}[], coll)
+    result = finish!(append!!(xf, collector(), coll))
     if result isa Vector{Union{}}
         et = @default_finaltype(xf, coll)
         return et[]
