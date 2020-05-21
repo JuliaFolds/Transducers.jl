@@ -212,7 +212,9 @@ The abstract type for filter-like transducers.
 """
 AbstractFilter
 
-abstract type AbstractReduction{innertype} end
+abstract type AbstractReduction{innertype} <: Function end
+
+@inline (rf::AbstractReduction)(state, input) = next(rf, state, input)
 
 InnerType(::Type{<:AbstractReduction{T}}) where T = T
 
@@ -276,8 +278,6 @@ struct Reduction{X <: Transducer, I} <: AbstractReduction{I}
             new{X, typeof(rf)}(xf, rf)
         end
 end
-
-@inline (rf::Reduction)(state, input) = next(rf, state, input)
 
 prependxf(rf::AbstractReduction, xf) = Reduction(xf, rf)
 setinner(rf::Reduction, inner) = Reduction(xform(rf), inner)
