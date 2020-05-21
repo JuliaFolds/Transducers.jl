@@ -1,5 +1,6 @@
 module TestCore
 include("preamble.jl")
+using OnlineStats: Mean
 using Transducers: has, reform
 
 @testset "Reduced" begin
@@ -42,6 +43,10 @@ end
         @test rf === reform(rf, f)
         @test rf !== reform(rf, +)
     end
+end
+
+@testset "reducingfunction" begin
+    @test reducingfunction(Map(identity), +) isa Function
 end
 
 @testset "OnInit" begin

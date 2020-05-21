@@ -212,7 +212,11 @@ The abstract type for filter-like transducers.
 """
 AbstractFilter
 
-abstract type AbstractReduction{innertype} end
+abstract type AbstractReduction{innertype} <: Function end
+
+if VERSION >= v"1.3"  # post https://github.com/JuliaLang/julia/pull/31916
+    @inline (rf::AbstractReduction)(state, input) = next(rf, state, input)
+end
 
 InnerType(::Type{<:AbstractReduction{T}}) where T = T
 
@@ -277,7 +281,9 @@ struct Reduction{X <: Transducer, I} <: AbstractReduction{I}
         end
 end
 
-@inline (rf::Reduction)(state, input) = next(rf, state, input)
+if VERSION < v"1.3"  # pre https://github.com/JuliaLang/julia/pull/31916
+    @inline (rf::Reduction)(state, input) = next(rf, state, input)
+end
 
 prependxf(rf::AbstractReduction, xf) = Reduction(xf, rf)
 setinner(rf::Reduction, inner) = Reduction(xform(rf), inner)
