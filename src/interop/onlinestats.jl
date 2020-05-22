@@ -71,10 +71,10 @@ end
 
 InitialValues.hasinitialvalue(::Type{<:OnlineStatReducingFunction}) = true
 
-# `SpecificInitialValue{T}` for case when `init=Init(op::OnlineStat)`
+# `GenericInitialValue{T}` for case when `init=Init(op::OnlineStat)`
 # is explicitly passed.
 const OSInit{T} =
-    Union{SpecificInitialValue{T},SpecificInitialValue{OnlineStatReducingFunction{T}}}
+    Union{GenericInitialValue{T},GenericInitialValue{OnlineStatReducingFunction{T}}}
 
 (rf::OnlineStatReducingFunction{T})(::OSInit{T}, x) where {T<:OnlineStatsBase.OnlineStat} =
     rf(copy(rf.init), x)
