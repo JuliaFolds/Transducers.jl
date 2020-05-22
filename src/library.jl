@@ -50,7 +50,7 @@ end
 Map(::Type{T}) where T = Map{Type{T}}(T)  # specialization workaround
 
 isexpansive(::Map) = false
-next(rf::R_{Map}, result, input) = next(inner(rf), result, xform(rf).f(input))
+@inline next(rf::R_{Map}, result, input) = next(inner(rf), result, xform(rf).f(input))
 
 """
     MapSplat(f)
@@ -76,7 +76,7 @@ end
 MapSplat(::Type{T}) where T = MapSplat{Type{T}}(T)  # specialization workaround
 
 isexpansive(::MapSplat) = false
-next(rf::R_{MapSplat}, result, input) =
+@inline next(rf::R_{MapSplat}, result, input) =
     next(inner(rf), result, xform(rf).f(input...))
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/replace
@@ -122,7 +122,7 @@ struct Replace{D} <: Transducer
 end
 
 isexpansive(::Replace) = false
-next(rf::R_{Replace}, result, input) =
+@inline next(rf::R_{Replace}, result, input) =
     next(inner(rf), result, get(xform(rf).d, input, input))
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/cat
@@ -276,7 +276,7 @@ struct Filter{P} <: AbstractFilter
     pred::P
 end
 
-next(rf::R_{Filter}, result, input) =
+@inline next(rf::R_{Filter}, result, input) =
     xform(rf).pred(input) ? next(inner(rf), result, input) : result
 
 """
@@ -300,7 +300,7 @@ julia> collect(NotA(Missing), [1, missing, 2])
 struct NotA{T} <: AbstractFilter end
 NotA(T::Type) = NotA{T}()
 
-next(rf::R_{NotA{T}}, result, input) where T =
+@inline next(rf::R_{NotA{T}}, result, input) where T =
     input isa T ? result : next(inner(rf), result, input)
 
 # **Side notes**.  Although in principle `NotA(Missing)` can yields a
@@ -420,7 +420,7 @@ end
 start(rf::R_{Take}, result) = wrap(rf, xform(rf).n, start(inner(rf), result))
 complete(rf::R_{Take}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{Take}, result, input) =
+@inline next(rf::R_{Take}, result, input) =
     wrapping(rf, result) do n, iresult
         if n > 0
             iresult = next(inner(rf), iresult, input)
@@ -466,7 +466,7 @@ function start(rf::R_{TakeLast}, result)
     return wrap(rf, (-n, Union{}[]), start(inner(rf), result))
 end
 
-next(rf::R_{TakeLast}, result, input) =
+@inline next(rf::R_{TakeLast}, result, input) =
     wrapping(rf, result) do (c, buffer0), iresult
         c += 1
         n = xform(rf).n
@@ -521,7 +521,7 @@ struct TakeWhile{P} <: AbstractFilter
     pred::P
 end
 
-next(rf::R_{TakeWhile}, result, input) =
+@inline next(rf::R_{TakeWhile}, result, input) =
     if xform(rf).pred(input)
         next(inner(rf), result, input)
     else
@@ -560,7 +560,7 @@ end
 start(rf::R_{TakeNth}, result) = wrap(rf, xform(rf).n, start(inner(rf), result))
 complete(rf::R_{TakeNth}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{TakeNth}, result, input) =
+@inline next(rf::R_{TakeNth}, result, input) =
     wrapping(rf, result) do c, iresult
         if c == xform(rf).n
             iresult = next(inner(rf), iresult, input)
@@ -602,7 +602,7 @@ end
 start(rf::R_{Drop}, result) = wrap(rf, 0, start(inner(rf), result))
 complete(rf::R_{Drop}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{Drop}, result, input) =
+@inline next(rf::R_{Drop}, result, input) =
     wrapping(rf, result) do c, iresult
         if c >= xform(rf).n
             c, next(inner(rf), iresult, input)
@@ -654,7 +654,7 @@ end
 
 complete(rf::R_{DropLast}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{DropLast}, result, input) =
+@inline next(rf::R_{DropLast}, result, input) =
     wrapping(rf, result) do (c, buffer0), iresult
         c += 1
         n = xform(rf).n + 1
@@ -705,7 +705,7 @@ end
 start(rf::R_{DropWhile}, result) = wrap(rf, true, start(inner(rf), result))
 complete(rf::R_{DropWhile}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{DropWhile}, result, input) =
+@inline next(rf::R_{DropWhile}, result, input) =
     wrapping(rf, result) do dropping, iresult
         if dropping
             dropping = xform(rf).pred(input)
@@ -742,7 +742,7 @@ isexpansive(::FlagFirst) = false
 start(rf::R_{FlagFirst}, result) = wrap(rf, true, start(inner(rf), result))
 complete(rf::R_{FlagFirst}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{FlagFirst}, result, input) =
+@inline next(rf::R_{FlagFirst}, result, input) =
     wrapping(rf, result) do isfirst, iresult
         false, next(inner(rf), iresult, (isfirst, input))
     end
@@ -1059,7 +1059,7 @@ end
 start(rf::R_{Interpose}, result) = wrap(rf, Val(true), start(inner(rf), result))
 complete(rf::R_{Interpose}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{Interpose}, result, input) =
+@inline next(rf::R_{Interpose}, result, input) =
     wrapping(rf, result) do isfirst, iresult
         if isfirst isa Val{false}
             iresult = next(inner(rf), iresult, xform(rf).sep)
@@ -1095,7 +1095,7 @@ end
 start(rf::R_{Dedupe}, result) = wrap(rf, Unseen(), start(inner(rf), result))
 complete(rf::R_{Dedupe}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{Dedupe}, result, input) =
+@inline next(rf::R_{Dedupe}, result, input) =
     wrapping(rf, result) do prev, iresult
         if prev isa Unseen || prev != input
             return input, next(inner(rf), iresult, input)
@@ -1325,7 +1325,7 @@ _setresult(shim, result) = @set shim.result = result
 start(rf::R_{AdHocXF}, result) =
     wrap(rf, _initvalue(rf), start(inner(rf), result))
 
-next(rf::R_{AdHocXF}, result, input) =
+@inline next(rf::R_{AdHocXF}, result, input) =
     wrapping(rf, result) do state, iresult
         shim = xform(rf).f(RFShim(inner(rf)), ResultShim(state, iresult), input)
         if shim isa Reduced
@@ -1394,7 +1394,7 @@ isexpansive(::Iterated) = false
 start(rf::R_{Iterated}, result) =
     wrap(rf, _initvalue(rf), start(inner(rf), result))
 complete(rf::R_{Iterated}, result) = complete(inner(rf), unwrap(rf, result)[2])
-next(rf::R_{Iterated}, result, ::Any) =
+@inline next(rf::R_{Iterated}, result, ::Any) =
     wrapping(rf, result) do istate, iresult
         return xform(rf).f(istate), next(inner(rf), iresult, istate)
     end
@@ -1440,7 +1440,7 @@ Count(start = 1) = Count(start, oneunit(start))
 isexpansive(::Count) = false
 start(rf::R_{Count}, result) = wrap(rf, xform(rf).start, start(inner(rf), result))
 complete(rf::R_{Count}, result) = complete(inner(rf), unwrap(rf, result)[2])
-next(rf::R_{Count}, result, ::Any) =
+@inline next(rf::R_{Count}, result, ::Any) =
     wrapping(rf, result) do istate, iresult
         return istate + xform(rf).step, next(inner(rf), iresult, istate)
     end
@@ -1689,9 +1689,9 @@ GetIndex(array) = GetIndex{false}(array)
 
 isexpansive(::GetIndex) = false
 
-next(rf::R_{GetIndex{true}}, result, input) =
+@inline next(rf::R_{GetIndex{true}}, result, input) =
     next(inner(rf), result, @inbounds xform(rf).array[input])
-next(rf::R_{GetIndex{false}}, result, input) =
+@inline next(rf::R_{GetIndex{false}}, result, input) =
     next(inner(rf), result, xform(rf).array[input])
 
 Base.:(==)(xf1::GetIndex{inbounds,A},
@@ -1731,9 +1731,9 @@ SetIndex(array) = SetIndex{false}(array)
 
 isexpansive(::SetIndex) = false
 
-next(rf::R_{SetIndex{true}}, result, input::NTuple{2, Any}) =
+@inline next(rf::R_{SetIndex{true}}, result, input::NTuple{2, Any}) =
     next(inner(rf), result, (@inbounds xform(rf).array[input[1]] = input[2];))
-next(rf::R_{SetIndex{false}}, result, input::NTuple{2, Any}) =
+@inline next(rf::R_{SetIndex{false}}, result, input::NTuple{2, Any}) =
     next(inner(rf), result, (xform(rf).array[input[1]] = input[2];))
 # Index is `input[1]` due to `ZipSource`'s definition.  Is it better to
 # flip, to be compatible with `Base.setindex!`?
@@ -1792,7 +1792,7 @@ isexpansive(::Inject) = false
 start(rf::R_{Inject}, result) =
     wrap(rf, iterate(xform(rf).iterator), start(inner(rf), result))
 complete(rf::R_{Inject}, result) = complete(inner(rf), unwrap(rf, result)[2])
-next(rf::R_{Inject}, result, input) =
+@inline next(rf::R_{Inject}, result, input) =
     wrapping(rf, result) do istate, iresult
         istate === nothing && return istate, reduced(complete(inner(rf), iresult))
         y, s = istate
@@ -1838,7 +1838,7 @@ isexpansive(::Enumerate) = false
 start(rf::R_{Enumerate}, result) =
     wrap(rf, xform(rf).start, start(inner(rf), result))
 complete(rf::R_{Enumerate}, result) = complete(inner(rf), unwrap(rf, result)[2])
-next(rf::R_{Enumerate}, result, input) =
+@inline next(rf::R_{Enumerate}, result, input) =
     wrapping(rf, result) do i, iresult
         iresult2 = next(inner(rf), iresult, (i, input))
         i + xform(rf).step, iresult2

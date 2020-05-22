@@ -18,7 +18,8 @@ import Tables
 using ArgCheck
 using BangBang.Experimental: modify!!, mergewith!!
 using BangBang.NoBang: SingletonVector
-using BangBang: BangBang, Empty, append!!, empty!!, push!!, setindex!!, union!!
+using BangBang:
+    BangBang, Empty, append!!, collector, empty!!, finish!, push!!, setindex!!, union!!
 using Distributed: Distributed, @everywhere
 using Logging: LogLevel, @logmsg
 using Requires
