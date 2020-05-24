@@ -364,7 +364,7 @@ Transducers.jl uses it to implement stateful transducers using "pure"
 functions.  The idea is based on a slightly different approach taken
 in C++ Transducer library [atria](https://github.com/AbletonAG/atria).
 """
-start(rf, init) = InitialValues.initialize(init, rf)
+start(rf, init) = initialize(init, rf)
 start(rf::Reduction, result) = start(inner(rf), result)
 start(rf::R_{AbstractFilter}, result) = start(inner(rf), result)
 
@@ -705,13 +705,50 @@ Return the input as-is if not.
 initvalue(x) = x
 _initvalue(rf::Reduction) = initvalue(xform(rf).init)
 
+# A better name for `AbstractInitializer` is `op`-agnostic or something.
 abstract type AbstractInitializer end
-InitialValues.initialize(init::AbstractInitializer, _) = initvalue(init)
-# `AbstractInitializer` is like `InitialValues.Initializer` but it
-# ignores the reducing function completely and can be used in places
-# where `InitialValues.Initializer` does not make sense (e.g.,
-# `Iterated`).  So, for now, let's not subtype
-# `InitialValues.Initializer`.
+
+# For `DefaultInit` and `OptInit`
+struct InitOf{IV <: SpecificInitialValue} end
+(::InitOf{IV})(::OP) where {IV, OP} = IV{OP}()
+
+"""
+    initialize(initializer, op) -> init
+    initialize(init, _) -> init
+
+Return an initial value for `op`.  Throw an error if `initializer`
+(e.g., `Init`) creates unknown initial value.
+
+# Examples
+```jldoctest
+julia> using Transducers
+       using Transducers: initialize
+
+julia> initialize(Init, +)
+Init(+)
+
+julia> initialize(123, +)
+123
+
+julia> unknown_op(x, y) = x + 2y;
+
+julia> initialize(Init, unknown_op)
+ERROR: IdentityNotDefinedError: `init = Init` is specified but the identity element `Init(op)` is not defined for
+    op = unknown_op
+[...]
+```
+"""
+initialize(init, op) = init
+initialize(::typeof(Init), op) = check_init(Init(op), Init, op)
+initialize(f::InitOf, op) = check_init(f(op), f, op)
+initialize(init::AbstractInitializer, _) = initvalue(init)
+
+@assert Base.issingletontype(typeof(Init))
+
+function check_init(init::SpecificInitialValue, f, op)
+    InitialValues.isknown(init) || throw(IdentityNotDefinedError(op, f))
+    return init
+end
 
 """
     OnInit(f)
@@ -903,10 +940,10 @@ function is never called.
 """
 DefaultInit
 struct DefaultInitOf{OP} <: SpecificInitialValue{OP} end
-const DefaultInit = InitialValues.InitOf{DefaultInitOf}()
+const DefaultInit = InitOf{DefaultInitOf}()
 
 struct OptInitOf{OP} <: SpecificInitialValue{OP} end
-const OptInit = InitialValues.InitOf{OptInitOf}()
+const OptInit = InitOf{OptInitOf}()
 
 InferableInit{OP} = Union{DefaultInitOf{OP}, OptInitOf{OP}}
 
@@ -921,9 +958,6 @@ _nonidtype(::Type{Union{S, T}}) where {T, S <: InferableInit} = T
 @inline _asmonoid(rf::Reduction) = Reduction(xform(rf), _asmonoid(inner(rf)))
 @inline _asmonoid(rf::BottomRF) = BottomRF(_asmonoid(inner(rf)))
 @inline _asmonoid(rf::Completing) = Completing(_asmonoid(rf.f))
-
-InitialValues.hasinitialvalue(rf::Union{AbstractReduction,Completing}) =
-    hasinitialvalue(_realbottomrf(rf))
 
 struct EmptyResultError <: Exception
     rf
@@ -945,3 +979,20 @@ end
 _realbottomrf(op) = op
 _realbottomrf(rf::AbstractReduction) = _realbottomrf(as(rf, BottomRF).inner)
 _realbottomrf(rf::Completing) = rf.f
+
+struct IdentityNotDefinedError <: Exception
+    op
+    idfactory
+end
+
+function Base.showerror(io::IO, e::IdentityNotDefinedError)
+    Init = e.idfactory
+    op = e.op
+    print(io, "IdentityNotDefinedError: ")
+    print(io, strip("""
+    `init = $Init` is specified but the identity element `Init(op)` is not defined for
+        op = $op
+    Note that `op` must be a well known binary operations like `+` or `*`.
+    See InitialValues.jl documentation for more information.
+    """))
+end

@@ -1,6 +1,5 @@
 module TestProcesses
 include("preamble.jl")
-using InitialValues: UndefinedInitialValueError
 
 @testset "mapfoldl" begin
     # https://clojure.org/reference/transducers#_transduce
@@ -289,13 +288,13 @@ end
     end
 end
 
-@testset "UndefinedInitialValueError" begin
+@testset "IdentityNotDefinedError" begin
     unknownadd(x, y) = x + y
     err = @test_error foldl(unknownadd, Map(identity), 1:1; init=Init)
-    @test err isa UndefinedInitialValueError
+    @test err isa IdentityNotDefinedError
     msg = sprint(showerror, err)
     @test occursin("`Init(op)` is not defined", msg)
-    @test occursin("op = $(repr(unknownadd))", msg)
+    @test occursin("op = $unknownadd", msg)
 end
 
 @testset "identityof error" begin

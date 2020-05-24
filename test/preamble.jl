@@ -5,7 +5,7 @@ using Statistics: mean
 using Transducers
 using Transducers: Transducer, simple_transduce, Reduced, isexpansive,
     ZipSource, GetIndex, SetIndex, Inject, @~, IdentityTransducer,
-    EmptyResultError, AbortIf, @next
+    EmptyResultError, IdentityNotDefinedError, AbortIf, @next
 using InitialValues: Init
 using Logging: NullLogger, with_logger
 
