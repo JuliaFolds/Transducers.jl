@@ -295,7 +295,7 @@ end
     @test err isa UndefinedInitialValueError
     msg = sprint(showerror, err)
     @test occursin("`Init(op)` is not defined", msg)
-    @test occursin("op = $unknownadd", msg)
+    @test occursin("op = $(repr(unknownadd))", msg)
 end
 
 @testset "identityof error" begin
