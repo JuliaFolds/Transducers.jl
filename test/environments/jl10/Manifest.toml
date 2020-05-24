@@ -31,7 +31,7 @@ version = "0.3.1"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "6806661ee8e2cd95ba860b4c1e1187cb2cf65971"
+git-tree-sha1 = "76d1913dd524b430ea72c87c683c8f737659642b"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
@@ -76,9 +76,9 @@ version = "0.21.1"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "OrderedCollections"]
-git-tree-sha1 = "7d7578b00789cf16c5f68fad71868e773edd58a2"
+git-tree-sha1 = "af6d9c86e191c917c2276fbede1137e8ea20157f"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.17.16"
+version = "0.17.17"
 
 [[DataValueInterfaces]]
 git-tree-sha1 = "bfc1187b79289637fa0ef6d4436ebdfe6905cbd6"
@@ -117,9 +117,9 @@ version = "0.24.11"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
-git-tree-sha1 = "6c89d5b673e59b8173c546c84127e5f623d865f6"
+git-tree-sha1 = "44f561e293987ffc84272cd3d2b14b0b93123d63"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.8.9"
+version = "0.8.10"
 
 [[Future]]
 deps = ["Random"]
@@ -132,11 +132,11 @@ uuid = "313cdc1a-70c2-5d6a-ae34-0150d3930a38"
 version = "1.1.0"
 
 [[InitialValues]]
-git-tree-sha1 = "58ab6cf92925e957923631685c34f7c530338a2b"
+git-tree-sha1 = "65f197424126f388c758a56f651411282a82c1b0"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/InitialValues.jl.git"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
-version = "0.2.4-DEV"
+version = "0.2.5-DEV"
 
 [[InteractiveUtils]]
 deps = ["LinearAlgebra", "Markdown"]
