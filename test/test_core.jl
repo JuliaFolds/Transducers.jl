@@ -1,6 +1,6 @@
 module TestCore
 include("preamble.jl")
-using InitialValues: INIT, InitialValues, adjoininit
+using InitialValues: INIT
 using Transducers: has, reform
 
 @testset "Reduced" begin
@@ -57,19 +57,6 @@ end
         # arguments in reversed order does not work.
         @test reducingfunction(Map(string), +)(INIT, :anything) === "anything"
     end
-end
-
-@testset "reducingfunction" begin
-    add(a, b) = a + b
-    @test InitialValues.hasinitialvalue(reducingfunction(Filter(isodd), +))
-    @test !InitialValues.hasinitialvalue(reducingfunction(Filter(isodd), add))
-    @test InitialValues.hasinitialvalue(adjoininit(reducingfunction(Filter(isodd), add)))
-    @test InitialValues.hasinitialvalue(reducingfunction(Filter(isodd), adjoininit(add)))
-
-    @test InitialValues.isknown(Init(reducingfunction(Filter(isodd), +)))
-    @test !InitialValues.isknown(Init(reducingfunction(Filter(isodd), add)))
-    @test InitialValues.isknown(Init(adjoininit(reducingfunction(Filter(isodd), add))))
-    @test InitialValues.isknown(Init(reducingfunction(Filter(isodd), adjoininit(add))))
 end
 
 @testset "OnInit" begin
