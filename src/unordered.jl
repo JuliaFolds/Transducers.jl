@@ -59,7 +59,7 @@ function transduce_commutative!(
     stop = Threads.Atomic{Bool}(false)
     tasks = map(1:ntasks) do _
         @spawn try
-            acc′ = _start_init(rf, init)
+            acc′ = start(rf, init)
             finished = false
             while !finished
                 acc′, finished = let acc′′ = acc′
@@ -89,7 +89,7 @@ function transduce_commutative!(
     return foldl(combine_step(rf), Map(fetch), tasks)
 end
 
-reduce_commutative!(step, xform::Transducer, itr; init = MissingInit(), kwargs...) =
+reduce_commutative!(step, xform::Transducer, itr; init = DefaultInit, kwargs...) =
     unreduced(transduce_commutative!(xform, Completing(step), init, itr; kwargs...))
 
 reduce_commutative(

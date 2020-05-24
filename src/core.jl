@@ -364,7 +364,7 @@ Transducers.jl uses it to implement stateful transducers using "pure"
 functions.  The idea is based on a slightly different approach taken
 in C++ Transducer library [atria](https://github.com/AbletonAG/atria).
 """
-start(::Any, result) = result
+start(rf, init) = initialize(init, rf)
 start(rf::Reduction, result) = start(inner(rf), result)
 start(rf::R_{AbstractFilter}, result) = start(inner(rf), result)
 
@@ -695,9 +695,60 @@ abstract type Reducible end
 abstract type Foldable <: Reducible end
 asfoldable(x) = x
 
+"""
+    initvalue(initializer::AbstractInitializer) -> init
+    initvalue(init) -> init
+
+Materialize the initial value if the input is an `AbstractInitializer`.
+Return the input as-is if not.
+"""
+initvalue(x) = x
+_initvalue(rf::Reduction) = initvalue(xform(rf).init)
+
+# A better name for `AbstractInitializer` is `op`-agnostic or something.
 abstract type AbstractInitializer end
 
-_initvalue(rf::Reduction) = initvalue(xform(rf).init)
+# For `DefaultInit` and `OptInit`
+struct InitOf{IV <: SpecificInitialValue} end
+(::InitOf{IV})(::OP) where {IV, OP} = IV{OP}()
+
+"""
+    initialize(initializer, op) -> init
+    initialize(init, _) -> init
+
+Return an initial value for `op`.  Throw an error if `initializer`
+(e.g., `Init`) creates unknown initial value.
+
+# Examples
+```jldoctest; filter = r"(InitialValues\\.)?Init"
+julia> using Transducers
+       using Transducers: initialize
+
+julia> initialize(Init, +)
+Init(+)
+
+julia> initialize(123, +)
+123
+
+julia> unknown_op(x, y) = x + 2y;
+
+julia> initialize(Init, unknown_op)
+ERROR: IdentityNotDefinedError: `init = Init` is specified but the identity element `Init(op)` is not defined for
+    op = unknown_op
+[...]
+```
+"""
+initialize(init, op) = init
+initialize(::typeof(Init), op) = check_init(Init(op), Init, op)
+initialize(f::InitOf, op) = check_init(f(op), f, op)
+initialize(init::AbstractInitializer, _) = initvalue(init)
+
+@assert Base.issingletontype(typeof(Init))
+
+function check_init(init::SpecificInitialValue, f, op)
+    InitialValues.isknown(init) || throw(IdentityNotDefinedError(op, f))
+    return init
+end
 
 """
     OnInit(f)
@@ -873,7 +924,7 @@ struct _FakeState end
 
 function _getoutput(xf, x)
     rf = reducingfunction(xf, right)
-    return unreduced(complete(rf, next(rf, _start_init(rf, _FakeState()), x)))
+    return unreduced(complete(rf, next(rf, start(rf, _FakeState()), x)))
 end
 
 _real_state_type(T) = T
@@ -887,25 +938,25 @@ _real_state_type(::Type{Union{T, _FakeState}}) where {T} = @isdefined(T) ? T : A
 to Transducers.jl.  It is used for checking if the bottom reducing
 function is never called.
 """
-struct DefaultInit{OP} <: SpecificInitialValue{OP} end
-DefaultInit(::OP) where OP = DefaultInit{OP}()
+DefaultInit
+struct DefaultInitOf{OP} <: SpecificInitialValue{OP} end
+const DefaultInit = InitOf{DefaultInitOf}()
 
 struct OptInitOf{OP} <: SpecificInitialValue{OP} end
-OptInit(::OP) where OP = OptInitOf{OP}()
+const OptInit = InitOf{OptInitOf}()
 # It seems that compiler can infer more when passing around a
 # `Function` than a `Type` (since a `Function` is a singleton?).
-# That's why `OptInit` is defined as a factory function.
+# That's why `OptInit` is defined as a factory.
 
-InferableInit{OP} = Union{DefaultInit{OP}, OptInitOf{OP}}
+InferableInit{OP} = Union{DefaultInitOf{OP}, OptInitOf{OP}}
 
 _nonidtype(::Any) = nothing
 _nonidtype(::Type{Union{S, T}}) where {T, S <: InferableInit} = T
 
-struct MissingInit end
-
 # Defining `_asmonoid` internally as the resulting reducing function
 # is not really a monoid (only the bottom reducing function becomes a
 # monoid).
+# TODO: better name for `_asmonoid`
 @inline _asmonoid(rf) = asmonoid(rf)
 @inline _asmonoid(rf::Reduction) = Reduction(xform(rf), _asmonoid(inner(rf)))
 @inline _asmonoid(rf::BottomRF) = BottomRF(_asmonoid(inner(rf)))
@@ -947,35 +998,4 @@ function Base.showerror(io::IO, e::IdentityNotDefinedError)
     Note that `op` must be a well known binary operations like `+` or `*`.
     See InitialValues.jl documentation for more information.
     """))
-end
-
-# Materialize initial value (by `provide_init`) and then construct
-# accumulator state (by `start`):
-_start_init(rf, init) = start(rf, provide_init(rf, init))
-
-# Handle `init=0` (vanilla value), `init=OnInit(...)`,
-# `init=CopyInit(...)`, etc.:
-provide_init(_rf, init) = initvalue(init)
-
-# If `init` is not an `AbstractInitializer` (like `OnInit), just use
-# it as-is:
-initvalue(x) = x
-
-# Handle default case:
-function provide_init(rf, ::MissingInit)
-    op = _realbottomrf(rf)
-    @assert hasinitialvalue(op)
-    return DefaultInit(op)
-end
-
-# Handle `init=Init` and `init=OptInit`
-function provide_init(rf, idfactory::Union{typeof(Init), typeof(OptInit)})
-    op = _realbottomrf(rf)
-    return makeid(op, idfactory)
-end
-
-makeid(op, init) = init
-function makeid(op, idfactory::Union{typeof(Init), typeof(OptInit)})
-    hasinitialvalue(op) && return idfactory(op)
-    throw(IdentityNotDefinedError(op, idfactory))
 end

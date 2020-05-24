@@ -1162,20 +1162,24 @@ struct Scan{F, T} <: Transducer
     init::T
 end
 
-Scan(f) = Scan(f, makeid(f, Init))
+Scan(f) = Scan(f, Init)  # TODO: DefaultInit?
 
 isexpansive(::Scan) = false
 
-function start(rf::R_{Scan}, result)
-    init = _initvalue(rf)
-    return wrap(rf, init, start(inner(rf), result))
-end
+start(rf::R_{Scan}, result) =
+    wrap(rf, start(xform(rf).f, xform(rf).init), start(inner(rf), result))
+# For now, using `start` on `rf.f` is only for invoking `initialize`
+# on `rf.init`.  But maybe it's better to support `reducingfunction`?
+# For example, use `unwrap_all` before feeding the accumulator to the
+# inner reducing function?
 
 complete(rf::R_{Scan}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 function next(rf::R_{Scan}, result, input)
     wrapping(rf, result) do acc, iresult
         acc = xform(rf).f(acc, input)
+        # TODO: Don't call inner when `acc` is an `InitialValue`?
+        #       What about when `Reduced`?
         return acc, next(inner(rf), iresult, acc)
     end
 end
@@ -1927,26 +1931,18 @@ struct GroupBy{K, R, T} <: Transducer
     init::T
 end
 
-function GroupBy(key, xf::Transducer, step = right, init = MissingInit())
+function GroupBy(key, xf::Transducer, step = right, init = DefaultInit)
     rf = _reducingfunction(xf, step; init = init)
-    if init isa MissingInit
-        return GroupBy(key, rf)
-    else
-        return GroupBy(key, rf, makeid(_realbottomrf(step), init))
-    end
+    return GroupBy(key, rf, init)
 end
 
-function GroupBy(key, rf0)
-    rf = _asmonoid(rf0)
-    op = _realbottomrf(rf)
-    return GroupBy(key, rf, DefaultInit(op))
-end
+GroupBy(key, rf) = GroupBy(key, _asmonoid(rf), DefaultInit)
 
 # `GroupByViewDict` wraps a dictionary whose values are the
 # (composite) states of the reducing function and provides a view such
 # that the its values are the state/result/accumulator of the bottom
 # reducing function.
-struct GroupByViewDict{K,V,S<:DefaultInit,D<:AbstractDict{K}} <: AbstractDict{K,V}
+struct GroupByViewDict{K,V,S<:DefaultInitOf,D<:AbstractDict{K}} <: AbstractDict{K,V}
     state::D
 end
 
@@ -2000,7 +1996,7 @@ complete(rf::R_{GroupBy}, result) = complete(inner(rf), unwrap(rf, result)[2])
         key = xform(rf).key(input)
         gstate, somegr = modify!!(gstate, key) do value
             if value === nothing
-                gr0 = start(xform(rf).rf, initvalue(xform(rf).init))
+                gr0 = start(xform(rf).rf, xform(rf).init)
             else
                 gr0 = something(value)
             end
