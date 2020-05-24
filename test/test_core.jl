@@ -1,6 +1,6 @@
 module TestCore
 include("preamble.jl")
-using OnlineStats: Mean
+using InitialValues: INIT
 using Transducers: has, reform
 
 @testset "Reduced" begin
@@ -47,6 +47,16 @@ end
 
 @testset "reducingfunction" begin
     @test reducingfunction(Map(identity), +) isa Function
+    @testset "INIT" begin
+        @test reducingfunction(Map(identity), +)(INIT, :anything) === :anything
+        @test reducingfunction(Map(identity), +)(:anything, INIT) === :anything
+
+        # Test that `INIT` interacts with the bottom reducing
+        # function.  The second argument should still be processed
+        # with the transducer.  Note that, unlike `Map(identity)`, the
+        # arguments in reversed order does not work.
+        @test reducingfunction(Map(string), +)(INIT, :anything) === "anything"
+    end
 end
 
 @testset "OnInit" begin

@@ -2,6 +2,7 @@ module TestFold
 
 include("../preamble.jl")
 using Distributed: @everywhere
+using InitialValues: INIT
 
 const add = let fname = gensym(:add)
     @everywhere $fname(a, b) = a + b
@@ -20,6 +21,10 @@ const parseint = Base.Fix1(parse, Int)
         @test fold(add, Map(identity), 1:4) == 10
         @test fold(+, Map(parseint), "1234") == 10
         @test fold(add, Map(parseint), "1234") == 10
+    end
+    @testset "INIT" begin
+        @test fold(add, Map(identity), 1:4; init = INIT) == 10
+        @test fold(add, Map(parseint), "1234"; init = INIT) == 10
     end
     @testset "IdentityTransducer" begin
         @test fold(+, IdentityTransducer(), 1:10) == sum(1:10)

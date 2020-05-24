@@ -23,8 +23,14 @@ using BangBang:
 using Distributed: Distributed, @everywhere
 using Logging: LogLevel, @logmsg
 using Requires
-using InitialValues: InitialValues, InitialValue, SpecificInitialValue, Init,
-    hasinitialvalue, asmonoid
+using InitialValues:
+    GenericInitialValue,
+    Init,
+    InitialValue,
+    InitialValues,
+    SpecificInitialValue,
+    asmonoid,
+    hasinitialvalue
 using SplittablesBase: amount, halve
 
 import Setfield
