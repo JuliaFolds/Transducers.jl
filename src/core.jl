@@ -720,7 +720,7 @@ Return an initial value for `op`.  Throw an error if `initializer`
 (e.g., `Init`) creates unknown initial value.
 
 # Examples
-```jldoctest
+```jldoctest; filter = r"(InitialValues\\.)?Init"
 julia> using Transducers
        using Transducers: initialize
 
