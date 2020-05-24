@@ -944,6 +944,9 @@ const DefaultInit = InitOf{DefaultInitOf}()
 
 struct OptInitOf{OP} <: SpecificInitialValue{OP} end
 const OptInit = InitOf{OptInitOf}()
+# It seems that compiler can infer more when passing around a
+# `Function` than a `Type` (since a `Function` is a singleton?).
+# That's why `OptInit` is defined as a factory.
 
 InferableInit{OP} = Union{DefaultInitOf{OP}, OptInitOf{OP}}
 
