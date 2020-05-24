@@ -10,12 +10,15 @@ const add = let fname = gensym(:add)
 end
 const parseint = Base.Fix1(parse, Int)
 
-@testset "$_fold" for _fold in [foldl, reduce, dreduce]
-    if _fold === foldl
-        fold = _fold
-    else
-        fold(args...; kw...) = _fold(args...; basesize = 1, kw...)
-    end
+@testset "$fold" for fold in [
+    foldl,
+    simple_reduce,
+    random_reduce,
+    reduce_bs1,
+    reduce,
+    dreduce_bs1,
+    dreduce,
+]
     @testset "no init" begin
         @test fold(+, Map(identity), 1:4) == 10
         @test fold(add, Map(identity), 1:4) == 10
@@ -36,12 +39,7 @@ const parseint = Base.Fix1(parse, Int)
 end
 
 # TODO: make them work with `dreduce`
-@testset "$_fold" for _fold in [foldl, reduce]
-    if _fold === foldl
-        fold = _fold
-    else
-        fold(args...; kw...) = _fold(args...; basesize = 1, kw...)
-    end
+@testset "$fold" for fold in [foldl, simple_reduce, random_reduce, reduce_bs1, reduce]
     @testset "dict" begin
         dict = Dict(zip("1234", 1:4))
         @test fold(+, Map(last), dict) == 10

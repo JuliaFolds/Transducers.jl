@@ -52,6 +52,14 @@ Transducers.SetIndex
 Transducers.Inject
 ```
 
+## [Other reducing function combinators](@id combinators)
+
+```@docs
+Transducers.TeeRF
+Transducers.ProductRF
+Transducers.BroadcastRF
+```
+
 ## Early termination
 
 ```@docs

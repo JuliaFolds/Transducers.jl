@@ -7,7 +7,7 @@ export Transducer, Map, Filter, Cat, MapCat, TCat, Take, PartitionBy, Scan, Zip,
     transduce, eduction, setinput, Reduced, reduced, unreduced, ifunreduced,
     Completing, OnInit, CopyInit, right, reducingfunction, dreduce, dtransduce,
     tcopy, tcollect, dcopy, dcollect, channel_unordered, withprogress,
-    AdHocFoldable
+    AdHocFoldable, TeeRF, ProductRF, BroadcastRF
 
 # Deprecated:
 export Distinct
@@ -19,7 +19,7 @@ using ArgCheck
 using BangBang.Experimental: modify!!, mergewith!!
 using BangBang.NoBang: SingletonVector
 using BangBang:
-    BangBang, Empty, append!!, collector, empty!!, finish!, push!!, setindex!!, union!!
+    @!, BangBang, Empty, append!!, collector, empty!!, finish!, push!!, setindex!!, union!!
 using Distributed: Distributed, @everywhere
 using Logging: LogLevel, @logmsg
 using Requires
@@ -71,6 +71,7 @@ include("showutils.jl")
 include("basics.jl")
 include("core.jl")
 include("library.jl")
+include("combinators.jl")
 include("simd.jl")
 include("processes.jl")
 include("reduce.jl")
