@@ -39,7 +39,7 @@ julia> dreduce(+, Map(exp) |> Map(log), 1:3)
 6.0
 ```
 """
-dreduce(step, xform::Transducer, itr; init=MissingInit(), kwargs...) =
+dreduce(step, xform::Transducer, itr; init = DefaultInit, kwargs...) =
     unreduced(dtransduce(xform, Completing(step), init, itr; kwargs...))
 
 """
