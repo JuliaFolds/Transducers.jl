@@ -913,14 +913,14 @@ InferableInit{OP} = Union{DefaultInitOf{OP}, OptInitOf{OP}}
 _nonidtype(::Any) = nothing
 _nonidtype(::Type{Union{S, T}}) where {T, S <: InferableInit} = T
 
-# Defining `_asmonoid` internally as the resulting reducing function
+# Defining `adjoininit` internally as the resulting reducing function
 # is not really a monoid (only the bottom reducing function becomes a
 # monoid).
-# TODO: better name for `_asmonoid`
-@inline _asmonoid(rf) = asmonoid(rf)
-@inline _asmonoid(rf::Reduction) = Reduction(xform(rf), _asmonoid(inner(rf)))
-@inline _asmonoid(rf::BottomRF) = BottomRF(_asmonoid(inner(rf)))
-@inline _asmonoid(rf::Completing) = Completing(_asmonoid(rf.f))
+# TODO: better name for `adjoininit`
+@inline InitialValues.adjoininit(rf::Reduction) =
+    Reduction(xform(rf), adjoininit(inner(rf)))
+@inline InitialValues.adjoininit(rf::BottomRF) = BottomRF(adjoininit(inner(rf)))
+@inline InitialValues.adjoininit(rf::Completing) = Completing(adjoininit(rf.f))
 
 InitialValues.hasinitialvalue(rf::Union{AbstractReduction,Completing}) =
     hasinitialvalue(_realbottomrf(rf))

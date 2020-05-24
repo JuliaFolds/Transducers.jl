@@ -29,6 +29,7 @@ using InitialValues:
     InitialValue,
     InitialValues,
     SpecificInitialValue,
+    adjoininit,
     asmonoid,
     hasinitialvalue
 using SplittablesBase: amount, halve
