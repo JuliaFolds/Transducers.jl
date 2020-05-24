@@ -1936,7 +1936,7 @@ function GroupBy(key, xf::Transducer, step = right, init = DefaultInit)
     return GroupBy(key, rf, init)
 end
 
-GroupBy(key, rf) = GroupBy(key, adjoininit(rf), DefaultInit)
+GroupBy(key, rf) = GroupBy(key, _asmonoid(rf), DefaultInit)
 
 # `GroupByViewDict` wraps a dictionary whose values are the
 # (composite) states of the reducing function and provides a view such

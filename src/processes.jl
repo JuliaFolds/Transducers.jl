@@ -89,9 +89,9 @@ julia> transduce(rf_good, "", 1:3)
 @inline reducingfunction(xf::Transducer, step; simd::SIMDFlag = Val(false)) =
     maybe_usesimd(Reduction(xf, step), simd)
 
-# Use `adjoininit` automatically only when `init` is not specified:
+# Use `_asmonoid` automatically only when `init` is not specified:
 @inline _reducingfunction(xf, step; init = DefaultInit, simd::SIMDFlag = Val(false), _...) =
-    maybe_usesimd(Reduction(xf, init === DefaultInit ? adjoininit(step) : step), simd)
+    maybe_usesimd(Reduction(xf, init === DefaultInit ? _asmonoid(step) : step), simd)
 
 """
     __foldl__(rf, init, reducible::T)
