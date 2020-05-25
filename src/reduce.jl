@@ -150,7 +150,7 @@ function transduce_assoc(
         stoppable,
     )
     result = complete(rf, acc)
-    if unreduced(result) isa DefaultInit
+    if unreduced(result) isa DefaultInitOf
         throw(EmptyResultError(rf))
         # See how `transduce(rf, init, coll)` is implemented in ./processes.jl
     end
@@ -174,7 +174,7 @@ function _transduce_assoc_nocomplete(rf, init, coll, basesize, stoppable = true)
 end
 
 @noinline _reduce_basecase(rf::F, init::I, reducible) where {F,I} =
-    restack(foldl_nocomplete(rf, _start_init(rf, init), foldable(reducible)))
+    restack(foldl_nocomplete(rf, start(rf, init), foldable(reducible)))
 # `restack` here is crucial when using heap-allocated accumulator.
 # See `ThreadsX.unique` and the MWE extracted from it:
 # https://github.com/tkf/Restacker.jl/blob/master/benchmark/bench_unique.jl
@@ -226,7 +226,7 @@ function _reduce_threads_for(rf, init, reducible::SizedReducible{<:AbstractArray
         basesize <= 1 ? length(arr) : length(arr) ÷ basesize
     )
     if nthreads == 1
-        return foldl_nocomplete(rf, _start_init(rf, init), arr)
+        return foldl_nocomplete(rf, start(rf, init), arr)
     else
         w = length(arr) ÷ nthreads
         results = Vector{Any}(undef, nthreads)
@@ -236,7 +236,7 @@ function _reduce_threads_for(rf, init, reducible::SizedReducible{<:AbstractArray
             else
                 chunk = @view arr[(i - 1) * w + 1:i * w]
             end
-            results[i] = foldl_nocomplete(rf, _start_init(rf, init), chunk)
+            results[i] = foldl_nocomplete(rf, start(rf, init), chunk)
         end
         # It can be done in `log2(n)` for loops but it's not clear if
         # `combine` is compute-intensive enough so that launching
@@ -288,11 +288,11 @@ end
 
 # AbstractArray for disambiguation
 Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
-               init = MissingInit(), kwargs...) =
+               init = DefaultInit, kwargs...) =
     unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
 
 Base.mapreduce(xform::Transducer, step, itr;
-               init = MissingInit(), kwargs...) =
+               init = DefaultInit, kwargs...) =
     unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
 
 Base.reduce(step, xform::Transducer, itr; kwargs...) =

@@ -90,8 +90,8 @@ julia> transduce(rf_good, "", 1:3)
     maybe_usesimd(Reduction(xf, step), simd)
 
 # Use `_asmonoid` automatically only when `init` is not specified:
-@inline _reducingfunction(xf, step; init = MissingInit(), simd::SIMDFlag = Val(false), _...) =
-    maybe_usesimd(Reduction(xf, init isa MissingInit ? _asmonoid(step) : step), simd)
+@inline _reducingfunction(xf, step; init = DefaultInit, simd::SIMDFlag = Val(false), _...) =
+    maybe_usesimd(Reduction(xf, init === DefaultInit ? _asmonoid(step) : step), simd)
 
 """
     __foldl__(rf, init, reducible::T)
@@ -285,7 +285,7 @@ performance tuning.
 """
 function simple_transduce(xform, f, init, coll)
     rf = Reduction(xform, f)
-    return __simple_foldl__(rf, _start_init(rf, init), coll)
+    return __simple_foldl__(rf, start(rf, init), coll)
 end
 
 """
@@ -404,19 +404,19 @@ _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
     # Inlining `transduce` and `__foldl__` were essential for the
     # `restack` below to work.
     rf = maybe_usesimd(rf0, simd)
-    state = _start_init(rf, init)
+    state = start(rf, init)
     foldable = asfoldable(coll)
     result = __foldl__(rf, state, foldable)
-    if unreduced(result) isa DefaultInit
+    if unreduced(result) isa DefaultInitOf
         throw(EmptyResultError(rf0))
-        # Should I check if `init` is a `MissingInit`?
+        # Should I check if `init` is a `DefaultInit`?
     end
     # At this point, `return result` is the semantically correct thing
     # to do.  What follows are some convoluted instructions to
     # convince the compiler that this function is type-stable (in some
     # cases).  Note that return type would be inference-dependent only
     # if `init` is a `OptInit` type.  In the default case where `init
-    # isa DefaultInit`, the real code pass is the `throw` above.
+    # isa DefaultInitOf`, the real code pass is the `throw` above.
 
     # Unpacking as `ur_result` and re-packing it later somehow helps
     # the compiler to correctly eliminate a possibility in a `Union`.
@@ -447,7 +447,7 @@ end
 
 function Base.mapfoldl(xform::Transducer, step, itr;
                        simd::SIMDFlag = Val(false),
-                       init = MissingInit())
+                       init = DefaultInit)
     unreduced(transduce(xform, step, init, itr; simd=simd))
 end
 
@@ -806,7 +806,7 @@ function Base.foldl(step, xform::Transducer, itr;
     mapfoldl(xform, Completing(step), itr; kw...)
 end
 
-@inline function Base.foldl(step, foldable::Foldable; init=MissingInit(), kwargs...)
+@inline function Base.foldl(step, foldable::Foldable; init = DefaultInit, kwargs...)
     xf, coll = extract_transducer(foldable)
     return unreduced(transduce(xf, Completing(step), init, coll; kwargs...))
 end

@@ -1,7 +1,7 @@
 module TestInference
 
 include("preamble.jl")
-using Transducers: _nonidtype, DefaultInit, OptInit
+using Transducers: _nonidtype, DefaultInitOf, OptInit
 
 collections = [
     1:1,
@@ -15,7 +15,7 @@ constant(x) = (_...) -> x
 @testset "_nonidtype" begin
     # This is required for "foldl without init" tests below work:
     @test _nonidtype(Float64) === Float64
-    @test _nonidtype(Union{DefaultInit{typeof(+)}, Float64}) === Float64
+    @test _nonidtype(Union{DefaultInitOf{typeof(+)}, Float64}) === Float64
 end
 
 @testset "foldl" begin
