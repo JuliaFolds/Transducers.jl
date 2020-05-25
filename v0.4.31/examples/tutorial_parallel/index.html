@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial: Parallelism · Transducers.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">Transducers.jl</span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../parallelism/">Parallelism</a></li><li><a class="tocitem" href="../../manual/">Manual</a></li><li><a class="tocitem" href="../../interface/">Interface</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../tutorial_missings/">Tutorial: Missing values</a></li><li class="is-active"><a class="tocitem" href>Tutorial: Parallelism</a><ul class="internal"><li><a class="tocitem" href="#Quick-examples-1"><span>Quick examples</span></a></li><li><a class="tocitem" href="#When-can-I-use-reduce-and-dreduce?-1"><span>When can I use <code>reduce</code> and <code>dreduce</code>?</span></a></li><li><a class="tocitem" href="#tutorial-parallel-collect-1"><span>Example: parallel <code>collect</code></span></a></li><li><a class="tocitem" href="#Example:-ad-hoc-histogram-1"><span>Example: ad-hoc histogram</span></a></li><li><a class="tocitem" href="#Example:-early-termination-1"><span>Example: early termination</span></a></li></ul></li><li><a class="tocitem" href="../empty_result_handling/">Empty result handling</a></li><li><a class="tocitem" href="../words/">Parallel word count</a></li><li><a class="tocitem" href="../transducers/">Writing transducers</a></li><li><a class="tocitem" href="../reducibles/">Writing reducibles</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Tutorial: Parallelism</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Tutorial: Parallelism</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/tkf/Transducers.jl/blob/master/examples/tutorial_parallel.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="tutorial-parallel-1"><a class="docs-heading-anchor" href="#tutorial-parallel-1">Parallel processing tutorial</a><a class="docs-heading-anchor-permalink" href="#tutorial-parallel-1" title="Permalink"></a></h1><p>See also: <a href="../../parallelism/#overview-parallel-1">Overview of parallel processing in Transducers.jl</a></p><h2 id="Quick-examples-1"><a class="docs-heading-anchor" href="#Quick-examples-1">Quick examples</a><a class="docs-heading-anchor-permalink" href="#Quick-examples-1" title="Permalink"></a></h2><h3 id="Sequential-processing-1"><a class="docs-heading-anchor" href="#Sequential-processing-1">Sequential processing</a><a class="docs-heading-anchor-permalink" href="#Sequential-processing-1" title="Permalink"></a></h3><pre><code class="language-julia">using Transducers
+
+xs = randn(10_000_000)
+foldl(+, Map(sin), xs)</code></pre><pre><code class="language-none">-2340.292974385676</code></pre><h3 id="Thread-based-parallelism-1"><a class="docs-heading-anchor" href="#Thread-based-parallelism-1">Thread-based parallelism</a><a class="docs-heading-anchor-permalink" href="#Thread-based-parallelism-1" title="Permalink"></a></h3><p>Just replace <code>foldl</code> with <code>reduce</code>, to make use of multiple cores:</p><pre><code class="language-julia">reduce(+, Map(sin), xs)</code></pre><pre><code class="language-none">-2340.292974385676</code></pre><p>(In my laptop (4 core machine) I start seeing some speedup around <code>length(xs) ≥ 100_000</code> for this transducer and reducing function.)</p><h3 id="Process-based-parallelism-1"><a class="docs-heading-anchor" href="#Process-based-parallelism-1">Process-based parallelism</a><a class="docs-heading-anchor-permalink" href="#Process-based-parallelism-1" title="Permalink"></a></h3><pre><code class="language-julia">using Distributed
+addprocs(4)
+
+dreduce(+, Map(sin), xs)</code></pre><pre><code class="language-none">-2340.2929743858017</code></pre><p>(Note: there is likely no speedup for light-weight computation and large input data like this, when using <code>dreduce</code>.)</p><h3 id="Parallel-processing-with-iterator-comprehensions-1"><a class="docs-heading-anchor" href="#Parallel-processing-with-iterator-comprehensions-1">Parallel processing with iterator comprehensions</a><a class="docs-heading-anchor-permalink" href="#Parallel-processing-with-iterator-comprehensions-1" title="Permalink"></a></h3><p>You can also use <a href="../../manual/#Transducers.eduction"><code>eduction</code></a> to use iterator comprehension with multi-thread <code>reduce</code>:</p><pre><code class="language-julia">reduce(+, eduction(sin(x) for x in xs if abs(x) &lt; 1); basesize = 500_000)</code></pre><pre><code class="language-none">-3167.478470348497</code></pre><pre><code class="language-julia">reduce(+, eduction(x * y for x in 1:3, y in 1:3))</code></pre><pre><code class="language-none">36</code></pre><p>You can omit <code>eduction</code> when using Transducers.jl-specific functions like <a href="../../manual/#Transducers.tcollect"><code>tcollect</code></a>/<a href="../../manual/#Transducers.dcollect"><code>dcollect</code></a>:</p><pre><code class="language-julia">tcollect(sin(x) for x in xs if abs(x) &lt; 1)</code></pre><pre><code class="language-none">6827549-element Array{Float64,1}:
+  0.7626156550067762
+ -0.7844096913908877
+ -0.4745729061527835
+ -0.7851351347423469
+  0.7607067950159715
+  0.5079586572154261
+ -0.2684035583971558
+  0.4814729436611737
+ -0.4942602095564562
+ -0.5316108924849388
+  ⋮
+ -0.3753659273797594
+  0.05103170021395358
+ -0.04726259472308379
+  0.7622634044030482
+ -0.3559821294336072
+  0.7635896400786347
+  0.1054366554857598
+ -0.2638314113600457
+ -0.45884079699087804</code></pre><p>and <a href="../../manual/#Transducers.tcopy"><code>tcopy</code></a>/<a href="../../manual/#Transducers.dcopy"><code>dcopy</code></a>:</p><pre><code class="language-julia">using StructArrays: StructVector
+table = StructVector(a = [1, 2, 3], b = [5, 6, 7])
+
+tcopy((A = row.a + 1, B = row.b - 1) for row in table if isodd(row.a))</code></pre><pre><code class="language-none">2-element StructArray(::Array{Int64,1}, ::Array{Int64,1}) with eltype NamedTuple{(:A, :B),Tuple{Int64,Int64}}:
+ (A = 2, B = 4)
+ (A = 4, B = 6)</code></pre><h2 id="When-can-I-use-reduce-and-dreduce?-1"><a class="docs-heading-anchor" href="#When-can-I-use-reduce-and-dreduce?-1">When can I use <code>reduce</code> and <code>dreduce</code>?</a><a class="docs-heading-anchor-permalink" href="#When-can-I-use-reduce-and-dreduce?-1" title="Permalink"></a></h2><h3 id="Requirement-1:-Associative-reducing-step-function-1"><a class="docs-heading-anchor" href="#Requirement-1:-Associative-reducing-step-function-1">Requirement 1: Associative reducing step function</a><a class="docs-heading-anchor-permalink" href="#Requirement-1:-Associative-reducing-step-function-1" title="Permalink"></a></h3><p>Parallel reductions such as <a href="../../manual/#Base.reduce"><code>reduce</code></a> and <a href="../../manual/#Transducers.dreduce"><code>dreduce</code></a> requires <em>associative</em> <a href="../../#Glossary-1">reducing step function</a>. Recall that <a href="https://en.wikipedia.org/wiki/Associative_property">associativity</a> means that the <em>grouping</em> of evaluations of binary operator does not matter:</p><pre><code class="language-julia">op = +  # for example
+a, b, c = 1, 2, 3  # for example
+
+@assert op(op(a, b), c) == op(a, op(b, c))</code></pre><p>Given this property, computations like <code>a + b + c + d</code> can be done with different &quot;groupings&quot;:</p><pre><code class="language-none">  a + b + c + d
+
+= ((a + b) + c) + d                +
+                                  / \
+                                 +   d
+                                / \
+                               +   c           foldl-like grouping
+                              / \
+                             a   b
+
+= (a + b) + (c + d)                +
+                                  / \
+                                 /   \
+                                /     \        reduce-like grouping
+                               +       +
+                              / \     / \
+                             a   b   c   d</code></pre><p>Notice that, in the last grouping, computation of <code>c + d</code> does not have to wait for the result of <code>a + b</code>.  This is why we need associativity for parallel execution.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Do not confuse associativity with <em>commutativity</em> <code>op(a, b) = op(b, a)</code>.  For example, matrix multiplication <code>*(::Matrix, ::Matrix)</code> is associative but <em>not</em> commutative in general. However, since <code>reduce</code> only requires associativity, it is valid to use <code>reduce(*, xf, matrices)</code>.</p></div></div><p>As reducing function <code>+</code> is associative, it can be used with <code>reduce</code> (and <code>dreduce</code>):</p><pre><code class="language-julia">reduce(+, Map(identity), 1:10; init = 0, basesize = 1)</code></pre><pre><code class="language-none">55</code></pre><p>and the result is the same as the sequential version:</p><pre><code class="language-julia">foldl(+, Map(identity), 1:10; init = 0)</code></pre><pre><code class="language-none">55</code></pre><p>Note: <code>basesize</code> is for forcing <code>reduce</code> to avoid falling back to <code>foldl</code> for small length container such as <code>1:10</code>.</p><p>On the other hand, binary function <code>-</code> is not associative.  Thus, <code>reduce</code> cannot be used instead of <code>foldl</code> (they produce different result):</p><pre><code class="language-julia">reduce(-, Map(identity), 1:10; init = 0, basesize = 1)</code></pre><pre><code class="language-none">-5</code></pre><pre><code class="language-julia">foldl(+, Map(identity), 1:10; init = 0)</code></pre><pre><code class="language-none">55</code></pre><h3 id="Requirement-2:-stateless-transducers-1"><a class="docs-heading-anchor" href="#Requirement-2:-stateless-transducers-1">Requirement 2: stateless transducers</a><a class="docs-heading-anchor-permalink" href="#Requirement-2:-stateless-transducers-1" title="Permalink"></a></h3><p>Parallel reduction only work with stateless transducers <a href="../../manual/#Transducers.Map"><code>Map</code></a>, <a href="../../manual/#Transducers.Filter"><code>Filter</code></a>, <a href="../../manual/#Transducers.Cat"><code>Cat</code></a>, etc. and you will get an error when using stateful transducers such as <code>Scan</code> with <code>reduce</code> or <code>dreduce</code>:</p><pre><code class="language-julia">reduce(+, Scan(+), 1:10; basesize = 1)</code></pre><pre><code class="language-none">ERRPR: Stateful transducer Scan(+) does not support `combine`</code></pre><p>Stateful transducers cannot be used with <code>reduce</code> because it is impossible to start processing input collection from the middle when the transducers need to know all previous elements (= stateful).</p><p><a href="../../manual/#Transducers.ScanEmit"><code>ScanEmit</code></a> is a stateful transducer but it is assumed that it is used in a context that outputs can be treated as stateless (see: <a href="../words/#parallel-word-count-1">Splitting a string into words and counting them in parallel</a>).</p><h2 id="tutorial-parallel-collect-1"><a class="docs-heading-anchor" href="#tutorial-parallel-collect-1">Example: parallel <code>collect</code></a><a class="docs-heading-anchor-permalink" href="#tutorial-parallel-collect-1" title="Permalink"></a></h2><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>This section explains the <em>implementation ideas</em> of parallel <code>collect</code>.  Pre-defined functions such as <a href="../../manual/#Transducers.tcopy"><code>tcopy</code></a> and <a href="../../manual/#Transducers.dcopy"><code>dcopy</code></a> should cover many use-cases.</p></div></div><p>Suppose (pretend) there is a compute-heavy transducer:</p><pre><code class="language-julia">xf_compute = Filter(!ismissing) |&gt; Map(x -&gt; x^2)</code></pre><p>Transducers.jl supports applying this to an input container and then collecting the results into another container.  It can be done sequentially (<a href="../../manual/#Base.collect"><code>collect</code></a>, <a href="../../manual/#Base.copy"><code>copy</code></a>, etc.) and in parallel using threads (<a href="../../manual/#Transducers.tcollect"><code>tcollect</code></a>, <a href="../../manual/#Transducers.tcopy"><code>tcopy</code></a>) or using multiple processes (<a href="../../manual/#Transducers.dcollect"><code>dcollect</code></a>, <a href="../../manual/#Transducers.dcopy"><code>dcopy</code></a>).  For example:</p><pre><code class="language-julia">xs = [abs(x) &gt; 1 ? missing : x for x in randn(10_000)]
+y1 = collect(xf_compute, xs)</code></pre><p>Doing this in parallel is as easy as using <code>tcollect</code> or <code>dcollect</code>. However, it is easy to do this manually, too:</p><pre><code class="language-julia">using BangBang: append!!
+
+singleton_vector(x) = [x]
+y2 = reduce(append!!, xf_compute |&gt; Map(singleton_vector), xs)
+@assert y1 == y2</code></pre><p>This code illustrates the common pattern in parallel processing:</p><ol><li><p>Put a result from the transducer in a &quot;singleton solution&quot;. Here, it is <code>[x]</code>.</p></li><li><p>Then &quot;merge&quot; the (singleton) solution into the exsiting one. This is done by <code>append!!</code> in the above example.</p></li></ol><p>To illustrate how <code>reduce(append!!, ... |&gt; Map(singleton_vector), xs)</code> works, let&#39;s create a reducing function that records the arguments and returned values of <code>append!!</code>:</p><pre><code class="language-julia">chan = Channel(Inf)
+
+function append_and_log!!(a, b)</code></pre><p>As arguments and output may be mutated later, we use <code>copy</code> to record the snapshots of their values at this moment:</p><pre><code class="language-julia">    a0 = copy(a)
+    b0 = copy(b)
+    c = append!!(a, b)
+    put!(chan, (a0, b0) =&gt; copy(c))
+    return c
+end</code></pre><p>This function can be used instead of <code>append!!</code>.  Let&#39;s try simpler and shorter example.  This is equivalent to <code>collect(1:4)</code>:</p><pre><code class="language-julia">reduce(append_and_log!!, Map(singleton_vector), 1:4; basesize = 1, init = Union{}[])</code></pre><pre><code class="language-none">4-element Array{Int64,1}:
+ 1
+ 2
+ 3
+ 4</code></pre><p>(See below for why we are using <code>init = Union{}[]</code> here.)</p><p>Here is the list of arguments and returned value of <code>append!!</code> in this reduction:</p><pre><code class="language-julia">records = Pair[]
+while isready(chan)
+    push!(records, take!(chan))
+end
+records</code></pre><pre><code class="language-none">7-element Array{Pair,1}:
+ (Union{}[], [1]) =&gt; [1]
+ (Union{}[], [3]) =&gt; [3]
+ (Union{}[], [2]) =&gt; [2]
+ (Union{}[], [4]) =&gt; [4]
+       ([1], [2]) =&gt; [1, 2]
+       ([3], [4]) =&gt; [3, 4]
+ ([1, 2], [3, 4]) =&gt; [1, 2, 3, 4]</code></pre><p>This recorded inputs and outputs of <code>append!!</code> show that its &quot;call tree&quot; is:</p><pre><code class="language-none">          [1,2,3,4] &lt;------------- append!!([1,2], [3,4]) == [1,2,3,4]
+         /         \
+    [1,2]           [3,4] &lt;------- append!!([3], [4]) == [3, 4]
+   /     \         /     \
+ [1]     [2]     [3]     [4] &lt;---- append!!([], [4]) == [4]
+ / \     / \     / \     / \
+[] [1]  [] [2]  [] [3]  [] [4]</code></pre><p>Compare this to the example <code>a + b + c + d</code> above.</p><h3 id="Optimization-and-generic-container-handling-1"><a class="docs-heading-anchor" href="#Optimization-and-generic-container-handling-1">Optimization and generic container handling</a><a class="docs-heading-anchor-permalink" href="#Optimization-and-generic-container-handling-1" title="Permalink"></a></h3><p>Above usage of <code>reduce</code> is not quite efficient as <code>singleton_vector</code> allocates small objects in the heap.  Thus, it makes sense to use immutable objects for the singleton solutions so that Julia compiler can eliminate allocation of the intermediate singleton solutions. Here, this can be done by simply using <code>SVector</code>instead of <code>singleton_vector</code>:</p><pre><code class="language-julia">using StaticArrays: SVector
+
+reduce(append!!, Map(SVector), 1:4)</code></pre><pre><code class="language-none">4-element StaticArrays.SArray{Tuple{4},Int64,1,4} with indices SOneTo(4):
+ 1
+ 2
+ 3
+ 4</code></pre><p>However, notice that the return value is a static vector.  This is not ideal when the input collection is large.  The output collection type can be specified by <code>init</code>.  We can simply use <code>init = Union{}[]</code> in this case:</p><pre><code class="language-julia">reduce(append!!, Map(SVector), 1:4; init = Union{}[])</code></pre><pre><code class="language-none">4-element Array{Int64,1}:
+ 1
+ 2
+ 3
+ 4</code></pre><p>Note that passing <code>Vector</code> to <code>init</code> of <code>reduce</code> is usually a wrong choice as it would mean that the same object is simultaneously mutated by different threads.  However, since <code>Vector{Union{}}</code> cannot have any element (as there is no object of type <code>Union{}</code>), using <code>Union{}[]</code> for <code>init</code> is an exception and it is a good way to indicate that output vector should use the &quot;smallest&quot; <code>eltype</code> required.  That is to say, <code>append!!</code> widens the vector &quot;just enough&quot; to fit the resulting elements.</p><p>For generic containers (e.g., various table types), use <a href="https://tkf.github.io/BangBang.jl/dev/#BangBang.NoBang.singletonof-Union{Tuple{T},%20Tuple{Type{T},Any}}%20where%20T"><code>BangBang.Empty</code></a> as the empty initial value.  This is useful for creating a table object such as <a href="https://github.com/JuliaData/DataFrames.jl"><code>DataFrame</code></a> as the result of parallel processing:</p><pre><code class="language-julia">using BangBang: Empty
+using DataFrames: DataFrame
+
+reduce(append!!, Map(x -&gt; SVector((a = x,))), 1:4; init = Empty(DataFrame))</code></pre><pre><code class="language-none">4×1 DataFrames.DataFrame
+│ Row │ a     │
+│     │ Int64 │
+├─────┼───────┤
+│ 1   │ 1     │
+│ 2   │ 2     │
+│ 3   │ 3     │
+│ 4   │ 4     │</code></pre><p>It is slightly more tricky to make this approach work with other table types such as <a href="https://github.com/JuliaArrays/StructArrays.jl"><code>StructArrays</code></a> and <a href="https://github.com/JuliaData/TypedTables.jl"><code>TypedTables</code></a>.  Use <a href="../../manual/#Transducers.tcopy"><code>tcopy</code></a> or <a href="../../manual/#Transducers.dcopy"><code>dcopy</code></a> to work with generic containers.</p><h2 id="Example:-ad-hoc-histogram-1"><a class="docs-heading-anchor" href="#Example:-ad-hoc-histogram-1">Example: ad-hoc histogram</a><a class="docs-heading-anchor-permalink" href="#Example:-ad-hoc-histogram-1" title="Permalink"></a></h2><p>Following example counts number of occurrence of each leading digit in a distribution of random numbers.  First, let&#39;s create &quot;singleton solutions&quot; using transducers:</p><pre><code class="language-julia">xf = Map(abs) |&gt;
+    Filter(x -&gt; x &gt; 1) |&gt;
+    Map() do x
+        y = digits(floor(Int, x))[end]
+        Dict(y =&gt; 1)
+    end</code></pre><p>The singleton solutions can be merged using <code>merge!(+, a, b)</code>:</p><pre><code class="language-julia">merge₊!(a, b) = merge!(+, a, b)
+# merge₊! = mergewith!(+)  # in Julia &gt;= 1.5</code></pre><p>Note that it is OK to use in-place function <code>merge!</code> here because the dictionary passed as <code>a</code> is created by <code>xf</code> and not shared by anyone.  When there is no such guarantee, passing <a href="../../manual/#Transducers.OnInit"><code>init = OnInit(Dict{Int,Int})</code></a> is a good option.  Note that passing <code>init = Dict{Int,Int}()</code> to <code>reduce</code> is not correct as multiple tasks would share and try to mutate the same dictionary this way.</p><p>Let&#39;s try this with some random data:</p><pre><code class="language-julia">xs = 1_000_000 * randn(10_000_000)
+counts1 = reduce(merge₊!, xf, xs)</code></pre><p>Compare the result with <code>foldl</code>:</p><pre><code class="language-julia">counts2 = foldl(merge₊!, xf, xs)
+@assert counts1 == counts2</code></pre><p>Hopefully the result is close to the <a href="https://en.wikipedia.org/wiki/Benford%27s_law">Benford&#39;s law - Wikipedia</a>:</p><pre><code class="language-julia">let n = sum(values(counts1))
+    sort!(keys(counts1) .=&gt; values(counts1) ./ n)
+end</code></pre><pre><code class="language-none">9-element Array{Pair{Int64,Float64},1}:
+ 1 =&gt; 0.3594109594109594
+ 2 =&gt; 0.1289192289192289
+ 3 =&gt; 0.0864905864905865
+ 4 =&gt; 0.08106238106238106
+ 5 =&gt; 0.07738827738827739
+ 6 =&gt; 0.07341567341567341
+ 7 =&gt; 0.06907636907636908
+ 8 =&gt; 0.06452906452906453
+ 9 =&gt; 0.059707459707459706</code></pre><p>Since we are counting only nine elements, it is actually better to use fixed-size container such as a tuple in this case:</p><pre><code class="language-julia">xf2 = Map(abs) |&gt;
+    Filter(x -&gt; x &gt; 1) |&gt;
+    Map() do x
+        y = digits(floor(Int, x))[end]
+        ntuple(i -&gt; i == y, 9)
+    end
+
+counts3 = reduce(xf2, xs; init=ntuple(_ -&gt; 0, 9)) do a, b
+    map(+, a, b)
+end
+@assert Dict(zip(1:9, counts3)) == counts1</code></pre><p>Note that, as tuples are immutable, it is valid to pass it as <code>init</code> of <code>reduce</code>.</p><h2 id="Example:-early-termination-1"><a class="docs-heading-anchor" href="#Example:-early-termination-1">Example: early termination</a><a class="docs-heading-anchor-permalink" href="#Example:-early-termination-1" title="Permalink"></a></h2><p>Find the <em>first</em> element that is multiple of three:</p><pre><code class="language-julia">reduce(ReduceIf(x -&gt; x % 3 == 0), 1:10; init = nothing, basesize = 1) do _, x
+    # # Uncomment for demo:
+    # x == 3 ? sleep(0.1) : @show x  # give other tasks a chance to finish first
+    return x
+end</code></pre><pre><code class="language-none">3</code></pre><p>This snippet always returns <code>3</code>, even though the reductions for <code>c = 6</code> and <code>c = 9</code> may finish first.</p><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tutorial_missings/">« Tutorial: Missing values</a><a class="docs-footer-nextpage" href="../empty_result_handling/">Empty result handling »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Monday 25 May 2020 02:02">Monday 25 May 2020</span>. Using Julia version 1.4.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
