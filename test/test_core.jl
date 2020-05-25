@@ -72,4 +72,9 @@ end
     end
 end
 
+@testset "broadcastable(::Transducer)" begin
+    @test collect.(Enumerate(), ["abc", "def"]) ==
+        [[(1, 'a'), (2, 'b'), (3, 'c')], [(1, 'd'), (2, 'e'), (3, 'f')]]
+end
+
 end  # module
