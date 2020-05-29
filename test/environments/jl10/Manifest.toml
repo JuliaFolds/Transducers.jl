@@ -120,7 +120,7 @@ uuid = "313cdc1a-70c2-5d6a-ae34-0150d3930a38"
 version = "1.1.0"
 
 [[InitialValues]]
-git-tree-sha1 = "0df0eb1bc1011a6cb01a9042462448137ae5495e"
+git-tree-sha1 = "3e58a0df400830cf485876a699644f106c72aae7"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/InitialValues.jl.git"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
