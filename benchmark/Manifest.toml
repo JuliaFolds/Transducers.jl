@@ -13,7 +13,7 @@ version = "2.0.0"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "103eaca30d0973508c9fcbe0af4e2c8134e2e885"
+git-tree-sha1 = "6b928dfe607dc5b02d655d9341805abe9a3e06de"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
