@@ -6,17 +6,17 @@ version = "0.3.3"
 
 [[Adapt]]
 deps = ["LinearAlgebra"]
-git-tree-sha1 = "c88cfc7f9c1f9f8633cddf0b56e86302b70f64c5"
+git-tree-sha1 = "fd04049c7dd78cfef0b06cdc1f0f181467655712"
 uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
-version = "1.0.1"
+version = "1.1.0"
 
 [[Aqua]]
 deps = ["Pkg", "Test"]
-git-tree-sha1 = "247ea4b87248ddb83152ff6f82dbd5991a363ab0"
+git-tree-sha1 = "ef6528217bb27f14ef7e292ccb69e36d696a54fe"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/Aqua.jl.git"
 uuid = "4c88cf16-eb10-579e-8560-4a9242c79595"
-version = "0.4.2-DEV"
+version = "0.4.3-DEV"
 
 [[ArgCheck]]
 git-tree-sha1 = "59c256cf71c3982484ae4486ee86a3d7da891dea"
@@ -31,11 +31,11 @@ version = "0.3.3"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "1d2ffc91415a5acb584bc8a64132ec6e2ba97d3b"
+git-tree-sha1 = "f6241df4783e1da19779f9ef42d41a798eb0bccf"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
-version = "0.3.25-DEV"
+version = "0.3.26-DEV"
 
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
@@ -132,11 +132,11 @@ uuid = "313cdc1a-70c2-5d6a-ae34-0150d3930a38"
 version = "1.1.0"
 
 [[InitialValues]]
-git-tree-sha1 = "0df0eb1bc1011a6cb01a9042462448137ae5495e"
+git-tree-sha1 = "336763db24633c3b3409a0b5087b17907784f221"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/InitialValues.jl.git"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
-version = "0.2.7-DEV"
+version = "0.2.8-DEV"
 
 [[InteractiveUtils]]
 deps = ["LinearAlgebra", "Markdown"]
@@ -161,9 +161,9 @@ version = "0.21.0"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "MatrixFactorizations", "StaticArrays"]
-git-tree-sha1 = "95d9fd25f6e8a4d6b4b2c63627822eb2b73c1312"
+git-tree-sha1 = "afc0b7026e58eb6eaf43df69530ce97b416d9e2c"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.16.9"
+version = "0.16.10"
 
 [[LibGit2]]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
