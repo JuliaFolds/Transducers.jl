@@ -341,7 +341,7 @@ OfType(T::Type) = OfType{T}()
     input isa T ? next(inner, result, input) : result
 
 # Workaround StackOverflowError in Julia 1.0
-# https://travis-ci.com/tkf/Transducers.jl/jobs/171732596
+# https://travis-ci.com/JuliaFolds/Transducers.jl/jobs/171732596
 if VERSION >= v"1.1-"
 
 @inline _next_oftype(T, inner, result, input::Tuple) =
