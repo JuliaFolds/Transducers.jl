@@ -12,6 +12,20 @@ end
 @testset "$file" for file in sort([file for file in readdir(@__DIR__) if
                                    match(r"^test_.*\.jl$", file) !== nothing])
 
+    if file == "test_doctest.jl"
+        if lowercase(get(ENV, "JULIA_PKGEVAL", "false")) == "true"
+            @info "Skipping doctests on PkgEval."
+            continue
+        elseif VERSION >= v"1.5-"
+            @info "Skipping doctests on Julia $VERSION."
+            continue
+        elseif VERSION < v"1.1"
+            # `Broadcasting` tests fail in in Julia 1.0
+            @info "Skipping doctests on Julia $VERSION."
+            continue
+        end
+    end
+
     # Do not support `Broadcasting` in Julia 1.0
     VERSION < v"1.1" && file == "test_broadcasting.jl" && continue
 
