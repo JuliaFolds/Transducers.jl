@@ -1,17 +1,10 @@
 """
     Broadcasting()
 
-Broadcast "vector" input to reducing function on "scalars".
-
-Roughly speaking, `foldl(op, Broadcasting(), foldable)` is equivalent
-to `foldl(op′, foldable)` defined as
-
-```julia
-op′(a, b) = op.(a, b)
-```
-
-However, it has a better memory usage and better initial value
-handling.
+Broadcast inner reducing function over elements in the input.  Roughly
+speaking, it transforms the inner reducing function `op` to `op′(a, b)
+= op.(a, b)`.  However, it has a better memory usage and better
+initial value handling.
 
 If the input is an array, the array created at the first iteration is
 reused if it can hold the element types of subsequent iterations.
@@ -31,7 +24,7 @@ item in the first input array.  This makes using `Broadcasting` for
     `Broadcasting` transducer is not supported in Julia 1.0.
 
 # Examples
-```jldoctest
+```jldoctest Broadcasting
 julia> using Transducers
 
 julia> foldl(+, Broadcasting(), [[1, 2], [3, 4], 5])
@@ -48,7 +41,14 @@ julia> foldl(*, Broadcasting() |> Broadcasting(),
 2-element Array{Array{Int64,1},1}:
  [6]
  [6000, 6000000]
+```
 
+When processing nested data structure (e.g., array-of-arrays) and
+mutating accumulator in-place, be careful with sharing the
+accumulators with each processing of items in the input.  For example,
+this is a bad example:
+
+```jldoctest Broadcasting
 julia> add!(a, b) = a .+= b;
 
 julia> foldl(add!, Broadcasting(), [[[1], [2, 3]], [[4, 5], 6]];
@@ -57,11 +57,24 @@ julia> foldl(add!, Broadcasting(), [[[1], [2, 3]], [[4, 5], 6]];
  [13, 15]
  [13, 15]
 
+julia> ans[1] === ans[2]  # they are the same object
+true
+```
+
+Use `OnInit` to initialize a new array with each item in the input:
+
+```jldoctest Broadcasting
 julia> foldl(add!, Broadcasting(), [[[1], [2, 3]], [[4, 5], 6]];
              init = OnInit(() -> [0, 0]))
 2-element Array{Array{Int64,1},1}:
  [5, 6]
  [8, 9]
+
+julia> ans == [
+           add!(add!([0, 0], [1]), [4, 5]),
+           add!(add!([0, 0], [2, 3]), 6),
+       ]
+true
 ```
 """
 struct Broadcasting <: Transducer end
