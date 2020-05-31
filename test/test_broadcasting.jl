@@ -1,4 +1,4 @@
-module TestBroadcastRF
+module TestBroadcasting
 
 include("preamble.jl")
 
@@ -6,7 +6,8 @@ include("preamble.jl")
     @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
         foldl = nothing
 
-        count_sum(xs, xf = Map(identity)) = fold(BroadcastRF(+), xf |> Map(x -> (1, x)), xs)
+        count_sum(xs, xf = Map(identity)) =
+            fold(+, xf |> Map(x -> (1, x)) |> Broadcasting(), xs)
         @test count_sum([5, 2, 6, 8, 3]) == (5, 24)
         @test count_sum([5, 2, 6, 8, 3], Filter(isodd)) == (2, 8)
         @test_throws EmptyResultError count_sum(1:0)
@@ -17,11 +18,7 @@ end
 @testset "partially started" begin
     @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
         foldl = nothing
-        f(xs) = fold(
-            BroadcastRF(reducingfunction(Filter(isodd), max)),
-            Map(x -> (x + 1, x)),
-            xs,
-        )
+        f(xs) = fold(max, Map(x -> (x + 1, x)) |> Broadcasting() |> Filter(isodd), xs)
         @test f([5, 2, 6, 8, 3]) == (9, 5)
         @test_throws EmptyResultError f(2:2:8)
     end
@@ -30,8 +27,8 @@ end
 @testset "init" begin
     @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
         foldl = nothing
-        @test fold(BroadcastRF(+), Map(identity), 1:9) == 45
-        @test fold(BroadcastRF(+), Map(identity), 1:9, init = [0]) == [45]
+        @test fold(+, Broadcasting(), 1:9) == 45
+        @test fold(+, Broadcasting(), 1:9, init = [0]) == [45]
     end
 end
 
@@ -41,7 +38,7 @@ sample_foldl_allocations(repeat::Integer, args...) =
     end
 
 @testset "allocation" begin
-    args = (BroadcastRF(+), Map(identity))
+    args = (+, Broadcasting())
     n = 1000
     xs = [ones(n) for _ in 1:n]
     sample_foldl_allocations(2, args..., xs)

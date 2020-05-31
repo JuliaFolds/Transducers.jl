@@ -57,7 +57,6 @@ Transducers.Inject
 ```@docs
 Transducers.TeeRF
 Transducers.ProductRF
-Transducers.BroadcastRF
 ```
 
 ## Early termination

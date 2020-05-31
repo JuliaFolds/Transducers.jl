@@ -737,7 +737,7 @@ abstract type AbstractInitializer end
 struct InitOf{IV <: SpecificInitialValue} end
 (::InitOf{IV})(::OP) where {IV, OP} = IV{OP}()
 
-# For `BroadcastRF`:
+# For `Broadcasting`:
 Broadcast.broadcastable(f::AbstractInitializer) = Ref(f)
 Broadcast.broadcastable(f::InitOf) = Ref(f)
 

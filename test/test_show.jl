@@ -118,22 +118,4 @@ end
           "Transducers.ProductRF{Tuple{Any,Any}}((min, max))"
 end
 
-@testset "BroadcastRF(+)" begin
-    rf = BroadcastRF(+)
-    kw = (; context = :module => Base)
-    @test repr(rf; kw...) == "Transducers.BroadcastRF(+)"
-    @test sprint(print, rf; kw...) == "Transducers.BroadcastRF(+)"
-    @test sprint(show, rf; kw...) == "Transducers.BroadcastRF(+)"
-    @test sprint(show, "text/plain", rf; kw...) == "Transducers.BroadcastRF(+)"
-end
-
-@testset "BroadcastRF{Any}(+)" begin
-    rf = BroadcastRF{Any}(+)
-    kw = (; context = :module => Base)
-    @test repr(rf; kw...) == "Transducers.BroadcastRF{Any}(+)"
-    @test sprint(print, rf; kw...) == "Transducers.BroadcastRF{Any}(+)"
-    @test sprint(show, rf; kw...) == "Transducers.BroadcastRF{Any}(+)"
-    @test sprint(show, "text/plain", rf; kw...) == "Transducers.BroadcastRF{Any}(+)"
-end
-
 end  # module
