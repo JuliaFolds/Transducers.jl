@@ -123,7 +123,7 @@ See also [`@next`](@ref).
     complete(rf, val)` and it was transformed to `val isa Reduced &&
     return reduced(complete(rf, unreduced(val)))`.  For the rationale
     behind the change, see [this commit
-    message](https://github.com/tkf/Transducers.jl/commit/74f8961fea97b746cb097b27aa5a5761e9bf4dae).
+    message](https://github.com/JuliaFolds/Transducers.jl/commit/74f8961fea97b746cb097b27aa5a5761e9bf4dae).
 
 # Examples
 ```jldoctest; filter = [r"(var\\")?#[0-9]+#val(\\")?", r"#=.*?=#"]

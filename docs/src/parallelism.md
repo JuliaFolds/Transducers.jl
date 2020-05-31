@@ -42,4 +42,4 @@ It can be used for horizontally scaling the computation.  It is also
 useful for using external libraries that are not "thread-safe."
 
 Note that
-[early termination is not supported in `dreduce` yet](https://github.com/tkf/Transducers.jl/issues/88).
+[early termination is not supported in `dreduce` yet](https://github.com/JuliaFolds/Transducers.jl/issues/88).

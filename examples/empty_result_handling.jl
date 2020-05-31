@@ -3,7 +3,7 @@
 # Transducible processes such as [`foldl`](@ref) try to
 # do the right thing even when `init` is not given, _if_ the given
 # binary operation `step` is supported by
-# [InitialValues.jl](https://tkf.github.io/InitialValues.jl/dev/)
+# [InitialValues.jl](https://juliafolds.github.io/InitialValues.jl/dev/)
 # (for example, `+`, `*`, `&`, and `|` are supported).  However, those
 # functions _throw_ an exception if the given collection is empty or
 # filtered out by the transducers:

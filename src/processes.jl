@@ -135,7 +135,7 @@ function __foldl__(rf, init::T, coll) where {T}
     # Doing "manual Union splitting" (?).  This somehow helps the
     # compiler to generate faster code even though the code inside the
     # `if` branches are identical.
-    # * https://github.com/tkf/Transducers.jl/pull/188
+    # * https://github.com/JuliaFolds/Transducers.jl/pull/188
     # * https://github.com/JuliaLang/julia/pull/34293#discussion_r363550608
     if val isa T
         return _foldl_iter(rf, val, coll, state, FOLDL_RECURSION_LIMIT)
@@ -662,7 +662,7 @@ Base.collect(ed::Eduction) = collect(extract_transducer(ed)...)
 
 Process `foldable` with a transducer `xf` and then create a container of type `T`
 filled with the result.  Return
-[`BangBang.Empty{T}`](https://tkf.github.io/BangBang.jl/dev/#BangBang.NoBang.Empty)
+[`BangBang.Empty{T}`](https://juliafolds.github.io/BangBang.jl/dev/#BangBang.NoBang.Empty)
 if the transducer does not produce anything.  (This is because there is no
 consistent interface to create an empty container given its type and not all
 containers support creating an empty container.)
