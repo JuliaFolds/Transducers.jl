@@ -15,16 +15,16 @@ xforms = [
     Filter(isfinite),
     Scan(*),
     ZipSource(Filter(isfinite)),
-    ZipSource(Filter(isfinite) |> Map(sin)),
-    ZipSource(Filter(isfinite) |> Map(sin)) |> Map(sum),
-    let xf = ZipSource(Filter(isfinite) |> Map(sin))
-        xf |> Map(sum) |> xf
+    ZipSource(opcompose(Filter(isfinite), Map(sin))),
+    opcompose(ZipSource(opcompose(Filter(isfinite), Map(sin))), Map(sum)),
+    let xf = ZipSource(opcompose(Filter(isfinite), Map(sin)))
+        opcompose(xf, Map(sum), xf)
     end,
-    let xf = Map(first) |> Map(last)
-        xf = ZipSource(ZipSource(xf) |> Map(identity)) |> xf
-        xf |> ZipSource(xf) |> xf
+    let xf = opcompose(Map(first), Map(last))
+        xf = opcompose(ZipSource(opcompose(ZipSource(xf), Map(identity))), xf)
+        opcompose(xf, ZipSource(xf), xf)
     end,
-    # Zip(Map(sin), Map(cos), Map(tan)) |> Map(prod),
+    # opcompose(Zip(Map(sin), Map(cos), Map(tan)), Map(prod)),
 ]
 
 @testset "smoke test summary(xf)" begin
@@ -41,6 +41,7 @@ end
         show(xf) =
         $code
         """
+        VERSION < v"1.5-beta" && occursin("⨟", code) && continue
         xf2 = include_string(@__MODULE__, code)
         @test xf == xf2
     end
@@ -52,6 +53,7 @@ end
         show("text/plain", xf) =
         $code
         """
+        VERSION < v"1.5-beta" && occursin("⨟", code) && continue
         xf2 = include_string(@__MODULE__, code)
         @test xf == xf2
     end

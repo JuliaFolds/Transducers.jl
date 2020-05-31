@@ -7,7 +7,7 @@ of key-value pairs to the reducing function `rf`.
 
 For example, if `GroupBy` is used as in:
 
-    Map(upstream) |> GroupBy(key, rf, init) |> Map(downstream)
+    xs |> Map(upstream) |> GroupBy(key, rf, init) |> Map(downstream)
 
 then the "function signatures" would be:
 
@@ -59,7 +59,7 @@ it is find:
 julia> result = transduce(
            GroupBy(
                string,
-               Map(last) |> Scan(+) |> ReduceIf(x -> x > 3),
+               opcompose(Map(last), Scan(+), ReduceIf(x -> x > 3)),
            ),
            right,
            nothing,

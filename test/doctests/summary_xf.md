@@ -43,18 +43,18 @@ julia> ZipSource(Filter(isfinite) |> Map(sin)) |> printsummary
 ::ZipSource
 
 julia> ZipSource(Filter(isfinite) |> Map(sin)) |> Map(sum) |> printsummary
-::ZipSource |> ::Map
+::ZipSource ⨟ ::Map
 
 julia> let xf = ZipSource(Filter(isfinite) |> Map(sin))
            xf |> Map(sum) |> xf |> printsummary
        end
-::ZipSource |> ::ZipSource |> ::ZipSource
+::ZipSource ⨟ ::ZipSource ⨟ ::ZipSource
 
 julia> let xf = Map(first) |> Map(last)
            xf = ZipSource(ZipSource(xf) |> Map(identity)) |> xf
            xf |> ZipSource(xf) |> xf |> printsummary
        end
-::ZipSource |> (5 transducers...) |> ::Map
+::ZipSource ⨟ (5 transducers...) ⨟ ::Map
 ```
 
 ```@meta

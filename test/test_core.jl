@@ -28,16 +28,16 @@ end
 
 @testset "has" begin
     @test has(Count(), Count)
-    @test has(Map(identity) |> Count(), Count)
-    @test has(Count() |> Map(identity), Count)
+    @test has(opcompose(Map(identity), Count()), Count)
+    @test has(opcompose(Count(), Map(identity)), Count)
 end
 
 @testset "reform" begin
     f = Completing(Transducers.push!!)  # bottom reducing function for eduction
     @testset for xf in [
             Count(),
-            Map(identity) |> Count(),
-            ZipSource(Map(identity) |> Count()),
+            opcompose(Map(identity), Count()),
+            ZipSource(opcompose(Map(identity), Count())),
             ]
         rf = eduction(xf, 1:1).rf
         @test rf === reform(rf, f)

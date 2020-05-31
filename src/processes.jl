@@ -2,6 +2,7 @@
 
 """
     reducingfunction(xf, step; simd)
+    xf'(step; simd)
 
 Apply transducer `xf` to the reducing function `step` to create a new
 reducing function.
@@ -44,7 +45,7 @@ results when combined with mutable states:
 ```jldoctest reducingfunction; setup = :(using Transducers)
 julia> scan_state = [];
 
-julia> rf_bad = reducingfunction(Scan(push!, scan_state) |> Cat(), string);
+julia> rf_bad = opcompose(Scan(push!, scan_state), Cat())'(string);
 
 julia> transduce(rf_bad, "", 1:3)
 "112123"
@@ -74,7 +75,7 @@ One way to solve this issue is to use [`CopyInit`](@ref) or [`OnInit`](@ref).
 julia> scan_state = CopyInit([])
 CopyInit(Any[])
 
-julia> rf_good = reducingfunction(Scan(push!, scan_state) |> Cat(), string);
+julia> rf_good = opcompose(Scan(push!, scan_state), Cat())'(string);
 
 julia> transduce(rf_good, "", 1:3)
 "112123"
@@ -470,12 +471,12 @@ Eduction(xform::Transducer, coll) =
     Eduction(Reduction(xform, Completing(push!!)), coll)
 
 Eduction(xform::Transducer, ed::Eduction) =
-    Eduction(Transducer(ed) |> xform, ed.coll)
+    Eduction(opcompose(Transducer(ed), xform), ed.coll)
 
 Transducer(ed::Eduction) = Transducer(ed.rf)
 
 transduce(xform::Transducer, f, init, ed::Eduction) =
-    transduce(Transducer(ed) |> xform, f, init, ed.coll)
+    transduce(opcompose(Transducer(ed), xform), f, init, ed.coll)
 
 Base.IteratorSize(::Type{<:Eduction}) = Base.SizeUnknown()
 
@@ -524,6 +525,8 @@ end
 
 """
     eduction(xf::Transducer, coll)
+    xf(coll)
+    coll |> xf
 
 Create a iterable and reducible object.
 
@@ -536,7 +539,7 @@ This API is modeled after $(_cljref("eduction")).
 ```jldoctest
 julia> using Transducers
 
-julia> for x in eduction(Filter(isodd) |> Take(3), 1:1000)
+julia> for x in 1:1000 |> Filter(isodd) |> Take(3)
            @show x
        end
 x = 1
@@ -618,7 +621,7 @@ Mutate-or-widen version of [`append!`](@ref).
 ```jldoctest
 julia> using Transducers, BangBang
 
-julia> append!!(Drop(2) |> Map(x -> x + 0.0), [-1, -2], 1:5)
+julia> append!!(opcompose(Drop(2), Map(x -> x + 0.0)), [-1, -2], 1:5)
 5-element Array{Float64,1}:
  -1.0
  -2.0
@@ -627,8 +630,12 @@ julia> append!!(Drop(2) |> Map(x -> x + 0.0), [-1, -2], 1:5)
   5.0
 ```
 """
-BangBang.append!!(xf::Transducer, to, from) =
-    unreduced(transduce(xf |> Map(SingletonVector), Completing(append!!), to, from))
+BangBang.append!!(xf::Transducer, to, from) = unreduced(transduce(
+    Map(SingletonVector) ∘ xf,
+    Completing(append!!),
+    to,
+    from,
+))
 
 """
     collect(xf::Transducer, itr) :: Vector
@@ -783,7 +790,7 @@ function _prepare_map(xf, dest, src, simd)
     indices = eachindex(dest, src)
 
     rf = reducingfunction(
-        ZipSource(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
+        opcompose(ZipSource(opcompose(GetIndex{true}(src), xf)), SetIndex{true}(dest)),
         (::Vararg) -> nothing,
         simd = simd)
 
@@ -804,7 +811,7 @@ See also [`map!`](@ref).
 ```jldoctest
 julia> using Transducers
 
-julia> copy!(PartitionBy(x -> x ÷ 3) |> Map(sum), Int[], 1:10)
+julia> copy!(opcompose(PartitionBy(x -> x ÷ 3), Map(sum)), Int[], 1:10)
 4-element Array{Int64,1}:
   3
  12

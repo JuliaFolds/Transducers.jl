@@ -170,7 +170,7 @@ catch err; err; end                                                  # hide
 #
 # Suppose (pretend) there is a compute-heavy transducer:
 
-xf_compute = Filter(!ismissing) |> Map(x -> x^2)
+xf_compute = opcompose(Filter(!ismissing), Map(x -> x^2))
 nothing                                                              # hide
 
 # Transducers.jl supports applying this to an input container and then
@@ -190,7 +190,7 @@ nothing                                                              # hide
 using BangBang: append!!
 
 singleton_vector(x) = [x]
-y2 = reduce(append!!, xf_compute |> Map(singleton_vector), xs)
+y2 = reduce(append!!, xs |> xf_compute |> Map(singleton_vector))
 @assert y1 == y2
 
 # This code illustrates the common pattern in parallel processing:
@@ -201,9 +201,9 @@ y2 = reduce(append!!, xf_compute |> Map(singleton_vector), xs)
 # 2. Then "merge" the (singleton) solution into the exsiting one.
 #    This is done by `append!!` in the above example.
 
-# To illustrate how `reduce(append!!, ... |> Map(singleton_vector),
-# xs)` works, let's create a reducing function that records the
-# arguments and returned values of `append!!`:
+# To illustrate how `reduce(append!!, xs |> ... |>
+# Map(singleton_vector))` works, let's create a reducing function that
+# records the arguments and returned values of `append!!`:
 
 chan = Channel(Inf)
 
@@ -349,12 +349,14 @@ Text(y5)                                                             # hide
 # in a distribution of random numbers.  First, let's create "singleton
 # solutions" using transducers:
 
-xf = Map(abs) |>
-    Filter(x -> x > 1) |>
+xf = opcompose(
+    Map(abs),
+    Filter(x -> x > 1),
     Map() do x
         y = digits(floor(Int, x))[end]
         Dict(y => 1)
-    end
+    end,
+)
 nothing                                                              # hide
 
 # The singleton solutions can be merged using `merge!(+, a, b)`:
@@ -390,12 +392,14 @@ end
 # Since we are counting only nine elements, it is actually better to
 # use fixed-size container such as a tuple in this case:
 
-xf2 = Map(abs) |>
-    Filter(x -> x > 1) |>
+xf2 = opcompose(
+    Map(abs),
+    Filter(x -> x > 1),
     Map() do x
         y = digits(floor(Int, x))[end]
         ntuple(i -> i == y, 9)
-    end
+    end,
+)
 
 counts3 = reduce(xf2, xs; init=ntuple(_ -> 0, 9)) do a, b
     map(+, a, b)

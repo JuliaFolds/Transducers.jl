@@ -56,7 +56,7 @@ end
         input = Channel(Map(identity), 1:input_length)
         trace = Channel(input_length)
         ntasks = 10
-        xf = Map() do x
+        xs = input |> Map() do x
             put!(trace, x)
 
             # Try to make sure all tasks hits above line.  This may
@@ -68,7 +68,7 @@ end
         end |> Map() do x
             error("Throwing error with x = $x")
         end
-        @test_throws Exception take!(channel_unordered(xf, input; ntasks=ntasks))
+        @test_throws Exception take!(channel_unordered(xs; ntasks=ntasks))
         close(trace)
         consumed = sort!(collect(trace))
         @test consumed == 1:ntasks
@@ -78,7 +78,7 @@ end
         input = Channel(Map(identity), 1:input_length)
         trace = Channel(input_length)
         ntasks = 10
-        xf = Map() do x
+        xs = input |> Map() do x
             put!(trace, x)
             sleep(0.01)
             x
@@ -89,7 +89,7 @@ end
             end
             x
         end
-        @test_throws Exception collect(channel_unordered(xf, input; ntasks=ntasks))
+        @test_throws Exception collect(channel_unordered(xs; ntasks=ntasks))
         close(trace)
         consumed = sort!(collect(trace))
         @test length(consumed) > ntasks

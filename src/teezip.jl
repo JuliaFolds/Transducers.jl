@@ -9,7 +9,7 @@ $_experimental_warning
 To illustrate how it works, consider the following usage
 
 ```
-xf0 |> ZipSource(xf1) |> xf2
+opcompose(xf0, ZipSource(xf1), xf2)
 ```
 
 where `xf0`, `xf1`, and `xf2` are some transducers.  Schematically,
@@ -27,7 +27,7 @@ xf0      xf1                       xf2
 julia> using Transducers
        using Transducers: ZipSource
 
-julia> collect(ZipSource(Filter(isodd) |> Map(x -> x + 1)), 1:5)
+julia> collect(ZipSource(opcompose(Filter(isodd), Map(x -> x + 1))), 1:5)
 3-element Array{Tuple{Int64,Int64},1}:
  (1, 2)
  (3, 4)
@@ -152,12 +152,12 @@ isexpansive(xf::ZipSource) = isexpansive(xf.xform)
 
 function Transducer(rf::Splitter)
     xf_split, rf_ds = _rf_to_teezip(inner(rf))
-    return ZipSource(xf_split) |> Transducer(rf_ds)
+    return Transducer(rf_ds) ∘ ZipSource(xf_split)
 end
 
 function _rf_to_teezip(rf::Reduction)
     xf_split, rf_ds = _rf_to_teezip(inner(rf))
-    return xform(rf) |> xf_split, rf_ds
+    return xf_split ∘ xform(rf), rf_ds
 end
 
 _rf_to_teezip(rf::Joiner) = IdentityTransducer(), inner(rf)
@@ -165,7 +165,7 @@ _rf_to_teezip(rf::Joiner) = IdentityTransducer(), inner(rf)
 function _rf_to_teezip(rf::Splitter)
     xf_split, rf_inner = _rf_to_teezip(inner(rf))
     xf_inner, rf_ds = _rf_to_teezip(rf_inner)
-    return ZipSource(xf_split) |> xf_inner, rf_ds
+    return xf_inner ∘ ZipSource(xf_split), rf_ds
 end
 
 
@@ -195,14 +195,12 @@ julia> collect(Zip(Map(identity), Map(x -> 10x), Map(x -> 100x)), 1:3)
  (3, 30, 300)
 ```
 """
-Zip(xforms...) =
-    Map(_zip_init) |> _Zip(xforms...) |> Map(last)
+Zip(xforms...) = Map(last) ∘ _Zip(xforms...) ∘ Map(_zip_init)
 # TODO: add `lower(xf)` mechanism so that constructing Zip does not
 # immidiately create a complex composite transducer.
 
 _Zip() = IdentityTransducer()
-_Zip(xf1, xforms...) =
-    ZipSource(Map(first) |> xf1) |> Map(_zip_between) |> _Zip(xforms...)
+_Zip(xf1, xforms...) = _Zip(xforms...) ∘ Map(_zip_between) ∘ ZipSource(xf1 ∘ Map(first))
 
 _zip_init(y0) = (y0, ())
 _zip_between(((y0, ys), yn)) = (y0, (ys..., yn))

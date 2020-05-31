@@ -53,7 +53,7 @@ julia> using Transducers
 
 julia> xf1 = Transducer(2x for x in nothing if x % 2 == 0);
 
-julia> xf2 = Filter(x -> x % 2 == 0) |> Map(x -> 2x);  # equivalent
+julia> xf2 = opcompose(Filter(x -> x % 2 == 0), Map(x -> 2x));  # equivalent
 
 julia> xs = 1:10
        collect(xf1, xs) == collect(xf2, xs)
@@ -112,17 +112,17 @@ extract_transducer(ed::Eduction) = Transducer(ed.rf), ed.coll
 
 function extract_transducer(iter::Iterators.Generator)
     xf, bottom = extract_transducer(iterinner(iter))
-    return xf |> Map(iter.f), bottom
+    return Map(iter.f) ∘ xf, bottom
 end
 
 function extract_transducer(iter::Iterators.Filter)
     xf, bottom = extract_transducer(iterinner(iter))
-    return xf |> Filter(iter.flt), bottom
+    return Filter(iter.flt) ∘ xf, bottom
 end
 
 function extract_transducer(iter::Iterators.Flatten)
     xf, bottom = extract_transducer(iterinner(iter))
-    return xf |> Cat(), bottom
+    return Cat() ∘ xf, bottom
 end
 
 """

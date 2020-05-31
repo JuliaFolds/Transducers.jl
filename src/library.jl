@@ -172,7 +172,7 @@ julia> collect(MapCat(x -> 1:x), 1:3)
 """
 const MapCat = Composition{<:Map, <:Cat}
 
-MapCat(f) = Map(f) |> Cat()
+MapCat(f) = opcompose(Map(f), Cat())
 
 """
     TCat(basesize::Integer)
@@ -192,7 +192,7 @@ long as it is called with non-parallel reduction such as
 ```jldoctest
 julia> using Transducers
 
-julia> tcollect(Map(x -> 1:x) |> TCat(1), 1:3)
+julia> 1:3 |> Map(x -> 1:x) |> TCat(1) |> tcollect
 6-element Array{Int64,1}:
  1
  1
@@ -201,7 +201,7 @@ julia> tcollect(Map(x -> 1:x) |> TCat(1), 1:3)
  2
  3
 
-julia> collect(Scan(+) |> Map(x -> 1:x) |> TCat(1), 1:3)
+julia> 1:3 |> Scan(+) |> Map(x -> 1:x) |> TCat(1) |> collect
 10-element Array{Int64,1}:
  1
  1
@@ -267,7 +267,7 @@ $(_thx_clj("filter"))
 ```jldoctest
 julia> using Transducers
 
-julia> collect(Filter(iseven), 1:3)
+julia> 1:3 |> Filter(iseven) |> collect
 1-element Array{Int64,1}:
  2
 ```
@@ -291,7 +291,7 @@ See also: [`OfType`](@ref)
 ```jldoctest
 julia> using Transducers
 
-julia> collect(NotA(Missing), [1, missing, 2])
+julia> [1, missing, 2] |> NotA(Missing) |> collect
 2-element Array{Int64,1}:
  1
  2
@@ -320,7 +320,7 @@ See also: [`NotA`](@ref)
 ```jldoctest
 julia> using Transducers
 
-julia> collect(OfType(Int), [1, missing, 2])
+julia> [1, missing, 2] |> OfType(Int) |> collect
 2-element Array{Int64,1}:
  1
  2
@@ -397,12 +397,12 @@ $(_thx_clj("take"))
 ```jldoctest
 julia> using Transducers
 
-julia> collect(Take(2), 1:10)
+julia> 1:10 |> Take(2) |> collect
 2-element Array{Int64,1}:
  1
  2
 
-julia> collect(Take(5), 1:2)
+julia> 1:2 |> Take(5) |> collect
 2-element Array{Int64,1}:
  1
  2
@@ -441,12 +441,12 @@ Take last `n` items from the input sequence.
 ```jldoctest
 julia> using Transducers
 
-julia> collect(TakeLast(2), 1:10)
+julia> 1:10 |> TakeLast(2) |> collect
 2-element Array{Int64,1}:
   9
  10
 
-julia> collect(TakeLast(5), 1:2)
+julia> 1:2 |> TakeLast(5) |> collect
 2-element Array{Int64,1}:
  1
  2
@@ -511,7 +511,7 @@ $(_thx_clj("take-while"))
 ```jldoctest
 julia> using Transducers
 
-julia> collect(TakeWhile(x -> x < 3), [1, 2, 3, 1, 2])
+julia> [1, 2, 3, 1, 2] |> TakeWhile(x -> x < 3) |> collect
 2-element Array{Int64,1}:
  1
  2
@@ -541,7 +541,7 @@ $(_thx_clj("take-nth"))
 ```jldoctest
 julia> using Transducers
 
-julia> collect(TakeNth(3), 1:9)
+julia> 1:9 |> TakeNth(3) |> collect
 3-element Array{Int64,1}:
  1
  4
@@ -584,7 +584,7 @@ $(_thx_clj("drop"))
 ```jldoctest
 julia> using Transducers
 
-julia> collect(Drop(3), 1:5)
+julia> 1:5 |> Drop(3) |> collect
 2-element Array{Int64,1}:
  4
  5
@@ -625,16 +625,16 @@ $(_thx_clj("drop-last"))
 ```jldoctest
 julia> using Transducers
 
-julia> collect(DropLast(2), 1:5)
+julia> 1:5 |> DropLast(2) |> collect
 3-element Array{Int64,1}:
  1
  2
  3
 
-julia> collect(DropLast(2), 1:1) == []
+julia> 1:1 |> DropLast(2) |> collect == []
 true
 
-julia> collect(DropLast(2), 1:0) == []
+julia> 1:0 |> DropLast(2) |> collect == []
 true
 ```
 """
@@ -764,18 +764,18 @@ $(_thx_clj("partition-all"))
 ```jldoctest
 julia> using Transducers
 
-julia> collect(Partition(3) |> Map(copy), 1:8)
+julia> 1:8 |> Partition(3) |> Map(copy) |> collect
 2-element Array{Array{Int64,1},1}:
  [1, 2, 3]
  [4, 5, 6]
 
-julia> collect(Partition(3; flush=true) |> Map(copy), 1:8)
+julia> 1:8 |> Partition(3; flush=true) |> Map(copy) |> collect
 3-element Array{Array{Int64,1},1}:
  [1, 2, 3]
  [4, 5, 6]
  [7, 8]
 
-julia> collect(Partition(3; step=1) |> Map(copy), 1:8)
+julia> 1:8 |> Partition(3; step=1) |> Map(copy) |> collect
 6-element Array{Array{Int64,1},1}:
  [1, 2, 3]
  [2, 3, 4]
@@ -891,7 +891,7 @@ $(_thx_clj("partition-by"))
 ```jldoctest
 julia> using Transducers
 
-julia> collect(PartitionBy(x -> (x + 1) ÷ 3) |> Map(copy), 1:9)
+julia> 1:9 |> PartitionBy(x -> (x + 1) ÷ 3) |> Map(copy) |> collect
 4-element Array{Array{Int64,1},1}:
  [1]
  [2, 3, 4]
@@ -991,14 +991,14 @@ $(_thx_clj("distinct"))
 ```jldoctest
 julia> using Transducers
 
-julia> collect(Unique(), [1, 1, 2, -1, 3, 3, 2])
+julia> [1, 1, 2, -1, 3, 3, 2] |> Unique() |> collect
 4-element Array{Int64,1}:
   1
   2
  -1
   3
 
-julia> collect(Unique(x -> x^2), [1, 1, 2, -1, 3, 3, 2])
+julia> [1, 1, 2, -1, 3, 3, 2] |> Unique(x -> x^2) |> collect
 3-element Array{Int64,1}:
  1
  2
@@ -1144,7 +1144,7 @@ julia> collect(Scan(*), 1:3)
  2
  6
 
-julia> collect(Map(x -> x + im) |> Scan(*), 1:3)
+julia> 1:3 |> Map(x -> x + im) |> Scan(*) |> collect
 3-element Array{Complex{Int64},1}:
  1 + 1im
  1 + 3im
@@ -1429,7 +1429,7 @@ julia> collect(Zip(Map(identity), Count()), -3:-1)
 
 julia> using Dates
 
-julia> collect(Zip(Map(identity), Count(Day(1))) |> Map(xs -> *(xs...)), 1:3) ==
+julia> 1:3 |> Zip(Map(identity), Count(Day(1))) |> MapSplat(*) |> collect ==
        [Day(1), Day(4), Day(9)]
 true
 ```

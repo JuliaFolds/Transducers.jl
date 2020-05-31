@@ -204,6 +204,41 @@ Base.broadcastable(xf::Transducer) = Ref(xf)
     Transducer
 
 The abstract type for transducers.
+
+A transducer `xf` can be used as both iterator transformation
+`xf(itr)` and reducing function transformation `xf'(rf)`.
+
+See also [`adjoint`](@ref) for `xf'(rf)`.
+
+!!! compat "Transducers.jl 0.4.XX"
+    The call overload `xf(rf)` requires Transducers.jl 0.4.XX or later.
+
+!!! note
+    The call overload `xf(rf)` requires Julia 1.3 or later.
+    For older Julia versions, use [`eduction`](@ref).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> xs = Map(inv)(2:2:4)
+2-element StepRange{Int64,Int64} |>
+    Map(inv)
+
+julia> collect(xs)
+2-element Array{Float64,1}:
+ 0.5
+ 0.25
+
+julia> rf = Map(inv)'(+)
+Reduction(
+    Map(inv),
+    BottomRF(
+        +))
+
+julia> rf(1, 4)  # +(1, inv(4))
+1.25
+```
 """
 Transducer
 
@@ -321,14 +356,78 @@ end
 @inline _normalize(xf) = xf
 @inline _normalize(xf::Composition{<:Composition}) = xf.outer |> xf.inner
 
-# Not sure if this a good idea... (But it's easier to type)
-@inline Base.:|>(f::Composition, g::Transducer) = f.outer |> (f.inner |> g)
-@inline Base.:|>(f::Transducer, g::Transducer) = Composition(f, g)
-# Base.∘(f::Transducer, g::Transducer) = Composition(f, g)
-# Base.∘(f::Composition, g::Transducer) = f.outer ∘ (f.inner ∘ g)
-@inline Base.:|>(::IdentityTransducer, f::Transducer) = f
-@inline Base.:|>(f::Transducer, ::IdentityTransducer) = f
-@inline Base.:|>(f::Composition, ::IdentityTransducer) = f  # disambiguation
+"""
+    f ⨟ g
+    g ∘ f
+    opcompose(f, g)
+    compose(g, f)
+
+Composition of transducers.
+
+!!! compat "Transducers.jl 0.4.XX"
+
+    Transducers.jl 0.4.XX or later is required for composing
+    transducers with `∘` and other operators and functions derived
+    from it.
+
+    Transducers written as `f |> g |> h` in previous versions of
+    Transducers.jl can now be written as `f ⨟ g ⨟ h` (in Julia 1.5 or
+    later) or `opcompose(f, g, h)`.
+
+!!! note
+
+    "op" in `opcompose` does not stand for _operator_; it stands for
+    _opposite_.
+"""
+@inline Base.:∘(g::Transducer, f::Transducer) = Composition(f, g)
+@inline Base.:∘(g::Transducer, f::Composition) = g ∘ f.inner ∘ f.outer
+@inline Base.:∘(f::Transducer, ::IdentityTransducer) = f
+@inline Base.:∘(::IdentityTransducer, f::Transducer) = f
+@inline Base.:∘(::IdentityTransducer, f::Composition) = f  # disambiguation
+
+if VERSION >= v"1.3"
+    (xf::Transducer)(itr) = eduction(xf, itr)
+else
+    Base.:|>(itr, xf::Transducer) = eduction(xf, itr)
+end
+
+"""
+    ReducingFunctionTransform(xf)
+
+The "true" transducer.
+"""
+struct ReducingFunctionTransform{T <: Transducer} <: Function
+    xf::T
+end
+
+"""
+    xf'
+
+`xf'(rf₁)` is a shortcut for calling `reducingfunction(xf, rf₁)`.
+
+More precisely, adjoint `xf′` of a transducer `xf` is a _reducing
+function transform_ `rf₁ -> rf₂`.  That is to say, `xf'` a function
+that maps a reducing function `rf₁` to another reducing function
+`rf₂`.
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> y = Map(inv)'(+)(10, 2)
+10.5
+
+julia> y == +(10, inv(2))
+true
+```
+"""
+Base.adjoint(xf::Transducer) = ReducingFunctionTransform(xf)
+Base.adjoint(rxf::ReducingFunctionTransform) = rxf.xf
+
+(f::ReducingFunctionTransform)(rf; kwargs...) =
+    reducingfunction(f.xf, rf; kwargs...)
+
+@inline Base.:∘(f::ReducingFunctionTransform, g::ReducingFunctionTransform) = (g' ∘ f')'
 
 """
     reform(rf, f)

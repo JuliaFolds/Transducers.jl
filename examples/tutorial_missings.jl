@@ -27,8 +27,7 @@ nothing  # hide
 
 foldl(
     +,
-    xf_printer(" input") |> MapSplat(*) |> xf_printer("output"),
-    zip(1:3, 10:2:14),
+    zip(1:3, 10:2:14) |> xf_printer(" input") |> MapSplat(*) |> xf_printer("output"),
 )
 flush(stdout)  # hide
 
@@ -47,7 +46,7 @@ foldl(+, MapSplat(*), zip(xs, ys))
 # However, it is very simple to ignore any missing values using
 # [`OfType`](@ref):
 
-xf_mdot = OfType(Tuple{Vararg{Number}}) |> MapSplat(*)
+xf_mdot = opcompose(OfType(Tuple{Vararg{Number}}), MapSplat(*))
 foldl(+, xf_mdot, zip(xs, ys))
 
 # Here, `Tuple{Vararg{Number}}` is a type that matches with a tuple of
@@ -66,8 +65,7 @@ foldl(+, xf_mdot, zip(xs, ys))
 
 nonmissings = foldl(
     right,
-    OfType(Tuple{Vararg{Number}}) |> Count(),
-    zip(xs, ys);
+    zip(xs, ys) |> OfType(Tuple{Vararg{Number}}) |> Count();
     init = 0,
 )
 nonmissings  # hide
@@ -87,8 +85,7 @@ nonmissings  # hide
 ans =  # hide
 foldl(
     right,
-    OfType(Tuple{Vararg{Number}}) |> Count(),
-    zip(Int[], Int[]);
+    zip(Int[], Int[]) |> OfType(Tuple{Vararg{Number}}) |> Count();
     init = 0,
 )
 ans  # hide
@@ -106,7 +103,7 @@ function xf_demean(xs, ys)
     return Map(((x, y),) -> (x - xmean, y - ymean))
 end
 
-foldl(+, xf_demean(xs, ys) |> xf_mdot, zip(xs, ys)) / nonmissings
+foldl(+, zip(xs, ys) |> xf_demean(xs, ys) |> xf_mdot) / nonmissings
 
 # ## Addition
 #
@@ -124,7 +121,7 @@ function add_skipmissing!(ys, xs)
 # [`foldl`](@ref) since mutating an array is better expressed as a
 # side-effect than a fold.
 
-    foreach(Enumerate() |> Filter(!(ismissing ∘ last)), xs) do (i, xi)
+    foreach(xs |> Enumerate() |> Filter(!(ismissing ∘ last))) do (i, xi)
         @inbounds ys[i] += xi
     end
 #+
@@ -179,8 +176,7 @@ foldl(right, xf_sum_columns(xs[:, 1]), eachcol(xs))
 ans =  # hide
 foldl(
     right,
-    Filter(x -> !any(ismissing, x)) |> xf_sum_columns(xs[:, 1]),
-    eachcol(xs),
+    eachcol(xs) |> Filter(x -> !any(ismissing, x)) |> xf_sum_columns(xs[:, 1]),
 )
 #md ans  # hide
 #src `#md ans` is a hack to avoid Literate.jl to put `continued = true`.
@@ -219,8 +215,8 @@ end  # if VERSION >= v"1.1-"  #src
 # ## Argmax
 #
 # Another useful operation to do ignoring missing values is
-# `argmax`/`argmin`.  It can be implemented using `Enumerate() |>
-# Filter(!(ismissing ∘ last))` (see also `add_skipmissing!` above)
+# `argmax`/`argmin`.  It can be implemented using `opcompose(Enumerate(),
+# Filter(!(ismissing ∘ last)))` (see also `add_skipmissing!` above)
 # composed with [`ScanEmit`](@ref).  We first need to define a
 # function to be called by `ScanEmit`:
 
@@ -240,10 +236,13 @@ nothing  # hide
 
 # This function is passed to `ScanEmit` with the initial state:
 
-xf_argmax = Enumerate() |> Filter(!(ismissing ∘ last)) |>
-    ScanEmit(argmax_step, (0, typemin(Int)))
-##                          |
-##                   initial state
+xf_argmax = opcompose(
+    Enumerate(),
+    Filter(!(ismissing ∘ last)),
+    ScanEmit(argmax_step, (0, typemin(Int))),
+    ##                      |
+    ##               initial state
+)
 nothing  # hide
 
 
@@ -310,8 +309,10 @@ nothing  # hide
 ans = # hide
 foldl(
     right,
-    Enumerate() |> OfType(Tuple{Integer, Number}) |> xf_scanext(<),
-    [1.0, 3.0, missing, 2.0],
+    [1.0, 3.0, missing, 2.0] |>
+        Enumerate() |>
+        OfType(Tuple{Integer,Number}) |>
+        xf_scanext(<),
 )
 end  #src
 #-
@@ -322,8 +323,11 @@ end  #src
 # argmax and argmin, respectively.  We can compute them concurrently
 # by [`Zip`](@ref)'ing them together:
 
-xf_fullextrema = Enumerate() |> OfType(Tuple{Integer, Number}) |>
-    Zip(xf_scanext(>), xf_scanext(<))
+xf_fullextrema = opcompose(
+    Enumerate(),
+    OfType(Tuple{Integer,Number}),
+    Zip(xf_scanext(>), xf_scanext(<)),
+)
 
 @time begin  #src
 ans = # hide
@@ -336,10 +340,12 @@ end  #src
 # This transducer produces a tuple `((argmin, min), (argmax, max))`.
 # To output only indices, append an appropriate `Map`:
 
-xf_argextrema =
-    xf_fullextrema |> Map() do ((argmin, min), (argmax, max))
+xf_argextrema = opcompose(
+    xf_fullextrema,
+    Map() do ((argmin, min), (argmax, max))
         (argmin, argmax)
-    end
+    end,
+)
 
 @time begin  #src
 ans = # hide

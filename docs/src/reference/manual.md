@@ -37,6 +37,12 @@ Transducers.append_unordered!
 
 ## Transducers
 
+```@docs
+Transducers.Transducer
+Base.:∘
+Base.adjoint
+```
+
 ```@autodocs
 Modules = [Transducers]
 Private = false

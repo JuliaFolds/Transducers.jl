@@ -78,7 +78,7 @@ Reduction(
         BottomRF(
             Transducers.right)))
 
-julia> maybe_usesimd(reducingfunction(Map(sin) |> Cat() |> Map(cos), right), :ivdep)
+julia> maybe_usesimd(opcompose(Map(sin), Cat(), Map(cos))'(right), :ivdep)
 Reduction(
     Map(sin),
     Reduction(
@@ -91,10 +91,7 @@ Reduction(
                     Transducers.right)))))
 
 julia> maybe_usesimd(
-           reducingfunction(
-               Map(sin) |> Cat() |> Map(cos) |> Cat() |> Map(tan),
-               right,
-           ),
+           opcompose(Map(sin), Cat(), Map(cos), Cat(), Map(tan))'(right),
            true,
        )
 Reduction(

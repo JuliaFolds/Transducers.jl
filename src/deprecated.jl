@@ -1,5 +1,10 @@
 using Base: @deprecate
 
+# `@deprecate` requires a symbol?
+import Base: |>
+@deprecate |>(f::Transducer, g::Transducer) opcompose(f, g) false
+using Base: |>
+
 @deprecate Distinct() Unique()
 @deprecate TeeZip(xf) ZipSource(xf) false
 

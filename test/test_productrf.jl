@@ -6,7 +6,7 @@ include("preamble.jl")
     @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
         foldl = nothing
         count_sum(xs, xf = Map(identity)) =
-            fold(ProductRF(+, +), xf |> Map(x -> (1, x)), xs)
+            fold(ProductRF(+, +), opcompose(xf, Map(x -> (1, x))), xs)
 
         @test count_sum([5, 2, 6, 8, 3]) == (5, 24)
         @test count_sum([5, 2, 6, 8, 3], Filter(isodd)) == (2, 8)

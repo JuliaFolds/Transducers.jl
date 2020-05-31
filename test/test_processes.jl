@@ -3,14 +3,14 @@ include("preamble.jl")
 
 @testset "mapfoldl" begin
     # https://clojure.org/reference/transducers#_transduce
-    xf = Filter(isodd) |> Map(inc)
+    xf = opcompose(Filter(isodd), Map(inc))
     @testset for xs in iterator_variants(0:4)
         @test mapfoldl(xf, +, xs, init=0) == 6
         @test mapfoldl(xf, +, xs, init=100) == 106
     end
 
     # https://clojuredocs.org/clojure.core/transduce
-    xf = Filter(isodd) |> Take(10)
+    xf = opcompose(Filter(isodd), Take(10))
     @testset "$(typeof(xs))" for xs in iterator_variants(0:1000)
         @test mapfoldl(xf, push!, xs, init=Int[]) == 1:2:19
         @test mapfoldl(xf, +, xs, init=0) == 100
@@ -43,7 +43,7 @@ include("preamble.jl")
         # @test_throws EmptyResultError mapfoldl(xf, +, iter)  # broken
         @test mapfoldl(xf, +, iter, init=32.) === 32.
 
-        nested_xf = Drop(10^9) |> FlagFirst() |> Map(x -> 32)
+        nested_xf = opcompose(Drop(10^9), FlagFirst(), Map(x -> 32))
         @test_throws EmptyResultError foldl(+, nested_xf, iter)
     end
 
@@ -104,7 +104,8 @@ end
 
 @testset "eduction" begin
     # https://clojuredocs.org/clojure.core/eduction
-    xf = Filter(isodd) |> Take(5)
+    xf = opcompose(Filter(isodd), Take(5))
+    @test 1:3 |> xf === eduction(xf, 1:3)
     @testset "$(typeof(xs))" for xs in iterator_variants(0:1000)
         @test collect(xf, xs) == 1:2:9
         @test collect(eduction(xf, xs)) == 1:2:9
@@ -115,14 +116,11 @@ end
         @test collect(xf, xs) == 1:2:5
         @test collect(eduction(xf, xs)) == 1:2:5
         @test collect(Map(x -> 2x), eduction(xf, xs)) == 2(1:2:5)
-        @test collect(eduction(AbortIf(iseven) |> TakeLast(1), xs)) == 1:1
+        @test xs |> AbortIf(iseven) |> TakeLast(1) |> collect == 1:1
     end
 
-    ed = eduction(xf, 1:5)
-
     @testset "inference" begin
-        xf = Zip(Count(), Map(identity), Map(x -> 2x)) |> MapSplat(*)
-        ed = eduction(xf, 1:10)
+        ed = 1:10 |> Zip(Count(), Map(identity), Map(x -> 2x)) |> MapSplat(*)
         @test_broken (@inferred foldl(+, ed)) === 6050
     end
 
@@ -138,8 +136,7 @@ end
 
 
 @testset "setinput" begin
-    xf = Zip(Count(), Map(identity), Map(x -> 2x)) |> MapSplat(*)
-    ed = eduction(xf, 1:10)
+    ed = 1:10 |> Zip(Count(), Map(identity), Map(x -> 2x)) |> MapSplat(*)
 
     @testset for xs in iterator_variants(1:10)
         @test setinput(ed, xs).coll isa typeof(xs)
@@ -164,7 +161,7 @@ Base.push!(coll::MinimalContainer, x) =
 
 @testset "append!" begin
     # https://clojuredocs.org/clojure.core/into#example-57294b20e4b050526f331420
-    xf = Map(x -> x + 2) |> Filter(isodd)
+    xf = opcompose(Map(x -> x + 2), Filter(isodd))
     @testset for xs in iterator_variants(0:9)
         @test append!(xf, [-1, -2], xs) == [-1, -2, 3, 5, 7, 9, 11]
         @test append!(xf, MinimalContainer([-1, -2]), xs).internal ==
@@ -183,7 +180,7 @@ end
     xs0 = 1:5
     @testset for src in [xs0, collect(xs0)]
         dest = zero(src)
-        @test map!(Filter(isodd) |> Scan(+), dest, src) == [1, 0, 4, 0, 9]
+        @test map!(opcompose(Filter(isodd), Scan(+)), dest, src) == [1, 0, 4, 0, 9]
         @test map!(ScanEmit(tuple, 0), dest, src) == 0:4
     end
 
@@ -206,14 +203,12 @@ end
     @testset for src in [xs0, collect(xs0)]
     # @testset for src in iterator_variants(xs0)  # TODO: fix
         dest = zero(xs0)
-        @test copy!(Filter(isodd) |> Scan(+), dest, src) == [1, 4, 9]
+        @test copy!(opcompose(Filter(isodd), Scan(+)), dest, src) == [1, 4, 9]
     end
 end
 
 @testset "simple_transduce" begin
-    xf = PartitionBy(x -> x > 0) |>
-        Filter(xs -> mean(abs, xs) < 1.0) |>
-        Map(prod)
+    xf = opcompose(PartitionBy(x -> x > 0), Filter(xs -> mean(abs, xs) < 1.0), Map(prod))
 
     for _ in 1:100
         xs = randn(100)
@@ -224,19 +219,23 @@ end
 @testset "Transducer(::Reduction)" begin
     # testing Transducer(::Eduction) which calls Transducer(::Reduction)
     @testset for xf in [
-            Map(sin),
-            ZipSource(Filter(isfinite) |> Map(tan)),
-            Map(sin) |> ZipSource(Filter(isfinite) |> Map(tan)) |>
-                Map(cos),
-            ZipSource(Map(sin) |> ZipSource(Map(tan))),
-            ZipSource(ZipSource(Map(tan)) |> Map(identity)),
-            ZipSource(Map(sin) |> ZipSource(Map(tan)) |> Map(identity)),
-            Map(cos) |> ZipSource(Map(sin) |> ZipSource(Map(tan)) |> Map(identity)),
-            Map(cos) |>
-                ZipSource(Map(sin) |> ZipSource(Map(tan)) |> Map(identity)) |>
-                Map(first),
-            ZipSource(ZipSource(Map(tan))),
-            ]
+        Map(sin),
+        ZipSource(opcompose(Filter(isfinite), Map(tan))),
+        opcompose(Map(sin), ZipSource(opcompose(Filter(isfinite), Map(tan))), Map(cos)),
+        ZipSource(opcompose(Map(sin), ZipSource(Map(tan)))),
+        ZipSource(opcompose(ZipSource(Map(tan)), Map(identity))),
+        ZipSource(opcompose(Map(sin), ZipSource(Map(tan)), Map(identity))),
+        opcompose(
+            Map(cos),
+            ZipSource(opcompose(Map(sin), ZipSource(Map(tan)), Map(identity))),
+        ),
+        opcompose(
+            Map(cos),
+            ZipSource(opcompose(Map(sin), ZipSource(Map(tan)), Map(identity))),
+            Map(first),
+        ),
+        ZipSource(ZipSource(Map(tan))),
+    ]
         @test Transducer(eduction(xf, 1:1)) === xf
     end
 end
@@ -244,8 +243,8 @@ end
 @testset "isexpansive" begin
     expansives = [
         Cat()
-        Cat() |> Filter(isodd)
-        Filter(isodd) |> Cat()
+        opcompose(Cat(), Filter(isodd))
+        opcompose(Filter(isodd), Cat())
     ]
     @testset for xf in expansives
         @test isexpansive(xf)
@@ -253,7 +252,7 @@ end
     end
     nonexpansives = [
         Map(identity)
-        Map(identity) |> Count()
+        opcompose(Map(identity), Count())
     ]
     @testset for xf in nonexpansives
         @test !isexpansive(xf)

@@ -6,7 +6,7 @@ Use an `OnlineStat` as a stateful transducer.
 It is implemented as:
 
 ```julia
-Scan(fit!, CopyInit(o)) |> Map(value)
+opcompose(Scan(fit!, CopyInit(o)), Map(value))
 ```
 
 # Examples
@@ -23,7 +23,7 @@ julia> collect(Transducer(Mean()), 1:4)
 ```
 """
 Transducer(o::OnlineStatsBase.OnlineStat) =
-    Scan(OnlineStatsBase.fit!, CopyInit(o)) |> Map(OnlineStatsBase.value)
+    Map(OnlineStatsBase.value) ∘ Scan(OnlineStatsBase.fit!, CopyInit(o))
 # TODO: implement `combine`
 
 """

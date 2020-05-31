@@ -12,7 +12,7 @@ transducers.  Consider a transducer
 ```jldoctest filter-map
 julia> using Transducers
 
-julia> xf = Filter(iseven) |> Map(x -> 2x);
+julia> xf = opcompose(Filter(iseven), Map(x -> 2x));
 ```
 
 which works as
@@ -42,8 +42,8 @@ foldl(+, imap(f, filter(iseven, input)))  # equivalent
 Compare it to how transducers are used:
 
 ```julia
-foldl(+, Filter(iseven) |> Map(f), input, init=0)
-#        ________________________
+foldl(+, opcompose(Filter(iseven), Map(f)), input, init=0)
+#        _________________________________
 #        composition occurs at computation part
 ```
 
@@ -121,7 +121,7 @@ sequence can be processed efficiently.  Consider the following
 example:
 
 ```jldoctest map-filter-cat
-julia> xf = Map(x -> 1:x) |> Filter(iseven ∘ sum) |> Cat()
+julia> xf = opcompose(Map(x -> 1:x), Filter(iseven ∘ sum), Cat())
        foldl(*, xf, 1:10)
 29262643200
 ```
