@@ -1,5 +1,5 @@
 """
-    Broadcasting() :: Transducer
+    Broadcasting()
 
 Broadcast "vector" input to reducing function on "scalars".
 
