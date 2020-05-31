@@ -67,6 +67,10 @@ Roughly speaking, `TeeRF(op₁, op₂, ..., opₙ)` is equivalent to
 
 For [`combine`](@ref), it behaves like [`ProductRF`](@ref).
 
+!!! compat "Transducers.jl 0.4.32"
+
+    New in version 0.4.32.
+
 # Examples
 ```jldoctest
 julia> using Transducers
@@ -120,6 +124,10 @@ Roughly speaking, `ProductRF(op₁, op₂, ..., opₙ)` is equivalent to
 ```julia
 ((a₁, a₂, ..., aₙ), (b₁, b₂, ..., bₙ)) -> (op₁(a₁, b₁), op₂(a₂, b₂), ..., opₙ(aₙ, bₙ))
 ```
+
+!!! compat "Transducers.jl 0.4.32"
+
+    New in version 0.4.32.
 
 # Examples
 

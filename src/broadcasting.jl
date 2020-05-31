@@ -22,6 +22,10 @@ such as [`OnInit`](@ref), it is initialized independently for each
 item in the first input array.  This makes using `Broadcasting` for
 (possibly) in-place functions safe.
 
+!!! compat "Transducers.jl 0.4.32"
+
+    New in version 0.4.32.
+
 # Examples
 ```jldoctest
 julia> using Transducers
