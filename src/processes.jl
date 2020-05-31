@@ -662,7 +662,7 @@ Base.collect(ed::Eduction) = collect(extract_transducer(ed)...)
 
 Process `foldable` with a transducer `xf` and then create a container of type `T`
 filled with the result.  Return
-[`BangBang.Empty{T}`](https://tkf.github.io/BangBang.jl/dev/#BangBang.NoBang.Empty)
+[`BangBang.Empty{T}`](https://juliafolds.github.io/BangBang.jl/dev/#BangBang.NoBang.Empty)
 if the transducer does not produce anything.  (This is because there is no
 consistent interface to create an empty container given its type and not all
 containers support creating an empty container.)
