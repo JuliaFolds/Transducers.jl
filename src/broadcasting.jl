@@ -26,6 +26,10 @@ item in the first input array.  This makes using `Broadcasting` for
 
     New in version 0.4.32.
 
+!!! note
+
+    `Broadcasting` transducer is not supported in Julia 1.0.
+
 # Examples
 ```jldoctest
 julia> using Transducers
