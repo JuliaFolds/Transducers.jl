@@ -754,10 +754,8 @@ Completing(f::Completing) = f
 # reducing function (i.e., including all transducers).
 
 # TODOs for `Completing` and `skipcomplete`:
-# 1. Call `complete` outside `__foldl__`.
-# 2. Get rid of current `foldl_nocomplete`, `skipcomplete`, and `NoComplete`.
-# 3. Replace what `Complete` currently does with `skipcomplete` factory
-#    function and then and deprecate `Complete`.
+# 1. Get rid of 1-arg `complete` fallback definition for bottom functions.
+# 2. Deprecate `Completing` (after making it a no-op).
 skipcomplete(rf::Reduction) = Reduction(NoComplete(), rf)
 skipcomplete(f) = Completing(f)
 

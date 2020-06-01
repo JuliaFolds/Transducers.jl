@@ -122,6 +122,23 @@ See also: [`@next`](@ref).
 """
 __foldl__
 
+# ** Why calling `complete` inside `__foldl__`? **
+#
+# Initially I was hoping to stop calling `complete` in `__foldl__` so
+# that `skipcomplete` wouldn't be necessary.  However, it was
+# impossible to make it inferred with some mildly complex cases.  This
+# is probably expected since `__foldl__` tends to use something like
+# tail-call function-barriers to maximize the chance of union
+# splitting.  So, inside `__foldl__`, `complete` has a better chance
+# to be inferred to have a concrete input type.  Furthermore, since
+# private types are unwrapped inside `complete`, a simpler type would
+# be returned from `__foldl__`.  This is probably why
+# `complete`-inside-`__foldl__` approach is more compiler-friendly.
+# On the other hand, if `complete` is called outside `__foldl__`, the
+# compiler has to merge various types of nested objects returned from
+# multiple locations.  This easily leads to non-concrete types in the
+# inference.
+
 const FOLDL_RECURSION_LIMIT = Val(10)
 # const FOLDL_RECURSION_LIMIT = nothing
 _dec(::Nothing) = nothing
@@ -695,7 +712,7 @@ julia> collect(Interpose(missing), 1:3)
 function Base.collect(xf::Transducer, coll)
     result = finish!(unreduced(transduce(
         Map(SingletonVector) ∘ xf,
-        _collect_rf!!,
+        wheninit(collector, append!!),
         collector(),
         coll,
     )))
@@ -708,10 +725,6 @@ end
 # Base.collect(xf, coll) = append!([], xf, coll)
 
 Base.collect(ed::Eduction) = collect(extract_transducer(ed)...)
-
-@inline _collect_rf!!(dest, src) = append!!(dest, src)
-start(::typeof(_collect_rf!!), _) = collector()
-complete(::typeof(_collect_rf!!), acc) = acc  # TODO: remove
 
 """
     copy(xf::Transducer, T, foldable) :: Union{T, Empty{T}}
