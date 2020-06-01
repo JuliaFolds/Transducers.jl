@@ -21,6 +21,6 @@ Random.seed!(1234)
 transducers_literate()
 transducers_makedocs()
 deploydocs(;
-    repo="github.com/tkf/Transducers.jl",
+    repo="github.com/JuliaFolds/Transducers.jl",
     push_preview = should_push_preview(),
 )

@@ -297,7 +297,7 @@ reduce(append!!, Map(SVector), 1:4; init = Union{}[])
 # enough" to fit the resulting elements.
 #
 # For generic containers (e.g., various table types), use
-# [`BangBang.Empty`](https://tkf.github.io/BangBang.jl/dev/#BangBang.NoBang.singletonof-Union{Tuple{T},%20Tuple{Type{T},Any}}%20where%20T)
+# [`BangBang.Empty`](https://juliafolds.github.io/BangBang.jl/dev/#BangBang.NoBang.singletonof-Union{Tuple{T},%20Tuple{Type{T},Any}}%20where%20T)
 # as the empty initial value.  This is useful for creating a table
 # object such as
 # [`DataFrame`](https://github.com/JuliaData/DataFrames.jl) as the

@@ -63,7 +63,7 @@ function transducers_makedocs(;
             hide("doctests/show_xf.md"),
             hide("doctests/show_rf.md"),
         ],
-        repo = "https://github.com/tkf/Transducers.jl/blob/{commit}{path}#L{line}",
+        repo = "https://github.com/JuliaFolds/Transducers.jl/blob/{commit}{path}#L{line}",
         sitename = "Transducers.jl",
         authors = "Takafumi Arakaki",
         root = @__DIR__,
