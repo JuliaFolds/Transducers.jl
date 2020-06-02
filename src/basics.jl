@@ -82,3 +82,13 @@ _thx_clj(name) =
 # https://github.com/JuliaLang/julia/pull/30575
 const _true_str = sprint(show, true; context=:typeinfo => Bool)
 const _false_str = sprint(show, false; context=:typeinfo => Bool)
+
+
+# Just like `Function` but for defining some common methods.
+abstract type _Function <: Function end
+
+# Avoid `Function` fallbacks:
+@nospecialize
+Base.show(io::IO, ::MIME"text/plain", f::_Function) = show(io, f)
+Base.print(io::IO, f::_Function) = show(io, f)
+@specialize

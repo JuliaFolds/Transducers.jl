@@ -8,6 +8,9 @@ using Transducers: Transducer, simple_transduce, Reduced, isexpansive,
     EmptyResultError, IdentityNotDefinedError, AbortIf, @next
 using InitialValues: Init
 using Logging: NullLogger, with_logger
+using SplittablesBase: SplittablesBase
+
+@nospecialize
 
 """
     ==ₜ(x, y)
@@ -134,3 +137,51 @@ function slow_test(f, title, limit)
     end
     return
 end
+
+reduce_bs1(args...; kw...) = reduce(args...; basesize = 1, kw...)
+dreduce_bs1(args...; kw...) = dreduce(args...; basesize = 1, kw...)
+
+function simple_reduce_impl(rf, init, itr, basesize)
+    if SplittablesBase.amount(itr) < basesize
+        return Transducers.foldl_nocomplete(rf, init, itr)
+    end
+    left, right = SplittablesBase.halve(itr)
+    return Transducers.combine(
+        rf,
+        simple_reduce_impl(rf, init, left, basesize),
+        simple_reduce_impl(rf, init, right, basesize),
+    )
+end
+
+"""
+    simple_reduce(rf, [xf,] itr; [init])
+
+Single-threaded, to-be-reference implementation of `reduce`.
+"""
+function simple_reduce(rf, itr; init = Transducers.DefaultInit, basesize = 2)
+    acc = simple_reduce_impl(rf, Transducers.start(rf, init), itr, basesize)
+    acc = Transducers.complete(rf, acc)
+    if acc isa Transducers.DefaultInitOf
+        throw(Transducers.EmptyResultError(rf))
+    end
+    return acc
+end
+
+simple_reduce(rf, xf, itr; kwargs...) = simple_reduce(
+    # TODO: it should be possible to implement this line with public API:
+    reducingfunction(xf, Completing(Transducers._asmonoid(rf))),
+    itr;
+    kwargs...,
+)
+
+random_basesize(itr) = rand(3:SplittablesBase.amount(itr))
+
+# For reducing functions with _exactly_ associative inner-most
+# semigroup, this should yield same result always
+random_reduce(rf, xf, itr; kwargs...) =
+    simple_reduce(rf, xf, itr; kwargs..., basesize = random_basesize(itr))
+
+random_reduce(rf, itr; kwargs...) =
+    simple_reduce(rf, itr; kwargs..., basesize = random_basesize(itr))
+
+@specialize

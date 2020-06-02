@@ -626,7 +626,7 @@ etc.
 
 $(_thx_clj("completing"))
 """
-struct Completing{F}  # Note: not a Transducer
+struct Completing{F} <: _Function  # Note: not a Transducer
     f::F
 end
 
@@ -635,12 +635,37 @@ start(rf::Completing, result) = start(rf.f, result)
 complete(::Completing, result) = result
 combine(rf::Completing, a, b) = combine(rf.f, a, b)
 
-# If I expose `Reduction` as a user-interface, I should export
-# `skipcomplete` instead of the struct `Completing`.
+# Apply `Completing` only on the inner-most reducing function so that
+# `complete` on transducers are still called.  This is very ugly as it
+# does not return a `Completing` object.  But this is required for
+# allowing `foldl(reducingfunction(...), ...)` etc.:
+Completing(rf::AbstractReduction) = setinner(rf, Completing(inner(rf)))
+Completing(rf::BottomRF) = BottomRF(Completing(rf.inner))
+Completing(f::Completing) = f
+
+# Currently, `Completing` is recursive while `skipcomplete` is
+# non-recursive.  `Completing` only skips `complete` on the inner-most
+# (bottom) reducing function (i.e., _not_ including the
+# transducers). `skipcomplete` skips `complete` of the outer-most
+# reducing function (i.e., including all transducers).
+
+# TODOs for `Completing` and `skipcomplete`:
+# 1. Call `complete` outside `__foldl__`.
+# 2. Get rid of current `foldl_nocomplete`, `skipcomplete`, and `NoComplete`.
+# 3. Replace what `Complete` currently does with `skipcomplete` factory
+#    function and then and deprecate `Complete`.
 skipcomplete(rf::Reduction) = Reduction(NoComplete(), rf)
 skipcomplete(f) = Completing(f)
-# skipcomplete(f) = Reduction(NoComplete(), f, Any)
-# TODO: get rid of `Completing` struct.
+
+# Since `Completing <: Function`, the default `show` is a bit ugly.
+function Base.show(io::IO, rf::Completing)
+    @nospecialize
+    if rf === Completing(rf.f)
+        print(io, Completing, '(', rf.f, ')')
+    else
+        invoke(show, Tuple{IO,Any}, io, rf)
+    end
+end
 
 struct SideEffect{F}  # Note: not a Transducer
     f::F
@@ -711,6 +736,10 @@ abstract type AbstractInitializer end
 # For `DefaultInit` and `OptInit`
 struct InitOf{IV <: SpecificInitialValue} end
 (::InitOf{IV})(::OP) where {IV, OP} = IV{OP}()
+
+# For `Broadcasting`:
+Broadcast.broadcastable(f::AbstractInitializer) = Ref(f)
+Broadcast.broadcastable(f::InitOf) = Ref(f)
 
 """
     initialize(initializer, op) -> init
