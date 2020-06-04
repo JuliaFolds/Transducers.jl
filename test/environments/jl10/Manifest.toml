@@ -161,9 +161,9 @@ version = "0.21.0"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "MatrixFactorizations", "StaticArrays"]
-git-tree-sha1 = "afc0b7026e58eb6eaf43df69530ce97b416d9e2c"
+git-tree-sha1 = "60f28207967d4445cc09fd08a594b2a35613376b"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.16.10"
+version = "0.16.11"
 
 [[LibGit2]]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
