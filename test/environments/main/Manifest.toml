@@ -44,9 +44,9 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[BlockArrays]]
 deps = ["ArrayLayouts", "Compat", "LinearAlgebra"]
-git-tree-sha1 = "76442db2b54ae3198877ac23ec0f1741ec260c1b"
+git-tree-sha1 = "5e157c81f1321f2338e1e2b71389c7783d3f59e6"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.12.7"
+version = "0.12.8"
 
 [[CategoricalArrays]]
 deps = ["DataAPI", "Future", "JSON", "Missings", "Printf", "Statistics", "Unicode"]
@@ -163,9 +163,9 @@ version = "0.21.0"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "MatrixFactorizations", "StaticArrays"]
-git-tree-sha1 = "60f28207967d4445cc09fd08a594b2a35613376b"
+git-tree-sha1 = "58f1186d445ac4aed3571d6eb1a79e3361f66cad"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.16.11"
+version = "0.16.12"
 
 [[LibGit2]]
 deps = ["Printf"]
