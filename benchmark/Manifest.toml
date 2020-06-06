@@ -208,7 +208,7 @@ version = "1.0.0"
 
 [[SplittablesBase]]
 deps = ["Setfield", "Test"]
-git-tree-sha1 = "fafb4c822a657483fd254fe6b32be4d2910044d6"
+git-tree-sha1 = "7dd394508a72ff8c675ad3731f5f4dcb84321501"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/SplittablesBase.jl.git"
 uuid = "171d559e-b47b-412a-8079-5efa626c420e"
