@@ -198,6 +198,8 @@ struct IdentityTransducer <: Transducer end
 has(xf::Transducer, T::Type) = xf isa T
 has(xf::Composition, T::Type) = has(xf.outer, T) || has(xf.inner, T)
 
+Base.broadcastable(xf::Transducer) = Ref(xf)
+
 """
     Transducer
 
