@@ -5,14 +5,15 @@ using Distributed: addprocs, nworkers
 using Test
 
 if get(ENV, "CI", "false") == "true"
+    addprocs(3)
+
     # Tests in `PerformanceTestTools.@include_foreach` might cause
     # pre-compilation errors as two processes try to compile packages
     # at the same time.  This can happen when the tests are run via
-    # `Pkg.test`.
+    # `Pkg.test`.  Doing this after `addprocs` to workaround a quirk
+    # in Distributed.jl.
     include("LoadAllPackages.jl")
     LoadAllPackages.loadall()
-
-    addprocs(3)
 end
 @info "Testing with:" nworkers()
 
