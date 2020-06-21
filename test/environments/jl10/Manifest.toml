@@ -211,9 +211,9 @@ version = "1.5.3"
 
 [[OnlineStatsBase]]
 deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "7d10becee3575a4749a0dcb65a92016633b7ea86"
+git-tree-sha1 = "a161dd2472991774755ebb18c62d2ac0efc25022"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.4.1"
+version = "1.4.2"
 
 [[OrderedCollections]]
 git-tree-sha1 = "12ce190210d278e12644bcadf5b21cbdcf225cd3"
@@ -302,9 +302,9 @@ uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[SplitApplyCombine]]
 deps = ["Dictionaries", "Indexing"]
-git-tree-sha1 = "4f7ae75eb6f7c1f63baf4d69d301344d99dcea15"
+git-tree-sha1 = "e0a12ccd60ad011cf2c49b738db403957451b45e"
 uuid = "03a91e81-4c3e-53e1-a0a4-9c0c8f19dd66"
-version = "1.1.0"
+version = "1.1.1"
 
 [[SplittablesBase]]
 deps = ["Setfield", "Test"]
