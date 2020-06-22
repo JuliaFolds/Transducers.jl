@@ -399,13 +399,13 @@ end
 _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
 
 # TODO: should it be an internal?
-@inline function transduce(rf0::AbstractReduction, init, coll;
+@inline function transduce(rf1::AbstractReduction, init, coll;
                            simd::SIMDFlag = Val(false))
     # Inlining `transduce` and `__foldl__` were essential for the
     # `restack` below to work.
+    rf0, foldable = retransform(rf1, asfoldable(coll))
     rf = maybe_usesimd(rf0, simd)
     state = start(rf, init)
-    foldable = asfoldable(coll)
     result = __foldl__(rf, state, foldable)
     if unreduced(result) isa DefaultInitOf
         throw(EmptyResultError(rf0))

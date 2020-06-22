@@ -165,13 +165,14 @@ else
 end
 
 function _transduce_assoc_nocomplete(
-    rf::F,
+    rf0::F,
     init,
     coll,
     basesize,
     stoppable = true,
 ) where {F}
-    reducible = SizedReducible(maybe_collect(coll), basesize)
+    rf, foldable = retransform(rf0, maybe_collect(coll))
+    reducible = SizedReducible(foldable, basesize)
     @static if VERSION >= v"1.3-alpha"
         return _reduce(TaskContext(), stoppable, DummyTask(), rf, init, reducible)
     else

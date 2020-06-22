@@ -124,3 +124,48 @@ function extract_transducer(iter::Iterators.Flatten)
     xf, bottom = extract_transducer(iterinner(iter))
     return xf |> Cat(), bottom
 end
+
+"""
+    Transducers.NoAdjoint(itr)
+
+Bypass the optimization step by [`retransform`](@ref).
+"""
+struct NoAdjoint{T}
+    itr::T
+end
+
+extract_transducer(itr::NoAdjoint) = IdentityTransducer(), itr.itr
+
+"""
+    Transducers.retransform(rf, itr) -> rf′, itr′
+
+Extract transformations in `rf` and `itr` and use the appropriate adjoint for
+better performance.
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> double(x) = 2x;
+
+julia> itr0 = 1:10;
+
+julia> itr1 = (double(x) for x in itr0);
+
+julia> rf, itr2 = Transducers.retransform(+, itr1);
+
+julia> itr2 === itr0
+true
+
+julia> rf == reducingfunction(Map(double), +)
+true
+```
+"""
+function retransform(rf, itr1)
+    xf, itr0 = extract_transducer(itr1)
+    return reducingfunction(xf, rf), itr0
+end
+
+# TODO: Consider doing the "opposite" of `extract_transducer` for
+# `Partition` etc.:
+# https://github.com/JuliaFolds/Transducers.jl/issues/7
