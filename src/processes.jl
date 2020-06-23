@@ -445,7 +445,17 @@ _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
     end
 end
 
+Base.mapfoldl(f::F, step::OP, itr::Foldable; kw...) where {F, OP} =
+    foldl(step, Map(f), itr; kw...)
+
 function Base.mapfoldl(xform::Transducer, step, itr;
+                       simd::SIMDFlag = Val(false),
+                       init = DefaultInit)
+    unreduced(transduce(xform, step, init, itr; simd=simd))
+end
+
+# disambiguation
+function Base.mapfoldl(xform::Transducer, step, itr::Foldable;
                        simd::SIMDFlag = Val(false),
                        init = DefaultInit)
     unreduced(transduce(xform, step, init, itr; simd=simd))
