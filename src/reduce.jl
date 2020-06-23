@@ -133,17 +133,18 @@ function transduce_assoc(
     xform::Transducer,
     step::F,
     init,
-    coll;
+    coll0;
     simd::SIMDFlag = Val(false),
-    basesize::Integer = amount(coll) ÷ Threads.nthreads(),
+    basesize::Integer = amount(coll0) ÷ Threads.nthreads(),
     stoppable::Union{Bool,Nothing} = nothing,
 ) where {F}
-    rf = _reducingfunction(xform, step; init = init, simd = simd)
+    rf0 = _reducingfunction(xform, step; init = init)
+    rf, coll = retransform(rf0, coll0)
     if stoppable === nothing
         stoppable = _might_return_reduced(rf, init, coll)
     end
     acc = @return_if_reduced _transduce_assoc_nocomplete(
-        rf,
+        maybe_usesimd(rf, simd),
         init,
         coll,
         basesize,
@@ -165,14 +166,13 @@ else
 end
 
 function _transduce_assoc_nocomplete(
-    rf0::F,
+    rf::F,
     init,
     coll,
     basesize,
     stoppable = true,
 ) where {F}
-    rf, foldable = retransform(rf0, maybe_collect(coll))
-    reducible = SizedReducible(foldable, basesize)
+    reducible = SizedReducible(maybe_collect(coll), basesize)
     @static if VERSION >= v"1.3-alpha"
         return _reduce(TaskContext(), stoppable, DummyTask(), rf, init, reducible)
     else

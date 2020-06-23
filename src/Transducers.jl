@@ -31,7 +31,7 @@ using InitialValues:
     SpecificInitialValue,
     asmonoid,
     hasinitialvalue
-using SplittablesBase: amount, halve
+using SplittablesBase: SplittablesBase, amount, halve
 
 import Setfield
 using Setfield: @lens, @set, set

@@ -134,6 +134,8 @@ struct NoAdjoint{T}
     itr::T
 end
 
+SplittablesBase.amount(itr::NoAdjoint) = amount(itr.itr)
+
 extract_transducer(itr::NoAdjoint) = IdentityTransducer(), itr.itr
 
 """
