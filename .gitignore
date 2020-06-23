@@ -2,6 +2,7 @@
 *.jl.*mem
 *.jl.cov
 .DS_Store
+/.benchmarkci
 /Manifest.toml
 /benchmark/*.json
 /docs/Manifest.toml

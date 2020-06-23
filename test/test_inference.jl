@@ -1,7 +1,7 @@
 module TestInference
 
 include("preamble.jl")
-using Transducers: _nonidtype, DefaultInit, OptInit
+using Transducers: _nonidtype, DefaultInitOf, OptInit
 
 collections = [
     1:1,
@@ -15,7 +15,7 @@ constant(x) = (_...) -> x
 @testset "_nonidtype" begin
     # This is required for "foldl without init" tests below work:
     @test _nonidtype(Float64) === Float64
-    @test _nonidtype(Union{DefaultInit{typeof(+)}, Float64}) === Float64
+    @test _nonidtype(Union{DefaultInitOf{typeof(+)}, Float64}) === Float64
 end
 
 @testset "foldl" begin
@@ -35,7 +35,7 @@ end
         @test_inferred foldl(+, TakeLast(1), xs)
         @test_inferred foldl(+, PartitionBy(identity) |> Map(first), xs)
         @test_inferred foldl(+, Unique(), xs)
-        @test_inferred foldl(right, TeeZip(Filter(isodd) |> Map(inc)), xs)
+        @test_inferred foldl(right, ZipSource(Filter(isodd) |> Map(inc)), xs)
 
         # Nested stateful transducers.  (The ones with `right` and
         # `Map(x -> x::Int)` actually succeeded in some REPL
@@ -60,6 +60,10 @@ end
     @testset for xs in collections
         @test_inferred collect(Map(exp), xs)
         @test_inferred collect(Map(exp) |> Filter(x -> x > 0), xs)
+        @test_inferred collect(
+            Enumerate() |> Map(last) |> Map(exp) |> Filter(x -> x > 0),
+            xs,
+        )
     end
 end
 

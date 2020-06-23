@@ -8,20 +8,31 @@ Order = [:function, :type]
 ## Transducible processes
 
 ```@docs
-mapfoldl
 transduce
 foldl
 foreach
-mapreduce
 reduce
 dreduce
 dtransduce
 eduction
 map!
 copy!
+copy
+tcopy
+dcopy
 append!
+Transducers.append!!
 collect
+tcollect
+dcollect
 Channel
+```
+
+### Experimental transducible processes
+
+```@docs
+Transducers.channel_unordered
+Transducers.append_unordered!
 ```
 
 ## Transducers
@@ -32,13 +43,20 @@ Private = false
 Filter = Transducers.is_transducer_type
 ```
 
-### Experimental
+### Experimental transducers
 
 ```@docs
-Transducers.TeeZip
+Transducers.ZipSource
 Transducers.GetIndex
 Transducers.SetIndex
 Transducers.Inject
+```
+
+## [Other reducing function combinators](@id combinators)
+
+```@docs
+Transducers.TeeRF
+Transducers.ProductRF
 ```
 
 ## Early termination
@@ -63,4 +81,11 @@ right
 setinput
 AdHocFoldable
 withprogress
+```
+
+## Deprecated
+
+```@docs
+mapfoldl
+mapreduce
 ```

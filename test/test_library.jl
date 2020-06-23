@@ -100,25 +100,25 @@ end
     end
 end
 
-@testset "TeeZip" begin
+@testset "ZipSource" begin
     @testset for xs in iterator_variants(1:5)
-        @test collect(TeeZip(Filter(isodd) |> Map(inc)), xs) ==
+        @test collect(ZipSource(Filter(isodd) |> Map(inc)), xs) ==
             collect(zip(1:2:5, 2:2:6))
     end
 
-    xf = Map(inc) |> TeeZip(Filter(isodd)) |> Map(first)
+    xf = Map(inc) |> ZipSource(Filter(isodd)) |> Map(first)
     @testset for xs in iterator_variants(1:6)
         @test collect(xf, xs) == 3:2:7
     end
 
     @testset "Combination with stateful transducers" begin
         @testset for xs in iterator_variants(2:2:6)
-            @test collect(TeeZip(Map(identity)) |> Count(), xs) == 1:3
-            @test collect(TeeZip(Count()) |> Count(), xs) == 1:3
-            @test collect(Count() |> TeeZip(Map(x -> x + 10)), xs) ==
+            @test collect(ZipSource(Map(identity)) |> Count(), xs) == 1:3
+            @test collect(ZipSource(Count()) |> Count(), xs) == 1:3
+            @test collect(Count() |> ZipSource(Map(x -> x + 10)), xs) ==
                 collect(zip(1:3, (1:3) .+ 10))
             @test collect(
-                Enumerate() |> TeeZip(Map(x -> x[end] + 10)) |> Enumerate(),
+                Enumerate() |> ZipSource(Map(x -> x[end] + 10)) |> Enumerate(),
                 xs) == [
                     (1, ((1, 2), 12))
                     (2, ((2, 4), 14))
@@ -136,17 +136,17 @@ end
         end
     end
 
-    @testset "Nested TeeZip" begin
+    @testset "Nested ZipSource" begin
         @testset for xs in iterator_variants(1:5)
-            @test collect(TeeZip(Filter(isodd) |>
+            @test collect(ZipSource(Filter(isodd) |>
                                  Map(inc) |>
-                                 TeeZip(Map(inc))),
+                                 ZipSource(Map(inc))),
                           xs) == [
                     (1, (2, 3)),
                     (3, (4, 5)),
                     (5, (6, 7)),
                 ]
-            @test collect(TeeZip(TeeZip(Map(inc))), xs) isa Vector
+            @test collect(ZipSource(ZipSource(Map(inc))), xs) isa Vector
         end
     end
 end
@@ -492,22 +492,6 @@ end
     end
 end
 
-@testset "GroupBy" begin
-    @test foldl(right, GroupBy(string, Map(last), push!!), [1, 2, 1, 2, 3]) ==
-        Dict("1" => [1, 1], "2" => [2, 2], "3" => [3])
-
-    @test foldl(
-        right,
-        GroupBy(
-            identity,
-            Map(last) |> Scan(+),
-            (_, x) -> x > 3 ? reduced(x) : x,
-            nothing,
-        ),
-        [1, 2, 1, 2, 3],
-    ) == Dict(2 => 4, 1 => 2)
-end
-
 @testset "ReduceIf" begin
     @test foldl(right, ReduceIf(x -> x == 3), 1:10) === 3
     @test foldl(right, ReduceIf(x -> x == 3), 1:2) === 2
@@ -527,6 +511,7 @@ end
     @test_throws ArgumentError Partition(0)
     @test_throws ArgumentError Partition(0, 1)
     @test_throws ArgumentError Partition(1, 0)
+    @test_throws ArgumentError TCat(0)
 end
 
 end  # module

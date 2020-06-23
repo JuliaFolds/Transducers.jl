@@ -50,7 +50,7 @@ end
 Map(::Type{T}) where T = Map{Type{T}}(T)  # specialization workaround
 
 isexpansive(::Map) = false
-next(rf::R_{Map}, result, input) = next(inner(rf), result, xform(rf).f(input))
+@inline next(rf::R_{Map}, result, input) = next(inner(rf), result, xform(rf).f(input))
 
 """
     MapSplat(f)
@@ -76,7 +76,7 @@ end
 MapSplat(::Type{T}) where T = MapSplat{Type{T}}(T)  # specialization workaround
 
 isexpansive(::MapSplat) = false
-next(rf::R_{MapSplat}, result, input) =
+@inline next(rf::R_{MapSplat}, result, input) =
     next(inner(rf), result, xform(rf).f(input...))
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/replace
@@ -122,7 +122,7 @@ struct Replace{D} <: Transducer
 end
 
 isexpansive(::Replace) = false
-next(rf::R_{Replace}, result, input) =
+@inline next(rf::R_{Replace}, result, input) =
     next(inner(rf), result, get(xform(rf).d, input, input))
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/cat
@@ -145,7 +145,7 @@ true
 struct Cat <: Transducer
 end
 
-next(rf::R_{Cat}, result, input) = foldl_nocomplete(inner(rf), result, input)
+@inline next(rf::R_{Cat}, result, input) = foldl_nocomplete(inner(rf), result, input)
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/mapcat
 # https://clojuredocs.org/clojure.core/mapcat
@@ -174,6 +174,86 @@ const MapCat = Composition{<:Map, <:Cat}
 
 MapCat(f) = Map(f) |> Cat()
 
+"""
+    TCat(basesize::Integer)
+
+Threaded version of [`Cat`](@ref) (concatenate/flatten).
+
+To use this transducer, all the downstream (inner) transducers must be
+stateless (or of type [`ScanEmit`](@ref)) and the reducing function
+must be associative.  See also: [Parallel processing tutorial](@ref
+tutorial-parallel).
+
+Note that the upstream (outer) transducers need not to be stateless as
+long as it is called with non-parallel reduction such as
+[`foldl`](@ref) and [`collect`](@ref).
+
+# Examples
+```jldoctest
+julia> using Transducers
+
+julia> tcollect(Map(x -> 1:x) |> TCat(1), 1:3)
+6-element Array{Int64,1}:
+ 1
+ 1
+ 2
+ 1
+ 2
+ 3
+
+julia> collect(Scan(+) |> Map(x -> 1:x) |> TCat(1), 1:3)
+10-element Array{Int64,1}:
+ 1
+ 1
+ 2
+ 3
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+```
+"""
+struct TCat <: Transducer
+    basesize::Int
+    function TCat(basesize::Integer)
+        @argcheck basesize > 0
+        return new(Int(basesize))
+    end
+end
+
+# Do not recurse into `start(inner(rf), ...)`; it's called via transduce
+start(rf::R_{TCat}, init) = wrap(rf, init, Unseen())
+
+function complete(rf::R_{TCat}, result)
+    init, iresult = unwrap(rf, result)
+    iresult isa Unseen && return init  # `next` never called
+    return complete(inner(rf), iresult)
+end
+
+next(rf::R_{TCat}, result, input) =
+    wrapping(rf, result) do init, acc
+        subresult = _transduce_assoc_nocomplete(
+            inner(rf),
+            init,
+            input,
+            xform(rf).basesize,
+        )
+        subresult isa Reduced && return init, subresult
+        acc isa Unseen && return init, subresult
+        return init, combine(inner(rf), acc, subresult)
+    end
+
+function combine(rf::R_{TCat}, a, b)
+    ua, ira = unwrap(rf, a)
+    ira isa Unseen && return b  # this handles `irb isa Unseen` as well
+    ub, irb = unwrap(rf, b)
+    # @assert ua == ub  # == init
+    irc = combine(inner(rf), ira, irb)
+    return wrap(rf, ua, irc)
+end
+
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/filter
 # https://clojuredocs.org/clojure.core/filter
 """
@@ -196,7 +276,7 @@ struct Filter{P} <: AbstractFilter
     pred::P
 end
 
-next(rf::R_{Filter}, result, input) =
+@inline next(rf::R_{Filter}, result, input) =
     xform(rf).pred(input) ? next(inner(rf), result, input) : result
 
 """
@@ -220,7 +300,7 @@ julia> collect(NotA(Missing), [1, missing, 2])
 struct NotA{T} <: AbstractFilter end
 NotA(T::Type) = NotA{T}()
 
-next(rf::R_{NotA{T}}, result, input) where T =
+@inline next(rf::R_{NotA{T}}, result, input) where T =
     input isa T ? result : next(inner(rf), result, input)
 
 # **Side notes**.  Although in principle `NotA(Missing)` can yields a
@@ -261,7 +341,7 @@ OfType(T::Type) = OfType{T}()
     input isa T ? next(inner, result, input) : result
 
 # Workaround StackOverflowError in Julia 1.0
-# https://travis-ci.com/tkf/Transducers.jl/jobs/171732596
+# https://travis-ci.com/JuliaFolds/Transducers.jl/jobs/171732596
 if VERSION >= v"1.1-"
 
 @inline _next_oftype(T, inner, result, input::Tuple) =
@@ -340,7 +420,7 @@ end
 start(rf::R_{Take}, result) = wrap(rf, xform(rf).n, start(inner(rf), result))
 complete(rf::R_{Take}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{Take}, result, input) =
+@inline next(rf::R_{Take}, result, input) =
     wrapping(rf, result) do n, iresult
         if n > 0
             iresult = next(inner(rf), iresult, input)
@@ -386,7 +466,7 @@ function start(rf::R_{TakeLast}, result)
     return wrap(rf, (-n, Union{}[]), start(inner(rf), result))
 end
 
-next(rf::R_{TakeLast}, result, input) =
+@inline next(rf::R_{TakeLast}, result, input) =
     wrapping(rf, result) do (c, buffer0), iresult
         c += 1
         n = xform(rf).n
@@ -441,7 +521,7 @@ struct TakeWhile{P} <: AbstractFilter
     pred::P
 end
 
-next(rf::R_{TakeWhile}, result, input) =
+@inline next(rf::R_{TakeWhile}, result, input) =
     if xform(rf).pred(input)
         next(inner(rf), result, input)
     else
@@ -480,7 +560,7 @@ end
 start(rf::R_{TakeNth}, result) = wrap(rf, xform(rf).n, start(inner(rf), result))
 complete(rf::R_{TakeNth}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{TakeNth}, result, input) =
+@inline next(rf::R_{TakeNth}, result, input) =
     wrapping(rf, result) do c, iresult
         if c == xform(rf).n
             iresult = next(inner(rf), iresult, input)
@@ -522,7 +602,7 @@ end
 start(rf::R_{Drop}, result) = wrap(rf, 0, start(inner(rf), result))
 complete(rf::R_{Drop}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{Drop}, result, input) =
+@inline next(rf::R_{Drop}, result, input) =
     wrapping(rf, result) do c, iresult
         if c >= xform(rf).n
             c, next(inner(rf), iresult, input)
@@ -574,7 +654,7 @@ end
 
 complete(rf::R_{DropLast}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{DropLast}, result, input) =
+@inline next(rf::R_{DropLast}, result, input) =
     wrapping(rf, result) do (c, buffer0), iresult
         c += 1
         n = xform(rf).n + 1
@@ -625,7 +705,7 @@ end
 start(rf::R_{DropWhile}, result) = wrap(rf, true, start(inner(rf), result))
 complete(rf::R_{DropWhile}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{DropWhile}, result, input) =
+@inline next(rf::R_{DropWhile}, result, input) =
     wrapping(rf, result) do dropping, iresult
         if dropping
             dropping = xform(rf).pred(input)
@@ -662,7 +742,7 @@ isexpansive(::FlagFirst) = false
 start(rf::R_{FlagFirst}, result) = wrap(rf, true, start(inner(rf), result))
 complete(rf::R_{FlagFirst}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{FlagFirst}, result, input) =
+@inline next(rf::R_{FlagFirst}, result, input) =
     wrapping(rf, result) do isfirst, iresult
         false, next(inner(rf), iresult, (isfirst, input))
     end
@@ -895,11 +975,17 @@ end
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/distinct
 # https://clojuredocs.org/clojure.core/distinct
 """
-    Unique()
+    Unique(by = identity)
 
 Pass only unseen item to the inner reducing step.
 
+The item is distinguished by the output of function `by` when given.
+
 $(_thx_clj("distinct"))
+
+!!! compat "Transducers.jl 0.4.2"
+
+    New in version 0.4.2.
 
 # Examples
 ```jldoctest
@@ -920,7 +1006,7 @@ julia> collect(Unique(x -> x^2), [1, 1, 2, -1, 3, 3, 2])
 ```
 """
 struct Unique{P} <: AbstractFilter
-    pred::P
+    by::P
 end
 
 Unique() = Unique(identity)
@@ -934,7 +1020,7 @@ complete(rf::R_{Unique}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 function next(rf::R_{Unique}, result, input)
     wrapping(rf, result) do seen, iresult
-        y = xform(rf).pred(input)
+        y = xform(rf).by(input)
         if y in seen
             return seen, iresult
         else
@@ -973,7 +1059,7 @@ end
 start(rf::R_{Interpose}, result) = wrap(rf, Val(true), start(inner(rf), result))
 complete(rf::R_{Interpose}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{Interpose}, result, input) =
+@inline next(rf::R_{Interpose}, result, input) =
     wrapping(rf, result) do isfirst, iresult
         if isfirst isa Val{false}
             iresult = next(inner(rf), iresult, xform(rf).sep)
@@ -1009,7 +1095,7 @@ end
 start(rf::R_{Dedupe}, result) = wrap(rf, Unseen(), start(inner(rf), result))
 complete(rf::R_{Dedupe}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
-next(rf::R_{Dedupe}, result, input) =
+@inline next(rf::R_{Dedupe}, result, input) =
     wrapping(rf, result) do prev, iresult
         if prev isa Unseen || prev != input
             return input, next(inner(rf), iresult, input)
@@ -1076,20 +1162,24 @@ struct Scan{F, T} <: Transducer
     init::T
 end
 
-Scan(f) = Scan(f, makeid(f, Init))
+Scan(f) = Scan(f, Init)  # TODO: DefaultInit?
 
 isexpansive(::Scan) = false
 
-function start(rf::R_{Scan}, result)
-    init = _initvalue(rf)
-    return wrap(rf, init, start(inner(rf), result))
-end
+start(rf::R_{Scan}, result) =
+    wrap(rf, start(xform(rf).f, xform(rf).init), start(inner(rf), result))
+# For now, using `start` on `rf.f` is only for invoking `initialize`
+# on `rf.init`.  But maybe it's better to support `reducingfunction`?
+# For example, use `unwrap_all` before feeding the accumulator to the
+# inner reducing function?
 
 complete(rf::R_{Scan}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 function next(rf::R_{Scan}, result, input)
     wrapping(rf, result) do acc, iresult
         acc = xform(rf).f(acc, input)
+        # TODO: Don't call inner when `acc` is an `InitialValue`?
+        #       What about when `Reduced`?
         return acc, next(inner(rf), iresult, acc)
     end
 end
@@ -1239,7 +1329,7 @@ _setresult(shim, result) = @set shim.result = result
 start(rf::R_{AdHocXF}, result) =
     wrap(rf, _initvalue(rf), start(inner(rf), result))
 
-next(rf::R_{AdHocXF}, result, input) =
+@inline next(rf::R_{AdHocXF}, result, input) =
     wrapping(rf, result) do state, iresult
         shim = xform(rf).f(RFShim(inner(rf)), ResultShim(state, iresult), input)
         if shim isa Reduced
@@ -1308,7 +1398,7 @@ isexpansive(::Iterated) = false
 start(rf::R_{Iterated}, result) =
     wrap(rf, _initvalue(rf), start(inner(rf), result))
 complete(rf::R_{Iterated}, result) = complete(inner(rf), unwrap(rf, result)[2])
-next(rf::R_{Iterated}, result, ::Any) =
+@inline next(rf::R_{Iterated}, result, ::Any) =
     wrapping(rf, result) do istate, iresult
         return xform(rf).f(istate), next(inner(rf), iresult, istate)
     end
@@ -1354,220 +1444,10 @@ Count(start = 1) = Count(start, oneunit(start))
 isexpansive(::Count) = false
 start(rf::R_{Count}, result) = wrap(rf, xform(rf).start, start(inner(rf), result))
 complete(rf::R_{Count}, result) = complete(inner(rf), unwrap(rf, result)[2])
-next(rf::R_{Count}, result, ::Any) =
+@inline next(rf::R_{Count}, result, ::Any) =
     wrapping(rf, result) do istate, iresult
         return istate + xform(rf).step, next(inner(rf), iresult, istate)
     end
-
-"""
-    TeeZip(xform::Transducer)
-
-Branch input into two "flows", inject one into `xform` and then merge
-the output of `xform` with the original input.
-
-$_experimental_warning
-
-To illustrate how it works, consider the following usage
-
-```
-xf0 |> TeeZip(xf1) |> xf2
-```
-
-where `xf0`, `xf1`, and `xf2` are some transducers.  Schematically,
-the output `yn` from `xfn` flows as follows:
-
-```text
-xf0      xf1                       xf2
----- y0 ------ y1 ---.-- (y0, y1) ----->
-      |              |
-       `-------------'
-    "Tee"          "Zip"
-```
-
-# Examples
-```jldoctest
-julia> using Transducers
-       using Transducers: TeeZip
-
-julia> collect(TeeZip(Filter(isodd) |> Map(x -> x + 1)), 1:5)
-3-element Array{Tuple{Int64,Int64},1}:
- (1, 2)
- (3, 4)
- (5, 6)
-```
-"""
-struct TeeZip{T} <: Transducer
-    xform::T
-end
-# The idea is to insert an object `Joiner` to the bottom of
-# `Reduction` dynamically which calls to the rest of inner reductions
-# after the value is zipped (joined).
-
-# Consider a transducer:
-#
-#     Map(identity) |>
-#         TeeZip(
-#             Count() |> Filter(isodd)
-#         ) |>
-#         MapSplat(*)
-#
-# Applying this transducer to a reducing function `rf` produces
-#
-#     Reduction(
-#         identity,
-#         Splitter(
-#             Reduction(
-#                 Count(),
-#                 Reduction(
-#                     Filter(isodd),
-#                     Joiner(
-#                         Reduction(
-#                             MapSplat(*),
-#                             rf))))))
-
-struct Splitter{R} <: AbstractReduction{R}
-    inner::R
-end
-
-setinner(rf::Splitter, inner) = Splitter(inner)
-reform(rf::Splitter, f) = Splitter(reform(inner(rf), f))
-
-struct Joiner{F} <: AbstractReduction{F}
-    inner::F  # original inner reduction
-end
-
-setinner(rf::Joiner, inner) = Joiner(inner)
-reform(rf::Joiner, f) = Joiner(reform(inner(rf), f))
-
-# It's ugly that `Reduction` returns a non-`Reduction` type!  TODO: fix it
-function Reduction(xf::Composition{<:TeeZip}, f)
-    @nospecialize
-    rf = _teezip_rf(xf.outer.xform, (xf.inner, f))
-    return Splitter(rf)
-end
-
-function Reduction(xf::TeeZip, f)
-    @nospecialize
-    rf = _teezip_rf(xf.xform, (nothing, f))
-    return Splitter(rf)
-end
-
-function _teezip_rf(xf::Composition, downstream)
-    @nospecialize
-    rf_inner = _teezip_rf(xf.inner, downstream)
-    return Reduction(xf.outer, rf_inner)
-end
-
-function _teezip_rf(xf, downstream)
-    @nospecialize
-    xf_ds, f = downstream
-    if xf_ds === nothing
-        rf_ds = ensurerf(f)
-    else
-        rf_ds = Reduction(xf_ds, f)
-    end
-    joiner = Joiner(rf_ds)
-    return Reduction(xf, joiner)
-end
-
-const SplitterState = PrivateState{<:Splitter}
-const JoinerState = PrivateState{<:Joiner}
-
-"""
-    _set_joiner_value(ps::PrivateState, x) :: PrivateState
-
-Set `.state` field of the `PrivateState` of the first "unbalanced"
-`Joiner`.  A `Joiner` matched with preceding `Splitter` would be
-treated as a regular reducing function node.  Thus, private state `ps`
-must have one more `Joiner` than `Splitter`.
-"""
-@inline _set_joiner_value(ps, x) = _set_joiner_value(ps, x, Val(0))
-@inline _set_joiner_value(ps::JoinerState, x, ::Val{0}) =
-    setpsstate(ps, x)
-@inline _set_joiner_value(ps::JoinerState, x, ::Val{c}) where c =
-    setpsresult(ps, _set_joiner_value(psresult(ps), x, Val(c - 1)))
-@inline _set_joiner_value(ps::SplitterState, x, ::Val{c}) where c =
-    setpsresult(ps, _set_joiner_value(psresult(ps), x, Val(c + 1)))
-@inline _set_joiner_value(ps, x, VC) =
-    setpsresult(ps, _set_joiner_value(psresult(ps), x, VC))
-#
-# Writing above with a single function was much easier to read.
-# However, it didn't work with the compiler (which tries to
-# dynamically allocate type variable somehow).
-
-start(rf::Splitter, result) = wrap(rf, nothing, start(inner(rf), result))
-complete(rf::Splitter, result) = complete(inner(rf), unwrap(rf, result)[2])
-next(rf::Splitter, result, input) =
-    wrapping(rf, result) do _, iresult
-        nothing, next(inner(rf), _set_joiner_value(iresult, input), input)
-    end
-
-start(rf::Joiner, result) = wrap(rf, nothing, start(inner(rf), result))
-complete(rf::Joiner, result) = complete(inner(rf), unwrap(rf, result)[2])
-next(rf::Joiner, result, input) =
-    wrapping(rf, result) do state, iresult
-        state, next(inner(rf), iresult, (state, input))
-    end
-# Putting `state` back to make it type stable.
-
-isexpansive(xf::TeeZip) = isexpansive(xf.xform)
-
-function Transducer(rf::Splitter)
-    xf_split, rf_ds = _rf_to_teezip(inner(rf))
-    return TeeZip(xf_split) |> Transducer(rf_ds)
-end
-
-function _rf_to_teezip(rf::Reduction)
-    xf_split, rf_ds = _rf_to_teezip(inner(rf))
-    return xform(rf) |> xf_split, rf_ds
-end
-
-_rf_to_teezip(rf::Joiner) = IdentityTransducer(), inner(rf)
-
-function _rf_to_teezip(rf::Splitter)
-    xf_split, rf_inner = _rf_to_teezip(inner(rf))
-    xf_inner, rf_ds = _rf_to_teezip(rf_inner)
-    return TeeZip(xf_split) |> xf_inner, rf_ds
-end
-
-
-# add joint
-# Base.adjoint(xf::Transducer) = TeeZip(xf)
-
-"""
-    Zip(xforms...)
-
-Zip outputs of transducers `xforms` in a tuple and pass it to the
-inner reduction step.
-
-!!! warning
-    Head transducers drive tail transducers.  Be careful when using it
-    with transducers other than [`Map`](@ref), especially the
-    contractive ones like [`PartitionBy`](@ref) and the expansive ones
-    like [`MapCat`](@ref).
-
-# Examples
-```jldoctest
-julia> using Transducers
-
-julia> collect(Zip(Map(identity), Map(x -> 10x), Map(x -> 100x)), 1:3)
-3-element Array{Tuple{Int64,Int64,Int64},1}:
- (1, 10, 100)
- (2, 20, 200)
- (3, 30, 300)
-```
-"""
-Zip(xforms...) =
-    Map(_zip_init) |> _Zip(xforms...) |> Map(last)
-# TODO: add `lower(xf)` mechanism so that constructing Zip does not
-# immidiately create a complex composite transducer.
-
-_Zip() = IdentityTransducer()
-_Zip(xf1, xforms...) =
-    TeeZip(Map(first) |> xf1) |> Map(_zip_between) |> _Zip(xforms...)
-
-_zip_init(y0) = (y0, ())
-_zip_between(((y0, ys), yn)) = (y0, (ys..., yn))
 
 """
     GetIndex(array)
@@ -1604,9 +1484,9 @@ GetIndex(array) = GetIndex{false}(array)
 
 isexpansive(::GetIndex) = false
 
-next(rf::R_{GetIndex{true}}, result, input) =
+@inline next(rf::R_{GetIndex{true}}, result, input) =
     next(inner(rf), result, @inbounds xform(rf).array[input])
-next(rf::R_{GetIndex{false}}, result, input) =
+@inline next(rf::R_{GetIndex{false}}, result, input) =
     next(inner(rf), result, xform(rf).array[input])
 
 Base.:(==)(xf1::GetIndex{inbounds,A},
@@ -1646,11 +1526,11 @@ SetIndex(array) = SetIndex{false}(array)
 
 isexpansive(::SetIndex) = false
 
-next(rf::R_{SetIndex{true}}, result, input::NTuple{2, Any}) =
+@inline next(rf::R_{SetIndex{true}}, result, input::NTuple{2, Any}) =
     next(inner(rf), result, (@inbounds xform(rf).array[input[1]] = input[2];))
-next(rf::R_{SetIndex{false}}, result, input::NTuple{2, Any}) =
+@inline next(rf::R_{SetIndex{false}}, result, input::NTuple{2, Any}) =
     next(inner(rf), result, (xform(rf).array[input[1]] = input[2];))
-# Index is `input[1]` due to `TeeZip`'s definition.  Is it better to
+# Index is `input[1]` due to `ZipSource`'s definition.  Is it better to
 # flip, to be compatible with `Base.setindex!`?
 
 Base.:(==)(xf1::SetIndex{inbounds,A},
@@ -1707,7 +1587,7 @@ isexpansive(::Inject) = false
 start(rf::R_{Inject}, result) =
     wrap(rf, iterate(xform(rf).iterator), start(inner(rf), result))
 complete(rf::R_{Inject}, result) = complete(inner(rf), unwrap(rf, result)[2])
-next(rf::R_{Inject}, result, input) =
+@inline next(rf::R_{Inject}, result, input) =
     wrapping(rf, result) do istate, iresult
         istate === nothing && return istate, reduced(complete(inner(rf), iresult))
         y, s = istate
@@ -1753,163 +1633,11 @@ isexpansive(::Enumerate) = false
 start(rf::R_{Enumerate}, result) =
     wrap(rf, xform(rf).start, start(inner(rf), result))
 complete(rf::R_{Enumerate}, result) = complete(inner(rf), unwrap(rf, result)[2])
-next(rf::R_{Enumerate}, result, input) =
+@inline next(rf::R_{Enumerate}, result, input) =
     wrapping(rf, result) do i, iresult
         iresult2 = next(inner(rf), iresult, (i, input))
         i + xform(rf).step, iresult2
     end
-
-"""
-    GroupBy(key, rf, [init])
-    GroupBy(key, xf::Transducer, [step = right, [init]])
-
-Group the input stream by a function `key` and then fan-out each group
-of key-value pairs to the reducing function `rf`.  For example, if
-`GroupBy` is composed as follows
-
-    Map(upstream) |> GroupBy(key, rf, init) |> Map(downstream)
-
-then the "function signatures" would be:
-
-    upstream(_) :: V
-    key(::V) :: K
-    rf(::Y, ::Pair{K, V}) ::Y
-    downstream(::Dict{K, Y})
-
-That is to say,
-
-* Ouput of the `upstream` is fed into the function `key` that produces
-  the group key (of type `K`).
-
-* For each new group key, a new transducible process is started with
-  the initial state `init :: Y` (which is shared by all transducible
-  processes).
-
-* After one "nested" reducing function `rf` is called, the
-  intermediate result dictionary (of type `Dict{K, Y}`) accumulating
-  the previous results is then fed into the `downstream`.
-
-See also `groupreduce` in
-[SplitApplyCombine.jl](https://github.com/JuliaData/SplitApplyCombine.jl).
-
-!!! compat "Transducers.jl 0.3"
-
-    New in version 0.3.
-
-# Examples
-```jldoctest
-julia> using Transducers
-       using BangBang  # for `push!!`
-
-julia> foldl(right, GroupBy(string, Map(last), push!!), [1, 2, 1, 2, 3])
-Dict{String,Array{Int64,1}} with 3 entries:
-  "1" => [1, 1]
-  "2" => [2, 2]
-  "3" => [3]
-```
-
-Note that the reduction stops if one of the group returns a
-[`reduced`](@ref).  This can be used, for example, to find if there is
-a group with a sum grater than 3 and stop the computation as soon as
-it is find:
-
-```jldoctest; setup = :(using Transducers)
-julia> result = transduce(
-           GroupBy(
-               string,
-               Map(last) |> Scan(+) |> ReduceIf(x -> x > 3),
-           ),
-           right,
-           nothing,
-           [1, 2, 1, 2, 3],
-       );
-
-julia> result isa Reduced
-true
-
-julia> unreduced(result)
-Dict{String,Int64} with 2 entries:
-  "1" => 2
-  "2" => 4
-```
-"""
-struct GroupBy{K, R, T} <: Transducer
-    key::K
-    rf::R
-    init::T
-end
-
-function GroupBy(key, xf::Transducer, step = right, init = MissingInit())
-    rf = reducingfunction(xf, step)
-    if init isa MissingInit
-        return GroupBy(key, rf)
-    else
-        return GroupBy(key, rf, makeid(_realbottomrf(step), init))
-    end
-end
-
-function GroupBy(key, rf)
-    op = _realbottomrf(rf)
-    hasinitialvalue(op) || throw(MissingInitError(op))
-    return GroupBy(key, rf, DefaultInit(op))
-end
-
-# "Bangbang" version of `set!(f, dict, key)` interface I proposed in
-# https://github.com/JuliaLang/julia/pull/31367#issuecomment-504561329
-# TODO: specialize for `Dict` to minimize hashing
-function dictset!!(f, d0, key)
-    if haskey(d0, key)
-        y = f(Some(d0[key]))
-    else
-        y = f(nothing)
-    end
-    if y === nothing
-        d = delete!!(d0, key)
-    else
-        d = setindex!!(d0, something(y), key)
-    end
-    return d, y
-end
-
-function start(rf::R_{GroupBy}, result)
-    gstate = Dict{Union{},Union{}}()
-    gresult = Dict{Union{},Union{}}()
-    return wrap(rf, (gstate, gresult), start(inner(rf), result))
-end
-
-complete(rf::R_{GroupBy}, result) = complete(inner(rf), unwrap(rf, result)[2])
-
-@inline function next(rf::R_{GroupBy}, result, input)
-    wrapping(rf, result) do (gstate, gresult), iresult
-        key = xform(rf).key(input)
-        gstate, somegr = dictset!!(gstate, key) do value
-            if value === nothing
-                gr0 = start(xform(rf).rf, initvalue(xform(rf).init))
-            else
-                gr0 = something(value)
-            end
-            gr = next(xform(rf).rf, gr0, key => input)
-            return Some(gr)
-        end
-        gr = something(somegr)
-        bresult = unwrap_all(unreduced(gr))
-        if bresult !== DefaultInit(_realbottomrf(xform(rf).rf))
-            gresult = setindex!!(gresult, bresult, key)
-        end
-        iresult = next(inner(rf), iresult, gresult)
-        if gr isa Reduced && !(iresult isa Reduced)
-            return (gstate, gresult), reduced(complete(inner(rf), iresult))
-        else
-            return (gstate, gresult), iresult
-        end
-    end
-end
-# It may be useful to avoid computing hash twice by storing `key =>
-# (gr, unreduced(gr))` in a single dictionary.  A read-only view of
-# `key => unreduced(gr)` can be passed to the downstream transducer.
-# This view dictionary has to check `DefaultInit` in `getindex` etc. to
-# pretend that it's not there.
-
 
 """
     ReduceIf(pred)

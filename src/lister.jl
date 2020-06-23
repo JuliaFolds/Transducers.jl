@@ -1,9 +1,11 @@
 import Markdown
 
-_unexported_public_api = (
+const _unexported_public_api = Any[
     ## ../docs/src/manual.md
     # Experimental
-    TeeZip,
+    channel_unordered,
+    append_unordered!,
+    ZipSource,
     GetIndex,
     SetIndex,
     Inject,
@@ -25,9 +27,17 @@ _unexported_public_api = (
     __foldl__,
     getproperty(@__MODULE__, Symbol("@return_if_reduced")),
     getproperty(@__MODULE__, Symbol("@next")),
-)
+]
 
-is_internal(t) = (parentmodule(t) === @__MODULE__) && t ∉ _unexported_public_api
+const _explicit_internal_list = Any[
+    # Manually list some internal objects to avoid Documenter.jl's
+    # "docstring potentially missing" warning:
+    DefaultInit,
+]
+
+is_internal(@nospecialize(t)) =
+    t ∈ _explicit_internal_list ||
+    (parentmodule(t) === @__MODULE__) && t ∉ _unexported_public_api
 
 is_transducer_type(t) = t isa Type && t <: Transducer && t !== Transducer
 is_transducer_type(::typeof(Zip)) = true

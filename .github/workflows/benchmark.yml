@@ -1,0 +1,31 @@
+name: Run benchmarks
+
+on:
+  pull_request:
+
+jobs:
+  Benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@latest
+        with:
+          version: 1.4
+      - name: Install dependencies
+        run: julia -e 'using Pkg; pkg"add PkgBenchmark https://github.com/tkf/BenchmarkCI.jl"'
+      - name: Run benchmarks
+        run: julia -e '
+          using PkgBenchmark, BenchmarkCI;
+          BenchmarkCI.judge(
+              PkgBenchmark.BenchmarkConfig(
+                  env = Dict(
+                      "JULIA_NUM_THREADS" => "1",
+                      "OMP_NUM_THREADS" => "1",
+                  ),
+              );
+          );
+          '
+      - name: Post results
+        run: julia -e "using BenchmarkCI; BenchmarkCI.postjudge()"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

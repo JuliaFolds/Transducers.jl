@@ -23,6 +23,13 @@ include("preamble.jl")
         @test transduce(xf, string, "", xs) == Reduced("135791113151719")
     end
 
+    @testset "no init" begin
+        @test foldl(+, Map(identity), 1:4) == 10
+        @test foldl((a, b) -> a + b, Map(identity), 1:4) == 10
+        @test foldl(-, Map(x -> parse(Int, x)), "1234") == -8
+        @test foldl((a, b) -> a - b, Map(x -> parse(Int, x)), "1234") == -8
+    end
+
     @testset "empty" begin
         xf = Filter(_ -> false)
         iter = 1:4
@@ -66,6 +73,21 @@ include("preamble.jl")
             xs = Iterators.product(iterators[1:n]...)
             @test collect(Map(identity), xs) == collect(xs)[:]
             @test mapfoldl(MapSplat(*), +, xs) == sum(Base.splat(*), xs)
+        end
+    end
+
+    @testset "zip-of-products" begin
+        @testset "$i" for (i, products) in enumerate([
+            (Iterators.product(10:12, 20:23), Iterators.product(30:32, 40:43)),
+            (CartesianIndices((3, 4)), Iterators.product(30:32, 40:43)),
+            (Iterators.product(10:12, 20:23), CartesianIndices((0:2, 0:3))),
+            (CartesianIndices((3, 4)), CartesianIndices((0:2, 0:3))),
+            (Iterators.product(10:12, 20:23), randn(3, 4)),
+            (randn(3, 4), Iterators.product(30:32, 40:43)),
+        ])
+            VERSION >= v"1.1-" || break
+            xs = zip(products...)
+            @test collect(Map(identity), xs) == vec(collect(xs))
         end
     end
 
@@ -203,17 +225,17 @@ end
     # testing Transducer(::Eduction) which calls Transducer(::Reduction)
     @testset for xf in [
             Map(sin),
-            TeeZip(Filter(isfinite) |> Map(tan)),
-            Map(sin) |> TeeZip(Filter(isfinite) |> Map(tan)) |>
+            ZipSource(Filter(isfinite) |> Map(tan)),
+            Map(sin) |> ZipSource(Filter(isfinite) |> Map(tan)) |>
                 Map(cos),
-            TeeZip(Map(sin) |> TeeZip(Map(tan))),
-            TeeZip(TeeZip(Map(tan)) |> Map(identity)),
-            TeeZip(Map(sin) |> TeeZip(Map(tan)) |> Map(identity)),
-            Map(cos) |> TeeZip(Map(sin) |> TeeZip(Map(tan)) |> Map(identity)),
+            ZipSource(Map(sin) |> ZipSource(Map(tan))),
+            ZipSource(ZipSource(Map(tan)) |> Map(identity)),
+            ZipSource(Map(sin) |> ZipSource(Map(tan)) |> Map(identity)),
+            Map(cos) |> ZipSource(Map(sin) |> ZipSource(Map(tan)) |> Map(identity)),
             Map(cos) |>
-                TeeZip(Map(sin) |> TeeZip(Map(tan)) |> Map(identity)) |>
+                ZipSource(Map(sin) |> ZipSource(Map(tan)) |> Map(identity)) |>
                 Map(first),
-            TeeZip(TeeZip(Map(tan))),
+            ZipSource(ZipSource(Map(tan))),
             ]
         @test Transducer(eduction(xf, 1:1)) === xf
     end
@@ -227,7 +249,7 @@ end
     ]
     @testset for xf in expansives
         @test isexpansive(xf)
-        @test isexpansive(TeeZip(xf))
+        @test isexpansive(ZipSource(xf))
     end
     nonexpansives = [
         Map(identity)
@@ -235,7 +257,7 @@ end
     ]
     @testset for xf in nonexpansives
         @test !isexpansive(xf)
-        @test !isexpansive(TeeZip(xf))
+        @test !isexpansive(ZipSource(xf))
     end
 end
 
@@ -267,10 +289,12 @@ end
 end
 
 @testset "IdentityNotDefinedError" begin
-    @test_throws(
-        IdentityNotDefinedError,
-        foldl((x, y) -> x + y, Map(identity), 1:1; init=Init),
-    )
+    unknownadd(x, y) = x + y
+    err = @test_error foldl(unknownadd, Map(identity), 1:1; init=Init)
+    @test err isa IdentityNotDefinedError
+    msg = sprint(showerror, err)
+    @test occursin("`Init(op)` is not defined", msg)
+    @test occursin("op = $unknownadd", msg)
 end
 
 @testset "identityof error" begin
@@ -301,6 +325,7 @@ end
 @testset "reduce" begin
     # Test that InitialValues.jl can handle right identity
     @test reduce(+, Filter(x -> x == 1), 1:2; basesize=1) == 1
+    @test reduce(+, eduction(x for x in 1:2 if x == 1); basesize=1) == 1
 end
 
 end  # module

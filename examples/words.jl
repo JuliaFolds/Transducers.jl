@@ -1,4 +1,4 @@
-# # Splitting a string into words and counting them in parallel
+# # [Splitting a string into words and counting them in parallel](@id parallel-word-count)
 #
 # We start from the parallel algorithm presented in Guy Steele's 2009
 # ICFP talk [(video)](https://vimeo.com/6624203).  It splits a

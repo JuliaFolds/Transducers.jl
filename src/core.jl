@@ -50,7 +50,6 @@ struct Reduced{T}
 end
 
 Base.:(==)(x::Reduced, y::Reduced) = x.value == y.value
-Base.:(==)(x::Reduced, ::Any) = false
 
 Base.show(io::IO, x::Reduced) = _default_show(io, x)
 
@@ -124,7 +123,7 @@ See also [`@next`](@ref).
     complete(rf, val)` and it was transformed to `val isa Reduced &&
     return reduced(complete(rf, unreduced(val)))`.  For the rationale
     behind the change, see [this commit
-    message](https://github.com/tkf/Transducers.jl/commit/74f8961fea97b746cb097b27aa5a5761e9bf4dae).
+    message](https://github.com/JuliaFolds/Transducers.jl/commit/74f8961fea97b746cb097b27aa5a5761e9bf4dae).
 
 # Examples
 ```jldoctest; filter = [r"(var\\")?#[0-9]+#val(\\")?", r"#=.*?=#"]
@@ -199,6 +198,8 @@ struct IdentityTransducer <: Transducer end
 has(xf::Transducer, T::Type) = xf isa T
 has(xf::Composition, T::Type) = has(xf.outer, T) || has(xf.inner, T)
 
+Base.broadcastable(xf::Transducer) = Ref(xf)
+
 """
     Transducer
 
@@ -213,7 +214,11 @@ The abstract type for filter-like transducers.
 """
 AbstractFilter
 
-abstract type AbstractReduction{innertype} end
+abstract type AbstractReduction{innertype} <: Function end
+
+if VERSION >= v"1.3"  # post https://github.com/JuliaLang/julia/pull/31916
+    @inline (rf::AbstractReduction)(state, input) = next(rf, state, input)
+end
 
 InnerType(::Type{<:AbstractReduction{T}}) where T = T
 
@@ -246,7 +251,7 @@ ensurerf(f) = BottomRF(f)
 # Not calling rf.inner(result, input) etc. directly since it can be
 # `Completing` etc.
 start(rf::BottomRF, result) = start(inner(rf), result)
-next(rf::BottomRF, result, input) = next(inner(rf), result, input)
+@inline next(rf::BottomRF, result, input) = next(inner(rf), result, input)
 complete(rf::BottomRF, result) = complete(inner(rf), result)
 combine(rf::BottomRF, a, b) = combine(inner(rf), a, b)
 
@@ -278,7 +283,9 @@ struct Reduction{X <: Transducer, I} <: AbstractReduction{I}
         end
 end
 
-@inline (rf::Reduction)(state, input) = next(rf, state, input)
+if VERSION < v"1.3"  # pre https://github.com/JuliaLang/julia/pull/31916
+    @inline (rf::Reduction)(state, input) = next(rf, state, input)
+end
 
 prependxf(rf::AbstractReduction, xf) = Reduction(xf, rf)
 setinner(rf::Reduction, inner) = Reduction(xform(rf), inner)
@@ -289,6 +296,11 @@ Transducer(rf::Reduction) =
     else
         Composition(xform(rf), Transducer(inner(rf)))
     end
+
+# This is a non-ideal definition as it may not return a `Reduction`.
+# Making this less non-ideal requires to replace all call/overloads of
+# `Reduction` to `AbstractReduction`.
+Reduction(::IdentityTransducer, inner) = ensurerf(inner)
 
 """
     Transducers.R_{X}
@@ -307,15 +319,16 @@ const R_{X} = Reduction{<:X}
 end
 
 @inline _normalize(xf) = xf
-@inline _normalize(xf::Composition{<:Composition}) =
-    _normalize(xf.outer.outer |> _normalize(xf.outer.inner |> xf.inner))
+@inline _normalize(xf::Composition{<:Composition}) = xf.outer |> xf.inner
 
 # Not sure if this a good idea... (But it's easier to type)
-@inline Base.:|>(f::Transducer, g::Transducer) = _normalize(Composition(f, g))
+@inline Base.:|>(f::Composition, g::Transducer) = f.outer |> (f.inner |> g)
+@inline Base.:|>(f::Transducer, g::Transducer) = Composition(f, g)
 # Base.∘(f::Transducer, g::Transducer) = Composition(f, g)
 # Base.∘(f::Composition, g::Transducer) = f.outer ∘ (f.inner ∘ g)
 @inline Base.:|>(::IdentityTransducer, f::Transducer) = f
 @inline Base.:|>(f::Transducer, ::IdentityTransducer) = f
+@inline Base.:|>(f::Composition, ::IdentityTransducer) = f  # disambiguation
 
 """
     reform(rf, f)
@@ -353,7 +366,7 @@ Transducers.jl uses it to implement stateful transducers using "pure"
 functions.  The idea is based on a slightly different approach taken
 in C++ Transducer library [atria](https://github.com/AbletonAG/atria).
 """
-start(::Any, result) = result
+start(rf, init) = initialize(init, rf)
 start(rf::Reduction, result) = start(inner(rf), result)
 start(rf::R_{AbstractFilter}, result) = start(inner(rf), result)
 
@@ -374,7 +387,7 @@ macro form [`@next`](@ref).  See the details in its documentation.
 See [`Map`](@ref), [`Filter`](@ref), [`Cat`](@ref), etc. for
 real-world examples.
 """
-next(f, result, input) = f(result, input)
+@inline next(f, result, input) = f(result, input)
 
 # done(rf, result)
 
@@ -411,6 +424,30 @@ complete(rf::AbstractReduction, result) =
         complete(inner(rf), result)
     end
 
+"""
+    Transducers.combine(rf::R_{X}, state_left, state_right)
+
+This is an optional interface for a transducer.  If transducer `X` is
+stateful (i.e., [`wrap`](@ref) is used in [`start`](@ref)), it has to
+be able to combine the private states to support fold functions that
+require an associative reducing function such as [`reduce`](@ref).
+Typical implementation takes the following form:
+
+```julia
+function combine(rf::R_{X}, a, b)
+    #   ,---- `ua` and `ub` are the private state of the transducer `X`
+    #  /  ,-- `ira` and `irb` are the states of inner reducing functions
+    # /  /
+    ua, ira = unwrap(rf, a)
+    ub, irb = unwrap(rf, b)
+    irc = combine(inner(rf), ira, irb)
+    uc = # somehow combine private states `ua` and `ub`
+    return wrap(rf, uc, irc)
+end
+```
+
+See [`ScanEmit`](@ref), etc. for real-world examples.
+"""
 combine(f, a, b) = f(a, b)
 combine(rf::Reduction, a, b) =
     # Not using dispatch to avoid ambiguity
@@ -586,26 +623,51 @@ complete(::R_{NoComplete}, result) = result  # don't call inner complete
     Completing(function)
 
 Wrap a `function` to add a no-op [`complete`](@ref) protocol.  Use it
-when passing a `function` without 1-argument arity to
-[`transduce`](@ref) etc.
+when passing a `function` without unary method to [`transduce`](@ref)
+etc.
 
 $(_thx_clj("completing"))
 """
-struct Completing{F}  # Note: not a Transducer
+struct Completing{F} <: _Function  # Note: not a Transducer
     f::F
 end
 
 start(rf::Completing, result) = start(rf.f, result)
-next(rf::Completing, result, input)  = next(rf.f, result, input)
+@inline next(rf::Completing, result, input)  = next(rf.f, result, input)
 complete(::Completing, result) = result
 combine(rf::Completing, a, b) = combine(rf.f, a, b)
 
-# If I expose `Reduction` as a user-interface, I should export
-# `skipcomplete` instead of the struct `Completing`.
+# Apply `Completing` only on the inner-most reducing function so that
+# `complete` on transducers are still called.  This is very ugly as it
+# does not return a `Completing` object.  But this is required for
+# allowing `foldl(reducingfunction(...), ...)` etc.:
+Completing(rf::AbstractReduction) = setinner(rf, Completing(inner(rf)))
+Completing(rf::BottomRF) = BottomRF(Completing(rf.inner))
+Completing(f::Completing) = f
+
+# Currently, `Completing` is recursive while `skipcomplete` is
+# non-recursive.  `Completing` only skips `complete` on the inner-most
+# (bottom) reducing function (i.e., _not_ including the
+# transducers). `skipcomplete` skips `complete` of the outer-most
+# reducing function (i.e., including all transducers).
+
+# TODOs for `Completing` and `skipcomplete`:
+# 1. Call `complete` outside `__foldl__`.
+# 2. Get rid of current `foldl_nocomplete`, `skipcomplete`, and `NoComplete`.
+# 3. Replace what `Complete` currently does with `skipcomplete` factory
+#    function and then and deprecate `Complete`.
 skipcomplete(rf::Reduction) = Reduction(NoComplete(), rf)
 skipcomplete(f) = Completing(f)
-# skipcomplete(f) = Reduction(NoComplete(), f, Any)
-# TODO: get rid of `Completing` struct.
+
+# Since `Completing <: Function`, the default `show` is a bit ugly.
+function Base.show(io::IO, rf::Completing)
+    @nospecialize
+    if rf === Completing(rf.f)
+        print(io, Completing, '(', rf.f, ')')
+    else
+        invoke(show, Tuple{IO,Any}, io, rf)
+    end
+end
 
 struct SideEffect{F}  # Note: not a Transducer
     f::F
@@ -615,7 +677,7 @@ end
 
 start(rf::SideEffect, result) = start(rf.f, result)
 complete(::SideEffect, result) = result
-next(rf::SideEffect, _, input) = rf.f(input)
+@inline next(rf::SideEffect, _, input) = rf.f(input)
 
 """
     right([l, ]r) -> r
@@ -658,12 +720,66 @@ identityof(::typeof(right), ::Any) = nothing
 
 abstract type Reducible end
 abstract type Foldable <: Reducible end
+asfoldable(x) = x
 
+"""
+    initvalue(initializer::AbstractInitializer) -> init
+    initvalue(init) -> init
+
+Materialize the initial value if the input is an `AbstractInitializer`.
+Return the input as-is if not.
+"""
+initvalue(x) = x
+_initvalue(rf::Reduction) = initvalue(xform(rf).init)
+
+# A better name for `AbstractInitializer` is `op`-agnostic or something.
 abstract type AbstractInitializer end
 
-initvalue(x) = x
+# For `DefaultInit` and `OptInit`
+struct InitOf{IV <: SpecificInitialValue} end
+(::InitOf{IV})(::OP) where {IV, OP} = IV{OP}()
 
-_initvalue(rf::Reduction) = initvalue(xform(rf).init)
+# For `Broadcasting`:
+Broadcast.broadcastable(f::AbstractInitializer) = Ref(f)
+Broadcast.broadcastable(f::InitOf) = Ref(f)
+
+"""
+    initialize(initializer, op) -> init
+    initialize(init, _) -> init
+
+Return an initial value for `op`.  Throw an error if `initializer`
+(e.g., `Init`) creates unknown initial value.
+
+# Examples
+```jldoctest; filter = r"(InitialValues\\.)?Init"
+julia> using Transducers
+       using Transducers: initialize
+
+julia> initialize(Init, +)
+Init(+)
+
+julia> initialize(123, +)
+123
+
+julia> unknown_op(x, y) = x + 2y;
+
+julia> initialize(Init, unknown_op)
+ERROR: IdentityNotDefinedError: `init = Init` is specified but the identity element `Init(op)` is not defined for
+    op = unknown_op
+[...]
+```
+"""
+initialize(init, op) = init
+initialize(::typeof(Init), op) = check_init(Init(op), Init, op)
+initialize(f::InitOf, op) = check_init(f(op), f, op)
+initialize(init::AbstractInitializer, _) = initvalue(init)
+
+@assert Base.issingletontype(typeof(Init))
+
+function check_init(init::SpecificInitialValue, f, op)
+    InitialValues.isknown(init) || throw(IdentityNotDefinedError(op, f))
+    return init
+end
 
 """
     OnInit(f)
@@ -839,11 +955,11 @@ struct _FakeState end
 
 function _getoutput(xf, x)
     rf = reducingfunction(xf, right)
-    return unreduced(complete(rf, next(rf, _start_init(rf, _FakeState()), x)))
+    return unreduced(complete(rf, next(rf, start(rf, _FakeState()), x)))
 end
 
 _real_state_type(T) = T
-_real_state_type(::Type{Union{T, _FakeState}}) where T = T
+_real_state_type(::Type{Union{T, _FakeState}}) where {T} = @isdefined(T) ? T : Any
 
 
 """
@@ -853,30 +969,29 @@ _real_state_type(::Type{Union{T, _FakeState}}) where T = T
 to Transducers.jl.  It is used for checking if the bottom reducing
 function is never called.
 """
-struct DefaultInit{OP} <: SpecificInitialValue{OP} end
-DefaultInit(::OP) where OP = DefaultInit{OP}()
+DefaultInit
+struct DefaultInitOf{OP} <: SpecificInitialValue{OP} end
+const DefaultInit = InitOf{DefaultInitOf}()
 
 struct OptInitOf{OP} <: SpecificInitialValue{OP} end
-OptInit(::OP) where OP = OptInitOf{OP}()
+const OptInit = InitOf{OptInitOf}()
 # It seems that compiler can infer more when passing around a
 # `Function` than a `Type` (since a `Function` is a singleton?).
-# That's why `OptInit` is defined as a factory function.
+# That's why `OptInit` is defined as a factory.
 
-InferableInit{OP} = Union{DefaultInit{OP}, OptInitOf{OP}}
+InferableInit{OP} = Union{DefaultInitOf{OP}, OptInitOf{OP}}
 
 _nonidtype(::Any) = nothing
 _nonidtype(::Type{Union{S, T}}) where {T, S <: InferableInit} = T
 
-struct MissingInit end
-
-struct MissingInitError <: Exception
-    op
-end
-
-function Base.showerror(io::IO, e::MissingInitError)
-    println(io, "No default identity element for ", e.op)
-    # TODO: improve error message
-end
+# Defining `_asmonoid` internally as the resulting reducing function
+# is not really a monoid (only the bottom reducing function becomes a
+# monoid).
+# TODO: better name for `_asmonoid`
+@inline _asmonoid(rf) = asmonoid(rf)
+@inline _asmonoid(rf::Reduction) = Reduction(xform(rf), _asmonoid(inner(rf)))
+@inline _asmonoid(rf::BottomRF) = BottomRF(_asmonoid(inner(rf)))
+@inline _asmonoid(rf::Completing) = Completing(_asmonoid(rf.f))
 
 struct EmptyResultError <: Exception
     rf
@@ -899,13 +1014,6 @@ _realbottomrf(op) = op
 _realbottomrf(rf::AbstractReduction) = _realbottomrf(as(rf, BottomRF).inner)
 _realbottomrf(rf::Completing) = rf.f
 
-provide_init(rf, init) = initvalue(init)
-function provide_init(rf, ::MissingInit)
-    op = _realbottomrf(rf)
-    hasinitialvalue(op) && return DefaultInit(op)
-    throw(MissingInitError(op))
-end
-
 struct IdentityNotDefinedError <: Exception
     op
     idfactory
@@ -921,16 +1029,4 @@ function Base.showerror(io::IO, e::IdentityNotDefinedError)
     Note that `op` must be a well known binary operations like `+` or `*`.
     See InitialValues.jl documentation for more information.
     """))
-end
-
-# Handle `init=Init` and `init=OptInit`
-function provide_init(rf, idfactory::Union{typeof(Init), typeof(OptInit)})
-    op = _realbottomrf(rf)
-    return makeid(op, idfactory)
-end
-
-makeid(op, init) = init
-function makeid(op, idfactory::Union{typeof(Init), typeof(OptInit)})
-    hasinitialvalue(op) && return idfactory(op)
-    throw(IdentityNotDefinedError(op, idfactory))
 end

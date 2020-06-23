@@ -89,6 +89,10 @@ julia> transduce(rf_good, "", 1:3)
 @inline reducingfunction(xf::Transducer, step; simd::SIMDFlag = Val(false)) =
     maybe_usesimd(Reduction(xf, step), simd)
 
+# Use `_asmonoid` automatically only when `init` is not specified:
+@inline _reducingfunction(xf, step; init = DefaultInit, simd::SIMDFlag = Val(false), _...) =
+    maybe_usesimd(Reduction(xf, init === DefaultInit ? _asmonoid(step) : step), simd)
+
 """
     __foldl__(rf, init, reducible::T)
 
@@ -122,12 +126,22 @@ const FOLDL_RECURSION_LIMIT = Val(10)
 _dec(::Nothing) = nothing
 _dec(::Val{n}) where n = Val(n - 1)
 
-function __foldl__(rf, init, coll)
+function __foldl__(rf, init::T, coll) where {T}
     ret = iterate(coll)
     ret === nothing && return complete(rf, init)
     x, state = ret
     val = @next(rf, init, x)
-    return _foldl_iter(rf, val, coll, state, FOLDL_RECURSION_LIMIT)
+
+    # Doing "manual Union splitting" (?).  This somehow helps the
+    # compiler to generate faster code even though the code inside the
+    # `if` branches are identical.
+    # * https://github.com/JuliaFolds/Transducers.jl/pull/188
+    # * https://github.com/JuliaLang/julia/pull/34293#discussion_r363550608
+    if val isa T
+        return _foldl_iter(rf, val, coll, state, FOLDL_RECURSION_LIMIT)
+    else
+        return _foldl_iter(rf, val, coll, state, FOLDL_RECURSION_LIMIT)
+    end
 end
 
 @inline function _foldl_iter(rf, val::T, iter, state, counter) where T
@@ -143,7 +157,7 @@ end
     return complete(rf, val)
 end
 
-__foldl__(rf, init, coll::Tuple) =
+@inline __foldl__(rf, init, coll::Tuple) =
     complete(rf, @return_if_reduced foldlargs(rf, init, coll...))
 
 # TODO: use IndexStyle
@@ -174,6 +188,55 @@ end
         end
         return complete(rf, val)
     end
+end
+
+## Convert zip-of-products (ZoP) to product-of-zips (PoZ).
+
+# Arguments for `product` and alike:
+unproduct(x::Iterators.ProductIterator) = x.iterators
+unproduct(x::CartesianIndices) = x.indices
+unproduct(x::AbstractArray) = axes(x)
+
+# After ZoP-to-PoZ transformation, we need to re-shape the value in
+# the form that would be fed to the reducing function if it were
+# folding `ZoP`:
+@inline function _make_zop_getvalues(iterators)
+    # Avoid including `iterators` themselves in the closure if
+    # possible:
+    iterinfo = map(iterators) do itr
+        if itr isa CartesianIndices
+            Val(CartesianIndices)
+        elseif itr isa AbstractArray
+            itr
+        else
+            nothing
+        end
+    end
+    return function (xs)
+        map(_unzip((iterinfo, _unzip(xs)))) do (it, x)
+            if it === Val(CartesianIndices)
+                return CartesianIndex(x)
+            elseif it isa AbstractArray
+                return @inbounds it[x...]
+            else
+                return x
+            end
+        end
+    end
+end
+
+@static if VERSION >= v"1.1-"
+    @inline __foldl__(
+        rf,
+        init,
+        zs::Iterators.Zip{<:Tuple{
+            Vararg{Union{AbstractArray,Iterators.ProductIterator}},
+        }},
+    ) = __foldl__(
+        Reduction(Map(_make_zop_getvalues(zs.is)), rf),
+        init,
+        Iterators.product(map(Base.splat(zip), _unzip(map(unproduct, zs.is)))...),
+    )
 end
 
 @inline function __foldl__(
@@ -222,7 +285,7 @@ performance tuning.
 """
 function simple_transduce(xform, f, init, coll)
     rf = Reduction(xform, f)
-    return __simple_foldl__(rf, _start_init(rf, init), coll)
+    return __simple_foldl__(rf, start(rf, init), coll)
 end
 
 """
@@ -230,7 +293,7 @@ end
 
 Call [`__foldl__`](@ref) without calling [`complete`](@ref).
 """
-foldl_nocomplete(rf, init, coll) = __foldl__(skipcomplete(rf), init, coll)
+@inline foldl_nocomplete(rf, init, coll) = __foldl__(skipcomplete(rf), init, coll)
 
 """
     foldl(step, xf::Transducer, reducible; init, simd) :: T
@@ -246,6 +309,8 @@ Compose transducer `xf` with reducing step function `step` and reduce
     _not_ automatically wrapped by [`Completing`](@ref).
 
 This API is modeled after $(_cljref("transduce")).
+
+For parallel versions, see [`reduce`](@ref) and [`dreduce`](@ref).
 
 See also: [Empty result handling](@ref).
 
@@ -327,33 +392,31 @@ Finishing with state = 4.0
 mapfoldl
 
 function transduce(xform::Transducer, f, init, coll; kwargs...)
-    rf = Reduction(xform, f)
+    rf = _reducingfunction(xform, f; init = init, kwargs...)
     return transduce(rf, init, coll; kwargs...)
 end
-
-# Materialize initial value and then call start.
-_start_init(rf, init) = start(rf, provide_init(rf, init))
 
 _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
 
 # TODO: should it be an internal?
-@inline function transduce(rf0::AbstractReduction, init, coll;
+@inline function transduce(rf1::AbstractReduction, init, coll;
                            simd::SIMDFlag = Val(false))
     # Inlining `transduce` and `__foldl__` were essential for the
-    # `darkritual` below to work.
+    # `restack` below to work.
+    rf0, foldable = retransform(rf1, asfoldable(coll))
     rf = maybe_usesimd(rf0, simd)
-    state = _start_init(rf, init)
-    result = __foldl__(rf, state, coll)
-    if unreduced(result) isa DefaultInit
+    state = start(rf, init)
+    result = __foldl__(rf, state, foldable)
+    if unreduced(result) isa DefaultInitOf
         throw(EmptyResultError(rf0))
-        # Should I check if `init` is a `MissingInit`?
+        # Should I check if `init` is a `DefaultInit`?
     end
     # At this point, `return result` is the semantically correct thing
     # to do.  What follows are some convoluted instructions to
     # convince the compiler that this function is type-stable (in some
     # cases).  Note that return type would be inference-dependent only
     # if `init` is a `OptInit` type.  In the default case where `init
-    # isa DefaultInit`, the real code pass is the `throw` above.
+    # isa DefaultInitOf`, the real code pass is the `throw` above.
 
     # Unpacking as `ur_result` and re-packing it later somehow helps
     # the compiler to correctly eliminate a possibility in a `Union`.
@@ -364,7 +427,7 @@ _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
         # not change the return type.
         realtype = _nonidtype(Core.Compiler.return_type(
             _unreduced__foldl__,
-            typeof((rf0, state, coll)),
+            typeof((rf0, state, foldable)),
         ))
         if realtype isa Type
             realvalue = convert(realtype, ur_result)
@@ -384,7 +447,7 @@ end
 
 function Base.mapfoldl(xform::Transducer, step, itr;
                        simd::SIMDFlag = Val(false),
-                       init = MissingInit())
+                       init = DefaultInit)
     unreduced(transduce(xform, step, init, itr; simd=simd))
 end
 
@@ -492,15 +555,6 @@ eduction(xform, coll) = Eduction(xform, coll)
 # `skipmissing` so maybe this is better for more uniform API.
 
 """
-    induction(foldable) -> (xf, foldable′)
-
-Reverse of `eduction` (I have no idea what the right name of this
-function is).
-"""
-induction(ed::Eduction) = (Transducer(ed.rf), ed.coll)
-induction(coll) = (Map(identity), coll)  # TODO: use `IdentityTransducer`
-
-"""
     setinput(ed::Eduction, coll)
 
 Set input collection of eduction `ed` to `coll`.
@@ -531,7 +585,7 @@ _setinput(::Type{T}, ::Type{T}, ed, coll) where T = @set ed.coll = coll
 _setinput(::Type, ::Type, ed, coll) = eduction(Transducer(ed), coll)
 
 """
-    append!(xf::Transducer, dest, src)
+    append!(xf::Transducer, dest, src) -> dest
 
 This API is modeled after $(_cljref("into")).
 
@@ -549,13 +603,45 @@ julia> append!(Drop(2), [-1, -2], 1:5)
 ```
 """
 Base.append!(xf::Transducer, to, from) =
-    transduce(xf, Completing(push!), to, from)
+    unreduced(transduce(xf, Completing(push!), to, from))
 
 """
-    collect(xf::Transducer, itr)
+    BangBang.append!!(xf::Transducer, dest, src) -> dest′
+
+Mutate-or-widen version of [`append!`](@ref).
+
+!!! compat "Transducers.jl 0.4.4"
+
+    New in version 0.4.4.
+
+# Examples
+```jldoctest
+julia> using Transducers, BangBang
+
+julia> append!!(Drop(2) |> Map(x -> x + 0.0), [-1, -2], 1:5)
+5-element Array{Float64,1}:
+ -1.0
+ -2.0
+  3.0
+  4.0
+  5.0
+```
+"""
+BangBang.append!!(xf::Transducer, to, from) =
+    unreduced(transduce(xf |> Map(SingletonVector), Completing(append!!), to, from))
+
+"""
+    collect(xf::Transducer, itr) :: Vector
+    collect(ed::Eduction) :: Vector
 
 Process an iterable `itr` using a transducer `xf` and collect the result
 into a `Vector`.
+
+For parallel versions, see [`tcollect`](@ref) and [`dcollect`](@ref).
+
+!!! compat "Transducers.jl 0.4.8"
+
+    `collect` now accepts eductions.
 
 # Examples
 ```jldoctest
@@ -571,9 +657,7 @@ julia> collect(Interpose(missing), 1:3)
 ```
 """
 function Base.collect(xf::Transducer, coll)
-    rf = Reduction(xf, Completing(push!!))
-    to = Union{}[]
-    result = unreduced(transduce(rf, to, coll))
+    result = finish!(append!!(xf, collector(), coll))
     if result isa Vector{Union{}}
         et = @default_finaltype(xf, coll)
         return et[]
@@ -581,6 +665,70 @@ function Base.collect(xf::Transducer, coll)
     return result
 end
 # Base.collect(xf, coll) = append!([], xf, coll)
+
+Base.collect(ed::Eduction) = collect(extract_transducer(ed)...)
+
+"""
+    copy(xf::Transducer, T, foldable) :: Union{T, Empty{T}}
+    copy(xf::Transducer, foldable::T) :: Union{T, Empty{T}}
+    copy([T,] eduction::Eduction) :: Union{T, Empty{T}}
+
+Process `foldable` with a transducer `xf` and then create a container of type `T`
+filled with the result.  Return
+[`BangBang.Empty{T}`](https://juliafolds.github.io/BangBang.jl/dev/#BangBang.NoBang.Empty)
+if the transducer does not produce anything.  (This is because there is no
+consistent interface to create an empty container given its type and not all
+containers support creating an empty container.)
+
+For parallel versions, see [`tcopy`](@ref) and [`dcopy`](@ref).
+
+!!! compat "Transducers.jl 0.4.4"
+
+    New in version 0.4.4.
+
+!!! compat "Transducers.jl 0.4.8"
+
+    `copy` now accepts eductions.
+
+# Examples
+```jldoctest
+julia> using Transducers
+       using BangBang: Empty
+
+julia> copy(Map(x -> x => x^2), Dict, 2:2)
+Dict{Int64,Int64} with 1 entry:
+  2 => 4
+
+julia> @assert copy(Filter(_ -> false), Set, 1:1) === Empty(Set)
+
+julia> using TypedTables
+
+julia> @assert copy(Map(x -> (a=x, b=x^2)), Table, 1:1) == Table(a=[1], b=[1])
+
+julia> using StructArrays
+
+julia> @assert copy(Map(x -> (a=x, b=x^2)), StructVector, 1:1) == StructVector(a=[1], b=[1])
+
+julia> using DataFrames
+
+julia> @assert copy(
+           Map(x -> (A = x.a + 1, B = x.b + 1)),
+           DataFrame(a = [1], b = [2]),
+       ) == DataFrame(A = [2], B = [3])
+```
+"""
+Base.copy(xf::Transducer, ::Type{T}, foldable) where {T} = append!!(xf, Empty(T), foldable)
+Base.copy(xf::Transducer, foldable) = copy(xf, _materializer(foldable), foldable)
+
+function Base.copy(::Type{T}, ed::Eduction) where {T}
+    xf, foldable = extract_transducer(ed)
+    return copy(xf, T, foldable)
+end
+
+function Base.copy(ed::Eduction)
+    xf, foldable = extract_transducer(ed)
+    return copy(xf, foldable)
+end
 
 """
     map!(xf::Transducer, dest, src; simd)
@@ -618,22 +766,16 @@ function Base.map!(xf::Transducer, dest::AbstractArray, src::AbstractArray;
     return dest
 end
 
-_map!(rf, coll, dest) = transduce(darkritual(rf), nothing, coll)
+_map!(rf, coll, dest) = transduce(restack(rf), nothing, coll)
 
+# The idea behind `restack` (previously called `darkritual`):
 # Deep-copy `AbstractReduction` so that compiler can treat the all
 # reducing function tree nodes as local variables (???).  Aslo, it
 # tells compiler that `dest` is a local variable so that it won't
 # fetch `dest` via `getproperty` in each iteration.  (This is too much
 # magic...  My reasoning of how it works could be completely wrong.
 # But at least it should not change the semantics of the function.)
-@inline darkritual(x) = x
-@inline darkritual(xf::SetIndex) = typeof(xf)(xf.array)
-@inline darkritual(rf::R) where {R <: Reduction} =
-    R(darkritual(xform(rf)), darkritual(inner(rf)))
-@inline darkritual(rf::R) where {R <: Joiner} =
-    R(darkritual(inner(rf)))
-@inline darkritual(rf::R) where {R <: Splitter} =
-    R(darkritual(inner(rf)))
+# Probably related: https://github.com/JuliaLang/julia/pull/18632
 
 function _prepare_map(xf, dest, src, simd)
     isexpansive(xf) && error("map! only supports non-expanding transducer")
@@ -641,7 +783,7 @@ function _prepare_map(xf, dest, src, simd)
     indices = eachindex(dest, src)
 
     rf = reducingfunction(
-        TeeZip(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
+        ZipSource(GetIndex{true}(src) |> xf) |> SetIndex{true}(dest),
         (::Vararg) -> nothing,
         simd = simd)
 
@@ -677,8 +819,8 @@ function Base.foldl(step, xform::Transducer, itr;
     mapfoldl(xform, Completing(step), itr; kw...)
 end
 
-@inline function Base.foldl(step, foldable::Foldable; init=MissingInit(), kwargs...)
-    xf, coll = induction(foldable)
+@inline function Base.foldl(step, foldable::Foldable; init = DefaultInit, kwargs...)
+    xf, coll = extract_transducer(foldable)
     return unreduced(transduce(xf, Completing(step), init, coll; kwargs...))
 end
 
@@ -828,7 +970,7 @@ false
 Base.foreach(eff, xform::Transducer, coll; kwargs...) =
     transduce(xform, SideEffect(eff), nothing, coll; kwargs...)
 function Base.foreach(eff, reducible::Reducible; kwargs...)
-    xf, coll = induction(reducible)
+    xf, coll = extract_transducer(reducible)
     return transduce(xf, SideEffect(eff), nothing, coll; kwargs...)
 end
 
@@ -911,6 +1053,14 @@ Base.Channel(xform::Transducer, itr; kwargs...) =
 Base.Channel(ed::Eduction; kwargs...) =
     Channel(Transducer(ed), ed.coll; kwargs...)
 
+Base.Channel{T}(xform::Transducer, itr, size=0; kwargs...) where {T} =
+    _Channel(T, size; kwargs...) do chan
+        foreach(x -> put!(chan, x), xform, itr)
+        return
+    end
+
+Base.Channel{T}(ed::Eduction, size=0; kwargs...) where {T} =
+    Channel{T}(Transducer(ed), ed.coll, size; kwargs...)
 
 """
     AdHocFoldable(foldl, [collection = nothing])

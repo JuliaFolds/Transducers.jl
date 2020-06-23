@@ -1,19 +1,40 @@
 # --- Utilities
 
-valueof(::Val{x}) where x = x
+"""
+    _unzip(xs::Tuple)
 
-ieltype(T) =
-    if Base.IteratorEltype(T) isa Base.HasEltype
-        eltype(T)
-    else
-        Any
-    end
+# Examples
+```jldoctest; setup = :(using Transducers: _unzip)
+julia> _unzip(((1, 2, 3), (4, 5, 6)))
+((1, 4), (2, 5), (3, 6))
+```
+"""
+_unzip(xs::Tuple{Vararg{NTuple{N,Any}}}) where {N} = ntuple(i -> map(x -> x[i], xs), N)
 
-ieltype(bc::Broadcasted) = Base.promote_op(bc.f, eltype.(bc.args)...)
+if isdefined(Iterators, :Zip1)  # VERSION < v"1.1-"
+    arguments(xs::Iterators.Zip1) = (xs.a,)
+    arguments(xs::Iterators.Zip2) = (xs.a, xs.b)
+    arguments(xs::Iterators.Zip) = (xs.a, arguments(xs.z)...)
+else
+    arguments(xs::Iterators.Zip) = xs.is
+end
 
-avaltype(x) = avaltype(typeof(x))
-avaltype(T::Type) = valtype(T)
-avaltype(T::Type{<:Union{AbstractArray,AbstractString}}) = eltype(T)
+if VERSION < v"1.3"
+    _Channel(f, ::Type{T}, size; kwargs...) where {T} =
+        Channel(f; ctype = T, csize = size, kwargs...)
+else
+    _Channel(f, ::Type{T}, size; kwargs...) where {T} = Channel{T}(f, size; kwargs...)
+end
+
+function _materializer(xs)
+    T = Tables.materializer(xs)
+    return T isa Type ? T : _materializer(typeof(xs))
+end
+
+function _materializer(::Type{T}) where T
+    S = ConstructionBase.constructorof(T)
+    return S isa Type ? S : T
+end
 
 prefixed_type_name(@nospecialize x) =
     sprint(show, typeof(x), context = :module => Base)
@@ -23,6 +44,13 @@ prefixed_type_name(@nospecialize x) =
 
 const DenseSubVector{T} =
     SubArray{T, 1, Vector{T}, Tuple{UnitRange{Int64}}, true}
+
+# https://github.com/JuliaLang/julia/pull/33533
+if VERSION < v"1.4"
+    const PartitionableArray = Vector
+else
+    const PartitionableArray = AbstractArray
+end
 
 
 const _non_executable_transducer_msg = """
@@ -54,3 +82,13 @@ _thx_clj(name) =
 # https://github.com/JuliaLang/julia/pull/30575
 const _true_str = sprint(show, true; context=:typeinfo => Bool)
 const _false_str = sprint(show, false; context=:typeinfo => Bool)
+
+
+# Just like `Function` but for defining some common methods.
+abstract type _Function <: Function end
+
+# Avoid `Function` fallbacks:
+@nospecialize
+Base.show(io::IO, ::MIME"text/plain", f::_Function) = show(io, f)
+Base.print(io::IO, f::_Function) = show(io, f)
+@specialize
