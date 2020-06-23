@@ -9,7 +9,7 @@ version = "2.0.0"
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
 git-tree-sha1 = "112c3d450ef53b8421af4876d5f77ee1263b8fa2"
 repo-rev = "master"
-repo-url = "https://github.com/tkf/BangBang.jl.git"
+repo-url = "https://github.com/JuliaFolds/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
 version = "0.3.24-DEV"
 
@@ -98,7 +98,7 @@ version = "1.1.0"
 [[InitialValues]]
 git-tree-sha1 = "0df0eb1bc1011a6cb01a9042462448137ae5495e"
 repo-rev = "master"
-repo-url = "https://github.com/tkf/InitialValues.jl.git"
+repo-url = "https://github.com/JuliaFolds/InitialValues.jl.git"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
 version = "0.2.7-DEV"
 
@@ -281,7 +281,7 @@ version = "1.0.0"
 deps = ["Setfield", "Test"]
 git-tree-sha1 = "eab4a2505c641868ec77ebb9a93b5072c1508b42"
 repo-rev = "master"
-repo-url = "https://github.com/tkf/SplittablesBase.jl.git"
+repo-url = "https://github.com/JuliaFolds/SplittablesBase.jl.git"
 uuid = "171d559e-b47b-412a-8079-5efa626c420e"
 version = "0.1.8-DEV"
 
