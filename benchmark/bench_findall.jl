@@ -15,7 +15,7 @@ suite["xf-array"] = @benchmarkable collect(
 )
 suite["xf-iter"] = @benchmarkable collect(
     Enumerate() |> Filter(isequal($needle) ∘ last) |> Map(first),
-    (x for x in $xs),
+    Transducers.NoAdjoint(x for x in $xs),
 )
 
 end  # module

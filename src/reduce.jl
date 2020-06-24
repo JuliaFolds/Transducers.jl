@@ -131,19 +131,20 @@ Base.schedule(::DummyTask) = nothing
 
 function transduce_assoc(
     xform::Transducer,
-    step,
+    step::F,
     init,
-    coll;
+    coll0;
     simd::SIMDFlag = Val(false),
-    basesize::Integer = amount(coll) ÷ Threads.nthreads(),
+    basesize::Integer = amount(coll0) ÷ Threads.nthreads(),
     stoppable::Union{Bool,Nothing} = nothing,
-)
-    rf = _reducingfunction(xform, step; init = init, simd = simd)
+) where {F}
+    rf0 = _reducingfunction(xform, step; init = init)
+    rf, coll = retransform(rf0, coll0)
     if stoppable === nothing
         stoppable = _might_return_reduced(rf, init, coll)
     end
     acc = @return_if_reduced _transduce_assoc_nocomplete(
-        rf,
+        maybe_usesimd(rf, simd),
         init,
         coll,
         basesize,
@@ -164,7 +165,13 @@ else
     maybe_collect(coll) = collect(coll)
 end
 
-function _transduce_assoc_nocomplete(rf, init, coll, basesize, stoppable = true)
+function _transduce_assoc_nocomplete(
+    rf::F,
+    init,
+    coll,
+    basesize,
+    stoppable = true,
+) where {F}
     reducible = SizedReducible(maybe_collect(coll), basesize)
     @static if VERSION >= v"1.3-alpha"
         return _reduce(TaskContext(), stoppable, DummyTask(), rf, init, reducible)
@@ -287,18 +294,18 @@ function __reduce_dummy(rf, init, reducible)
 end
 
 # AbstractArray for disambiguation
-Base.mapreduce(xform::Transducer, step, itr::AbstractArray;
-               init = DefaultInit, kwargs...) =
+Base.mapreduce(xform::Transducer, step::F, itr::AbstractArray;
+               init = DefaultInit, kwargs...) where {F} =
     unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
 
-Base.mapreduce(xform::Transducer, step, itr;
-               init = DefaultInit, kwargs...) =
+Base.mapreduce(xform::Transducer, step::F, itr;
+               init = DefaultInit, kwargs...) where {F} =
     unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
 
-Base.reduce(step, xform::Transducer, itr; kwargs...) =
+Base.reduce(step::F, xform::Transducer, itr; kwargs...) where {F} =
     mapreduce(xform, Completing(step), itr; kwargs...)
 
-Base.reduce(step, foldable::Foldable; kwargs...) =
+Base.reduce(step::F, foldable::Foldable; kwargs...) where {F} =
     reduce(step, extract_transducer(foldable)...; kwargs...)
 
 """

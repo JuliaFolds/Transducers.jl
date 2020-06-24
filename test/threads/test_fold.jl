@@ -36,6 +36,15 @@ const parseint = Base.Fix1(parse, Int)
         @test fold(right, GroupBy(isodd, Map(last), +), 1:10) ==
               Dict(true => 25, false => 30)
     end
+    if fold ∉ (simple_reduce, random_reduce, dreduce_bs1, dreduce)
+        @testset "NoAdjoint" begin
+            @test fold(
+                +,
+                Map(identity),
+                Transducers.NoAdjoint(x for x in 1:10 if isodd(x)),
+            ) == sum(1:2:10)
+        end
+    end
 end
 
 # TODO: make them work with `dreduce`
