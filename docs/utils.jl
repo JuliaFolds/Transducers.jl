@@ -60,8 +60,6 @@ function transducers_makedocs(;
             "Interface" => "interface.md",
             "Examples" => examples,
             hide("Internals" => "internals.md"),
-            hide("doctests/show_xf.md"),
-            hide("doctests/show_rf.md"),
         ],
         repo = "https://github.com/JuliaFolds/Transducers.jl/blob/{commit}{path}#L{line}",
         sitename = "Transducers.jl",
