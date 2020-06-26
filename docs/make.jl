@@ -20,6 +20,7 @@ Random.seed!(1234)
 
 transducers_literate()
 transducers_makedocs()
+transducers_make_redirections()
 deploydocs(;
     repo="github.com/JuliaFolds/Transducers.jl",
     push_preview = should_push_preview(),

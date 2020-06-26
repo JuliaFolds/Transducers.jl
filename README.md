@@ -34,7 +34,8 @@ See more in the [documentation](https://juliafolds.github.io/Transducers.jl/dev)
 ## Installation
 
 ```
-]add Transducers
+using Pkg
+Pkg.add("Transducers")
 ```
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg

@@ -6,27 +6,29 @@ using Transducers
 # included from test without adding them as dependencies.
 
 EXAMPLE_PAGES = [
-    "Tutorial: Missing values" => "examples/tutorial_missings.md",
-    "Tutorial: Parallelism" => "examples/tutorial_parallel.md",
-    "Empty result handling" => "examples/empty_result_handling.md",
-    "Parallel word count" => "examples/words.md",
-    "Writing transducers" => "examples/transducers.md",
-    "Writing reducibles" => "examples/reducibles.md",
+    "Tutorial: Missing values" => "tutorials/tutorial_missings.md",
+    "Tutorial: Parallelism" => "tutorials/tutorial_parallel.md",
+    "Parallel word count" => "tutorials/words.md",
+    "Empty result handling" => "howto/empty_result_handling.md",
+    "Writing transducers" => "howto/transducers.md",
+    "Writing reducibles" => "howto/reducibles.md",
 ]
 
-transducers_rm_examples() =
-    rm(joinpath(@__DIR__, "src/examples"); force=true, recursive=true)
+function transducers_rm_examples()
+    rm(joinpath(@__DIR__, "src/tutorials"); force = true, recursive = true)
+    rm(joinpath(@__DIR__, "src/howto"); force = true, recursive = true)
+end
 
 function transducers_literate(;
         inputbase = joinpath(@__DIR__, "..", "examples"),
-        outputbase = joinpath(@__DIR__, "src", "examples"),
+        outputbase = joinpath(@__DIR__, "src"),
         examples = EXAMPLE_PAGES,
         kwargs...)
     transducers_rm_examples()
     for (_, outpath) in examples
         name, = splitext(basename(outpath))
         inputfile = joinpath(inputbase, "$name.jl")
-        outputdir = outputbase
+        outputdir = joinpath(outputbase, dirname(outpath))
         Literate.markdown(
             inputfile, outputdir;
             documenter = true,
@@ -39,27 +41,40 @@ function transducers_makedocs(;
         kwargs...)
     if isempty(examples)
         # Make some dummy examples
-        dummypage = joinpath("examples", "dummy.md")
-        path = joinpath(@__DIR__, "src", dummypage)
-        mkpath(dirname(path))
-        write(
-            path,
-            """
+        examples = String[]
+        for outdir in ["tutorials", "howto"]
+            dummypage = joinpath(outdir, "dummy.md")
+            path = joinpath(@__DIR__, "src", dummypage)
+            mkpath(dirname(path))
+            write(
+                path,
+                """
             # Dummy page
             ## Empty result handling
             """
-        )
-        examples = dummypage
+            )
+            push!(examples, dummypage)
+        end
     end
+    tutorials = filter(((_, path),) -> startswith(path, "tutorials/"), examples)
+    howto = filter(((_, path),) -> startswith(path, "howto/"), examples)
+    @assert issetequal(union(tutorials, howto), examples)
     makedocs(;
         modules = [Transducers],
         pages = [
             "Home" => "index.md",
-            "Parallelism" => "parallelism.md",
-            "Manual" => "manual.md",
-            "Interface" => "interface.md",
-            "Examples" => examples,
-            hide("Internals" => "internals.md"),
+            "Reference" => [
+                "Manual" => "reference/manual.md",
+                "Interface" => "reference/interface.md",
+            ],
+            "Tutorials" => tutorials,
+            "How-to guides" => howto,
+            "Explanation" => [
+                "Parallelism" => "parallelism.md",  # TODO: merge this to index.md
+                "Comparison to iterators" => "explanation/comparison_to_iterators.md",
+                "Glossary" => "explanation/glossary.md",
+                hide("Internals" => "explanation/internals.md"),
+            ],
         ],
         repo = "https://github.com/JuliaFolds/Transducers.jl/blob/{commit}{path}#L{line}",
         sitename = "Transducers.jl",
@@ -67,6 +82,43 @@ function transducers_makedocs(;
         root = @__DIR__,
         strict = true,
         kwargs...)
+end
+
+function transducers_redirection_mapping()
+    mapping = [
+        # old page => new page
+        "manual" => "reference/manual",
+        "interface" => "reference/interface",
+    ]
+
+    old_examples = [
+        "tutorials/tutorial_missings",
+        "tutorials/tutorial_parallel",
+        "tutorials/words",
+        "howto/empty_result_handling",
+        "howto/transducers",
+        "howto/reducibles",
+    ]
+
+    for e in old_examples
+        push!(mapping, joinpath("examples", basename(e)) => e)
+    end
+
+    return mapping
+end
+
+function transducers_make_redirections(;
+    mapping = transducers_redirection_mapping(),
+    build = joinpath((@__DIR__), "build"),
+)
+    for (old, new) in mapping
+        oldpath = joinpath(build, old)
+        newpath = joinpath(build, new)
+        relurl = relpath(newpath, oldpath)
+        html = """<meta http-equiv="refresh" content="0; url=$relurl"/>"""
+        mkpath(oldpath)
+        write(joinpath(oldpath, "index.html"), html)
+    end
 end
 
 function should_push_preview(event_path = get(ENV, "GITHUB_EVENT_PATH", nothing))
