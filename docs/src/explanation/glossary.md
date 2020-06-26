@@ -35,23 +35,49 @@ Transducers.complete).
 
 ## Transducer
 
-A transducer transforms a reducing function into a new reducing
-function.  It is sometimes referred to as a `xf` or `xform`.  A
-transducer can be composed of many sub-transducers; the syntax in
-Transducers.jl is `xf = xf₁ |> xf₂ |> ... |> xfₙ`.  The composed
-transducers are applied to the "bottom" reducing function from right
-to left, i.e., schematically, a new reducing function ``\mathrm{rf}``
-is obtained from the "bottom" reducing function ``\mathrm{step}`` by
+A transducer in Transducers.jl is a transformation `xf` that
+
+* transforms an iterator with [`xf(itr)`](@ref eduction)
+  (**iterator transformation**)
+* transforms a reducing step function with [`xf'(rf)`](@ref adjoint)
+  (**reducing function transformation**)
+
+Common variable names for transducers are `xf` and `xform`.
+
+### Transducer in the narrow sense (Clojure)
+
+A transducer as originally
+[introduced by Rich Hickey](https://clojure.org/reference/transducers)
+is a transformation of reducing step function.  Thus, what is referred
+to as a transducer ``\mathrm{xf}`` in Clojure and many other languages
+is the reducing function transformation `xf'` in Transducer.jl.
+
+Since a transducer in the narrow sense maps a reducing function to a
+reducing function, it can be composed with simple function composition
+``∘``.  When a composite transducer ``\mathrm{xf} = \mathrm{xf}_1
+\circ \mathrm{xf}_2 \circ ... \circ \mathrm{xf}_n`` to a "bottom"
+reducing function ``\mathrm{rf}_0``, it is processed from right to
+left just like normal functions:
 
 ```math
 \mathrm{rf} =
-\mathrm{xf}_1(\mathrm{xf}_2(...(\mathrm{xf}_{n}(\mathrm{step}))))
+\mathrm{xf}_1(\mathrm{xf}_2(...(\mathrm{xf}_{n}(\mathrm{rf}_0))))
 ```
 
-Given a composition `xf₁ |> xf₂`, transducer `xf₂` is said to be the
-_inner transducer_ of `xf₁ |> xf₂`.  Likewise,
-``\mathrm{xf}_2(\mathrm{rf}')`` is an _inner reducing function_ of
-``\mathrm{xf}_1(\mathrm{xf}_2(\mathrm{rf}'))``.
+which is equivalent to the following forms in Transducers.jl
+
+```julia
+rf = xf₁'(xf₂'(...(xfₙ(rf₀))))
+rf = (xf₁' ∘ xf₂' ∘ ... ∘ xfₙ')(rf₀)
+rf = (xfₙ ∘ ... ∘  xf₁ ∘ xf₂)'(rf₀)
+rf = (xf₁ ⨟ xf₂ ⨟ ... ⨟ xfₙ)(rf₀)
+```
+
+### Inner transducer
+
+Given a composition `xf₁' ∘ xf₂'`, transducer `xf₂` is said to be the
+_inner transducer_ of `xf₁' ∘ xf₂'`.  Likewise,
+`xf₂'(rf₀)` is an _inner reducing function_ of `xf₁'(xf₂'(rf₀))`.
 
 ## Reducible collection
 
