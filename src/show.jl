@@ -26,20 +26,24 @@ print_spaced_arrow(io) = print_arrow(io, ' ', ' ')
 
 function Base.summary(io::IO, xform::Transducer)
     xff = TransducerFolder(xform)
-    n = mapfoldl(Count(), right, xff)
-    f = mapfoldl(Take(1), right, xff)
-    l = mapfoldl(TakeLast(1), right, xff)
+    n = foldl(right, Count(), xff)
+    f = foldl(right, Take(1), xff)
+    s = foldl(right, Take(2), xff; init = nothing)
+    l = foldl(right, TakeLast(1), xff)
     @assert n > 0
     if n == 1
-        print(io, nameof(typeof(xform)))
+        print(io, "::", nameof(typeof(xform)))
     else
-        print(io, nameof(typeof(f)))
+        print(io, "::", nameof(typeof(f)))
         print_spaced_arrow(io)
-        if n > 2
+        if n == 3
+            print(io, "::", nameof(typeof(f)))
+            print_spaced_arrow(io)
+        elseif n > 3
             print(io, "(", n - 2, " transducers...)")
             print_spaced_arrow(io)
         end
-        print(io, nameof(typeof(l)))
+        print(io, "::", nameof(typeof(l)))
     end
     return
 end

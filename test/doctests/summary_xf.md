@@ -10,51 +10,51 @@ end
 
 ```jldoctest
 julia> Cat() |> printsummary
-Cat
+::Cat
 
 julia> Count() |> printsummary
-Count
+::Count
 
 julia> Count(2) |> printsummary
-Count
+::Count
 
 julia> Count(3, 4) |> printsummary
-Count
+::Count
 
 julia> GetIndex([0]) |> printsummary
-GetIndex
+::GetIndex
 
 julia> Iterated(sqrt, 0.1) |> printsummary
-Iterated
+::Iterated
 
 julia> Map(sin) |> printsummary
-Map
+::Map
 
 julia> Filter(isfinite) |> printsummary
-Filter
+::Filter
 
 julia> Scan(*) |> printsummary
-Scan
+::Scan
 
 julia> ZipSource(Filter(isfinite)) |> printsummary
-ZipSource
+::ZipSource
 
 julia> ZipSource(Filter(isfinite) |> Map(sin)) |> printsummary
-ZipSource
+::ZipSource
 
 julia> ZipSource(Filter(isfinite) |> Map(sin)) |> Map(sum) |> printsummary
-ZipSource |> Map
+::ZipSource |> ::Map
 
 julia> let xf = ZipSource(Filter(isfinite) |> Map(sin))
            xf |> Map(sum) |> xf |> printsummary
        end
-ZipSource |> (1 transducers...) |> ZipSource
+::ZipSource |> ::ZipSource |> ::ZipSource
 
 julia> let xf = Map(first) |> Map(last)
            xf = ZipSource(ZipSource(xf) |> Map(identity)) |> xf
            xf |> ZipSource(xf) |> xf |> printsummary
        end
-ZipSource |> (5 transducers...) |> Map
+::ZipSource |> (5 transducers...) |> ::Map
 ```
 
 ```@meta
