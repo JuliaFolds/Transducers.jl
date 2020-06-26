@@ -469,6 +469,9 @@ end
 Eduction(xform::Transducer, coll) =
     Eduction(Reduction(xform, Completing(push!!)), coll)
 
+Eduction(xform::Transducer, ed::Eduction) =
+    Eduction(Transducer(ed) |> xform, ed.coll)
+
 Transducer(ed::Eduction) = Transducer(ed.rf)
 
 transduce(xform::Transducer, f, init, ed::Eduction) =
