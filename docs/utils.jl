@@ -56,8 +56,8 @@ function transducers_makedocs(;
             push!(examples, dummypage)
         end
     end
-    tutorials = filter(startswith("tutorials/") ∘ last, examples)
-    howto = filter(startswith("howto/") ∘ last, examples)
+    tutorials = filter(((_, path),) -> startswith(path, "tutorials/"), examples)
+    howto = filter(((_, path),) -> startswith(path, "howto/"), examples)
     @assert issetequal(union(tutorials, howto), examples)
     makedocs(;
         modules = [Transducers],
