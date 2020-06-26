@@ -589,6 +589,10 @@ _setinput(::Type, ::Type, ed, coll) = eduction(Transducer(ed), coll)
 
 This API is modeled after $(_cljref("into")).
 
+!!! warning
+    The performance of `append!(dest, src::Eduction)` is poor.
+    Use `append!!` instead if two-argument form is preferred.
+
 # Examples
 ```jldoctest
 julia> using Transducers
@@ -607,12 +611,18 @@ Base.append!(xf::Transducer, to, from) =
 
 """
     BangBang.append!!(xf::Transducer, dest, src) -> dest′
+    BangBang.append!!(dest, src::Eduction) -> dest′
 
 Mutate-or-widen version of [`append!`](@ref).
 
 !!! compat "Transducers.jl 0.4.4"
 
     New in version 0.4.4.
+
+!!! compat "Transducers.jl 0.4.37"
+
+    Performance optimization for `append!!(dest, src::Eduction)`
+    requires version 0.4.37.
 
 # Examples
 ```jldoctest
@@ -627,8 +637,14 @@ julia> append!!(Drop(2) |> Map(x -> x + 0.0), [-1, -2], 1:5)
   5.0
 ```
 """
+BangBang.append!!
 BangBang.append!!(xf::Transducer, to, from) =
     unreduced(transduce(xf |> Map(SingletonVector), Completing(append!!), to, from))
+
+function BangBang.__appendto!!__(to, ed::Eduction)
+    xf, from = extract_transducer(ed)
+    return append!!(xf, to, from)
+end
 
 """
     collect(xf::Transducer, itr) :: Vector
