@@ -39,20 +39,20 @@ julia> Scan(*) |> printsummary
 julia> ZipSource(Filter(isfinite)) |> printsummary
 ::ZipSource
 
-julia> ZipSource(Filter(isfinite) |> Map(sin)) |> printsummary
+julia> ZipSource(opcompose(Filter(isfinite), Map(sin))) |> printsummary
 ::ZipSource
 
-julia> ZipSource(Filter(isfinite) |> Map(sin)) |> Map(sum) |> printsummary
+julia> opcompose(ZipSource(opcompose(Filter(isfinite), Map(sin))), Map(sum)) |> printsummary
 ::ZipSource ⨟ ::Map
 
-julia> let xf = ZipSource(Filter(isfinite) |> Map(sin))
-           xf |> Map(sum) |> xf |> printsummary
+julia> let xf = ZipSource(opcompose(Filter(isfinite), Map(sin)))
+           opcompose(xf, Map(sum), xf) |> printsummary
        end
 ::ZipSource ⨟ ::ZipSource ⨟ ::ZipSource
 
-julia> let xf = Map(first) |> Map(last)
-           xf = ZipSource(ZipSource(xf) |> Map(identity)) |> xf
-           xf |> ZipSource(xf) |> xf |> printsummary
+julia> let xf = opcompose(Map(first), Map(last))
+           xf = opcompose(ZipSource(opcompose(ZipSource(xf), Map(identity))), xf)
+           opcompose(xf, ZipSource(xf), xf) |> printsummary
        end
 ::ZipSource ⨟ (5 transducers...) ⨟ ::Map
 ```
