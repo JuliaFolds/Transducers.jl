@@ -8,4 +8,5 @@
 /docs/Manifest.toml
 /docs/build/
 /docs/site/
-/docs/src/examples
+/docs/src/howto
+/docs/src/tutorials
