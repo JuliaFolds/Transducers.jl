@@ -67,9 +67,9 @@ left just like normal functions:
 which is equivalent to the following forms in Transducers.jl
 
 ```julia
-rf = xf₁'(xf₂'(...(xfₙ(rf₀))))
+rf = xf₁'(xf₂'(...(xfₙ'(rf₀))))
 rf = (xf₁' ∘ xf₂' ∘ ... ∘ xfₙ')(rf₀)
-rf = (xfₙ ∘ ... ∘  xf₁ ∘ xf₂)'(rf₀)
+rf = (xfₙ ∘ ... ∘ xf₂ ∘ xf₁)'(rf₀)
 rf = (xf₁ ⨟ xf₂ ⨟ ... ⨟ xfₙ)(rf₀)
 ```
 
