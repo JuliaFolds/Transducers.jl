@@ -22,10 +22,11 @@ jobs:
             project = "benchmark",
           );
           '
-      - name: Post results
+      - name: Push results
         run: julia -e '
           using BenchmarkCI;
-          BenchmarkCI.postjudge(title = "Multi-thread benchmark result")
+          BenchmarkCI.pushresult(title = "Multi-thread benchmark result");
           '
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
