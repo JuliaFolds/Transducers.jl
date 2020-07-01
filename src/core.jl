@@ -383,7 +383,7 @@ Composition of transducers.
 @inline Base.:∘(g::Transducer, f::Composition) = g ∘ f.inner ∘ f.outer
 @inline Base.:∘(f::Transducer, ::IdentityTransducer) = f
 @inline Base.:∘(::IdentityTransducer, f::Transducer) = f
-@inline Base.:∘(::IdentityTransducer, ::IdentityTransducer) = IdentityTransducer()
+@inline Base.:∘(f::IdentityTransducer, ::IdentityTransducer) = f
 @inline Base.:∘(::IdentityTransducer, f::Composition) = f  # disambiguation
 
 if VERSION >= v"1.3"

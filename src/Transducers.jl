@@ -69,6 +69,14 @@ else
     nonsticky!(task) = task
 end
 
+# `AbstractArrayOrBroadcasted` is an internal detail of `Base`.  But
+# we need this exact type for disambiguation...
+if isdefined(Base, :AbstractArrayOrBroadcasted)
+    const AbstractArrayOrBroadcasted = Base.AbstractArrayOrBroadcasted
+else
+    const AbstractArrayOrBroadcasted = Union{AbstractArray, Broadcasted}
+end
+
 # Some upstream APIs that are frequently used with Transducers.jl.
 # From BangBang.jl:
 export Empty, append!!, push!!
