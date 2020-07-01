@@ -14,6 +14,23 @@ julia> 1:3 |> Map(sin) |> Map(cos) |> Map(tan)
     Map(tan)
 ```
 
+```jldoctest
+julia> 1:3 |> Filter(isodd) |> Map(inv)
+3-element UnitRange{Int64} |>
+    Filter(isodd) |>
+    Map(inv)
+```
+
+```jldoctest
+julia> 1:3 |> Map(sin) |> Map(cos) |> Map(tan) |> print
+1:3 |> Map(sin) |> Map(cos) |> Map(tan)
+```
+
+```jldoctest
+julia> 1:3 |> Filter(isodd) |> Map(inv) |> print
+1:3 |> Filter(isodd) |> Map(inv)
+```
+
 ## To be improved
 
 `Filter(Fix2)` is not very specific:
