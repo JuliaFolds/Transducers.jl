@@ -12,7 +12,10 @@ using Transducers
 # )
 
 @testset "Method ambiguity" begin
-    Aqua.test_ambiguities(Transducers)
+    Aqua.test_ambiguities(
+        [Transducers, Base],
+        exclude = [Base.get, Setfield.set, Setfield.modify, map!, mapreduce],
+    )
 end
 
 # @testset "Unbound type parameters" begin
