@@ -14,7 +14,7 @@ using Transducers
 @testset "Method ambiguity" begin
     Aqua.test_ambiguities(
         [Transducers, Base],
-        exclude = [Base.get, Setfield.set, Setfield.modify, map!, mapreduce],
+        exclude = [Base.get, Setfield.set, Setfield.modify, map!],
     )
 end
 

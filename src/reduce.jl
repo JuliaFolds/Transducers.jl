@@ -293,10 +293,35 @@ function __reduce_dummy(rf, init, reducible)
     end
 end
 
-# AbstractArray for disambiguation
-Base.mapreduce(xform::Transducer, step::F, itr::AbstractArray;
-               init = DefaultInit, kwargs...) where {F} =
-    unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
+# Disambiguation:
+Base.mapreduce(
+    xform::Transducer,
+    step::F,
+    itr::AbstractArray;
+    init = DefaultInit,
+    kwargs...,
+) where {F} = unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
+Base.mapreduce(
+    xform::Transducer,
+    step::F,
+    itr::AbstractArrayOrBroadcasted;
+    init = DefaultInit,
+    kwargs...,
+) where {F} = unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
+Base.mapreduce(
+    xform::Transducer,
+    step::F,
+    itr::Base.SkipMissing{<:AbstractArray};
+    init = DefaultInit,
+    kwargs...,
+) where {F} = unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
+Base.mapreduce(
+    xform::Transducer,
+    step::F,
+    itr::Number;
+    init = DefaultInit,
+    kwargs...,
+) where {F} = unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
 
 Base.mapreduce(xform::Transducer, step::F, itr;
                init = DefaultInit, kwargs...) where {F} =
