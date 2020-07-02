@@ -22,8 +22,7 @@ jobs:
                       "JULIA_NUM_THREADS" => "1",
                       "OMP_NUM_THREADS" => "1",
                   ),
-              ),
-              "origin/bench-append-2-arg";
+              );
           );
           '
       - name: Push results
