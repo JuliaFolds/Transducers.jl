@@ -12,12 +12,55 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
-      # https://github.com/tkf/julia-merge-except-manifests
-      - name: 'Merge master to create-pull-request/pkg-update'
-        uses: tkf/julia-merge-except-manifests@v1
         with:
-          target: create-pull-request/pkg-update
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          # https://github.com/peter-evans/create-pull-request/blob/master/docs/concepts-guidelines.md#push-using-ssh-deploy-keys
+
+      - name: 'Merge master to create-pull-request/pkg-update'
+        run: |
+          base="master"
+          target="create-pull-request/pkg-update"
+
+          git_fetch_origin() {
+              git fetch --unshallow origin "$1" || git fetch origin "$1"
+          }
+
+          set -ex
+
+          if [ -n "$GITHUB_ACTOR" ]
+          then
+              git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
+              git config --global user.name "$GITHUB_ACTOR"
+          fi
+
+          git_fetch_origin "refs/heads/$base:refs/remotes/origin/$base"
+          git checkout -B "$base" "origin/$base"
+
+          git_fetch_origin "refs/heads/$target:refs/remotes/origin/$target" || exit 0
+          git checkout -B "$target" "origin/$target"
+          git merge --strategy=ours --no-commit "$base"
+          find . -type d -name .git -prune -o -type f -print0 | xargs --null rm -rf
+          git checkout "$base" -- .
+          git ls-tree -r --name-only "origin/$target" | grep -F Manifest.toml \
+              | xargs git checkout "origin/$target" --
+          git ls-tree -r --name-only "origin/$target" | grep -F Manifest.toml \
+              | xargs git add -f --
+          git add .
+          git commit -m "Merge branch '$base'" || true
+
+          # Since create-pull-request does not like when the current
+          # branch is the target branch, checkout master.
+          # https://github.com/JuliaFolds/Transducers.jl/pull/167
+          if [ "$(git rev-parse --abbrev-ref HEAD)" != "$base" ]
+          then
+              git checkout "$base"
+              git merge --ff-only "$target"
+          fi
+
+          git ls-tree -r --name-only "origin/$base" | grep -F Manifest.toml \
+              | xargs git checkout "origin/$base" --
+          git ls-tree -r --name-only "origin/$base" | grep -F Manifest.toml \
+              | xargs git add -f --
 
       # https://github.com/tkf/julia-update-manifests
       - name: Update */Manifest.toml
@@ -34,9 +77,9 @@ jobs:
       # https://github.com/peter-evans/create-pull-request
       # https://github.com/marketplace/actions/create-pull-request
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v1
+        uses: peter-evans/create-pull-request@v2
         with:
-          token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: Update */Manifest.toml
           title: 'Update */Manifest.toml'
           body: |
@@ -52,7 +95,6 @@ jobs:
           # https://doc.mergify.io/actions.html#commit-message-and-squash-method
           labels: no changelog
           branch: create-pull-request/pkg-update
-          branch-suffix: none
           base: master
       - name: Check output environment variable
         run: echo "Pull Request Number - ${{ env.PULL_REQUEST_NUMBER }}"
