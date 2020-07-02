@@ -641,8 +641,8 @@ BangBang.append!!
 BangBang.append!!(xf::Transducer, to, from) =
     unreduced(transduce(xf |> Map(SingletonVector), Completing(append!!), to, from))
 
-function BangBang.__appendto!!__(to, ed::Eduction)
-    xf, from = extract_transducer(ed)
+function BangBang.__appendto!!__(to, foldable::Foldable)
+    xf, from = extract_transducer(foldable)
     return append!!(xf, to, from)
 end
 
