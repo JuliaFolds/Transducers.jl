@@ -29,9 +29,11 @@ nothing                                                              # hide
 # Note that `|>` now is compatible with the standard function
 # application definition of `|>` (i.e., `x |> f == f(x)`):
 
+if VERSION >= v"1.3"                                                   #src
 yes =                                                                  #src
 1:5 |> Filter(isodd) |> Map(inv) === Map(inv)(Filter(isodd)(1:5))
 @test yes                                                              #src
+end                                                                    #src
 
 # !!! note
 #
