@@ -5,7 +5,7 @@ function Base.:|>(f::Transducer, g::Transducer)
         "`f::Transducer |> g::Transducer` is deprecated. " *
         "Use `xs |> f |> g |> collect` instead of `collect(f |> g, xs)`. " *
         "For more information, see " *
-        "https://juliafolds.github.io/Transducers.jl/dev/howto/upgrade_to_ixf/",
+        "https://juliafolds.github.io/Transducers.jl/dev/howto/upgrade-to-ixf/",
         :|>,
     )
     if Base.JLOptions().depwarn == 1
@@ -29,7 +29,7 @@ function Base.:|>(f::Transducer, g::Transducer)
             foldl(right, GroupBy(key, opcompose(Map(f), Filter(g)), push!!), xs)
 
         For more information, see:
-        https://juliafolds.github.io/Transducers.jl/dev/howto/upgrade_to_ixf/
+        https://juliafolds.github.io/Transducers.jl/dev/howto/upgrade-to-ixf/
         """ maxlog = 1
     end
     return g ∘ f
