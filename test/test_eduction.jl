@@ -10,6 +10,9 @@ using Transducers
     @test Transducer(ed1) === Map(sin)
     @test Transducer(ed2) === Map(sin) |> Map(cos)
     @test Transducer(ed3) === Map(sin) |> Map(cos) |> Map(tan)
+    @test eduction(Map(cos), eduction(Map(sin), 1:2)) ===
+          eduction(Map(sin) |> Map(cos), 1:2)
+    @test eduction(sin(x) for x in 1:2) === eduction(Map(sin), 1:2)
 end
 
 end  # module
