@@ -1,16 +1,10 @@
 using Base: @deprecate
 
 function Base.:|>(f::Transducer, g::Transducer)
-    Base.depwarn(
-        "`f::Transducer |> g::Transducer` is deprecated. " *
-        "Use `xs |> f |> g |> collect` instead of `collect(f |> g, xs)`. " *
-        "For more information, see " *
-        "https://juliafolds.github.io/Transducers.jl/dev/howto/upgrade-to-ixf/",
-        :|>,
-    )
     if Base.JLOptions().depwarn == 1
         @warn """
-        `f::Transducer |> g::Transducer` is deprecated.  Instead of
+        **Quick upgrade guide**: `f::Transducer |> g::Transducer` is deprecated.
+        Instead of
 
             collect(Filter(f) |> Map(g), xs)
             foldl(+, Filter(f) |> Map(g), xs)
@@ -32,6 +26,13 @@ function Base.:|>(f::Transducer, g::Transducer)
         https://juliafolds.github.io/Transducers.jl/dev/howto/upgrade-to-ixf/
         """ maxlog = 1
     end
+    Base.depwarn(
+        "`f::Transducer |> g::Transducer` is deprecated. " *
+        "Use `xs |> f |> g |> collect` instead of `collect(f |> g, xs)`. " *
+        "For more information, see " *
+        "https://juliafolds.github.io/Transducers.jl/dev/howto/upgrade-to-ixf/",
+        :|>,
+    )
     return g ∘ f
 end
 
