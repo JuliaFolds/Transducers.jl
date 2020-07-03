@@ -51,12 +51,6 @@ end
 @eval using CompositionsBase: $(Symbol("⨟"))
 @eval export $(Symbol("⨟"))
 
-if !isdefined(Base, Symbol("@var_str"))
-    macro var_str(x)
-        return Symbol(x)
-    end
-end
-
 @static if VERSION >= v"1.3-alpha"
     using Base.Threads: @spawn
     function nonsticky!(task)
