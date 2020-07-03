@@ -103,9 +103,13 @@ _typesubtract_impl(::Type{T}, ::Type{T}) where {T} = Union{}
 _typesubtract_impl(::Type{T}, ::Type{Union{T,S}}) where {S,T} = S
 _typesubtract_impl(::Type, ::Type{S}) where {S} = S
 
+_bottom_state_type(::Type{T}) where {T} = T
+_bottom_state_type(::Type{Union{}}) = Union{}
+_bottom_state_type(::Type{<:PrivateState{<:Any,<:Any,R}}) where {R} = R
+
 function GroupByViewDict(state::AbstractDict{K,V0}, xf::GroupBy) where {K,V0}
     S = typeof(DefaultInit(_realbottomrf(xf.rf)))
-    V = _typesubtract(V0, S)
+    V = _typesubtract(_bottom_state_type(V0), S)
     return GroupByViewDict{K,V,S,typeof(state)}(state)
 end
 
