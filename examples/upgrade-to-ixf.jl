@@ -1,6 +1,6 @@
 # # Upgrade to new `|>` of Transducers.jl 0.4.XX
 #
-# Transducers.jl 0.4.XX now interpret `|>` differently.  Consider
+# Transducers.jl 0.4.XX now interpret `|>` differently.  Consider the
 # following examples:
 
 using Transducers
@@ -33,9 +33,7 @@ nothing                                                              # hide
 # application definition of `|>` (i.e., `x |> f == f(x)`):
 
 if VERSION >= v"1.3"                                                   #src
-yes =                                                                  #src
-1:5 |> Filter(isodd) |> Map(inv) === Map(inv)(Filter(isodd)(1:5))
-@test yes                                                              #src
+@assert 1:5 |> Filter(isodd) |> Map(inv) === Map(inv)(Filter(isodd)(1:5))
 end                                                                    #src
 
 # !!! note
