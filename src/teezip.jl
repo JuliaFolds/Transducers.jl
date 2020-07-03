@@ -9,7 +9,7 @@ $_experimental_warning
 To illustrate how it works, consider the following usage
 
 ```
-opcompose(xf0, ZipSource(xf1), xf2)
+collection |> xf0 |> ZipSource(xf1) |> xf2
 ```
 
 where `xf0`, `xf1`, and `xf2` are some transducers.  Schematically,
