@@ -33,7 +33,7 @@ sense also includes other interfaces such as [`start(rf, ::X)`](@ref
 Transducers.start) and [`complete(rf, ::X)`](@ref
 Transducers.complete).
 
-## Transducer
+## [Transducer](@id glossary-transducer)
 
 A transducer in Transducers.jl is a transformation `xf` that
 
@@ -44,9 +44,54 @@ A transducer in Transducers.jl is a transformation `xf` that
 
 Common variable names for transducers are `xf` and `xform`.
 
+The idea of generalizing the transducer as two kinds of transformation
+is due to Jan Weidner [`@jw3126`](https://github.com/jw3126).  See the
+discussion in
+[JuliaFolds/Transducers.jl#67](https://github.com/JuliaFolds/Transducers.jl/issues/67).
+
+### [Iterator transformation](@id glossary-ixf)
+
+As of Transducers.jl 0.4.XX, the call overload of [`Transducer`](@ref)
+is interpreted as an _iterator transformation_.  That is to say, the
+iterator transformation using `Base.Iterators`
+
+```jldoctest ixf; setup = :(using Transducers)
+julia> ixf₁ = itr -> Iterators.filter(isodd, itr);
+```
+
+and the iterator transformation in Transducers.jl
+
+```jldoctest ixf
+julia> ixf₂ = Filter(isodd);
+```
+
+behaves identically:
+
+```jldoctest ixf
+julia> collect(ixf₁(1:10)) == collect(ixf₂(1:10))
+true
+```
+
+`Filter(isodd)(1:10)` is an [`eduction`](@ref).
+
+### [Reducing function transformation](@id glossary-rfxf)
+
+Transducers.jl 0.4.XX also exposes reducing function (RF)
+transformation with [`xf'(rf)`](@ref adjoint) (`adjoint`):
+
+```jldoctest ixf
+julia> rf = Filter(isodd)'(+);  # equivalent to (acc, x) -> isodd(x) ? acc + x : acc
+
+julia> rf(0, 2)  # `2` filtered out
+0
+
+julia> rf(0, 1)  # `1` not filtered out
+1
+```
+
 ### Transducer in the narrow sense (Clojure)
 
-A transducer as originally
+The transducer as originally
 [introduced by Rich Hickey](https://clojure.org/reference/transducers)
 is a transformation of reducing step function.  Thus, what is referred
 to as a transducer ``\mathrm{xf}`` in Clojure and many other languages

@@ -1,6 +1,6 @@
 # # Upgrade to new `|>` of Transducers.jl 0.4.XX
 #
-# Transducers.jl 0.4.XX now interpret `|>` differently.  Consider the
+# Transducers.jl 0.4.XX now interprets `|>` differently.  Consider the
 # following examples:
 
 using Transducers
@@ -85,3 +85,18 @@ end
 nothing                                                              # hide
 
 # when the performance is important.
+#
+# Transducers.jl 0.4.XX also adds [`xf'(rf)`](@ref adjoint) as the
+# [reducing function transformation](@ref glossary-rfxf).  This makes
+# composing reducing functions easier.  For example, it can be used to
+# compute even minimum and odd maximum in one go:
+
+rf = TeeRF(Filter(iseven)'(min), Filter(isodd)'(max))
+@test (2, 9) ==                                                        #src
+reduce(rf, Map(identity), 1:10)
+
+# More details can be found in the reference entries such as
+# [`Transducer`](@ref), [`eduction`](@ref), [`adjoint`](@ref),
+# [`reducingfunction`](@ref) and [`∘`](@ref).  To understand how those
+# interfaces work coherently, see [the explanation section on
+# "generalized" transducers](@ref glossary-transducer).

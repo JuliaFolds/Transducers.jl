@@ -535,13 +535,26 @@ Create a iterable and reducible object.
 
 This API is modeled after $(_cljref("eduction")).
 
+!!! note
+
+    Even though `eduction` returns an iterable, it is highly
+    recommended to use the `foldl`-based method provided by
+    Transducers.jl when the performance is important.
+
 # Examples
 ```jldoctest
 julia> using Transducers
 
-julia> for x in 1:1000 |> Filter(isodd) |> Take(3)
+julia> for x in 1:1000 |> Filter(isodd) |> Take(3)  # slow
            @show x
        end
+x = 1
+x = 3
+x = 5
+
+julia> foreach(1:1000 |> Filter(isodd) |> Take(3)) do x  # better
+           @show x
+       end;
 x = 1
 x = 3
 x = 5
