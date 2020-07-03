@@ -134,6 +134,11 @@ function Base.getindex(dict::GroupByViewDict{<:Any,<:Any,S}, key) where {S}
     return value
 end
 
+function Base.get(dict::GroupByViewDict{<:Any,<:Any,S}, key, default) where {S}
+    value = unwrap_all(unreduced(dict.state[key]))
+    return value isa S ? default : value
+end
+
 function start(rf::R_{GroupBy}, result)
     gstate = Dict{Union{},Union{}}()
     return wrap(rf, gstate, start(inner(rf), result))
