@@ -89,14 +89,14 @@ end
     @test sprint(show, "text/plain", rf; kw...) == "Transducers.TeeRF(min, max)"
 end
 
-@testset "TeeRF{Tuple{Any,Any}}((min, max))" begin
-    rf = TeeRF{Tuple{Any,Any}}((min, max))
+@testset "TeeRF{2,Tuple{Any,Any}}((min, max))" begin
+    rf = TeeRF{2,Tuple{Any,Any}}((min, max))
     kw = (; context = :module => Base)
-    @test repr(rf; kw...) == "Transducers.TeeRF{Tuple{Any,Any}}((min, max))"
-    @test sprint(print, rf; kw...) == "Transducers.TeeRF{Tuple{Any,Any}}((min, max))"
-    @test sprint(show, rf; kw...) == "Transducers.TeeRF{Tuple{Any,Any}}((min, max))"
+    @test repr(rf; kw...) == "Transducers.TeeRF{2,Tuple{Any,Any}}((min, max))"
+    @test sprint(print, rf; kw...) == "Transducers.TeeRF{2,Tuple{Any,Any}}((min, max))"
+    @test sprint(show, rf; kw...) == "Transducers.TeeRF{2,Tuple{Any,Any}}((min, max))"
     @test sprint(show, "text/plain", rf; kw...) ==
-          "Transducers.TeeRF{Tuple{Any,Any}}((min, max))"
+          "Transducers.TeeRF{2,Tuple{Any,Any}}((min, max))"
 end
 
 @testset "ProductRF(min, max)" begin
@@ -108,14 +108,14 @@ end
     @test sprint(show, "text/plain", rf; kw...) == "Transducers.ProductRF(min, max)"
 end
 
-@testset "ProductRF{Tuple{Any,Any}}((min, max))" begin
-    rf = ProductRF{Tuple{Any,Any}}((min, max))
+@testset "ProductRF{2,Tuple{Any,Any}}((min, max))" begin
+    rf = ProductRF{2,Tuple{Any,Any}}((min, max))
     kw = (; context = :module => Base)
-    @test repr(rf; kw...) == "Transducers.ProductRF{Tuple{Any,Any}}((min, max))"
-    @test sprint(print, rf; kw...) == "Transducers.ProductRF{Tuple{Any,Any}}((min, max))"
-    @test sprint(show, rf; kw...) == "Transducers.ProductRF{Tuple{Any,Any}}((min, max))"
+    @test repr(rf; kw...) == "Transducers.ProductRF{2,Tuple{Any,Any}}((min, max))"
+    @test sprint(print, rf; kw...) == "Transducers.ProductRF{2,Tuple{Any,Any}}((min, max))"
+    @test sprint(show, rf; kw...) == "Transducers.ProductRF{2,Tuple{Any,Any}}((min, max))"
     @test sprint(show, "text/plain", rf; kw...) ==
-          "Transducers.ProductRF{Tuple{Any,Any}}((min, max))"
+          "Transducers.ProductRF{2,Tuple{Any,Any}}((min, max))"
 end
 
 end  # module
