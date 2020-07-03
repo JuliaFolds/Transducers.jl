@@ -36,11 +36,19 @@ end
 
 @testset "GroupByViewDict" begin
     gd1 = foldl(right, GroupBy(string, Map(last), push!!), [1, 2, 1, 2, 3])
-    gd2 = foldl(right, GroupBy(x -> gcd(x, 6), Map(last) |> Filter(isodd), push!!), 1:10)
-    gd3 = foldl(right, Filter(isodd) |> GroupBy(x -> gcd(x, 6), Map(last), push!!), 1:10)
+    gd2 = foldl(
+        right,
+        GroupBy(x -> gcd(x, 6), opcompose(Map(last), Filter(isodd)), push!!),
+        1:10,
+    )
+    gd3 = foldl(
+        right,
+        opcompose(Filter(isodd), GroupBy(x -> gcd(x, 6), Map(last), push!!)),
+        1:10,
+    )
     gd4 = foldl(
         right,
-        GroupBy(x -> gcd(x, 6), Map(last) |> Unique(x -> gcd(x, 4)), push!!),
+        GroupBy(x -> gcd(x, 6), opcompose(Map(last), Unique(x -> gcd(x, 4))), push!!),
         1:10,
     )
     @test gd1 == Dict("1" => [1, 1], "2" => [2, 2], "3" => [3])
