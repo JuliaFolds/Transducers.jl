@@ -33,7 +33,7 @@ See more in the [documentation](https://juliafolds.github.io/Transducers.jl/dev)
 
 ## Installation
 
-```
+```julia
 using Pkg
 Pkg.add("Transducers")
 ```
