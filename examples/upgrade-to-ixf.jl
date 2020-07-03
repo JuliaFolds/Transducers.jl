@@ -8,26 +8,23 @@ using Test                                                             #src
 
 old1 =                                                                 #src
 collect(Filter(isodd) |> Map(inv), 1:5)
-#-
-
 old2 =                                                                 #src
 foldl(+, Filter(isodd) |> Map(inv), 1:5)
-#-
+nothing                                                              # hide
 
 # It is now recommended to write
 
 @test old1 ==                                                          #src
 1:5 |> Filter(isodd) |> Map(inv) |> collect
-#-
-
 @test old2 ==                                                          #src
 foldl(+, 1:5 |> Filter(isodd) |> Map(inv))
-#-
+nothing                                                              # hide
 
 # The last snippet can also be written as
 
 @test old2 ==                                                          #src
 1:5 |> Filter(isodd) |> Map(inv) |> sum
+nothing                                                              # hide
 
 # Note that `|>` now is compatible with the standard function
 # application definition of `|>` (i.e., `x |> f == f(x)`):
@@ -45,11 +42,13 @@ yes =                                                                  #src
 
 old3 =                                                                 #src
 foldl(right, GroupBy(x -> gcd(x, 6), Map(last) |> Filter(isodd), push!!), 1:10)
+nothing                                                              # hide
 
 # use the opposite composition `opcompose` instead:
 
 @test old3 ==                                                          #src
 foldl(right, GroupBy(x -> gcd(x, 6), opcompose(Map(last), Filter(isodd)), push!!), 1:10)
+nothing                                                              # hide
 
 # In Julia ≥ 1.5,
 # [`⨟`](https://github.com/JuliaFunctional/CompositionsBase.jl) can
@@ -64,15 +63,20 @@ foldl(right, GroupBy(x -> gcd(x, 6), opcompose(Map(last), Filter(isodd)), push!!
 # However, it is not recommended to use it with non-specialized
 # functions.  For example, even though
 
+ys = Int[]
 for x in 1:5 |> Filter(isodd)
-    @show x
+    push!(ys, x)
 end
+old4 = ys                                                              #src
+nothing                                                              # hide
 
 # works as expected, it is recommended to use
 
+ys = Int[]
 foreach(1:5 |> Filter(isodd)) do x
-    @show x
+    push!(ys, x)
 end
+@test old4 == ys                                                       #src
 nothing                                                              # hide
 
 # when the performance is important.
