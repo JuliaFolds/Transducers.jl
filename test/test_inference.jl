@@ -104,6 +104,8 @@ end
     @testset for xs in collections
         @test_inferred eduction(Map(exp), xs)
         @test_inferred eduction(opcompose(Map(exp), Filter(x -> x > 0)), xs)
+        @test_inferred eduction(Filter(x -> x > 0), eduction(Map(exp), xs))
+        @test_inferred eduction(exp(x) for x in xs)
     end
 end
 

@@ -1,11 +1,21 @@
 # Non-transducer reducing function combinators
 
 # Some common definitions for TeeRF and ProductRF
-abstract type AbstractMultiCastingRF <: _Function end
+abstract type AbstractMultiCastingRF{N} <: _Function end
 # TOOD: Use `AbstractMultiCastingRF <: AbstractReduction` so that
 # extra `BottomRF` wrapper can be removed.
 
 start(rf::AbstractMultiCastingRF, init) = map(f -> start(f, init), rf.fs)
+
+start(rf::AbstractMultiCastingRF{N}, init::NTuple{N,Any}) where {N} =
+    map(start, rf.fs, init)
+start(rf::AbstractMultiCastingRF, init::Tuple) = error(
+    "`start($rf, init)` received an incompatible accumulator `init` of length ",
+    length(init),
+    ".\n",
+    "It requires a $(length(rf.fs))-tuple instead.\n",
+    "init = $init",
+)
 
 # Trying to detect bugs by narrowing method signatures when defining
 # `next` for concrete reducing functions. Otherwise, it falls back to
@@ -99,15 +109,16 @@ julia> foldl(TeeRF(min, filtering_max), Map(identity), 2:2:8; init = Init)
 (2, Init(max))
 ```
 """
-struct TeeRF{T<:Tuple} <: AbstractMultiCastingRF
+struct TeeRF{N,T<:NTuple{N,Any}} <: AbstractMultiCastingRF{N}
     fs::T
-    TeeRF{T}(fs) where {T} = new{T}(fs)
+    TeeRF{N,T}(fs) where {N,T} = new{N,T}(fs)
 end
 
-TeeRF(fs::Tuple) = TeeRF{typeof(fs)}(fs)
+TeeRF{N}(fs::NTuple{N,Any}) where {N} = TeeRF{N,typeof(fs)}(fs)
+TeeRF(fs::NTuple{N,Any}) where {N} = TeeRF{N}(fs)
 TeeRF(f, fs...) = TeeRF((f, fs...))
 
-@inline next(rf::TeeRF{<:NTuple{N,Any}}, accs::NTuple{N,Any}, x) where {N} =
+@inline next(rf::TeeRF{N}, accs::NTuple{N,Any}, x) where {N} =
     map((f, a) -> next(f, a, x), rf.fs, accs)
 @inline (rf::TeeRF)(accs, x) = next(rf, accs, x)
 
@@ -158,26 +169,15 @@ julia> foldl(TeeRF(reducingfunction(Map(isodd), &), +), Map(identity), [5, 2, 6,
 (false, 24)
 ```
 """
-struct ProductRF{T<:Tuple} <: AbstractMultiCastingRF
+struct ProductRF{N,T<:NTuple{N,Any}} <: AbstractMultiCastingRF{N}
     fs::T
-    ProductRF{T}(fs) where {T} = new{T}(fs)
+    ProductRF{N,T}(fs) where {N,T} = new{N,T}(fs)
 end
 
-ProductRF(fs::Tuple) = ProductRF{typeof(fs)}(fs)
+ProductRF{N}(fs::NTuple{N,Any}) where {N} = ProductRF{N,typeof(fs)}(fs)
+ProductRF(fs::NTuple{N,Any}) where {N} = ProductRF{N}(fs)
 ProductRF(f, fs...) = ProductRF((f, fs...))
 
-# Default `start` is defined by AbstractMultiCastingRF
-function start(rf::ProductRF, inits::Tuple)
-    _check_multirf_inits(rf.fs, inits)
-    return map((f, i) -> start(f, i), rf.fs, inits)
-end
-
-_check_multirf_inits(::NTuple{N,Any}, ::NTuple{N,Any}) where {N} = nothing
-function _check_multirf_inits(fs, inits)
-    @nospecialize
-    throw(ArgumentError("incompatible length of tuple is provided"))
-end
-
-@inline next(rf::ProductRF{<:NTuple{N,Any}}, accs::NTuple{N,Any}, xs) where {N} =
+@inline next(rf::ProductRF{N}, accs::NTuple{N,Any}, xs) where {N} =
     map(next, rf.fs, accs, xs)
 @inline (rf::ProductRF)(accs, x) = next(rf, accs, x)
