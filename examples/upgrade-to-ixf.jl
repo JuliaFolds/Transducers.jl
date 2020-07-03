@@ -5,11 +5,14 @@
 
 using Transducers
 using Test                                                             #src
+using Logging                                                        # hide
 
-old1 =                                                                 #src
+with_logger(NullLogger()) do                                         # hide
+global old1 =                                                          #src
 collect(Filter(isodd) |> Map(inv), 1:5)
-old2 =                                                                 #src
+global old2 =                                                          #src
 foldl(+, Filter(isodd) |> Map(inv), 1:5)
+end                                                                  # hide
 nothing                                                              # hide
 
 # It is now recommended to write
@@ -42,8 +45,10 @@ end                                                                    #src
 
 # If there is no input collection; e.g.,
 
-old3 =                                                                 #src
+with_logger(NullLogger()) do                                         # hide
+global old3 =                                                          #src
 foldl(right, GroupBy(x -> gcd(x, 6), Map(last) |> Filter(isodd), push!!), 1:10)
+end                                                                  # hide
 nothing                                                              # hide
 
 # use the opposite composition `opcompose` instead:
