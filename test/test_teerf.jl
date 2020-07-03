@@ -62,6 +62,7 @@ end
             @test fold(TeeRF(+, +), Map(identity), 1:9, init = 0.0) === (45.0, 45.0)
         end
         @test foldl(TeeRF(+, +), Map(identity), 1:2; init = 1) === (4, 4)
+        @test foldl(TeeRF(+, +), Map(identity), 1:2; init = (0, 1)) === (3, 4)
     end
 end
 

@@ -29,4 +29,21 @@ end
           Dict(1 => 1 => 1, 2 => 2 => 2, 3 => 3 => 3)
 end
 
+@testset "GroupByViewDict" begin
+    gd1 = foldl(right, GroupBy(string, Map(last), push!!), [1, 2, 1, 2, 3])
+    gd2 = foldl(right, GroupBy(x -> gcd(x, 6), Map(last) |> Filter(isodd), push!!), 1:10)
+    gd3 = foldl(right, Filter(isodd) |> GroupBy(x -> gcd(x, 6), Map(last), push!!), 1:10)
+    gd4 = foldl(
+        right,
+        GroupBy(x -> gcd(x, 6), Map(last) |> Unique(x -> gcd(x, 4)), push!!),
+        1:10,
+    )
+    @test gd1 == Dict("1" => [1, 1], "2" => [2, 2], "3" => [3])
+    @test gd2 == gd3
+    @test gd4 == Dict(2 => [2, 4], 3 => [3], 6 => [6], 1 => [1])
+    @test Dict(gd1) == Dict("1" => [1, 1], "2" => [2, 2], "3" => [3])
+    @test Dict(gd2) == Dict(gd3)
+    @test Dict(gd4) == Dict(2 => [2, 4], 3 => [3], 6 => [6], 1 => [1])
+end
+
 end  # module
