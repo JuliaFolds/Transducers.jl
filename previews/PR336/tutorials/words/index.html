@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Parallel word count · Transducers.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">Transducers.jl</span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Reference</span><ul><li><a class="tocitem" href="../../reference/manual/">Manual</a></li><li><a class="tocitem" href="../../reference/interface/">Interface</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../tutorial_missings/">Tutorial: Missing values</a></li><li><a class="tocitem" href="../tutorial_parallel/">Tutorial: Parallelism</a></li><li class="is-active"><a class="tocitem" href>Parallel word count</a><ul class="internal"><li><a class="tocitem" href="#String-splitting-transducer"><span>String-splitting transducer</span></a></li><li><a class="tocitem" href="#Word-counting-transducer"><span>Word-counting transducer</span></a></li></ul></li></ul></li><li><span class="tocitem">How-to guides</span><ul><li><a class="tocitem" href="../../howto/upgrade-to-ixf/">Upgrade to new <code>|&gt;</code> of Transducers.jl 0.4.39</a></li><li><a class="tocitem" href="../../howto/empty_result_handling/">Empty result handling</a></li><li><a class="tocitem" href="../../howto/transducers/">Writing transducers</a></li><li><a class="tocitem" href="../../howto/reducibles/">Writing reducibles</a></li></ul></li><li><span class="tocitem">Explanation</span><ul><li><a class="tocitem" href="../../parallelism/">Parallelism</a></li><li><a class="tocitem" href="../../explanation/comparison_to_iterators/">Comparison to iterators</a></li><li><a class="tocitem" href="../../explanation/glossary/">Glossary</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Parallel word count</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Parallel word count</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/JuliaFolds/Transducers.jl/blob/master/examples/words.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="parallel-word-count"><a class="docs-heading-anchor" href="#parallel-word-count">Splitting a string into words and counting them in parallel</a><a id="parallel-word-count-1"></a><a class="docs-heading-anchor-permalink" href="#parallel-word-count" title="Permalink"></a></h1><p>We start from the parallel algorithm presented in Guy Steele&#39;s 2009 ICFP talk <a href="https://vimeo.com/6624203">(video)</a>.  It splits a space-separated string into list of strings (words).  The repeating theme in the talk was to build &quot;singleton solutions&quot; and then merge them together using an associative function.  We will follow this guideline and slightly extend the algorithm.</p><p>It is highly recommended to just watch the talk for understanding the algorithm.  However, we briefly describe how it works.</p><p>When a certain contiguous region of a string is processed, we either already have seen at least one space or not.  These two states are tracked using following two types.  If there is no space so far, we only have a chunk of a possibly larger word (see example below):</p><pre><code class="language-julia">struct Chunk
+    s::String
+end</code></pre><p>If there are one or more spaces, (possibly zero) words that are already determined and left/right &quot;chunks&quot; have to be tracked separately:</p><pre><code class="language-julia">struct Segment
+    l::String
+    A::Vector{String}
+    r::String
+end</code></pre><p>Here is an example taken from the talk:</p><pre><code class="language-none">Segment(&quot;Here&quot;, [&quot;is&quot;, &quot;a&quot;], &quot;&quot;)
+   |
+   |       Segment(&quot;lian&quot;, [], &quot;string&quot;)
+ __|_____            _|______
+|        |          |        |
+Here is a sesquipedalian string of words
+          |________|          |________|
+   Chunk(&quot;sesquipeda&quot;)        Segment(&quot;g&quot;, [&quot;of&quot;], &quot;words&quot;)</code></pre><p>We then need a way to merge two results which can independently in one of the above two states.</p><pre><code class="language-julia">⊕(x::Chunk, y::Chunk) = Chunk(x.s * y.s)
+⊕(x::Chunk, y::Segment) = Segment(x.s * y.l, y.A, y.r)
+⊕(x::Segment, y::Chunk) = Segment(x.l, x.A, x.r * y.s)
+⊕(x::Segment, y::Segment) =
+    Segment(x.l,
+            append!(append!(x.A, maybewordv(x.r * y.l)), y.A),
+            y.r)
+
+maybewordv(s::String) = isempty(s) ? String[] : [s]</code></pre><p>Input is a sequence of <code>Char</code>s.  Each of them has to be converted into a &quot;singleton solution&quot; which can be merged with already aggregated (or another singleton) solution with <code>⊕</code>:</p><pre><code class="language-julia">segmentorchunk(c::Char) = c == &#39; &#39; ? Segment(&quot;&quot;, [], &quot;&quot;) : Chunk(string(c))</code></pre><p>Putting them together, we get:</p><pre><code class="language-julia">function collectwords(s::String)
+    g = mapfoldl(segmentorchunk, ⊕, s; init=Segment(&quot;&quot;, [], &quot;&quot;))
+    if g isa Char
+        return maybewordv(g.s)
+    else
+        return append!(append!(maybewordv(g.l), g.A), maybewordv(g.r))
+    end
+end</code></pre><p>Let&#39;s run a few tests covering some edge cases:</p><pre><code class="language-julia">using Test
+@testset begin
+    @test collectwords(&quot;This is a sample&quot;) == [&quot;This&quot;, &quot;is&quot;, &quot;a&quot;, &quot;sample&quot;]
+    @test collectwords(&quot; Here is another sample &quot;) == [&quot;Here&quot;, &quot;is&quot;, &quot;another&quot;, &quot;sample&quot;]
+    @test collectwords(&quot;JustOneWord&quot;) == [&quot;JustOneWord&quot;]
+    @test collectwords(&quot; &quot;) == []
+    @test collectwords(&quot;&quot;) == []
+end</code></pre><pre><code class="language-none">Test Summary: | Pass  Total
+test set      |    5      5</code></pre><h2 id="String-splitting-transducer"><a class="docs-heading-anchor" href="#String-splitting-transducer">String-splitting transducer</a><a id="String-splitting-transducer-1"></a><a class="docs-heading-anchor-permalink" href="#String-splitting-transducer" title="Permalink"></a></h2><p>Let&#39;s try to make it re-usable by packaging it into transducers.</p><pre><code class="language-julia">using Transducers</code></pre><p>Rather than accumulating words into a vector, we are going to write a transducer that &quot;emits&quot; a word as soon as it is ready.  The downstream transducer may choose to record everything or only aggregate, e.g., reduced statistics.  To this end, we replace <code>Segment</code> in the original algorithm to</p><pre><code class="language-julia">struct Vacant
+    l::String
+    r::String
+end</code></pre><p>and output the words in the &quot;middle&quot; without accumulating it.  We use <a href="../../reference/manual/#Transducers.ScanEmit"><code>ScanEmit</code></a> which requires an operator/function like <code>⊕</code> above but returning a pair of output and next state.  This function (<code>extract</code> below) must have the signature <code>(S, S) -&gt; (O, S)</code> where <code>S</code> is the type for accumulated state and input and <code>O</code> is the output type.</p><pre><code class="language-julia">extract(x::Chunk, y::Chunk) = (), Chunk(x.s * y.s)
+extract(x::Chunk, y::Vacant) = (), Vacant(x.s * y.l, y.r)
+extract(x::Vacant, y::Chunk) = (), Vacant(x.l, x.r * y.s)
+extract(x::Vacant, y::Vacant) = maybewordt(x.r * y.l), Vacant(x.l, y.r)
+
+maybewordt(s) = isempty(s) ? () : (s,)</code></pre><p><code>maybewordt(x.r * y.l)</code> in <code>extract(x::Vacant, y::Vacant)</code> is the &quot;emission&quot;.</p><p>The words at the beginning and/or the end are not handled by <code>extract</code>.  This must be handled separately:</p><pre><code class="language-julia">lastword(x::Chunk) = maybewordt(x.s)
+lastword(x::Vacant) = (maybewordt(x.r)..., maybewordt(x.l)...)
+
+vacantorchunk(c::Char) = c == &#39; &#39; ? Vacant(&quot;&quot;, &quot;&quot;) : Chunk(string(c))
+
+wordsxf = opcompose(Map(vacantorchunk), ScanEmit(extract, Chunk(&quot;&quot;), lastword), Cat())</code></pre><pre><code class="language-none">Map(vacantorchunk) ⨟
+    ScanEmit(extract, Chunk(&quot;&quot;), lastword) ⨟
+    Cat()</code></pre><p>Test:</p><pre><code class="language-julia">@testset begin
+    @test collect(wordsxf, &quot;This is a sample&quot;) == [&quot;is&quot;, &quot;a&quot;, &quot;sample&quot;, &quot;This&quot;]
+    @test collect(wordsxf, &quot; Here is another sample &quot;) == [&quot;Here&quot;, &quot;is&quot;, &quot;another&quot;, &quot;sample&quot;]
+    @test collect(wordsxf, &quot;JustOneWord&quot;) == [&quot;JustOneWord&quot;]
+    @test collect(wordsxf, &quot; &quot;) == []
+    @test collect(wordsxf, &quot;&quot;) == []
+end</code></pre><pre><code class="language-none">Test Summary: | Pass  Total
+test set      |    5      5</code></pre><p>Side note: In the first example, the first word <code>This</code> comes last. This is actually expected since both <code>.l</code> and <code>.r</code> are flushed in <code>lastword</code> which is called at the very end.  Here, <code>This</code> is stored in <code>.l</code> field.  If the order of the words is important, there are many possible fixes.  For example, <code>extract</code> and <code>lastword</code> can bundle information about the origin of the word (left vs middle-or-right).  Alternatively, perhaps the easiest solution is to insert a space in the beginning of input data.</p><h2 id="Word-counting-transducer"><a class="docs-heading-anchor" href="#Word-counting-transducer">Word-counting transducer</a><a id="Word-counting-transducer-1"></a><a class="docs-heading-anchor-permalink" href="#Word-counting-transducer" title="Permalink"></a></h2><p>We can pipe the resulting words into various transducers.</p><pre><code class="language-julia">processcount(word) = Base.ImmutableDict(word =&gt; 1)
+countxf = opcompose(wordsxf, Map(processcount))</code></pre><pre><code class="language-none">Map(vacantorchunk) ⨟
+    ScanEmit(extract, Chunk(&quot;&quot;), lastword) ⨟
+    Cat() ⨟
+    Map(processcount)</code></pre><p>Transducer <code>countxf</code> constructs a &quot;singleton solution&quot; as a dictionary which then accumulated with the associative reducing step function <code>mergecont!</code>:</p><pre><code class="language-julia">mergecont!(a, b) = merge!(+, a, b)</code></pre><p>Putting the transducer and reducing function together, we get:</p><pre><code class="language-julia">countwords(s; kwargs...) =
+    reduce(mergecont!,
+           countxf,
+           collect(s);
+           init = CopyInit(Dict{String,Int}()),
+           kwargs...)</code></pre><p>Side note: Since <a href="../../reference/manual/#Base.reduce"><code>reduce</code></a> does not support string, the input string is converted to a <code>Vector{Char}</code> first by <code>collect</code>.</p><p>Side note 2: We use <a href="../../reference/manual/#Transducers.CopyInit"><code>CopyInit</code></a> to create a fresh initial state for each sub-reduce to avoid overwriting mutable data between threads.</p><p>Side note 3: <a href="../../reference/manual/#Base.reduce"><code>reduce</code></a> wraps <code>mergecont!</code> automatically with <a href="../../reference/manual/#Transducers.Completing"><code>Completing</code></a>.  This is why <code>mergecont!</code> does not have to have the unary method.</p><p>Let&#39;s run some tests with different <code>basesize</code> (<code>length(s) / basesize</code> corresponds to number of tasks to be used):</p><pre><code class="language-julia">@testset for basesize in [1, 2, 4]
+    @test countwords(&quot;This is a sample&quot;, basesize=basesize) ==
+        Dict(&quot;This&quot; =&gt; 1, &quot;is&quot; =&gt; 1, &quot;a&quot; =&gt; 1, &quot;sample&quot; =&gt; 1)
+    @test countwords(&quot; Here is another sample &quot;, basesize=basesize) ==
+        Dict(&quot;Here&quot; =&gt; 1, &quot;is&quot; =&gt; 1, &quot;another&quot; =&gt; 1, &quot;sample&quot; =&gt; 1)
+    @test countwords(&quot;JustOneWord&quot;, basesize=basesize) ==
+        Dict(&quot;JustOneWord&quot; =&gt; 1)
+    @test countwords(&quot; &quot;, basesize=basesize) == Dict()
+    @test countwords(&quot;&quot;, basesize=basesize) == Dict()
+    @test countwords(&quot;aaa bb aaa aaa bb bb aaa&quot;, basesize=basesize) ==
+        Dict(&quot;aaa&quot; =&gt; 4, &quot;bb&quot; =&gt; 3)
+    @test countwords(&quot;あああ いい あああ あああ いい いい あああ&quot;, basesize=basesize) ==
+        Dict(&quot;あああ&quot; =&gt; 4, &quot;いい&quot; =&gt; 3)
+end</code></pre><pre><code class="language-none">Test Summary: | Pass  Total
+basesize = 1  |    7      7
+Test Summary: | Pass  Total
+basesize = 2  |    7      7
+Test Summary: | Pass  Total
+basesize = 4  |    7      7</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tutorial_parallel/">« Tutorial: Parallelism</a><a class="docs-footer-nextpage" href="../../howto/upgrade-to-ixf/">Upgrade to new <code>|&gt;</code> of Transducers.jl 0.4.39 »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Saturday 4 July 2020 21:49">Saturday 4 July 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
