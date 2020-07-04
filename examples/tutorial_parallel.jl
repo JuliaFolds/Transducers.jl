@@ -349,6 +349,7 @@ Text(y5)                                                             # hide
 # in a distribution of random numbers.  First, let's create "singleton
 # solutions" using transducers:
 
+xs = 1_000_000 * randn(10_000_000)
 dicts1 = xs |> Map(abs) |> Filter(x -> x > 1) |> Map() do x
     y = digits(floor(Int, x))[end]
     Dict(y => 1)
@@ -377,7 +378,6 @@ rf!(Dict(:a => 1, :b => 2), Dict(:b => 3, :c => 4))
 
 # Let's try this with some random data:
 
-xs = 1_000_000 * randn(10_000_000)
 counts1 = reduce(mergewith!(+), dicts1)
 nothing                                                              # hide
 
