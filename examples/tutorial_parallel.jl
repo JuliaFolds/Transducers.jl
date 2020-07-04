@@ -376,7 +376,7 @@ rf!(Dict(:a => 1, :b => 2), Dict(:b => 3, :c => 4))
 # multiple tasks would share and try to mutate the same dictionary
 # this way.
 
-# Let's try this with some random data:
+# Let's try this with parallel `reduce`:
 
 counts1 = reduce(mergewith!(+), dicts1)
 nothing                                                              # hide
