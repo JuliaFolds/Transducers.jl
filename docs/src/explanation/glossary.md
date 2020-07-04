@@ -51,7 +51,7 @@ discussion in
 
 ### [Iterator transformation](@id glossary-ixf)
 
-As of Transducers.jl 0.4.XX, the call overload of [`Transducer`](@ref)
+As of Transducers.jl 0.4.39, the call overload of [`Transducer`](@ref)
 is interpreted as an _iterator transformation_.  That is to say, the
 iterator transformation using `Base.Iterators`
 
@@ -76,7 +76,7 @@ true
 
 ### [Reducing function transformation](@id glossary-rfxf)
 
-Transducers.jl 0.4.XX also exposes reducing function (RF)
+Transducers.jl 0.4.39 also exposes reducing function (RF)
 transformation with [`xf'(rf)`](@ref adjoint) (`adjoint`):
 
 ```jldoctest ixf

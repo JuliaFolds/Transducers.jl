@@ -1,6 +1,6 @@
-# # Upgrade to new `|>` of Transducers.jl 0.4.XX
+# # Upgrade to new `|>` of Transducers.jl 0.4.39
 #
-# Transducers.jl 0.4.XX now interprets `|>` differently.  Consider the
+# Transducers.jl 0.4.39 now interprets `|>` differently.  Consider the
 # following examples:
 
 using Transducers
@@ -86,7 +86,7 @@ nothing                                                              # hide
 
 # when the performance is important.
 #
-# Transducers.jl 0.4.XX also adds [`xf'(rf)`](@ref adjoint) as the
+# Transducers.jl 0.4.39 also adds [`xf'(rf)`](@ref adjoint) as the
 # [reducing function transformation](@ref glossary-rfxf).  This makes
 # composing reducing functions easier.  For example, it can be used to
 # compute even minimum and odd maximum in one go:

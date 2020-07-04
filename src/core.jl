@@ -210,8 +210,8 @@ A transducer `xf` can be used as both iterator transformation
 
 See also [`adjoint`](@ref) for `xf'(rf)`.
 
-!!! compat "Transducers.jl 0.4.XX"
-    The call overload `xf(rf)` requires Transducers.jl 0.4.XX or later.
+!!! compat "Transducers.jl 0.4.39"
+    The call overload `xf(rf)` requires Transducers.jl 0.4.39 or later.
 
 !!! note
     The call overload `xf(rf)` requires Julia 1.3 or later.
@@ -364,9 +364,9 @@ end
 
 Composition of transducers.
 
-!!! compat "Transducers.jl 0.4.XX"
+!!! compat "Transducers.jl 0.4.39"
 
-    Transducers.jl 0.4.XX or later is required for composing
+    Transducers.jl 0.4.39 or later is required for composing
     transducers with `∘` and other operators and functions derived
     from it.
 
