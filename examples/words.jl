@@ -130,7 +130,7 @@ lastword(x::Vacant) = (maybewordt(x.r)..., maybewordt(x.l)...)
 
 vacantorchunk(c::Char) = c == ' ' ? Vacant("", "") : Chunk(string(c))
 
-wordsxf = Map(vacantorchunk) |> ScanEmit(extract, Chunk(""), lastword) |> Cat()
+wordsxf = opcompose(Map(vacantorchunk), ScanEmit(extract, Chunk(""), lastword), Cat())
 
 # Test:
 
@@ -157,7 +157,7 @@ nothing  # hide
 # We can pipe the resulting words into various transducers.
 
 processcount(word) = Base.ImmutableDict(word => 1)
-countxf = wordsxf |> Map(processcount)
+countxf = opcompose(wordsxf, Map(processcount))
 
 # Transducer `countxf` constructs a "singleton solution" as a
 # dictionary which then accumulated with the associative reducing step

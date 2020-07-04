@@ -97,7 +97,7 @@ obain results even when the input collection is empty or all filtered
 out.
 
 ```jldoctest; setup = :(using Transducers), filter = r"EmptyResultError: .*"
-julia> filtering_max = reducingfunction(Filter(isodd), max);
+julia> filtering_max = Filter(isodd)'(max);
 
 julia> foldl(TeeRF(min, filtering_max), Map(identity), [5, 2, 6, 8, 3])
 (2, 5)

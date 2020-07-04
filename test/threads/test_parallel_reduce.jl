@@ -23,7 +23,7 @@ end
 @testset "early termination (runtime)" begin
     recorder = Recorder()
     records = recorder.records
-    @test reduce(right, Map(recorder) |> ReduceIf(==(1)), 1:32;
+    @test reduce(right, 1:32 |> Map(recorder) |> ReduceIf(==(1));
                  basesize=1) === 1
     if VERSION >= v"1.3-alpha"
         if Threads.nthreads() == 1
@@ -145,25 +145,25 @@ end
 
 @testset "TCat" begin
     oneto(x) = 1:x
-    @testset "Map(oneto) |> TCat(1)" begin
-        xf = Map(oneto) |> TCat(1)
+    @testset "Map(oneto) ⨟ TCat(1)" begin
+        xf = opcompose(Map(oneto), TCat(1))
         desired = [1, 1, 2, 1, 2, 3]
         @test collect(xf, 1:3) ==ₜ desired
         @test collect(xf, 0:3) ==ₜ desired
         @test tcollect(xf, 1:3) ==ₜ desired
         @test tcollect(xf, 0:3) ==ₜ desired
     end
-    @testset "Map(oneto) |> TCat(1) |> Map(oneto) |> TCat(1)" begin
+    @testset "Map(oneto) ⨟ TCat(1) ⨟ Map(oneto) ⨟ TCat(1)" begin
         noop(u, x) = x, u
-        xf = Map(oneto) |> TCat(1) |> Map(oneto) |> TCat(1)
+        xf = opcompose(Map(oneto), TCat(1), Map(oneto), TCat(1))
         desired = [1, 1, 1, 2, 1, 1, 2, 1, 2, 3]
         @test collect(xf, 1:3) ==ₜ desired
         @test collect(xf, 0:3) ==ₜ desired
         @test tcollect(xf, 1:3) ==ₜ desired
         @test tcollect(xf, 0:3) ==ₜ desired
     end
-    @testset "Scan(+) |> Map(oneto) |> TCat(1)" begin
-        xf = Scan(+) |> Map(oneto) |> TCat(1)
+    @testset "Scan(+) ⨟ Map(oneto) ⨟ TCat(1)" begin
+        xf = opcompose(Scan(+), Map(oneto), TCat(1))
         desired = [1, 1, 2, 3, 1, 2, 3, 4, 5, 6]
         @test foldl(vcat, xf, 1:3; init=Union{}[]) == desired
         @test foldl(vcat, xf, 0:3; init=Union{}[]) == desired

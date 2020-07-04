@@ -64,19 +64,19 @@ it would look very familiar to you:
 ```jldoctest
 julia> using Transducers
 
-julia> collect(Map(x -> 2x), 1:3)  # double each element
+julia> 1:3 |> Map(x -> 2x) |> collect  # double each element
 3-element Array{Int64,1}:
  2
  4
  6
 
-julia> collect(Filter(iseven), 1:6)  # collect only evens
+julia> 1:6 |> Filter(iseven) |> collect  # collect only evens
 3-element Array{Int64,1}:
  2
  4
  6
 
-julia> collect(MapCat(x -> 1:x), 1:3)  # concatenate mapped results
+julia> 1:3 |> MapCat(x -> 1:x) |> collect  # concatenate mapped results
 6-element Array{Int64,1}:
  1
  1
@@ -91,8 +91,7 @@ Transducers can be composed (without, unlike iterators, referring to
 the input):
 
 ```jldoctest filter-map
-julia> xf = Filter(iseven) |> Map(x -> 2x)
-       collect(xf, 1:6)
+julia> 1:6 |> Filter(iseven) |> Map(x -> 2x) |> collect
 3-element Array{Int64,1}:
   4
   8
@@ -104,7 +103,7 @@ An efficient way to use transducers is combination with
 intermediate lazy object and compiles to a single loop:
 
 ```jldoctest filter-map
-julia> foldl(+, xf, 1:6)
+julia> foldl(+, 1:6 |> Filter(iseven) |> Map(x -> 2x))
 24
 ```
 

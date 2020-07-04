@@ -48,9 +48,10 @@ end
 
 TransducerLister() = TransducerLister(@__MODULE__)
 
-Transducer(tl::TransducerLister) =
-    Filter(x -> is_transducer_type(getproperty(tl.m, x))) |>
-    Map(x -> Docs.Binding(tl.m, x))
+Transducer(tl::TransducerLister) = opcompose(
+    Filter(x -> is_transducer_type(getproperty(tl.m, x))),
+    Map(x -> Docs.Binding(tl.m, x)),
+)
 
 (tl::TransducerLister)() = eduction(Transducer(tl), names(tl.m))
 

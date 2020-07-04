@@ -18,23 +18,23 @@ end
 end
 
 asrf(xf) = Reduction(xf, right)
+asrf(xfs...) = asrf(opcompose(xfs...))
 
 @testset "usesimd" begin
     xfsimd = UseSIMD{false}()
-    @test usesimd(asrf(Map(identity)), xfsimd) === asrf(xfsimd |> Map(identity))
-    @test usesimd(asrf(Cat()), xfsimd) === asrf(Cat() |> xfsimd)
-    @test usesimd(asrf(Map(sin) |> Cat() |> Map(cos)), xfsimd) ===
-        asrf(Map(sin) |> Cat() |> xfsimd |> Map(cos))
-    @test usesimd(asrf(Map(sin) |> Cat() |> Map(cos) |> Cat() |> Map(tan)),
-                  xfsimd) ===
-        asrf(Map(sin) |> Cat() |> Map(cos) |> Cat() |> xfsimd |> Map(tan))
+    @test usesimd(asrf(Map(identity)), xfsimd) === asrf(xfsimd, Map(identity))
+    @test usesimd(asrf(Cat()), xfsimd) === asrf(Cat(), xfsimd)
+    @test usesimd(asrf(Map(sin), Cat(), Map(cos)), xfsimd) ===
+          asrf(Map(sin), Cat(), xfsimd, Map(cos))
+    @test usesimd(asrf(Map(sin), Cat(), Map(cos), Cat(), Map(tan)), xfsimd) ===
+          asrf(Map(sin), Cat(), Map(cos), Cat(), xfsimd, Map(tan))
 end
 
 @testset "skipcomplete" begin
     @testset for rf in [
             asrf(UseSIMD{false}()),
             usesimd(asrf(Map(identity)), UseSIMD{false}()),
-            usesimd(asrf(Map(sin) |> Map(cos)), UseSIMD{false}()),
+            usesimd(asrf(Map(sin), Map(cos)), UseSIMD{false}()),
             ]
         @test rf isa R_{UseSIMD}
         @test skipcomplete(rf) isa R_{UseSIMD}

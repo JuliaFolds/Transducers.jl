@@ -17,8 +17,9 @@ function __foldl__(rf, val, xff::TransducerFolder)
 end
 
 function print_arrow(io, pre, post)
+    arrow = get(io, :arrow, "⨟")
     print(io, pre)
-    printstyled(io, "|>"; color=:light_black, bold=true)
+    printstyled(io, arrow; color=:light_black, bold=true)
     print(io, post)
 end
 
@@ -213,6 +214,20 @@ end
 
 function _show_multiline_args(io, mime, rf::Joiner)
     _show_impl(io, mime, inner(rf))
+end
+
+function Base.show(io::IO, ed::Eduction)
+    io = IOContext(io, :arrow => "|>")
+    show(io, ed.coll)
+    print_spaced_arrow(io)
+    _show_impl(io, nothing, Transducer(ed))
+end
+
+function Base.show(io::IO, mime::MIME"text/plain", ed::Eduction)
+    io = IOContext(io, :arrow => "|>")
+    summary(IOContext(io, :compat => true), ed.coll)
+    print_arrow(io, ' ', '\n')
+    _show_impl(IOContext(io, :first_indent => ' '^4), mime, Transducer(ed))
 end
 
 @specialize

@@ -35,12 +35,14 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
 ```jldoctest
 julia> using Transducers
 
-julia> dreduce(+, Map(exp) |> Map(log), 1:3)
+julia> dreduce(+, 1:3 |> Map(exp) |> Map(log))
 6.0
 ```
 """
 dreduce(step, xform::Transducer, itr; init = DefaultInit, kwargs...) =
     unreduced(dtransduce(xform, Completing(step), init, itr; kwargs...))
+dreduce(step::F, foldable::Foldable; kwargs...) where {F} =
+    dreduce(step, extract_transducer(foldable)...; kwargs...)
 
 """
     dtransduce(xform::Transducer, step, init, array; [simd, basesize, threads_basesize, pool])
@@ -100,7 +102,7 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel)
     `dcopy` now accepts iterator comprehensions and eductions.
 """
 dcopy(xf, T, reducible; kwargs...) =
-    dreduce(append!!, xf |> Map(SingletonVector), reducible; init = Empty(T), kwargs...)
+    dreduce(append!!, Map(SingletonVector) ∘ xf, reducible; init = Empty(T), kwargs...)
 dcopy(xf, reducible; kwargs...) = dcopy(xf, _materializer(reducible), reducible; kwargs...)
 
 function dcopy(::Type{T}, itr; kwargs...) where {T}

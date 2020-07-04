@@ -77,6 +77,7 @@ end
         logs, ans = collect_test_logs(min_level = ProgressLevel) do
             dreduce(+, Map(identity), withprogress(xs; interval = 0.0); kwargs...)
         end
+        logs = [l for l in logs if l.level == ProgressLevel]
         @test ans == sum(xs)
         @test length(logs) > 2
         @test logs[1].kwargs[:progress] === 0.0

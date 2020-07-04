@@ -40,7 +40,7 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
 ```jldoctest
 julia> using Transducers
 
-julia> reduce(+, Map(exp) |> Map(log), 1:3)
+julia> reduce(+, 1:3 |> Map(exp) |> Map(log))
 6.0
 
 julia> using BangBang: append!!
@@ -385,10 +385,9 @@ julia> @assert tcopy(
            (A = row.a + 1, B = row.b - 1) for row in table if isodd(row.a)
        ) == DataFrame(A = [2, 4], B = [4, 6])
 
-julia> @assert tcopy(eduction(
-           Filter(row -> isodd(row.a)) |> Map(row -> (A = row.a + 1, B = row.b - 1)),
-           table,
-       )) == StructVector(A = [2, 4], B = [4, 6])
+julia> @assert table |>
+           Filter(row -> isodd(row.a)) |> Map(row -> (A = row.a + 1, B = row.b - 1)) |>
+           tcopy == StructVector(A = [2, 4], B = [4, 6])
 ```
 
 If you have [`Cat`](@ref) or [`MapCat`](@ref) at the end of the
@@ -399,9 +398,8 @@ julia> using Transducers
        using DataFrames
 
 julia> @assert tcopy(
-           Map(x -> DataFrame(a = [x])) |> MapCat(eachrow),
            DataFrame,
-           1:2;
+           1:2 |> Map(x -> DataFrame(a = [x])) |> MapCat(eachrow);
            basesize = 1,
        ) == DataFrame(a = [1, 2])
 
@@ -436,7 +434,7 @@ julia> @assert reduce(
 ```
 """
 tcopy(xf, T, reducible; kwargs...) =
-    reduce(append!!, xf |> Map(SingletonVector), reducible; init = Empty(T), kwargs...)
+    reduce(append!!, Map(SingletonVector) ∘ xf, reducible; init = Empty(T), kwargs...)
 tcopy(xf, reducible; kwargs...) = tcopy(xf, _materializer(reducible), reducible; kwargs...)
 
 function tcopy(::Type{T}, itr; kwargs...) where {T}
@@ -450,7 +448,7 @@ function tcopy(itr; kwargs...)
 end
 
 tcopy(xf, T::Type{<:AbstractSet}, reducible; kwargs...) =
-    reduce(union!!, xf |> Map(SingletonVector), reducible; init = Empty(T), kwargs...)
+    reduce(union!!, Map(SingletonVector) ∘ xf, reducible; init = Empty(T), kwargs...)
 
 function tcopy(
     ::typeof(Map(identity)),
