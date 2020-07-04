@@ -30,6 +30,7 @@ julia = "1"
 [extras]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 BlockArrays = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
+Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
@@ -48,4 +49,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 TypedTables = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
 
 [targets]
-test = ["Aqua", "BlockArrays", "DataFrames", "Dates", "Distributed", "Documenter", "InteractiveUtils", "LazyArrays", "OnlineStats", "PerformanceTestTools", "Pkg", "Random", "SparseArrays", "StaticArrays", "Statistics", "StructArrays", "Test", "TypedTables"]
+test = ["Aqua", "BlockArrays", "Compat", "DataFrames", "Dates", "Distributed", "Documenter", "InteractiveUtils", "LazyArrays", "OnlineStats", "PerformanceTestTools", "Pkg", "Random", "SparseArrays", "StaticArrays", "Statistics", "StructArrays", "Test", "TypedTables"]

@@ -359,13 +359,19 @@ xf = opcompose(
 )
 nothing                                                              # hide
 
-# The singleton solutions can be merged using `merge!(+, a, b)`:
+# The singleton solutions can be merged using `mergewith!(+, a, b)`.
+# Conveniently, `mergewith!(+)` is the curried form `(args...) ->
+# mergewith!(+, args...)`:
 
-merge₊!(a, b) = merge!(+, a, b)
-## merge₊! = mergewith!(+)  # in Julia >= 1.5
-nothing                                                              # hide
+using Compat: mergewith!  # not required in Julia >= 1.5
+rf! = mergewith!(+)
+@test Dict(:a => 1, :b => 5, :c => 4) ==                               #src
+rf!(Dict(:a => 1, :b => 2), Dict(:b => 3, :c => 4))
 
-# Note that it is OK to use in-place function `merge!` here because
+# This is the form of binary function appropriate for `foldl` and
+# `reduce`.
+#
+# Note that it is OK to use in-place function `mergewith!` here because
 # the dictionary passed as `a` is created by `xf` and not shared by
 # anyone.  When there is no such guarantee, passing [`init =
 # OnInit(Dict{Int,Int})`](@ref OnInit) is a good option.  Note that
@@ -376,11 +382,11 @@ nothing                                                              # hide
 # Let's try this with some random data:
 
 xs = 1_000_000 * randn(10_000_000)
-counts1 = reduce(merge₊!, xf, xs)
+counts1 = reduce(mergewith!(+), xf, xs)
 nothing                                                              # hide
 
 # Compare the result with `foldl`:
-counts2 = foldl(merge₊!, xf, xs)
+counts2 = foldl(mergewith!(+), xf, xs)
 @assert counts1 == counts2
 
 # Hopefully the result is close to the [Benford's law -
