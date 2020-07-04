@@ -349,14 +349,10 @@ Text(y5)                                                             # hide
 # in a distribution of random numbers.  First, let's create "singleton
 # solutions" using transducers:
 
-xf = opcompose(
-    Map(abs),
-    Filter(x -> x > 1),
-    Map() do x
-        y = digits(floor(Int, x))[end]
-        Dict(y => 1)
-    end,
-)
+dicts1 = xs |> Map(abs) |> Filter(x -> x > 1) |> Map() do x
+    y = digits(floor(Int, x))[end]
+    Dict(y => 1)
+end
 nothing                                                              # hide
 
 # The singleton solutions can be merged using `mergewith!(+, a, b)`.
@@ -372,7 +368,7 @@ rf!(Dict(:a => 1, :b => 2), Dict(:b => 3, :c => 4))
 # `reduce`.
 #
 # Note that it is OK to use in-place function `mergewith!` here because
-# the dictionary passed as `a` is created by `xf` and not shared by
+# the dictionary passed as `a` is created by `Dict(y => 1)` and not shared by
 # anyone.  When there is no such guarantee, passing [`init =
 # OnInit(Dict{Int,Int})`](@ref OnInit) is a good option.  Note that
 # passing `init = Dict{Int,Int}()` to `reduce` is not correct as
@@ -382,11 +378,11 @@ rf!(Dict(:a => 1, :b => 2), Dict(:b => 3, :c => 4))
 # Let's try this with some random data:
 
 xs = 1_000_000 * randn(10_000_000)
-counts1 = reduce(mergewith!(+), xf, xs)
+counts1 = reduce(mergewith!(+), dicts1)
 nothing                                                              # hide
 
 # Compare the result with `foldl`:
-counts2 = foldl(mergewith!(+), xf, xs)
+counts2 = foldl(mergewith!(+), dicts1)
 @assert counts1 == counts2
 
 # Hopefully the result is close to the [Benford's law -
@@ -398,22 +394,68 @@ end
 # Since we are counting only nine elements, it is actually better to
 # use fixed-size container such as a tuple in this case:
 
-xf2 = opcompose(
-    Map(abs),
-    Filter(x -> x > 1),
-    Map() do x
-        y = digits(floor(Int, x))[end]
-        ntuple(i -> i == y, 9)
-    end,
-)
+dicts2 = xs |> Map(abs) |> Filter(x -> x > 1) |> Map() do x
+    y = digits(floor(Int, x))[end]
+    ntuple(i -> i == y, 9)
+end
 
-counts3 = reduce(xf2, xs; init=ntuple(_ -> 0, 9)) do a, b
+counts3 = reduce(dicts2; init=ntuple(_ -> 0, 9)) do a, b
     map(+, a, b)
 end
 @assert Dict(zip(1:9, counts3)) == counts1
 
 # Note that, as tuples are immutable, it is valid to pass it as `init`
 # of `reduce`.
+
+# ### MicroCollections.jl for efficient singleton solution
+#
+# When the appropriate "bins" are not known, `mergewith!(+)`-based
+# strategy is more appropriate.  However, it is not ideal to allocate
+# a small container like `Dict(y => 1)` in the heap for each
+# iteration.
+# [MicroCollections.jl](https://github.com/JuliaFolds/MicroCollections.jl)
+# provides singleton (and empty) containers that are designed for this
+# usecase.  The `SingletonDict` is "upcast" to the mutable `Dict` in
+# the first invocation when merged with BangBang.jl functions:
+
+using BangBang: mergewith!!
+using MicroCollections: SingletonDict
+
+acc1 = mergewith!!(+, SingletonDict(:a => 1), SingletonDict(:b => 1))
+@test acc1 isa Dict                                                    #src
+show(acc1);                                                          # hide
+
+# This dictionary is reused in the subsequent iterations:
+
+acc2 = mergewith!!(+, acc1, SingletonDict(:b => 1))
+show(acc2);                                                          # hide
+#-
+
+acc3 = mergewith!!(+, acc2, SingletonDict(:c => 1))
+show(acc3);                                                          # hide
+
+# The first result is reused across these iterations (within a single
+# thread).
+
+@assert acc1 === acc2 === acc3
+
+# Finally, `Dict`s from different threads are merged using the same
+# function `mergewith!!(+)`:
+
+acc4 = Dict(:a => 5, :c => 3)  # from different thread
+acc5 = mergewith!!(+, acc3, acc4)
+show(acc5);                                                          # hide
+
+# Thus, `dicts1` can be optimized simply by replacing `Dict(y => 1)`
+# with `SingletonDict(y => 1)`:
+
+dicts3 = xs |> Map(abs) |> Filter(x -> x > 1) |> Map() do x
+    y = digits(floor(Int, x))[end]
+    SingletonDict(y => 1)
+end
+
+counts4 = reduce(mergewith!!(+), dicts3)
+@assert counts1 == counts4
 
 # ## Example: early termination
 
