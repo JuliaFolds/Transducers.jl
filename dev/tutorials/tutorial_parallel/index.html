@@ -102,20 +102,16 @@ reduce(append!!, Map(x -&gt; SVector((a = x,))), 1:4; init = Empty(DataFrame))</
 │ 1   │ 1     │
 │ 2   │ 2     │
 │ 3   │ 3     │
-│ 4   │ 4     │</code></pre><p>It is slightly more tricky to make this approach work with other table types such as <a href="https://github.com/JuliaArrays/StructArrays.jl"><code>StructArrays</code></a> and <a href="https://github.com/JuliaData/TypedTables.jl"><code>TypedTables</code></a>.  Use <a href="../../reference/manual/#Transducers.tcopy"><code>tcopy</code></a> or <a href="../../reference/manual/#Transducers.dcopy"><code>dcopy</code></a> to work with generic containers.</p><h2 id="Example:-ad-hoc-histogram-1"><a class="docs-heading-anchor" href="#Example:-ad-hoc-histogram-1">Example: ad-hoc histogram</a><a class="docs-heading-anchor-permalink" href="#Example:-ad-hoc-histogram-1" title="Permalink"></a></h2><p>Following example counts number of occurrence of each leading digit in a distribution of random numbers.  First, let&#39;s create &quot;singleton solutions&quot; using transducers:</p><pre><code class="language-julia">xf = opcompose(
-    Map(abs),
-    Filter(x -&gt; x &gt; 1),
-    Map() do x
-        y = digits(floor(Int, x))[end]
-        Dict(y =&gt; 1)
-    end,
-)</code></pre><p>The singleton solutions can be merged using <code>mergewith!(+, a, b)</code>. Conveniently, <code>mergewith!(+)</code> is the curried form <code>(args...) -&gt; mergewith!(+, args...)</code>:</p><pre><code class="language-julia">using Compat: mergewith!  # not required in Julia &gt;= 1.5
+│ 4   │ 4     │</code></pre><p>It is slightly more tricky to make this approach work with other table types such as <a href="https://github.com/JuliaArrays/StructArrays.jl"><code>StructArrays</code></a> and <a href="https://github.com/JuliaData/TypedTables.jl"><code>TypedTables</code></a>.  Use <a href="../../reference/manual/#Transducers.tcopy"><code>tcopy</code></a> or <a href="../../reference/manual/#Transducers.dcopy"><code>dcopy</code></a> to work with generic containers.</p><h2 id="Example:-ad-hoc-histogram-1"><a class="docs-heading-anchor" href="#Example:-ad-hoc-histogram-1">Example: ad-hoc histogram</a><a class="docs-heading-anchor-permalink" href="#Example:-ad-hoc-histogram-1" title="Permalink"></a></h2><p>Following example counts number of occurrence of each leading digit in a distribution of random numbers.  First, let&#39;s create &quot;singleton solutions&quot; using transducers:</p><pre><code class="language-julia">xs = 1_000_000 * randn(10_000_000)
+dicts1 = xs |&gt; Map(abs) |&gt; Filter(x -&gt; x &gt; 1) |&gt; Map() do x
+    y = digits(floor(Int, x))[end]
+    Dict(y =&gt; 1)
+end</code></pre><p>The singleton solutions can be merged using <code>mergewith!(+, a, b)</code>. Conveniently, <code>mergewith!(+)</code> is the curried form <code>(args...) -&gt; mergewith!(+, args...)</code>:</p><pre><code class="language-julia">using Compat: mergewith!  # not required in Julia &gt;= 1.5
 rf! = mergewith!(+)
 rf!(Dict(:a =&gt; 1, :b =&gt; 2), Dict(:b =&gt; 3, :c =&gt; 4))</code></pre><pre><code class="language-none">Dict{Symbol,Int64} with 3 entries:
   :a =&gt; 1
   :b =&gt; 5
-  :c =&gt; 4</code></pre><p>This is the form of binary function appropriate for <code>foldl</code> and <code>reduce</code>.</p><p>Note that it is OK to use in-place function <code>mergewith!</code> here because the dictionary passed as <code>a</code> is created by <code>xf</code> and not shared by anyone.  When there is no such guarantee, passing <a href="../../reference/manual/#Transducers.OnInit"><code>init = OnInit(Dict{Int,Int})</code></a> is a good option.  Note that passing <code>init = Dict{Int,Int}()</code> to <code>reduce</code> is not correct as multiple tasks would share and try to mutate the same dictionary this way.</p><p>Let&#39;s try this with some random data:</p><pre><code class="language-julia">xs = 1_000_000 * randn(10_000_000)
-counts1 = reduce(mergewith!(+), xf, xs)</code></pre><p>Compare the result with <code>foldl</code>:</p><pre><code class="language-julia">counts2 = foldl(mergewith!(+), xf, xs)
+  :c =&gt; 4</code></pre><p>This is the form of binary function appropriate for <code>foldl</code> and <code>reduce</code>.</p><p>Note that it is OK to use in-place function <code>mergewith!</code> here because the dictionary passed as <code>a</code> is created by <code>Dict(y =&gt; 1)</code> and not shared by anyone.  When there is no such guarantee, passing <a href="../../reference/manual/#Transducers.OnInit"><code>init = OnInit(Dict{Int,Int})</code></a> is a good option.  Note that passing <code>init = Dict{Int,Int}()</code> to <code>reduce</code> is not correct as multiple tasks would share and try to mutate the same dictionary this way.</p><p>Let&#39;s try this with parallel <code>reduce</code>:</p><pre><code class="language-julia">counts1 = reduce(mergewith!(+), dicts1)</code></pre><p>Compare the result with <code>foldl</code>:</p><pre><code class="language-julia">counts2 = foldl(mergewith!(+), dicts1)
 @assert counts1 == counts2</code></pre><p>Hopefully the result is close to the <a href="https://en.wikipedia.org/wiki/Benford%27s_law">Benford&#39;s law - Wikipedia</a>:</p><pre><code class="language-julia">let n = sum(values(counts1))
     sort!(keys(counts1) .=&gt; values(counts1) ./ n)
 end</code></pre><pre><code class="language-none">9-element Array{Pair{Int64,Float64},1}:
@@ -127,20 +123,26 @@ end</code></pre><pre><code class="language-none">9-element Array{Pair{Int64,Floa
  6 =&gt; 0.07341567341567341
  7 =&gt; 0.06907636907636908
  8 =&gt; 0.06452906452906453
- 9 =&gt; 0.059707459707459706</code></pre><p>Since we are counting only nine elements, it is actually better to use fixed-size container such as a tuple in this case:</p><pre><code class="language-julia">xf2 = opcompose(
-    Map(abs),
-    Filter(x -&gt; x &gt; 1),
-    Map() do x
-        y = digits(floor(Int, x))[end]
-        ntuple(i -&gt; i == y, 9)
-    end,
-)
+ 9 =&gt; 0.059707459707459706</code></pre><p>Since we are counting only nine elements, it is actually better to use fixed-size container such as a tuple in this case:</p><pre><code class="language-julia">dicts2 = xs |&gt; Map(abs) |&gt; Filter(x -&gt; x &gt; 1) |&gt; Map() do x
+    y = digits(floor(Int, x))[end]
+    ntuple(i -&gt; i == y, 9)
+end
 
-counts3 = reduce(xf2, xs; init=ntuple(_ -&gt; 0, 9)) do a, b
+counts3 = reduce(dicts2; init=ntuple(_ -&gt; 0, 9)) do a, b
     map(+, a, b)
 end
-@assert Dict(zip(1:9, counts3)) == counts1</code></pre><p>Note that, as tuples are immutable, it is valid to pass it as <code>init</code> of <code>reduce</code>.</p><h2 id="Example:-early-termination-1"><a class="docs-heading-anchor" href="#Example:-early-termination-1">Example: early termination</a><a class="docs-heading-anchor-permalink" href="#Example:-early-termination-1" title="Permalink"></a></h2><p>Find the <em>first</em> element that is multiple of three:</p><pre><code class="language-julia">reduce(ReduceIf(x -&gt; x % 3 == 0), 1:10; init = nothing, basesize = 1) do _, x
+@assert Dict(zip(1:9, counts3)) == counts1</code></pre><p>Note that, as tuples are immutable, it is valid to pass it as <code>init</code> of <code>reduce</code>.</p><h3 id="MicroCollections.jl-for-efficient-singleton-solution-1"><a class="docs-heading-anchor" href="#MicroCollections.jl-for-efficient-singleton-solution-1">MicroCollections.jl for efficient singleton solution</a><a class="docs-heading-anchor-permalink" href="#MicroCollections.jl-for-efficient-singleton-solution-1" title="Permalink"></a></h3><p>When the appropriate &quot;bins&quot; are not known, <code>mergewith!(+)</code>-based strategy is more appropriate.  However, it is not ideal to allocate a small container like <code>Dict(y =&gt; 1)</code> in the heap for each iteration. <a href="https://github.com/JuliaFolds/MicroCollections.jl">MicroCollections.jl</a> provides singleton (and empty) containers that are designed for this usecase.  The <code>SingletonDict</code> is &quot;upcast&quot; to the mutable <code>Dict</code> in the first invocation when merged with BangBang.jl functions:</p><pre><code class="language-julia">using BangBang: mergewith!!
+using MicroCollections: SingletonDict
+
+acc1 = mergewith!!(+, SingletonDict(:a =&gt; 1), SingletonDict(:b =&gt; 1))</code></pre><pre><code class="language-none">Dict(:a =&gt; 1,:b =&gt; 1)</code></pre><p>This dictionary is reused in the subsequent iterations:</p><pre><code class="language-julia">acc2 = mergewith!!(+, acc1, SingletonDict(:b =&gt; 1))</code></pre><pre><code class="language-none">Dict(:a =&gt; 1,:b =&gt; 2)</code></pre><pre><code class="language-julia">acc3 = mergewith!!(+, acc2, SingletonDict(:c =&gt; 1))</code></pre><pre><code class="language-none">Dict(:a =&gt; 1,:b =&gt; 2,:c =&gt; 1)</code></pre><p>The first result is reused across these iterations (within a single thread).</p><pre><code class="language-julia">@assert acc1 === acc2 === acc3</code></pre><p>Finally, <code>Dict</code>s from different threads are merged using the same function <code>mergewith!!(+)</code>:</p><pre><code class="language-julia">acc4 = Dict(:a =&gt; 5, :c =&gt; 3)  # from different thread
+acc5 = mergewith!!(+, acc3, acc4)</code></pre><pre><code class="language-none">Dict(:a =&gt; 6,:b =&gt; 2,:c =&gt; 4)</code></pre><p>Thus, <code>dicts1</code> can be optimized simply by replacing <code>Dict(y =&gt; 1)</code> with <code>SingletonDict(y =&gt; 1)</code>:</p><pre><code class="language-julia">dicts3 = xs |&gt; Map(abs) |&gt; Filter(x -&gt; x &gt; 1) |&gt; Map() do x
+    y = digits(floor(Int, x))[end]
+    SingletonDict(y =&gt; 1)
+end
+
+counts4 = reduce(mergewith!!(+), dicts3)
+@assert counts1 == counts4</code></pre><h2 id="Example:-early-termination-1"><a class="docs-heading-anchor" href="#Example:-early-termination-1">Example: early termination</a><a class="docs-heading-anchor-permalink" href="#Example:-early-termination-1" title="Permalink"></a></h2><p>Find the <em>first</em> element that is multiple of three:</p><pre><code class="language-julia">reduce(ReduceIf(x -&gt; x % 3 == 0), 1:10; init = nothing, basesize = 1) do _, x
     # # Uncomment for demo:
     # x == 3 ? sleep(0.1) : @show x  # give other tasks a chance to finish first
     return x
-end</code></pre><pre><code class="language-none">3</code></pre><p>This snippet always returns <code>3</code>, even though the reductions for <code>c = 6</code> and <code>c = 9</code> may finish first.</p><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tutorial_missings/">« Tutorial: Missing values</a><a class="docs-footer-nextpage" href="../words/">Parallel word count »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Saturday 4 July 2020 21:05">Saturday 4 July 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+end</code></pre><pre><code class="language-none">3</code></pre><p>This snippet always returns <code>3</code>, even though the reductions for <code>c = 6</code> and <code>c = 9</code> may finish first.</p><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tutorial_missings/">« Tutorial: Missing values</a><a class="docs-footer-nextpage" href="../words/">Parallel word count »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Saturday 4 July 2020 22:41">Saturday 4 July 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
