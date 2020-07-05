@@ -5,8 +5,6 @@ using Test
 using Transducers
 
 @testset "/docs" begin
-    include("../docs/utils.jl")
-    transducers_rm_examples()
     doctest(Transducers; manual=true)
 end
 

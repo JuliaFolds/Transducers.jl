@@ -2,8 +2,6 @@ import BangBang
 import OnlineStats
 using Documenter
 using Transducers
-# Not importing `JSON` and `Literate` here so that this file can be
-# included from test without adding them as dependencies.
 
 EXAMPLE_PAGES = [
     "Tutorial: Missing values" => "tutorials/tutorial_missings.md",
@@ -15,17 +13,11 @@ EXAMPLE_PAGES = [
     "Writing reducibles" => "howto/reducibles.md",
 ]
 
-function transducers_rm_examples()
-    rm(joinpath(@__DIR__, "src/tutorials"); force = true, recursive = true)
-    rm(joinpath(@__DIR__, "src/howto"); force = true, recursive = true)
-end
-
 function transducers_literate(;
         inputbase = joinpath(@__DIR__, "..", "examples"),
         outputbase = joinpath(@__DIR__, "src"),
         examples = EXAMPLE_PAGES,
         kwargs...)
-    transducers_rm_examples()
     for (_, outpath) in examples
         name, = splitext(basename(outpath))
         inputfile = joinpath(inputbase, "$name.jl")
