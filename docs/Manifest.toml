@@ -101,7 +101,8 @@ uuid = "313cdc1a-70c2-5d6a-ae34-0150d3930a38"
 version = "1.1.0"
 
 [[InitialValues]]
-git-tree-sha1 = "15989e5a37fdf7ee515cedf3d6a0b7de0b6ddd05"
+deps = ["Pkg"]
+git-tree-sha1 = "2b51c63748fd979bacaaafd0e39227b27da7256c"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/InitialValues.jl.git"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
