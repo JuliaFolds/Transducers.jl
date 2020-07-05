@@ -26,7 +26,7 @@ nmatches(r, s) = count(_ -> true, eachmatch(r, s))
 
 
 @testset "map!" begin
-    xf = Filter(x -> -0.5 < x < 0.5) |> Map(x -> 2x)
+    xf = opcompose(Filter(x -> -0.5 < x < 0.5), Map(x -> 2x))
     xs = Float64[]
     ys = Float64[]
 
@@ -67,8 +67,9 @@ unsafe_setter(ys) =
     xf_double = Map(x -> 2x)
 
     params = [
-        :Enumerate => xf_double |> Enumerate(),
-        :ZipSource => xf_double |> Transducers.ZipSource(Count()) |> Map(reverse),
+        :Enumerate => opcompose(xf_double, Enumerate()),
+        :ZipSource =>
+            opcompose(xf_double, Transducers.ZipSource(Count()), Map(reverse)),
         #= Zip was working before...
         :Zip => Zip(Count(), xf_double),
         =#
@@ -99,9 +100,7 @@ end
 
 
 @testset "PartitionBy" begin
-    xf = PartitionBy(x -> x > 0) |>
-        Filter(xs -> mean(abs, xs) < 1.0) |>
-        Map(prod)
+    xf = opcompose(PartitionBy(x -> x > 0), Filter(xs -> mean(abs, xs) < 1.0), Map(prod))
 
     # Union coming from
     okunion = r"UNION\{NOTHING, *TUPLE\{INT64, *INT64\}\}"

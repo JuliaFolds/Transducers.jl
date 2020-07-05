@@ -2,13 +2,12 @@ module TestExamplesTutorialMissings
 include("../examples/tutorial_missings.jl")
 include("preamble.jl")
 
-slow_xf_fullextrema = Zip(Count(), NotA(Missing)) |>
-    Zip(xf_scanext(>), xf_scanext(<))
+slow_xf_fullextrema =
+    opcompose(Zip(Count(), NotA(Missing)), Zip(xf_scanext(>), xf_scanext(<)))
 
-slow_xf_argextrema = slow_xf_fullextrema |>
-    Map() do ((argmin, min), (argmax, max))
-        (argmin, argmax)
-    end
+slow_xf_argextrema = opcompose(slow_xf_fullextrema, Map() do ((argmin, min), (argmax, max))
+    (argmin, argmax)
+end)
 
 @testset "slow compilation" begin
     @test mapfoldl(slow_xf_fullextrema, right, [1.0, 3.0, -1.0, missing, 2.0]) ===

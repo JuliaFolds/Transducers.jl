@@ -8,7 +8,7 @@ end
 ```
 
 ```jldoctest
-Reduction(Filter(isfinite) |> Map(sin), +)
+Reduction(opcompose(Filter(isfinite), Map(sin)), +)
 
 # output
 
@@ -33,7 +33,7 @@ Reduction(
 
 ```jldoctest
 rf = Reduction(
-    ZipSource(Filter(isodd) |> Map(identity) |> ZipSource(Map(identity))),
+    ZipSource(opcompose(Filter(isodd), Map(identity), ZipSource(Map(identity)))),
     right,
 )
 

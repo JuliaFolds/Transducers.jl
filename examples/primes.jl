@@ -13,10 +13,10 @@ sieve(xf, x) =
     if isnothing(foldl(right, xf, (x,), init=nothing))
         nothing, xf
     else
-        x, xf |> Filter(n -> n % x != 0)
+        x, opcompose(xf, Filter(n -> n % x != 0))
     end
 
-prime_xf = ScanEmit(sieve, Map(identity)) |> Filter(!isnothing)
+prime_xf = opcompose(ScanEmit(sieve, Map(identity)), Filter(!isnothing))
 
 using Test                                                             #src
 primes = begin                                                         #src

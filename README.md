@@ -18,8 +18,7 @@ know similar concepts in iterator libraries:
 
 ```julia
 using Transducers
-xf = Partition(7) |> Filter(x -> prod(x) % 11 == 0) |> Cat() |> Scan(+)
-foldl(+, xf, 1:40)
+1:40 |> Partition(7) |> Filter(x -> prod(x) % 11 == 0) |> Cat() |> Scan(+) |> sum
 ```
 
 However, the protocol used for the transducers is quite different from

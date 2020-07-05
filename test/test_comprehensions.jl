@@ -18,7 +18,7 @@ end
 
 @testset "Transducer(comprehension)" begin
     xf1 = Transducer(2x for x in nothing if x % 2 == 0)
-    xf2 = Filter(x -> x % 2 == 0) |> Map(x -> 2x)
+    xf2 = opcompose(Filter(x -> x % 2 == 0), Map(x -> 2x))
     xs = 1:10
     @test collect(xf1, xs) == collect(xf2, xs)
 end

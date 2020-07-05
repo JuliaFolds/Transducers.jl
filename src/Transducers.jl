@@ -7,6 +7,7 @@ export Transducer, Map, Filter, Cat, MapCat, TCat, Take, PartitionBy, Scan, Zip,
     transduce, eduction, setinput, Reduced, reduced, unreduced, ifunreduced,
     Completing, OnInit, CopyInit, right, reducingfunction, dreduce, dtransduce,
     tcopy, tcollect, dcopy, dcollect, channel_unordered, withprogress,
+    compose, opcompose,
     AdHocFoldable, TeeRF, ProductRF, Broadcasting
 
 # Deprecated:
@@ -20,6 +21,7 @@ using BangBang.Experimental: modify!!, mergewith!!
 using BangBang.NoBang: SingletonVector
 using BangBang:
     @!, BangBang, Empty, append!!, collector, empty!!, finish!, push!!, setindex!!, union!!
+using CompositionsBase: compose, opcompose
 using Distributed: Distributed, @everywhere
 using Logging: LogLevel, @logmsg
 using Requires
@@ -45,6 +47,9 @@ module ConstructionBase
         const constructorof = Setfield.constructor_of
     end
 end
+
+@eval using CompositionsBase: $(Symbol("⨟"))
+@eval export $(Symbol("⨟"))
 
 @static if VERSION >= v"1.3-alpha"
     using Base.Threads: @spawn

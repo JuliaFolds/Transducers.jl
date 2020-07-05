@@ -41,11 +41,11 @@ collect(Map(identity), vov)
 # documentation).  In practice, using `@next` means that your
 # `__foldl__` supports early termination:
 
-collect(Take(3), vov)
+vov |> Take(3) |> collect
 
 # More complex example:
 
-collect(PartitionBy(isequal(1)) |> Zip(Map(copy), Map(sum)), vov)
+vov |> PartitionBy(isequal(1)) |> Zip(Map(copy), Map(sum)) |> collect
 
 # Notice that writing [`Transducers.__foldl__`](@ref) is very
 # straightforward comparing to how to define an iterator:

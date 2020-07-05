@@ -9,8 +9,8 @@ using Transducers: Transducer, R_, next, inner, xform
 
 # ## Stateless transducer
 
-# Let's write manually what `Filter(x -> x isa Int) |> Map(x -> x +
-# 1)` would do:
+# Let's write manually what `opcompose(Filter(x -> x isa Int), Map(x
+# -> x + 1))` would do:
 
 struct AddOneIfInt <: Transducer end
 
@@ -111,7 +111,7 @@ end  # hide
 # Indeed, it picks up some random elements from the past elements.
 # With slightly more complex transducer:
 
-collect(Filter(isodd) |> RandomRecall() |> Filter(x -> x > 10) |> Take(5), 1:100)
+1:100 |> Filter(isodd) |> RandomRecall() |> Filter(x -> x > 10) |> Take(5) |> collect
 
 # Note that [`Transducers.complete`](@ref) can do more than `unwrap`
 # and `complete`.  It is useful for, e.g., flushing the buffer.

@@ -3,7 +3,6 @@
 ## Core interface for transducers
 
 ```@docs
-Transducers.Transducer
 Transducers.AbstractFilter
 Transducers.R_
 Transducers.inner

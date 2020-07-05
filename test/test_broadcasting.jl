@@ -7,7 +7,7 @@ include("preamble.jl")
         foldl = nothing
 
         count_sum(xs, xf = Map(identity)) =
-            fold(+, xf |> Map(x -> (1, x)) |> Broadcasting(), xs)
+            fold(+, opcompose(xf, Map(x -> (1, x)), Broadcasting()), xs)
         @test count_sum([5, 2, 6, 8, 3]) == (5, 24)
         @test count_sum([5, 2, 6, 8, 3], Filter(isodd)) == (2, 8)
         @test_throws EmptyResultError count_sum(1:0)
@@ -18,7 +18,8 @@ end
 @testset "partially started" begin
     @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
         foldl = nothing
-        f(xs) = fold(max, Map(x -> (x + 1, x)) |> Broadcasting() |> Filter(isodd), xs)
+        f(xs) =
+            fold(max, opcompose(Map(x -> (x + 1, x)), Broadcasting(), Filter(isodd)), xs)
         @test f([5, 2, 6, 8, 3]) == (9, 5)
         @test_throws EmptyResultError f(2:2:8)
     end

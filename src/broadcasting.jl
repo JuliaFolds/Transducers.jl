@@ -36,8 +36,11 @@ julia> foldl(+, Broadcasting(), [(0,), [1], [2.0], [3 + 0im]])
 1-element Array{Complex{Float64},1}:
  6.0 + 0.0im
 
-julia> foldl(*, Broadcasting() |> Broadcasting(),
-             [[[1], [10, 100]], [[2], [20, 200]], [[3], [30, 300]]])
+julia> foldl(
+           *,
+           [[[1], [10, 100]], [[2], [20, 200]], [[3], [30, 300]]] |>
+               Broadcasting() |> Broadcasting(),
+       )
 2-element Array{Array{Int64,1},1}:
  [6]
  [6000, 6000000]
