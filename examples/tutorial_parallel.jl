@@ -423,16 +423,16 @@ using MicroCollections: SingletonDict
 
 acc1 = mergewith!!(+, SingletonDict(:a => 1), SingletonDict(:b => 1))
 @test acc1 isa Dict                                                    #src
-Text(acc1);                                                          # hide
+Text(acc1)                                                           # hide
 
 # This dictionary is reused in the subsequent iterations:
 
 acc2 = mergewith!!(+, acc1, SingletonDict(:b => 1))
-Text(acc2);                                                          # hide
+Text(acc2)                                                           # hide
 #-
 
 acc3 = mergewith!!(+, acc2, SingletonDict(:c => 1))
-Text(acc3);                                                          # hide
+Text(acc3)                                                           # hide
 
 # The first result is reused across these iterations (within a single
 # thread).
@@ -444,7 +444,7 @@ Text(acc3);                                                          # hide
 
 acc4 = Dict(:a => 5, :c => 3)  # from different thread
 acc5 = mergewith!!(+, acc3, acc4)
-Text(acc5);                                                          # hide
+Text(acc5)                                                           # hide
 
 # Thus, `dicts1` can be optimized simply by replacing `Dict(y => 1)`
 # with `SingletonDict(y => 1)`:
