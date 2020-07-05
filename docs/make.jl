@@ -15,6 +15,9 @@ include("utils.jl")
 import JSON
 using Literate
 
+include("../test/LoadAllPackages.jl")
+LoadAllPackages.loadall(joinpath((@__DIR__), "Project.toml"))
+
 import Random
 Random.seed!(1234)
 
