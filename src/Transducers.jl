@@ -73,10 +73,10 @@ using BangBang.NoBang: SingletonVector
 using BangBang:
     @!, BangBang, Empty, append!!, collector, empty!!, finish!, push!!, setindex!!, union!!
 using CompositionsBase: compose, opcompose
+using DefineSingletons: @def_singleton
 using Distributed: @everywhere, Distributed
 using InitialValues:
     GenericInitialValue,
-    Init,
     InitialValue,
     InitialValues,
     SpecificInitialValue,
