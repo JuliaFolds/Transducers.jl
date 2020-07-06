@@ -95,11 +95,11 @@ version = "1.1.0"
 
 [[InitialValues]]
 deps = ["Pkg"]
-git-tree-sha1 = "2b51c63748fd979bacaaafd0e39227b27da7256c"
+git-tree-sha1 = "e8dbe594d2dabcf66d7cd04a315553b067da5e04"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/InitialValues.jl.git"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
-version = "0.2.8-DEV"
+version = "0.2.8"
 
 [[InteractiveUtils]]
 deps = ["Markdown"]
