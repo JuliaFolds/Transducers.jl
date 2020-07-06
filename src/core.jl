@@ -851,12 +851,12 @@ Return an initial value for `op`.  Throw an error if `initializer`
 (e.g., `Init`) creates unknown initial value.
 
 # Examples
-```jldoctest; filter = r"(InitialValues\\.)?Init"
+```jldoctest
 julia> using Transducers
        using Transducers: initialize
 
 julia> initialize(Init, +)
-Init(+)
+InitialValue(+)
 
 julia> initialize(123, +)
 123
@@ -864,7 +864,7 @@ julia> initialize(123, +)
 julia> unknown_op(x, y) = x + 2y;
 
 julia> initialize(Init, unknown_op)
-ERROR: IdentityNotDefinedError: `init = Init` is specified but the identity element `InitialValue(op)` is not defined for
+ERROR: IdentityNotDefinedError: `init = Transducers.Init` is specified but the identity element `InitialValue(op)` is not defined for
     op = unknown_op
 [...]
 ```
