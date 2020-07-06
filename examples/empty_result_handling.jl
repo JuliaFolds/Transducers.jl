@@ -22,10 +22,8 @@ catch err; err; end                                                  # hide
 
 # To write robust code, it is recommended to use `init` if there is a
 # reasonable default.  However, it may be useful to postpone
-# "materializing" the result.  In such case, `Init` from InitialValues.jl
-# can be used as a placeholder.
-
-using InitialValues
+# "materializing" the result.  In such case, `Init` can be used as a
+# placeholder.
 
 result = foldl(*, Map(add1), [], init=Init)
 nothing                                                              # hide
