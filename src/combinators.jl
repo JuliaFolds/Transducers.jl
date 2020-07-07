@@ -106,7 +106,7 @@ julia> foldl(TeeRF(min, filtering_max), Map(identity), 2:2:8)
 ERROR: EmptyResultError: ...
 
 julia> foldl(TeeRF(min, filtering_max), Map(identity), 2:2:8; init = Init)
-(2, Init(max))
+(2, InitialValue(max))
 ```
 """
 struct TeeRF{N,T<:NTuple{N,Any}} <: AbstractMultiCastingRF{N}

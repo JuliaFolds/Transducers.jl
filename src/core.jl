@@ -832,10 +832,10 @@ Return the input as-is if not.
 initvalue(x) = x
 _initvalue(rf::Reduction) = initvalue(xform(rf).init)
 
-# A better name for `AbstractInitializer` is `op`-agnostic or something.
 abstract type AbstractInitializer end
 
-# For `DefaultInit` and `OptInit`
+# TODO: Merge `InitOf` to `AbstractInitializer`
+# For `Init`, `DefaultInit` and `OptInit`
 struct InitOf{IV <: SpecificInitialValue} end
 (::InitOf{IV})(::OP) where {IV, OP} = IV{OP}()
 
@@ -851,12 +851,12 @@ Return an initial value for `op`.  Throw an error if `initializer`
 (e.g., `Init`) creates unknown initial value.
 
 # Examples
-```jldoctest; filter = r"(InitialValues\\.)?Init"
+```jldoctest
 julia> using Transducers
        using Transducers: initialize
 
 julia> initialize(Init, +)
-Init(+)
+InitialValue(+)
 
 julia> initialize(123, +)
 123
@@ -864,17 +864,14 @@ julia> initialize(123, +)
 julia> unknown_op(x, y) = x + 2y;
 
 julia> initialize(Init, unknown_op)
-ERROR: IdentityNotDefinedError: `init = Init` is specified but the identity element `Init(op)` is not defined for
+ERROR: IdentityNotDefinedError: `init = Transducers.Init` is specified but the identity element `InitialValue(op)` is not defined for
     op = unknown_op
 [...]
 ```
 """
 initialize(init, op) = init
-initialize(::typeof(Init), op) = check_init(Init(op), Init, op)
 initialize(f::InitOf, op) = check_init(f(op), f, op)
 initialize(init::AbstractInitializer, _) = initvalue(init)
-
-@assert Base.issingletontype(typeof(Init))
 
 function check_init(init::SpecificInitialValue, f, op)
     InitialValues.isknown(init) || throw(IdentityNotDefinedError(op, f))
@@ -1061,20 +1058,84 @@ end
 _real_state_type(T) = T
 _real_state_type(::Type{Union{T, _FakeState}}) where {T} = @isdefined(T) ? T : Any
 
+"""
+    Init
+    Init(op) :: InitialValues.InitialValue
+
+The canonical initializer; i.e., a singleton placeholder usable for
+`init` argument of `foldl` for binary functions with known initial
+values.
+
+When `init = Init` is passed to `foldl` etc., `Init(op)` is called for
+the bottom reducing function `op` during the [`start`](@ref) phase.
+`Init(op)` returns
+[`InitialValue(op)`](https://juliafolds.github.io/InitialValues.jl/dev/#InitialValues.InitialValue)
+which acts as the canonical initial value of `op`.
+
+# Examples
+```jldoctest Init
+julia> using Transducers
+
+julia> foldl(+, 1:3 |> Filter(isodd); init = Init)
+4
+
+julia> foldl(+, 2:2:4 |> Filter(isodd); init = Init)
+InitialValue(+)
+```
+
+# Extended help
+
+Note that `op` passed to `foldl` etc. must be known to
+InitialValues.jl:
+
+```jldoctest Init
+julia> unknown_op(a, b) = a + b;
+
+julia> foldl(unknown_op, 2:2:4 |> Filter(isodd); init = Init)
+ERROR: IdentityNotDefinedError: `init = Transducers.Init` is specified but the identity element `InitialValue(op)` is not defined for
+    op = unknown_op
+[...]
+```
+
+`InitialValues.asmonoid` can be used to wrap a binary function to add
+("adjoin") the identity value to its domain:
+
+```jldoctest Init
+julia> using InitialValues: asmonoid
+
+julia> foldl(asmonoid(unknown_op), 2:2:4 |> Filter(isodd); init = Init)
+InitialValue(::InitialValues.AdjoinIdentity{typeof(unknown_op)})
+```
+
+When [`start(rf, Init)`](@ref start) is called with a composite
+reducing function `rf`, `Init(rf₀)` is called for the bottom reducing
+function `rf₀` of `rf`:
+
+```jldoctest Init
+julia> rf = Take(3)'(+);  # `+` is the bottom reducing function
+
+julia> acc = Transducers.start(rf, Init);
+
+julia> Transducers.unwrap(rf, acc)
+(3, InitialValue(+))
+```
+"""
+Init
+@def_singleton Init = InitOf{InitialValues.InitialValueOf}()
 
 """
     DefaultInit(op)
 
-`DefaultInit` is like `InitialValues.Init` but **strictly** internal
+`DefaultInit` is like [`Init`](@ref) but **strictly** internal
 to Transducers.jl.  It is used for checking if the bottom reducing
 function is never called.
 """
 DefaultInit
 struct DefaultInitOf{OP} <: SpecificInitialValue{OP} end
-const DefaultInit = InitOf{DefaultInitOf}()
+@def_singleton DefaultInit = InitOf{DefaultInitOf}()
 
 struct OptInitOf{OP} <: SpecificInitialValue{OP} end
-const OptInit = InitOf{OptInitOf}()
+@def_singleton OptInit = InitOf{OptInitOf}()
 # It seems that compiler can infer more when passing around a
 # `Function` than a `Type` (since a `Function` is a singleton?).
 # That's why `OptInit` is defined as a factory.
@@ -1124,7 +1185,7 @@ function Base.showerror(io::IO, e::IdentityNotDefinedError)
     op = e.op
     print(io, "IdentityNotDefinedError: ")
     print(io, strip("""
-    `init = $Init` is specified but the identity element `Init(op)` is not defined for
+    `init = $Init` is specified but the identity element `InitialValue(op)` is not defined for
         op = $op
     Note that `op` must be a well known binary operations like `+` or `*`.
     See InitialValues.jl documentation for more information.

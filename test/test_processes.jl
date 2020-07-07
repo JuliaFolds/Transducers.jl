@@ -292,7 +292,7 @@ end
     err = @test_error foldl(unknownadd, Map(identity), 1:1; init=Init)
     @test err isa IdentityNotDefinedError
     msg = sprint(showerror, err)
-    @test occursin("`Init(op)` is not defined", msg)
+    @test occursin("`InitialValue(op)` is not defined", msg)
     @test occursin("op = $unknownadd", msg)
 end
 

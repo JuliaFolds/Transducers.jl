@@ -1,20 +1,71 @@
 module Transducers
 
-export Transducer, Map, Filter, Cat, MapCat, TCat, Take, PartitionBy, Scan, Zip,
-    Replace, TakeWhile, TakeNth, Drop, DropLast, DropWhile, Keep, Unique,
-    Interpose, Dedupe, Partition, Iterated, Count, GroupBy, ReduceIf,
-    TakeLast, FlagFirst, MapSplat, ScanEmit, Enumerate, NotA, OfType,
-    transduce, eduction, setinput, Reduced, reduced, unreduced, ifunreduced,
-    Completing, OnInit, CopyInit, right, reducingfunction, dreduce, dtransduce,
-    tcopy, tcollect, dcopy, dcollect, channel_unordered, withprogress,
-    compose, opcompose,
-    AdHocFoldable, TeeRF, ProductRF, Broadcasting
-
-# Deprecated:
-export Distinct
+export AdHocFoldable,
+    Broadcasting,
+    Cat,
+    Completing,
+    CopyInit,
+    Count,
+    Dedupe,
+    Drop,
+    DropLast,
+    DropWhile,
+    Empty,
+    Enumerate,
+    Filter,
+    FlagFirst,
+    GroupBy,
+    Init,
+    Interpose,
+    Iterated,
+    Keep,
+    Map,
+    MapCat,
+    MapSplat,
+    NotA,
+    OfType,
+    OnInit,
+    Partition,
+    PartitionBy,
+    ProductRF,
+    ReduceIf,
+    Reduced,
+    Replace,
+    Scan,
+    ScanEmit,
+    TCat,
+    Take,
+    TakeLast,
+    TakeNth,
+    TakeWhile,
+    TeeRF,
+    Transducer,
+    Unique,
+    Zip,
+    append!!,
+    channel_unordered,
+    compose,
+    dcollect,
+    dcopy,
+    dreduce,
+    dtransduce,
+    eduction,
+    ifunreduced,
+    opcompose,
+    push!!,
+    reduced,
+    reducingfunction,
+    right,
+    setinput,
+    tcollect,
+    tcopy,
+    transduce,
+    unreduced,
+    withprogress
 
 using Base.Broadcast: Broadcasted
 
+import Setfield
 import Tables
 using ArgCheck
 using BangBang.Experimental: modify!!, mergewith!!
@@ -22,21 +73,19 @@ using BangBang.NoBang: SingletonVector
 using BangBang:
     @!, BangBang, Empty, append!!, collector, empty!!, finish!, push!!, setindex!!, union!!
 using CompositionsBase: compose, opcompose
-using Distributed: Distributed, @everywhere
-using Logging: LogLevel, @logmsg
-using Requires
+using DefineSingletons: @def_singleton
+using Distributed: @everywhere, Distributed
 using InitialValues:
     GenericInitialValue,
-    Init,
     InitialValue,
     InitialValues,
     SpecificInitialValue,
     asmonoid,
     hasinitialvalue
-using SplittablesBase: SplittablesBase, amount, halve
-
-import Setfield
+using Logging: @logmsg, LogLevel
+using Requires
 using Setfield: @lens, @set, set
+using SplittablesBase: SplittablesBase, amount, halve
 
 # Dummy `ConstructionBase` module for supporting older `Setfield`:
 module ConstructionBase
@@ -70,12 +119,6 @@ if isdefined(Base, :AbstractArrayOrBroadcasted)
 else
     const AbstractArrayOrBroadcasted = Union{AbstractArray, Broadcasted}
 end
-
-# Some upstream APIs that are frequently used with Transducers.jl.
-# From BangBang.jl:
-export Empty, append!!, push!!
-# From InitialValue.jl:
-export Init
 
 include("AutoObjectsReStacker.jl")
 using .AutoObjectsReStacker: restack
