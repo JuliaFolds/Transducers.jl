@@ -642,17 +642,19 @@ This is intended to be used only in [`start`](@ref).  Inside
 
 Consider a reducing step constructed as
 
-    rf = Reduction(xf₁ |> xf₂ |> xf₃, f)
+    rf = opcompose(xf₁, xf₂, xf₃)'(f)
 
 where each `xfₙ` is a stateful transducer and hence needs a private
-state `stateₙ`.  Then, calling `start(rf, result))` is equivalent to
+state `stateₙ` and this `stateₙ` is constructed in each
+`start(::R_{typeof(xfₙ)}, result)`.  Then, calling `start(rf,
+result))` is equivalent to
 
 ```julia
 wrap(rf,
      state₁,                     # private state for xf₁
      wrap(inner(rf),
           state₂,                # private state for xf₂
-          wrap(inner(rf).inner,
+          wrap(inner(inner(rf)),
                state₃,           # private state for xf₃
                result)))
 ```
