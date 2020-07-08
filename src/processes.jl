@@ -693,7 +693,12 @@ julia> collect(Interpose(missing), 1:3)
 ```
 """
 function Base.collect(xf::Transducer, coll)
-    result = finish!(append!!(xf, collector(), coll))
+    result = finish!(unreduced(transduce(
+        Map(SingletonVector) ∘ xf,
+        _collect_rf!!,
+        collector(),
+        coll,
+    )))
     if result isa Vector{Union{}}
         et = @default_finaltype(xf, coll)
         return et[]
@@ -703,6 +708,10 @@ end
 # Base.collect(xf, coll) = append!([], xf, coll)
 
 Base.collect(ed::Eduction) = collect(extract_transducer(ed)...)
+
+@inline _collect_rf!!(dest, src) = append!!(dest, src)
+start(::typeof(_collect_rf!!), _) = collector()
+complete(::typeof(_collect_rf!!), acc) = acc  # TODO: remove
 
 """
     copy(xf::Transducer, T, foldable) :: Union{T, Empty{T}}

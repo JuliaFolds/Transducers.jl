@@ -60,13 +60,13 @@ nothing  # hide
 # into a "singleton solution" which can be merged with already
 # aggregated (or another singleton) solution with `⊕`:
 
-segmentorchunk(c::Char) = c == ' ' ? Segment("", [], "") : Chunk(string(c))
+segment_or_chunk(c::Char) = c == ' ' ? Segment("", [], "") : Chunk(string(c))
 nothing  # hide
 
 # Putting them together, we get:
 
 function collectwords(s::String)
-    g = mapfoldl(segmentorchunk, ⊕, s; init=Segment("", [], ""))
+    g = mapfoldl(segment_or_chunk, ⊕, s; init=Segment("", [], ""))
     if g isa Char
         return maybewordv(g.s)
     else
@@ -89,53 +89,124 @@ nothing  # hide
 
 # ## String-splitting transducer
 #
-# Let's try to make it re-usable by packaging it into transducers.
-
-using Transducers
+# Let's make it re-usable by packaging it into a transducer.
 
 # Rather than accumulating words into a vector, we are going to write
 # a transducer that "emits" a word as soon as it is ready.  The
 # downstream transducer may choose to record everything or only
 # aggregate, e.g., reduced statistics.  To this end, we replace
-# `Segment` in the original algorithm to
+# `Segment` in the original algorithm with
 
 struct Vacant
     l::String
     r::String
 end
 
-# and output the words in the "middle" without accumulating it.  We
-# use [`ScanEmit`](@ref) which requires an operator/function like `⊕`
-# above but returning a pair of output and next state.  This function
-# (`extract` below) must have the signature `(S, S) -> (O, S)` where
-# `S` is the type for accumulated state and input and `O` is the
-# output type.
+# and output the words in the "middle" without accumulating it.  So,
+# instead of `segment_or_chunk`, we now have:
 
-extract(x::Chunk, y::Chunk) = (), Chunk(x.s * y.s)
-extract(x::Chunk, y::Vacant) = (), Vacant(x.s * y.l, y.r)
-extract(x::Vacant, y::Chunk) = (), Vacant(x.l, x.r * y.s)
-extract(x::Vacant, y::Vacant) = maybewordt(x.r * y.l), Vacant(x.l, y.r)
-
-maybewordt(s) = isempty(s) ? () : (s,)
+vacant_or_chunk(c::Char) = c == ' ' ? Vacant("", "") : Chunk(string(c))
 nothing  # hide
 
-# `maybewordt(x.r * y.l)` in `extract(x::Vacant, y::Vacant)` is the
-# "emission".
+# The idea is to create a custom transducer to create a transducer
+# `WordsXF` such that
 #
-# The words at the beginning and/or the end are not handled by
-# `extract`.  This must be handled separately:
+# ```julia
+# ... |> Map(vacant_or_chunk) |> WordsXF() |> Filter(!isnothing) |> ...
+# ```
+#
+# so that the whole transducer streams non-empty words to the
+# downstream.  That is to say, the input stream is first processed by
+# `vacant_or_chunk` which returns either a `Vacant` or a `Chunk`.
+# This is processed by `WordsXF()` which outputs either a word (a
+# `String`) or `nothing`.  We are using `Filter(!isnothing)` in the
+# downstream to simplify the definition of `WordsXF`.
+#
+# We define a function `extract(x::Union{Chunk,Vacant},
+# y::Union{Chunk,Vacant}) -> (output, state)`.  It is something like
+# `⊕` but works with `Chunk` and `Vacant`:
 
-lastword(x::Chunk) = maybewordt(x.s)
-lastword(x::Vacant) = (maybewordt(x.r)..., maybewordt(x.l)...)
+extract(x::Chunk, y::Chunk) = nothing, Chunk(x.s * y.s)
+extract(x::Chunk, y::Vacant) = nothing, Vacant(x.s * y.l, y.r)
+extract(x::Vacant, y::Chunk) = nothing, Vacant(x.l, x.r * y.s)
+extract(x::Vacant, y::Vacant) = maybeword(x.r * y.l), Vacant(x.l, y.r)
 
-vacantorchunk(c::Char) = c == ' ' ? Vacant("", "") : Chunk(string(c))
+maybeword(s) = isempty(s) ? nothing : s
+nothing  # hide
 
-wordsxf = opcompose(Map(vacantorchunk), ScanEmit(extract, Chunk(""), lastword), Cat())
+# Let's wrap this in a [`Transducer`](@ref).
+
+using Transducers
+using Transducers:
+    @next, R_, Transducer, combine, complete, inner, next, start, unwrap, wrap, wrapping
+
+# First, we declare a transducer type:
+
+struct WordsXF <: Transducer end
+nothing  # hide
+
+# Since this transducer has to keep "unfinished" words as its own
+# private state, we use [`wrap`](@ref) inside [`start`](@ref) to
+# prepare the state for it:
+
+Transducers.start(rf::R_{WordsXF}, init) = wrap(rf, Chunk(""), start(inner(rf), init))
+nothing  # hide
+
+# Inside of [`next`](@ref) (i.e., "loop body") we call `extract`
+# defined above to combine the input `x::Union{Chunk,Vacant}` into
+# `state::Union{Chunk,Vacant}`.  If `extract` returns a word, it is
+# passed to the inner reducing function:
+
+function Transducers.next(rf::R_{WordsXF}, acc, x)
+    wrapping(rf, acc) do state, iacc
+        word, state = extract(state, x)
+        iacc = next(inner(rf), iacc, word)
+        return state, iacc
+    end
+end
+nothing  # hide
+
+# At the end of a fold, [`complete`](@ref) is called.  We can process
+# unfinished words at this stage.  Note that we need to use
+# [`combine`](@ref) of the inner reducing function (assuming it is
+# associative) to "prepend" a word to the accumulated state of the
+# inner reducing function.
+
+function Transducers.complete(rf::R_{WordsXF}, acc)
+    state, iacc = unwrap(rf, acc)
+    if state isa Vacant
+        pre = @next(inner(rf), start(inner(rf), Init), maybeword(state.l))
+        iacc = combine(inner(rf), pre, iacc)  # prepending `state.l`
+        iacc = @next(inner(rf), iacc, maybeword(state.r))  # appending `state.r`
+    else
+        @assert state isa Chunk
+        iacc = @next(inner(rf), iacc, maybeword(state.s))
+    end
+    return complete(inner(rf), iacc)
+end
+nothing  # hide
+
+# That's all we need for using this transducer with sequential folds.
+# For parallel reduce we need [`combine`](@ref).  It is more or less
+# identical to `next`:
+
+function Transducers.combine(rf::R_{WordsXF}, a, b)
+    ua, ira = unwrap(rf, a)
+    ub, irb = unwrap(rf, b)
+    word, uc = extract(ua, ub)
+    ira = @next(inner(rf), ira, word)
+    irc = combine(inner(rf), ira, irb)
+    return wrap(rf, uc, irc)
+end
+nothing  # hide
+
+wordsxf = opcompose(Map(vacant_or_chunk), WordsXF(), Filter(!isnothing))
+nothing  # hide
 
 # Test:
 
 @testset begin
-    @test collect(wordsxf, "This is a sample") == ["is", "a", "sample", "This"]
+    @test collect(wordsxf, "This is a sample") == ["This", "is", "a", "sample"]
     @test collect(wordsxf, " Here is another sample ") == ["Here", "is", "another", "sample"]
     @test collect(wordsxf, "JustOneWord") == ["JustOneWord"]
     @test collect(wordsxf, " ") == []
@@ -143,33 +214,26 @@ wordsxf = opcompose(Map(vacantorchunk), ScanEmit(extract, Chunk(""), lastword), 
 end
 nothing  # hide
 
-# Side note: In the first example, the first word `This` comes last.
-# This is actually expected since both `.l` and `.r` are flushed in
-# `lastword` which is called at the very end.  Here, `This` is stored
-# in `.l` field.  If the order of the words is important, there are
-# many possible fixes.  For example, `extract` and `lastword` can
-# bundle information about the origin of the word (left vs
-# middle-or-right).  Alternatively, perhaps the easiest solution is to
-# insert a space in the beginning of input data.
-#
 # ## Word-counting transducer
 #
 # We can pipe the resulting words into various transducers.
 
-processcount(word) = Base.ImmutableDict(word => 1)
+using MicroCollections: SingletonDict
+
+processcount(word) = SingletonDict(word => 1)
 countxf = opcompose(wordsxf, Map(processcount))
 
 # Transducer `countxf` constructs a "singleton solution" as a
 # dictionary which then accumulated with the associative reducing step
-# function `mergecont!`:
+# function `mergewith!!(+)` from BangBang.jl:
 
-mergecont!(a, b) = merge!(+, a, b)
+using BangBang: mergewith!!
 nothing  # hide
 
 # Putting the transducer and reducing function together, we get:
 
 countwords(s; kwargs...) =
-    reduce(mergecont!,
+    reduce(mergewith!!(+),
            countxf,
            collect(s);
            init = CopyInit(Dict{String,Int}()),
@@ -182,10 +246,6 @@ nothing  # hide
 # Side note 2: We use [`CopyInit`](@ref) to create a fresh initial
 # state for each sub-reduce to avoid overwriting mutable data between
 # threads.
-#
-# Side note 3: [`reduce`](@ref) wraps `mergecont!` automatically with
-# [`Completing`](@ref).  This is why `mergecont!` does not have to
-# have the unary method.
 
 # Let's run some tests with different `basesize` (`length(s) /
 # basesize` corresponds to number of tasks to be used):
