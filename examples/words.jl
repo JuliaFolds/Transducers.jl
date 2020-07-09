@@ -201,6 +201,7 @@ function Transducers.combine(rf::R_{WordsXF}, a, b)
 end
 nothing  # hide
 
+using Compat: isnothing  #src
 wordsxf = opcompose(Map(vacant_or_chunk), WordsXF(), Filter(!isnothing))
 nothing  # hide
 
