@@ -146,16 +146,17 @@ struct WordsXF <: Transducer end
 nothing  # hide
 
 # Since this transducer has to keep "unfinished" words as its own
-# private state, we use [`wrap`](@ref) inside [`start`](@ref) to
-# prepare the state for it:
+# private state, we use [`wrap`](@ref Transducers.wrap) inside
+# [`start`](@ref Transducers.start) to prepare the state for it:
 
 Transducers.start(rf::R_{WordsXF}, init) = wrap(rf, Chunk(""), start(inner(rf), init))
 nothing  # hide
 
-# Inside of [`next`](@ref) (i.e., "loop body") we call `extract`
-# defined above to combine the input `x::Union{Chunk,Vacant}` into
-# `state::Union{Chunk,Vacant}`.  If `extract` returns a word, it is
-# passed to the inner reducing function:
+# Inside of [`next`](@ref Transducers.complete) (i.e., "loop body") we
+# call `extract` defined above to combine the input
+# `x::Union{Chunk,Vacant}` into `state::Union{Chunk,Vacant}`.  If
+# `extract` returns a word, it is passed to the inner reducing
+# function:
 
 function Transducers.next(rf::R_{WordsXF}, acc, x)
     wrapping(rf, acc) do state, iacc
@@ -166,11 +167,11 @@ function Transducers.next(rf::R_{WordsXF}, acc, x)
 end
 nothing  # hide
 
-# At the end of a fold, [`complete`](@ref) is called.  We can process
-# unfinished words at this stage.  Note that we need to use
-# [`combine`](@ref) of the inner reducing function (assuming it is
-# associative) to "prepend" a word to the accumulated state of the
-# inner reducing function.
+# At the end of a fold, [`complete`](@ref Transducers.complete) is
+# called.  We can process unfinished words at this stage.  Note that
+# we need to use [`combine`](@ref Transducers.combine) of the inner
+# reducing function (assuming it is associative) to "prepend" a word
+# to the accumulated state of the inner reducing function.
 
 function Transducers.complete(rf::R_{WordsXF}, acc)
     state, iacc = unwrap(rf, acc)
@@ -187,8 +188,8 @@ end
 nothing  # hide
 
 # That's all we need for using this transducer with sequential folds.
-# For parallel reduce we need [`combine`](@ref).  It is more or less
-# identical to `next`:
+# For parallel reduce we need [`combine`](@ref Transducers.combine).
+# It is more or less identical to `next`:
 
 function Transducers.combine(rf::R_{WordsXF}, a, b)
     ua, ira = unwrap(rf, a)
