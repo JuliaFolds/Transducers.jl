@@ -37,8 +37,19 @@ function gensample(seed)
     return randomjoin(rng, words), words
 end
 
+collectwords_xf(str) = str |> wordsxf |> collect
+tcollectwords(str; kw...) = tcollect(str |> wordsxf; kw...)
+tcollectwords_bs1(str) = tcollectwords(str; basesize = 1)
+collectwords_simple_reduce(str) = simple_reduce(append!!, wordsxf, str; init = String[])
+
 # ../examples/words/01_steele09.jl
-@testset "collectwords" begin
+@testset "$_collectwords" for _collectwords in [
+    collectwords,
+    collectwords_xf,
+    tcollectwords,
+    tcollectwords_bs1,
+    collectwords_simple_reduce,
+]
     @testset for seed in [rand(UInt) for _ in 1:N_SAMPLES]
         (str, words) = gensample(seed)
         @test collectwords(str) == words
