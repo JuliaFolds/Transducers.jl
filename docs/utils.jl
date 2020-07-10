@@ -40,6 +40,7 @@ end
 function transducers_makedocs(;
         examples = EXAMPLE_PAGES,
         strict = get(ENV, "CI", "false") == "true",
+        doctest = get(ENV, "CI", "false") == "true",
         kwargs...)
     if isempty(examples)
         # Make some dummy examples
@@ -61,7 +62,7 @@ function transducers_makedocs(;
     tutorials = filter(((_, path),) -> startswith(path, "tutorials/"), examples)
     howto = filter(((_, path),) -> startswith(path, "howto/"), examples)
     @assert issetequal(union(tutorials, howto), examples)
-    @info "`makedocs` with" strict kwargs = (; kwargs...)
+    @info "`makedocs` with" strict doctest kwargs = (; kwargs...)
     makedocs(;
         modules = [Transducers],
         pages = [
@@ -84,6 +85,7 @@ function transducers_makedocs(;
         authors = "Takafumi Arakaki",
         root = @__DIR__,
         strict = strict,
+        doctest = doctest,
         kwargs...)
 end
 
