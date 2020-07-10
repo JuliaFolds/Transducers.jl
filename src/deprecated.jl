@@ -41,3 +41,32 @@ end
 
 # It wasn't a public API but to play on the safe side:
 @deprecate induction(itr) extract_transducer(itr) false
+
+function Base.mapfoldl(xform::Transducer, step, itr; kwargs...)
+    Base.depwarn(_MAPFOLDL_DEPWARN, (:mapfoldl, Symbol("mapfoldl##kw")))
+    return foldl(whencomplete(step, step), xform, itr; kwargs...)
+end
+
+# disambiguation
+function Base.mapfoldl(xform::Transducer, step, itr::Foldable; kwargs...)
+    Base.depwarn(_MAPFOLDL_DEPWARN, :mapfoldl, Symbol("mapfoldl##kw"))
+    return foldl(whencomplete(step, step), xform, itr; kwargs...)
+end
+
+function _mapreduce(xform, step, itr, kwargs)
+    Base.depwarn(_MAPREDUCE_DEPWARN, :mapreduce, Symbol("mapreduce##kw"))
+    return reduce(whencomplete(step, step), xform, itr; kwargs...)
+end
+
+Base.mapreduce(xform::Transducer, step, itr; kwargs...) =
+    _mapreduce(xform, step, itr, kwargs)
+
+# Disambiguation:
+Base.mapreduce(xform::Transducer, step, itr::AbstractArray; kwargs...) =
+    _mapreduce(xform, step, itr, kwargs)
+Base.mapreduce(xform::Transducer, step, itr::AbstractArrayOrBroadcasted; kwargs...) =
+    _mapreduce(xform, step, itr, kwargs)
+Base.mapreduce(xform::Transducer, step, itr::Base.SkipMissing{<:AbstractArray}; kwargs...) =
+    _mapreduce(xform, step, itr, kwargs)
+Base.mapreduce(xform::Transducer, step, itr::Number; kwargs...) =
+    _mapreduce(xform, step, itr, kwargs)

@@ -63,6 +63,10 @@ Transducers.Inject
 ```@docs
 Transducers.TeeRF
 Transducers.ProductRF
+Transducers.wheninit
+Transducers.whenstart
+Transducers.whencomplete
+Transducers.whencombine
 ```
 
 ## Early termination

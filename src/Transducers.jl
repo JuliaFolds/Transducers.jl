@@ -61,6 +61,10 @@ export AdHocFoldable,
     tcopy,
     transduce,
     unreduced,
+    whencombine,
+    whencomplete,
+    wheninit,
+    whenstart,
     withprogress
 
 using Base.Broadcast: Broadcasted
