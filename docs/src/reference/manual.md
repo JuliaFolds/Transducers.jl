@@ -31,6 +31,9 @@ Channel
 ### Experimental transducible processes
 
 ```@docs
+foldxl
+foldxt
+foldxd
 Transducers.channel_unordered
 Transducers.append_unordered!
 ```
