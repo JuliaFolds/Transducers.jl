@@ -204,9 +204,12 @@ Define an ad-hoc reducing function `rf`.
 
 # Examples
 ```jldoctest
+julia> using Transducers
+       using Transducers: AdHocRF
+
 julia> rf = AdHocRF(push!, combine = append!);
 
-julia> reduce(rf, Map(identity), 1:10; basesize = 1, init = OnInit(() -> []))
+julia> reduce(rf, Map(identity), 1:4; basesize = 1, init = OnInit(() -> []))
 4-element Array{Any,1}:
  1
  2
@@ -320,13 +323,14 @@ See also [`next`](@ref), [`start`](@ref), [`complete`](@ref), and
 
 An example for using non-associative reducing function in `reduce`:
 
-```jldoctest
+```jldoctest wheninit
 julia> using Transducers
+       using Transducers: wheninit, whenstart, whencomplete, whencombine
 
 julia> collector! = push! |> whencombine(append!) |> wheninit(() -> []);
 
 julia> reduce(collector!, Filter(isodd), 1:5; basesize = 1)
-3-element Array{Int64,1}:
+3-element Array{Any,1}:
  1
  3
  5
@@ -334,8 +338,8 @@ julia> reduce(collector!, Filter(isodd), 1:5; basesize = 1)
 
 More "tightly" typed vector can returned by using BangBang.jl interface:
 
-```jldoctest; setup = :(using Transducers)
-julia> collector!! = push!! |> whencombine(append!!) |> wheninit(Empty(Vector));
+```jldoctest wheninit
+julia> collector!! = push!! |> whencombine(append!!) |> wheninit(Vector{Union{}});
 
 julia> reduce(collector!!, Filter(isodd), 1:5; basesize = 1)
 3-element Array{Int64,1}:
@@ -347,9 +351,9 @@ julia> reduce(collector!!, Filter(isodd), 1:5; basesize = 1)
 Online averaging algorithm can be implemented, e.g., by combining
 `wheninit` and `whencombine`:
 
-```jldoctest; setup = :(using Transducers)
+```jldoctest wheninit
 julia> averaging = function add_average((sum, count), x)
-           (sum + 1, count + 1)
+           (sum + x, count + 1)
        end |> wheninit() do
            (Init(+), 0)
        end |> whencomplete() do (sum, count)
@@ -364,7 +368,7 @@ An alternative parallelizable implementation is to use [`Map`](@ref)
 to construct a singleton solution and then merge it into the
 accumulated solution:
 
-```jldoctest; setup = :(using Transducers)
+```jldoctest wheninit
 julia> using InitialValues: asmonoid
 
 julia> averaging2 = function merge_average((sum1, count1), (sum2, count2))
@@ -373,7 +377,7 @@ julia> averaging2 = function merge_average((sum1, count1), (sum2, count2))
            sum / count
        end |> Map() do x
            (x, 1)
-       end';  `'` here is important
+       end';  # `'` here is important
 
 julia> foldl(averaging2, Filter(isodd), 1:5)
 3.0
