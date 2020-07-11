@@ -325,7 +325,6 @@ An example for using non-associative reducing function in `reduce`:
 
 ```jldoctest wheninit
 julia> using Transducers
-       using Transducers: wheninit, whenstart, whencomplete, whencombine
 
 julia> collector! = push! |> whencombine(append!) |> wheninit(() -> []);
 

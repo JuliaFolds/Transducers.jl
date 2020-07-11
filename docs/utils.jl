@@ -37,6 +37,19 @@ function transducers_literate(;
     end
 end
 
+function transducers_rm_duplicated_docs()
+    shareddocs =
+        Docs.Binding.(Ref(Transducers), [:whenstart, :whencomplete, :whencombine]) .=>
+            Ref(Docs.Binding(Transducers, :wheninit))
+    for (dup, canonical) in shareddocs
+        @info "Simplifying docstring: $dup => $canonical"
+        pop!(Docs.meta(dup.mod), dup, nothing)
+        canstr = only(values(Docs.meta(canonical.mod)[canonical].docs))
+        txt = "See [`$(canonical.var)`](@ref $canonical)"
+        @eval dup.mod $Docs.@doc $txt $(dup.var)
+    end
+end
+
 function transducers_makedocs(;
         examples = EXAMPLE_PAGES,
         strict = get(ENV, "CI", "false") == "true",
