@@ -49,12 +49,12 @@ end
 
 # disambiguation
 function Base.mapfoldl(xform::Transducer, step, itr::Foldable; kwargs...)
-    Base.depwarn(_MAPFOLDL_DEPWARN, :mapfoldl, Symbol("mapfoldl##kw"))
+    Base.depwarn(_MAPFOLDL_DEPWARN, (:mapfoldl, Symbol("mapfoldl##kw")))
     return foldl(whencomplete(step, step), xform, itr; kwargs...)
 end
 
 function _mapreduce(xform, step, itr, kwargs)
-    Base.depwarn(_MAPREDUCE_DEPWARN, :mapreduce, Symbol("mapreduce##kw"))
+    Base.depwarn(_MAPREDUCE_DEPWARN, (:mapreduce, Symbol("mapreduce##kw")))
     return reduce(whencomplete(step, step), xform, itr; kwargs...)
 end
 
