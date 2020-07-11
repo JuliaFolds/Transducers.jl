@@ -142,7 +142,7 @@ function transduce_assoc(
     init,
     coll0;
     simd::SIMDFlag = Val(false),
-    basesize::Integer = amount(coll0) ÷ Threads.nthreads(),
+    basesize::Union{Integer,Nothing} = nothing,
     stoppable::Union{Bool,Nothing} = nothing,
 ) where {F}
     rf0 = _reducingfunction(xform, step; init = init)
@@ -154,7 +154,7 @@ function transduce_assoc(
         maybe_usesimd(rf, simd),
         init,
         coll,
-        basesize,
+        basesize === nothing ? amount(coll) ÷ Threads.nthreads() : basesize,
         stoppable,
     )
     result = complete(rf, acc)
