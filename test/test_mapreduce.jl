@@ -10,7 +10,13 @@ const DEPWARN_ERROR = !(Base.JLOptions().depwarn in (0, 1))
     ans = @test_deprecated mapreduce(xf, +, 0:4, init = 0)
     DEPWARN_ERROR || @test ans == 6
 
-    ans = @test_deprecated mapreduce(xf, +, air.([1:5;] .- 1), init = 0)
+    ans = @test_deprecated mapreduce(
+        xf,
+        +,
+        air.([1:5;] .- 1);
+        init = 0,
+        basesize = typemax(Int),  # Broadcasted is not parallelizable yet
+    )
     DEPWARN_ERROR || @test ans == 6
 
     ans = @test_deprecated mapreduce(xf, +, skipmissing(Any[0:4;]), init = 0)
