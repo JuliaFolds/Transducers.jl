@@ -36,6 +36,36 @@ const parseint = Base.Fix1(parse, Int)
         @test fold(right, GroupBy(isodd, Map(last), +), 1:10) ==
               Dict(true => 25, false => 30)
     end
+    @testset "AdHocRF" begin
+        averaging =
+            function add_average((sum, count), x)
+                (sum + x, count + 1)
+            end |>
+            wheninit() do
+                (Init(+), 0)
+            end |>
+            whencombine() do (sum1, count1), (sum2, count2)
+                (sum1 + sum2), (count1 + count2)
+            end |>
+            whencomplete() do (sum, count)
+                sum / count
+            end
+        @test fold(averaging, Filter(isodd), 1:5) === 3.0
+        @test fold(averaging, Filter(isodd), 1:50) === 25.0
+
+        averaging2 =
+            function merge_average((sum1, count1), (sum2, count2))
+                (sum1 + sum2, count1 + count2)
+            end |>
+            whencomplete() do (sum, count)
+                sum / count
+            end |>
+            Map() do x
+                (x, 1)
+            end'
+        @test fold(averaging2, Filter(isodd), 1:5) === 3.0
+        @test fold(averaging2, Filter(isodd), 1:50) === 25.0
+    end
     if fold ∉ (simple_reduce, random_reduce, dreduce_bs1, dreduce)
         @testset "NoAdjoint" begin
             @test fold(
