@@ -11,6 +11,7 @@ pull_request_rules:
       - status-success=Travis CI - Pull Request
       - status-success=Benchmark
       - status-success=Documenter
+      - status-success=Test xfail Julia 1.4
       - -status-failure=vanilla-test
       - label=ready-to-merge:squash
       - label!=work-in-progress
@@ -24,6 +25,7 @@ pull_request_rules:
       - status-success=Travis CI - Pull Request
       - status-success=Benchmark
       - status-success=Documenter
+      - status-success=Test xfail Julia 1.4
       - -status-failure=vanilla-test
       - label=ready-to-merge:rebase
       - label!=work-in-progress
@@ -37,6 +39,7 @@ pull_request_rules:
       - status-success=Travis CI - Pull Request
       - status-success=Benchmark
       - status-success=Documenter
+      - status-success=Test xfail Julia 1.4
       - -status-failure=vanilla-test
       - label=ready-to-merge:merge
       - label!=work-in-progress
@@ -50,6 +53,7 @@ pull_request_rules:
       - status-success=Travis CI - Pull Request
       - status-success=Benchmark
       - status-success=Documenter
+      - status-success=Test xfail Julia 1.4
       - -status-failure=vanilla-test
       - label~=ready-to-merge:.*
     actions:
