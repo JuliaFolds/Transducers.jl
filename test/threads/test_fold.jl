@@ -58,4 +58,12 @@ end
     end
 end
 
+# TODO: make them work with `dreduce`
+@testset "$fold" for fold in [reduce_bs1, reduce]
+    @testset "eduction" begin
+        @test fold(right, eduction(x for x in 1:10 if isodd(x))) == 9
+        @test fold(right, Map(identity), eduction(x for x in 1:10 if isodd(x))) == 9
+    end
+end
+
 end  # module
