@@ -10,7 +10,7 @@ jobs:
       matrix:
         julia-version: ['1.4']
       fail-fast: false
-    name: Test Julia ${{ matrix.julia-version }}
+    name: Test xfail Julia ${{ matrix.julia-version }}
     steps:
       - uses: actions/checkout@v2
       - name: Setup julia
