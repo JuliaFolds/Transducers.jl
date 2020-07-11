@@ -61,8 +61,11 @@ end
 # TODO: make them work with `dreduce`
 @testset "$fold" for fold in [reduce_bs1, reduce]
     @testset "eduction" begin
-        @test fold(right, eduction(x for x in 1:10 if isodd(x))) == 9
-        @test fold(right, Map(identity), eduction(x for x in 1:10 if isodd(x))) == 9
+        @test fold(+, eduction(x for x in 1:10 if isodd(x))) == 25
+        @test fold(+, Map(identity), eduction(x for x in 1:10 if isodd(x))) == 25
+        # These require `right` to be a proper monoid:
+        @test_skip fold(right, eduction(x for x in 1:10 if isodd(x))) == 9
+        @test_skip fold(right, Map(identity), eduction(x for x in 1:10 if isodd(x))) == 9
     end
 end
 
