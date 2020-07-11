@@ -243,7 +243,7 @@ AdHocRF(oninit, start, op, complete, combine) =
         combine,
     )
 
-AdHocRF(op; oninit = nothing, start = identity, complete = identity, combine = op) =
+AdHocRF(op; oninit = nothing, start = identity, complete = identity, combine = nothing) =
     AdHocRF(oninit, start, op, complete, combine)
 
 AdHocRF(op::AdHocRF; kwargs...) = setproperties(op, kwargs.data)
@@ -260,7 +260,7 @@ AdHocRF(op::AdHocRF; kwargs...) = setproperties(op, kwargs.data)
 @inline start(rf::AdHocRF, init) = rf.start(initialize(init, rf.next))
 @inline next(rf::AdHocRF, acc, x) = rf.next(acc, x)
 @inline complete(rf::AdHocRF, acc) = rf.complete(acc)
-@inline combine(rf::AdHocRF, a, b) = rf.combine(a, b)
+@inline combine(rf::AdHocRF, a, b) = something(rf.combine, rf.next)(a, b)
 
 _asmonoid(rf::AdHocRF) = @set rf.next = _asmonoid(rf.next)
 Completing(rf::AdHocRF) = rf
