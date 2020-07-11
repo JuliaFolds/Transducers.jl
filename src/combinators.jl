@@ -347,25 +347,28 @@ julia> reduce(collector!!, Filter(isodd), 1:5; basesize = 1)
  5
 ```
 
-Online averaging algorithm can be implemented, e.g., by combining
-`wheninit` and `whencombine`:
+Online averaging algorithm can be implemented, e.g., by:
 
 ```jldoctest wheninit
 julia> averaging = function add_average((sum, count), x)
            (sum + x, count + 1)
        end |> wheninit() do
            (Init(+), 0)
+       end |> whencombine() do (sum1, count1), (sum2, count2)
+           (sum1 + sum2), (count1 + count2)
        end |> whencomplete() do (sum, count)
            sum / count
        end;
 
 julia> foldl(averaging, Filter(isodd), 1:5)
 3.0
+
+julia> reduce(averaging, Filter(isodd), 1:50; basesize = 1)
+25.0
 ```
 
-An alternative parallelizable implementation is to use [`Map`](@ref)
-to construct a singleton solution and then merge it into the
-accumulated solution:
+An alternative implementation is to use [`Map`](@ref) to construct a
+singleton solution and then merge it into the accumulated solution:
 
 ```jldoctest wheninit
 julia> averaging2 = function merge_average((sum1, count1), (sum2, count2))
