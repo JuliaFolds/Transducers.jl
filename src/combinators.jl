@@ -368,11 +368,9 @@ to construct a singleton solution and then merge it into the
 accumulated solution:
 
 ```jldoctest wheninit
-julia> using InitialValues: asmonoid
-
 julia> averaging2 = function merge_average((sum1, count1), (sum2, count2))
            (sum1 + sum2, count1 + count2)
-       end |> asmonoid |> whencomplete() do (sum, count)
+       end |> whencomplete() do (sum, count)
            sum / count
        end |> Map() do x
            (x, 1)
