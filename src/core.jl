@@ -812,7 +812,7 @@ julia> foldl(right, Drop(5), 1:3; init=0)  # using `init` as the default value
 right(l, r) = r
 right(r) = r
 
-InitialValues.@def right
+InitialValues.@def_monoid right
 
 identityof(::typeof(right), ::Any) = nothing
 # This is just a right identity but `right` is useful for left-fold
