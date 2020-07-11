@@ -36,6 +36,19 @@ const parseint = Base.Fix1(parse, Int)
         @test fold(right, GroupBy(isodd, Map(last), +), 1:10) ==
               Dict(true => 25, false => 30)
     end
+    if fold ∉ (simple_reduce, random_reduce, dreduce_bs1, dreduce)
+        @testset "NoAdjoint" begin
+            @test fold(
+                +,
+                Map(identity),
+                Transducers.NoAdjoint(x for x in 1:10 if isodd(x)),
+            ) == sum(1:2:10)
+        end
+    end
+end
+
+@testset "$fold" for fold in [foldl, simple_reduce, random_reduce, reduce_bs1, reduce]
+    # TODO: test them with `dreduce` (don't use local functions)
     @testset "AdHocRF" begin
         averaging =
             function add_average((sum, count), x)
@@ -66,19 +79,8 @@ const parseint = Base.Fix1(parse, Int)
         @test fold(averaging2, Filter(isodd), 1:5) === 3.0
         @test fold(averaging2, Filter(isodd), 1:50) === 25.0
     end
-    if fold ∉ (simple_reduce, random_reduce, dreduce_bs1, dreduce)
-        @testset "NoAdjoint" begin
-            @test fold(
-                +,
-                Map(identity),
-                Transducers.NoAdjoint(x for x in 1:10 if isodd(x)),
-            ) == sum(1:2:10)
-        end
-    end
-end
 
-# TODO: make them work with `dreduce`
-@testset "$fold" for fold in [foldl, simple_reduce, random_reduce, reduce_bs1, reduce]
+    # TODO: make them work with `dreduce`
     @testset "dict" begin
         dict = Dict(zip("1234", 1:4))
         @test fold(+, Map(last), dict) == 10
