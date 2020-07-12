@@ -145,7 +145,10 @@ true
 struct Cat <: Transducer
 end
 
-@inline next(rf::R_{Cat}, result, input) = foldl_nocomplete(inner(rf), result, input)
+@inline function next(rf::R_{Cat}, acc, x)
+    rf0, itr0 = retransform(inner(rf), x)
+    return foldl_nocomplete(rf0, acc, itr0)
+end
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/mapcat
 # https://clojuredocs.org/clojure.core/mapcat
