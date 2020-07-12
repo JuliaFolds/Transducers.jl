@@ -91,7 +91,13 @@ julia> transduce(rf_good, "", 1:3)
     maybe_usesimd(Reduction(xf, step), simd)
 
 # Use `_asmonoid` automatically only when `init` is not specified:
-@inline _reducingfunction(xf, step; init = DefaultInit, simd::SIMDFlag = Val(false), _...) =
+@inline _reducingfunction(
+    xf::XF,
+    step::Step;
+    init = DefaultInit,
+    simd::SIMDFlag = Val(false),
+    _...,
+) where {XF,Step} =
     maybe_usesimd(Reduction(xf, init === DefaultInit ? _asmonoid(step) : step), simd)
 
 """
@@ -416,7 +422,7 @@ Finishing with state = 4.0
 """
 mapfoldl
 
-function transduce(xform::Transducer, f, init, coll; kwargs...)
+function transduce(xform::Transducer, f::F, init, coll; kwargs...) where {F}
     rf = _reducingfunction(xform, f; init = init, kwargs...)
     return transduce(rf, init, coll; kwargs...)
 end
@@ -424,8 +430,12 @@ end
 _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
 
 # TODO: should it be an internal?
-@inline function transduce(rf1::AbstractReduction, init, coll;
-                           simd::SIMDFlag = Val(false))
+@inline function transduce(
+    rf1::RF,
+    init,
+    coll;
+    simd::SIMDFlag = Val(false),
+) where {RF<:AbstractReduction}
     # Inlining `transduce` and `__foldl__` were essential for the
     # `restack` below to work.
     rf0, foldable = retransform(rf1, asfoldable(coll))
