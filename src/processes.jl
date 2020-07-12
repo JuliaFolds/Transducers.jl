@@ -772,15 +772,18 @@ julia> @assert copy(
 Base.copy(xf::Transducer, ::Type{T}, foldable) where {T} = append!!(xf, Empty(T), foldable)
 Base.copy(xf::Transducer, foldable) = copy(xf, _materializer(foldable), foldable)
 
-function Base.copy(::Type{T}, ed::Eduction) where {T}
+function Base.copy(::Type{T}, ed::Foldable) where {T}
     xf, foldable = extract_transducer(ed)
     return copy(xf, T, foldable)
 end
 
-function Base.copy(ed::Eduction)
+function Base.copy(ed::Foldable)
     xf, foldable = extract_transducer(ed)
     return copy(xf, foldable)
 end
+
+Base.Set(foldable::Foldable) = copy(Set, foldable)
+Base.Dict(foldable::Foldable) = copy(Dict, foldable)
 
 """
     map!(xf::Transducer, dest, src; simd)
