@@ -141,7 +141,7 @@ add_skipmissing!([100, 110, 120], [1, missing, 2])
 
 # ## Vectorized reduction
 #
-# `foldl`, `mapfoldl`, etc. in `Base` support `dims` argument.
+# `reduce`, `sum`, etc. in `Base` support `dims` argument.
 # Transducers.jl does not support this argument as of writing.
 # However, this can easily be emulated using `eachcol`, `eachrow`, or
 # `eachslice` iterators in `Base`.

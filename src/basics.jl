@@ -26,6 +26,9 @@ else
     _Channel(f, ::Type{T}, size; kwargs...) where {T} = Channel{T}(f, size; kwargs...)
 end
 
+_typeof(::Type{T}) where {T} = Type{T}
+_typeof(::T) where {T} = T
+
 function _materializer(xs)
     T = Tables.materializer(xs)
     return T isa Type ? T : _materializer(typeof(xs))

@@ -37,9 +37,23 @@ function transducers_literate(;
     end
 end
 
+function transducers_rm_duplicated_docs()
+    shareddocs =
+        Docs.Binding.(Ref(Transducers), [:whenstart, :whencomplete, :whencombine]) .=>
+            Ref(Docs.Binding(Transducers, :wheninit))
+    for (dup, canonical) in shareddocs
+        @info "Simplifying docstring: $dup => $canonical"
+        pop!(Docs.meta(dup.mod), dup, nothing)
+        canstr = only(values(Docs.meta(canonical.mod)[canonical].docs))
+        txt = "See [`$(canonical.var)`](@ref $canonical)"
+        @eval dup.mod $Docs.@doc $txt $(dup.var)
+    end
+end
+
 function transducers_makedocs(;
         examples = EXAMPLE_PAGES,
         strict = get(ENV, "CI", "false") == "true",
+        doctest = get(ENV, "CI", "false") == "true",
         kwargs...)
     if isempty(examples)
         # Make some dummy examples
@@ -61,7 +75,7 @@ function transducers_makedocs(;
     tutorials = filter(((_, path),) -> startswith(path, "tutorials/"), examples)
     howto = filter(((_, path),) -> startswith(path, "howto/"), examples)
     @assert issetequal(union(tutorials, howto), examples)
-    @info "`makedocs` with" strict kwargs = (; kwargs...)
+    @info "`makedocs` with" strict doctest kwargs = (; kwargs...)
     makedocs(;
         modules = [Transducers],
         pages = [
@@ -84,6 +98,7 @@ function transducers_makedocs(;
         authors = "Takafumi Arakaki",
         root = @__DIR__,
         strict = strict,
+        doctest = doctest,
         kwargs...)
 end
 

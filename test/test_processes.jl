@@ -1,21 +1,21 @@
 module TestProcesses
 include("preamble.jl")
 
-@testset "mapfoldl" begin
+@testset "foldl" begin
     # https://clojure.org/reference/transducers#_transduce
     xf = opcompose(Filter(isodd), Map(inc))
     @testset for xs in iterator_variants(0:4)
-        @test mapfoldl(xf, +, xs, init=0) == 6
-        @test mapfoldl(xf, +, xs, init=100) == 106
+        @test foldl(+, xf, xs, init=0) == 6
+        @test foldl(+, xf, xs, init=100) == 106
     end
 
     # https://clojuredocs.org/clojure.core/transduce
     xf = opcompose(Filter(isodd), Take(10))
     @testset "$(typeof(xs))" for xs in iterator_variants(0:1000)
-        @test mapfoldl(xf, push!, xs, init=Int[]) == 1:2:19
-        @test mapfoldl(xf, +, xs, init=0) == 100
-        @test mapfoldl(xf, +, xs, init=17) == 117
-        @test mapfoldl(xf, string, xs, init="") == "135791113151719"
+        @test foldl(push!, xf, xs, init=Int[]) == 1:2:19
+        @test foldl(+, xf, xs, init=0) == 100
+        @test foldl(+, xf, xs, init=17) == 117
+        @test foldl(string, xf, xs, init="") == "135791113151719"
 
         @test transduce(xf, push!, Int[], xs) == Reduced(1:2:19)
         @test transduce(xf, +, 0, xs) == Reduced(100)
@@ -40,8 +40,8 @@ include("preamble.jl")
         @test_throws EmptyResultError foldl(+, ed)
         @test foldl(+, ed, init=32.) === 32.
 
-        # @test_throws EmptyResultError mapfoldl(xf, +, iter)  # broken
-        @test mapfoldl(xf, +, iter, init=32.) === 32.
+        # @test_throws EmptyResultError foldl(+, xf, iter)  # broken
+        @test foldl(+, xf, iter, init=32.) === 32.
 
         nested_xf = opcompose(Drop(10^9), FlagFirst(), Map(x -> 32))
         @test_throws EmptyResultError foldl(+, nested_xf, iter)
@@ -56,7 +56,7 @@ include("preamble.jl")
                 ]
             xs = zip(arrays...)
             VERSION >= v"1.1-" && @test xs isa Iterators.Zip
-            @test mapfoldl(MapSplat(*), +, xs) == sum(map(*, arrays...))
+            @test foldl(+, MapSplat(*), xs) == sum(map(*, arrays...))
         end
     end
 
@@ -72,7 +72,7 @@ include("preamble.jl")
                 n in 1:length(iterators)
             xs = Iterators.product(iterators[1:n]...)
             @test collect(Map(identity), xs) == collect(xs)[:]
-            @test mapfoldl(MapSplat(*), +, xs) == sum(Base.splat(*), xs)
+            @test foldl(+, MapSplat(*), xs) == sum(Base.splat(*), xs)
         end
     end
 
@@ -95,8 +95,8 @@ include("preamble.jl")
         @testset for xs in iterator_variants(1:3)
             ys = @~ xs.^2
             @test collect(Map(identity), ys) == copy(ys)
-            @test mapfoldl(Filter(isodd), +, ys) == 10
-            @test mapfoldl(Filter(isodd), +, ys; init=0) == 10
+            @test foldl(+, Filter(isodd), ys) == 10
+            @test foldl(+, Filter(isodd), ys; init=0) == 10
         end
     end
 end
@@ -262,7 +262,6 @@ end
 
 @testset "Non-executable transducers" begin
     @testset for ex in @expressions begin
-            # mapfoldl(Map(error), +, Int[])  # broken
             foldl(+, Map(error), Int[])
             foldl(+, eduction(Map(error), Int[]))
         end
@@ -272,7 +271,6 @@ end
     end
 
     @testset for ex in @expressions begin
-            mapfoldl(Map(error), +, ["hello"]; init=0)
             foldl(+, Map(error), ["hello"]; init=0)
             foldl(+, eduction(Map(error), ["hello"]); init=0)
             foreach(tuple, Map(error), ["hello"])
@@ -297,12 +295,7 @@ end
 end
 
 @testset "identityof error" begin
-    @test_throws EmptyResultError mapfoldl(Map(identity), right, Any[])
-    err = @test_error mapfoldl(Map(identity), +, Any[])
-    @test_broken err isa EmptyResultError
-
-    err = @test_error mapfoldl(Map(identity), +, Vector{Int}[])
-    @test_broken err isa EmptyResultError
+    @test_throws EmptyResultError foldl(right, Map(identity), Any[])
 end
 
 @testset "AdHocFoldable" begin

@@ -54,13 +54,20 @@ julia> reduce(append!!, Map(x -> 1:x), 1:2; basesize=1, init=Union{}[])
 """
 Base.reduce
 
+const _MAPREDUCE_DEPWARN = (
+    "`mapreduce(::Transducer, rf, itr)` is deprecated. " *
+    " Use `reduce(rf, ::Transducer, itr)` if you do not need to call single-argument" *
+    " `rf` on `complete`." *
+    " Use `reduce(whencomplete(rf, rf), ::Transducer, itr)` to call the" *
+    " single-argument method of `rf` on complete."
+)
+
 """
     mapreduce(xf, step, reducible; init, simd)
 
 !!! warning
 
-    `mapreduce` exists primary for backward compatibility.  It is
-    recommended to use `reduce`.
+    $_MAPREDUCE_DEPWARN
 
 Like [`reduce`](@ref) but `step` is _not_ automatically wrapped by
 [`Completing`](@ref).
@@ -135,7 +142,7 @@ function transduce_assoc(
     init,
     coll0;
     simd::SIMDFlag = Val(false),
-    basesize::Integer = amount(coll0) ÷ Threads.nthreads(),
+    basesize::Union{Integer,Nothing} = nothing,
     stoppable::Union{Bool,Nothing} = nothing,
 ) where {F}
     rf0 = _reducingfunction(xform, step; init = init)
@@ -147,7 +154,7 @@ function transduce_assoc(
         maybe_usesimd(rf, simd),
         init,
         coll,
-        basesize,
+        basesize === nothing ? amount(coll) ÷ Threads.nthreads() : basesize,
         stoppable,
     )
     result = complete(rf, acc)
@@ -293,42 +300,8 @@ function __reduce_dummy(rf, init, reducible)
     end
 end
 
-# Disambiguation:
-Base.mapreduce(
-    xform::Transducer,
-    step::F,
-    itr::AbstractArray;
-    init = DefaultInit,
-    kwargs...,
-) where {F} = unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
-Base.mapreduce(
-    xform::Transducer,
-    step::F,
-    itr::AbstractArrayOrBroadcasted;
-    init = DefaultInit,
-    kwargs...,
-) where {F} = unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
-Base.mapreduce(
-    xform::Transducer,
-    step::F,
-    itr::Base.SkipMissing{<:AbstractArray};
-    init = DefaultInit,
-    kwargs...,
-) where {F} = unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
-Base.mapreduce(
-    xform::Transducer,
-    step::F,
-    itr::Number;
-    init = DefaultInit,
-    kwargs...,
-) where {F} = unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
-
-Base.mapreduce(xform::Transducer, step::F, itr;
-               init = DefaultInit, kwargs...) where {F} =
-    unreduced(transduce_assoc(xform, step, init, itr; kwargs...))
-
-Base.reduce(step::F, xform::Transducer, itr; kwargs...) where {F} =
-    mapreduce(xform, Completing(step), itr; kwargs...)
+Base.reduce(step::F, xform::Transducer, itr; init = DefaultInit, kwargs...) where {F} =
+    unreduced(transduce_assoc(xform, Completing(step), init, itr; kwargs...))
 
 Base.reduce(step::F, foldable::Foldable; kwargs...) where {F} =
     reduce(step, extract_transducer(foldable)...; kwargs...)

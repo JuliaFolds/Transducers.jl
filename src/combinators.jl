@@ -181,3 +181,209 @@ ProductRF(f, fs...) = ProductRF((f, fs...))
 @inline next(rf::ProductRF{N}, accs::NTuple{N,Any}, xs) where {N} =
     map(next, rf.fs, accs, xs)
 @inline (rf::ProductRF)(accs, x) = next(rf, accs, x)
+
+
+"""
+    AdHocRF(next; oninit, start = identity, complete = identity, combine = next)
+
+Define an ad-hoc reducing function `rf`.
+
+!!! note
+
+    Use [`wheninit`](@ref) etc. instead of this constructor.
+
+# Arguments
+- `next`: binary function
+
+# Keyword Arguments
+- `oninit`: nullary function that generates an initial value for `next`
+- `start`: unary function that pre-process the initial value for `next`
+- `complete`: unary function that post-process the accumulator
+- `combine`: (approximately) associative binary function for combining
+  multiple results of `next` (before post-processed by `complete`).
+
+# Examples
+```jldoctest
+julia> using Transducers
+       using Transducers: AdHocRF
+
+julia> rf = AdHocRF(push!, combine = append!);
+
+julia> reduce(rf, Map(identity), 1:4; basesize = 1, init = OnInit(() -> []))
+4-element Array{Any,1}:
+ 1
+ 2
+ 3
+ 4
+```
+"""
+struct AdHocRF{OnInit,Start,Next,Complete,Combine} <: _Function
+    oninit::OnInit
+    start::Start
+    next::Next
+    complete::Complete
+    combine::Combine
+
+    AdHocRF{OnInit,Start,Next,Complete,Combine}(
+        oninit,
+        start,
+        next,
+        complete,
+        combine,
+    ) where {OnInit,Start,Next,Complete,Combine} =
+        new{OnInit,Start,Next,Complete,Combine}(oninit, start, next, complete, combine)
+end
+
+AdHocRF(oninit, start, op, complete, combine) =
+    AdHocRF{_typeof(oninit),_typeof(start),_typeof(op),_typeof(complete),_typeof(combine)}(
+        oninit,
+        start,
+        op,
+        complete,
+        combine,
+    )
+
+AdHocRF(op; oninit = nothing, start = identity, complete = identity, combine = nothing) =
+    AdHocRF(oninit, start, op, complete, combine)
+
+AdHocRF(op::AdHocRF; kwargs...) = setproperties(op, kwargs.data)
+
+@inline (rf::AdHocRF)(acc, x) = rf.next(acc, x)
+
+@inline start(rf::AdHocRF, init::Union{InitOf,InitialValues.InitialValue}) =
+    if rf.oninit === nothing
+        rf.start(initialize(init, rf.next))
+    else
+        # No concrete `init` is given and `oninit`is defined.
+        rf.start(rf.oninit())
+    end
+@inline start(rf::AdHocRF, init) = rf.start(initialize(init, rf.next))
+@inline next(rf::AdHocRF, acc, x) = rf.next(acc, x)
+@inline complete(rf::AdHocRF, acc) = rf.complete(acc)
+@inline combine(rf::AdHocRF, a, b) = something(rf.combine, rf.next)(a, b)
+
+_asmonoid(rf::AdHocRF) = @set rf.next = _asmonoid(rf.next)
+Completing(rf::AdHocRF) = rf
+
+wheninit(oninit, op) = AdHocRF(op; oninit = oninit)
+whenstart(start, op) = AdHocRF(op; start = start)
+whencomplete(complete, op) = AdHocRF(op; complete = complete)
+whencombine(combine, op) = AdHocRF(op; combine = combine)
+
+wheninit(oninit) = op -> wheninit(oninit, op)
+whenstart(start) = op -> whenstart(start, op)
+whencomplete(complete) = op -> whencomplete(complete, op)
+whencombine(combine) = op -> whencombine(combine, op)
+
+"""
+    wheninit(oninit, rf) -> rf′
+    wheninit(oninit) -> rf -> rf′
+    whenstart(start, rf) -> rf′
+    whenstart(start) -> rf -> rf′
+    whencomplete(complete, rf) -> rf′
+    whencomplete(complete) -> rf -> rf′
+    whencombine(combine, rf) -> rf′
+    whencombine(combine) -> rf -> rf′
+
+Add initialization/completion/merging phase to arbitrary reducing
+function.
+
+The functions passed to those combinators are used as follows in
+`foldl`:
+
+```julia
+init′ = oninit()  # if oninit is given; otherwise standard `init`-preprocessing
+acc = start(init′)
+for x in collection
+    acc += rf(acc, x)
+end
+result = acc
+return complete(result)
+```
+
+In `reduce`, a collection is split in multiple parts and then above
+`foldl` except for `complete` is run on them, yielding multiple
+`result`s which are combined by repeatedly calling `combine(result_1,
+result_2)`.  Note that this allows non-associative function for `next`
+while `combine` *must* be associative.
+
+See also [`next`](@ref), [`start`](@ref), [`complete`](@ref), and
+[`combine`](@ref).
+
+# Arguments
+- `rf`: reducing function
+- `oninit`: nullary function that generates an initial value for `rf`
+- `start`: unary function that pre-process the initial value for `rf`
+- `complete`: unary function that post-process the accumulator
+- `combine`: (approximately) associative binary function for combining
+  multiple results of `rf` (before post-processed by `complete`).
+
+# Extended help
+## Examples
+
+An example for using non-associative reducing function in `reduce`:
+
+```jldoctest wheninit
+julia> using Transducers
+
+julia> collector! = push! |> whencombine(append!) |> wheninit(() -> []);
+
+julia> reduce(collector!, Filter(isodd), 1:5; basesize = 1)
+3-element Array{Any,1}:
+ 1
+ 3
+ 5
+```
+
+More "tightly" typed vector can returned by using BangBang.jl interface:
+
+```jldoctest wheninit
+julia> collector!! = push!! |> whencombine(append!!) |> wheninit(Vector{Union{}});
+
+julia> reduce(collector!!, Filter(isodd), 1:5; basesize = 1)
+3-element Array{Int64,1}:
+ 1
+ 3
+ 5
+```
+
+Online averaging algorithm can be implemented, e.g., by:
+
+```jldoctest wheninit
+julia> averaging = function add_average((sum, count), x)
+           (sum + x, count + 1)
+       end |> wheninit() do
+           (Init(+), 0)
+       end |> whencombine() do (sum1, count1), (sum2, count2)
+           (sum1 + sum2), (count1 + count2)
+       end |> whencomplete() do (sum, count)
+           sum / count
+       end;
+
+julia> foldl(averaging, Filter(isodd), 1:5)
+3.0
+
+julia> reduce(averaging, Filter(isodd), 1:50; basesize = 1)
+25.0
+```
+
+An alternative implementation is to use [`Map`](@ref) to construct a
+singleton solution and then merge it into the accumulated solution:
+
+```jldoctest wheninit
+julia> averaging2 = function merge_average((sum1, count1), (sum2, count2))
+           (sum1 + sum2, count1 + count2)
+       end |> whencomplete() do (sum, count)
+           sum / count
+       end |> Map() do x
+           (x, 1)
+       end';  # `'` here is important
+
+julia> foldl(averaging2, Filter(isodd), 1:5)
+3.0
+
+julia> reduce(averaging2, Filter(isodd), 1:50; basesize = 1)
+25.0
+```
+"""
+(wheninit, whenstart, whencomplete, whencombine)
