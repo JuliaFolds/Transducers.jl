@@ -22,7 +22,8 @@ jobs:
                       "JULIA_NUM_THREADS" => "1",
                       "OMP_NUM_THREADS" => "1",
                   ),
-              );
+              ),
+              "origin/constructors-benchmark";
           );
           '
       - name: Push results
