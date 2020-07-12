@@ -243,7 +243,7 @@ AdHocRF(oninit, start, op, complete, combine) =
         combine,
     )
 
-AdHocRF(op; oninit = nothing, start = identity, complete = identity, combine = op) =
+AdHocRF(op; oninit = nothing, start = identity, complete = identity, combine = nothing) =
     AdHocRF(oninit, start, op, complete, combine)
 
 AdHocRF(op::AdHocRF; kwargs...) = setproperties(op, kwargs.data)
@@ -260,7 +260,7 @@ AdHocRF(op::AdHocRF; kwargs...) = setproperties(op, kwargs.data)
 @inline start(rf::AdHocRF, init) = rf.start(initialize(init, rf.next))
 @inline next(rf::AdHocRF, acc, x) = rf.next(acc, x)
 @inline complete(rf::AdHocRF, acc) = rf.complete(acc)
-@inline combine(rf::AdHocRF, a, b) = rf.combine(a, b)
+@inline combine(rf::AdHocRF, a, b) = something(rf.combine, rf.next)(a, b)
 
 _asmonoid(rf::AdHocRF) = @set rf.next = _asmonoid(rf.next)
 Completing(rf::AdHocRF) = rf
@@ -347,32 +347,33 @@ julia> reduce(collector!!, Filter(isodd), 1:5; basesize = 1)
  5
 ```
 
-Online averaging algorithm can be implemented, e.g., by combining
-`wheninit` and `whencombine`:
+Online averaging algorithm can be implemented, e.g., by:
 
 ```jldoctest wheninit
 julia> averaging = function add_average((sum, count), x)
            (sum + x, count + 1)
        end |> wheninit() do
            (Init(+), 0)
+       end |> whencombine() do (sum1, count1), (sum2, count2)
+           (sum1 + sum2), (count1 + count2)
        end |> whencomplete() do (sum, count)
            sum / count
        end;
 
 julia> foldl(averaging, Filter(isodd), 1:5)
 3.0
+
+julia> reduce(averaging, Filter(isodd), 1:50; basesize = 1)
+25.0
 ```
 
-An alternative parallelizable implementation is to use [`Map`](@ref)
-to construct a singleton solution and then merge it into the
-accumulated solution:
+An alternative implementation is to use [`Map`](@ref) to construct a
+singleton solution and then merge it into the accumulated solution:
 
 ```jldoctest wheninit
-julia> using InitialValues: asmonoid
-
 julia> averaging2 = function merge_average((sum1, count1), (sum2, count2))
            (sum1 + sum2, count1 + count2)
-       end |> asmonoid |> whencomplete() do (sum, count)
+       end |> whencomplete() do (sum, count)
            sum / count
        end |> Map() do x
            (x, 1)
