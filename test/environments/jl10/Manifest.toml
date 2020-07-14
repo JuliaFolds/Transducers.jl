@@ -127,9 +127,9 @@ version = "0.25.0"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
-git-tree-sha1 = "4783bbbeade37f2a8bd82af6c112510fde78e532"
+git-tree-sha1 = "be4180bdb27a11188d694ee3773122f4921f1a62"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.8.12"
+version = "0.8.13"
 
 [[Future]]
 deps = ["Random"]
