@@ -61,6 +61,10 @@ export AdHocFoldable,
     tcopy,
     transduce,
     unreduced,
+    whencombine,
+    whencomplete,
+    wheninit,
+    whenstart,
     withprogress
 
 using Base.Broadcast: Broadcasted
@@ -84,7 +88,7 @@ using InitialValues:
     hasinitialvalue
 using Logging: @logmsg, LogLevel
 using Requires
-using Setfield: @lens, @set, set
+using Setfield: @lens, @set, set, setproperties
 using SplittablesBase: SplittablesBase, amount, halve
 
 # Dummy `ConstructionBase` module for supporting older `Setfield`:

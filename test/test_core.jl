@@ -60,11 +60,11 @@ end
 end
 
 @testset "OnInit" begin
-    @testset "mapfoldl" begin
+    @testset "foldl" begin
         @testset for xs in iterator_variants(1:3)
-            @test mapfoldl(
-                Zip(Map(identity), Map(string)),
+            @test foldl(
                 push!,
+                Zip(Map(identity), Map(string)),
                 xs,
                 init = OnInit(() -> [])
             ) == [(1, "1"), (2, "2"), (3, "3")]

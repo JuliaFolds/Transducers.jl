@@ -91,7 +91,13 @@ julia> transduce(rf_good, "", 1:3)
     maybe_usesimd(Reduction(xf, step), simd)
 
 # Use `_asmonoid` automatically only when `init` is not specified:
-@inline _reducingfunction(xf, step; init = DefaultInit, simd::SIMDFlag = Val(false), _...) =
+@inline _reducingfunction(
+    xf::XF,
+    step::Step;
+    init = DefaultInit,
+    simd::SIMDFlag = Val(false),
+    _...,
+) where {XF,Step} =
     maybe_usesimd(Reduction(xf, init === DefaultInit ? _asmonoid(step) : step), simd)
 
 """
@@ -121,6 +127,23 @@ in `reducible` than `Base.iterate`.
 See also: [`@next`](@ref).
 """
 __foldl__
+
+# ** Why calling `complete` inside `__foldl__`? **
+#
+# Initially I was hoping to stop calling `complete` in `__foldl__` so
+# that `skipcomplete` wouldn't be necessary.  However, it was
+# impossible to make it inferred with some mildly complex cases.  This
+# is probably expected since `__foldl__` tends to use something like
+# tail-call function-barriers to maximize the chance of union
+# splitting.  So, inside `__foldl__`, `complete` has a better chance
+# to be inferred to have a concrete input type.  Furthermore, since
+# private types are unwrapped inside `complete`, a simpler type would
+# be returned from `__foldl__`.  This is probably why
+# `complete`-inside-`__foldl__` approach is more compiler-friendly.
+# On the other hand, if `complete` is called outside `__foldl__`, the
+# compiler has to merge various types of nested objects returned from
+# multiple locations.  This easily leads to non-concrete types in the
+# inference.
 
 const FOLDL_RECURSION_LIMIT = Val(10)
 # const FOLDL_RECURSION_LIMIT = nothing
@@ -358,19 +381,26 @@ See [`foldl`](@ref).
 """
 transduce
 
+const _MAPFOLDL_DEPWARN = (
+    "`mapfoldl(::Transducer, rf, itr)` is deprecated. " *
+    " Use `foldl(rf, ::Transducer, itr)` if you do not need to call single-argument" *
+    " `rf` on `complete`." *
+    " Use `foldl(whencomplete(rf, rf), ::Transducer, itr)` to call the" *
+    " single-argument method of `rf` on complete."
+)
+
 """
     mapfoldl(xf::Transducer, step, reducible; init, simd)
 
 !!! warning
 
-    `mapfoldl` exists primary for backward compatibility.  It is
-    recommended to use `foldl`.
+    $_MAPFOLDL_DEPWARN
 
 Like [`foldl`](@ref) but `step` is _not_ automatically wrapped by
 [`Completing`](@ref).
 
 # Examples
-```jldoctest
+```julia
 julia> using Transducers
 
 julia> function step_demo(state, input)
@@ -392,7 +422,7 @@ Finishing with state = 4.0
 """
 mapfoldl
 
-function transduce(xform::Transducer, f, init, coll; kwargs...)
+function transduce(xform::Transducer, f::F, init, coll; kwargs...) where {F}
     rf = _reducingfunction(xform, f; init = init, kwargs...)
     return transduce(rf, init, coll; kwargs...)
 end
@@ -400,8 +430,12 @@ end
 _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
 
 # TODO: should it be an internal?
-@inline function transduce(rf1::AbstractReduction, init, coll;
-                           simd::SIMDFlag = Val(false))
+@inline function transduce(
+    rf1::RF,
+    init,
+    coll;
+    simd::SIMDFlag = Val(false),
+) where {RF<:AbstractReduction}
     # Inlining `transduce` and `__foldl__` were essential for the
     # `restack` below to work.
     rf0, foldable = retransform(rf1, asfoldable(coll))
@@ -448,19 +482,6 @@ end
 
 Base.mapfoldl(f::F, step::OP, itr::Foldable; kw...) where {F, OP} =
     foldl(step, Map(f), itr; kw...)
-
-function Base.mapfoldl(xform::Transducer, step, itr;
-                       simd::SIMDFlag = Val(false),
-                       init = DefaultInit)
-    unreduced(transduce(xform, step, init, itr; simd=simd))
-end
-
-# disambiguation
-function Base.mapfoldl(xform::Transducer, step, itr::Foldable;
-                       simd::SIMDFlag = Val(false),
-                       init = DefaultInit)
-    unreduced(transduce(xform, step, init, itr; simd=simd))
-end
 
 struct Eduction{F, C} <: Foldable
     rf::F
@@ -695,7 +716,7 @@ julia> collect(Interpose(missing), 1:3)
 function Base.collect(xf::Transducer, coll)
     result = finish!(unreduced(transduce(
         Map(SingletonVector) ∘ xf,
-        _collect_rf!!,
+        wheninit(collector, append!!),
         collector(),
         coll,
     )))
@@ -708,10 +729,6 @@ end
 # Base.collect(xf, coll) = append!([], xf, coll)
 
 Base.collect(ed::Eduction) = collect(extract_transducer(ed)...)
-
-@inline _collect_rf!!(dest, src) = append!!(dest, src)
-start(::typeof(_collect_rf!!), _) = collector()
-complete(::typeof(_collect_rf!!), acc) = acc  # TODO: remove
 
 """
     copy(xf::Transducer, T, foldable) :: Union{T, Empty{T}}
@@ -765,15 +782,18 @@ julia> @assert copy(
 Base.copy(xf::Transducer, ::Type{T}, foldable) where {T} = append!!(xf, Empty(T), foldable)
 Base.copy(xf::Transducer, foldable) = copy(xf, _materializer(foldable), foldable)
 
-function Base.copy(::Type{T}, ed::Eduction) where {T}
+function Base.copy(::Type{T}, ed::Foldable) where {T}
     xf, foldable = extract_transducer(ed)
     return copy(xf, T, foldable)
 end
 
-function Base.copy(ed::Eduction)
+function Base.copy(ed::Foldable)
     xf, foldable = extract_transducer(ed)
     return copy(xf, foldable)
 end
+
+Base.Set(foldable::Foldable) = copy(Set, foldable)
+Base.Dict(foldable::Foldable) = copy(Dict, foldable)
 
 """
     map!(xf::Transducer, dest, src; simd)
@@ -859,10 +879,8 @@ julia> copy!(opcompose(PartitionBy(x -> x ÷ 3), Map(sum)), Int[], 1:10)
 """
 Base.copy!(xf::Transducer, dest, src) = append!(xf, empty!(dest), src)
 
-function Base.foldl(step, xform::Transducer, itr;
-                    kw...)
-    mapfoldl(xform, Completing(step), itr; kw...)
-end
+Base.foldl(step, xform::Transducer, itr; init = DefaultInit, kw...) =
+    unreduced(transduce(xform, Completing(step), init, itr; kw...))
 
 @inline function Base.foldl(step, foldable::Foldable; init = DefaultInit, kwargs...)
     xf, coll = extract_transducer(foldable)

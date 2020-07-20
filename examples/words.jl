@@ -235,17 +235,10 @@ nothing  # hide
 # Putting the transducer and reducing function together, we get:
 
 countwords(s; kwargs...) =
-    reduce(mergewith!!(+),
-           countxf,
-           collect(s);
-           init = CopyInit(Dict{String,Int}()),
-           kwargs...)
+    reduce(mergewith!!(+), countxf, s; init = CopyInit(Dict{String,Int}()), kwargs...)
 nothing  # hide
 
-# Side note: Since [`reduce`](@ref) does not support string, the input
-# string is converted to a `Vector{Char}` first by `collect`.
-#
-# Side note 2: We use [`CopyInit`](@ref) to create a fresh initial
+# Side note: We use [`CopyInit`](@ref) to create a fresh initial
 # state for each sub-reduce to avoid overwriting mutable data between
 # threads.
 

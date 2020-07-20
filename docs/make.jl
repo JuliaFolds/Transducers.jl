@@ -21,6 +21,7 @@ LoadAllPackages.loadall(joinpath((@__DIR__), "Project.toml"))
 import Random
 Random.seed!(1234)
 
+transducers_rm_duplicated_docs()
 transducers_literate()
 transducers_makedocs()
 transducers_make_redirections()

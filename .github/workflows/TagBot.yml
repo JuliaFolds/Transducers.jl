@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - actions/trigger/TagBot
+  workflow_dispatch:
 jobs:
   TagBot:
     runs-on: ubuntu-latest

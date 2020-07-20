@@ -145,7 +145,10 @@ true
 struct Cat <: Transducer
 end
 
-@inline next(rf::R_{Cat}, result, input) = foldl_nocomplete(inner(rf), result, input)
+@inline function next(rf::R_{Cat}, acc, x)
+    rf0, itr0 = retransform(inner(rf), x)
+    return foldl_nocomplete(rf0, acc, itr0)
+end
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/mapcat
 # https://clojuredocs.org/clojure.core/mapcat
@@ -407,6 +410,25 @@ julia> 1:2 |> Take(5) |> collect
  1
  2
 ```
+
+Using a low-level API, it's possible to distinguish if the output is
+truncated or not:
+
+```jldoctest; setup = :(using Transducers), filter = r"\\b(BangBang\\.)?push!!"
+julia> transduce(Take(3), Completing(push!!), Init, 1:2)
+2-element Array{Int64,1}:
+ 1
+ 2
+
+julia> transduce(Take(3), Completing(push!!), Init, 1:4)
+Reduced([1, 2, 3])
+
+julia> transduce(Take(3), Completing(push!!), Init, 1:0)
+InitialValue(push!!)
+```
+
+See also [`transduce`](@ref foldl), [`Reduced`](@ref) and
+[`Completing`](@ref).
 """
 struct Take <: AbstractFilter
     n::Int

@@ -47,14 +47,56 @@ const parseint = Base.Fix1(parse, Int)
     end
 end
 
-# TODO: make them work with `dreduce`
 @testset "$fold" for fold in [foldl, simple_reduce, random_reduce, reduce_bs1, reduce]
+    # TODO: test them with `dreduce` (don't use local functions)
+    @testset "AdHocRF" begin
+        averaging =
+            function add_average((sum, count), x)
+                (sum + x, count + 1)
+            end |>
+            wheninit() do
+                (Init(+), 0)
+            end |>
+            whencombine() do (sum1, count1), (sum2, count2)
+                (sum1 + sum2), (count1 + count2)
+            end |>
+            whencomplete() do (sum, count)
+                sum / count
+            end
+        @test fold(averaging, Filter(isodd), 1:5) === 3.0
+        @test fold(averaging, Filter(isodd), 1:50) === 25.0
+
+        averaging2 =
+            function merge_average((sum1, count1), (sum2, count2))
+                (sum1 + sum2, count1 + count2)
+            end |>
+            whencomplete() do (sum, count)
+                sum / count
+            end |>
+            Map() do x
+                (x, 1)
+            end'
+        @test fold(averaging2, Filter(isodd), 1:5) === 3.0
+        @test fold(averaging2, Filter(isodd), 1:50) === 25.0
+    end
+
+    # TODO: make them work with `dreduce`
     @testset "dict" begin
         dict = Dict(zip("1234", 1:4))
         @test fold(+, Map(last), dict) == 10
         @test fold(add, Map(last), dict) == 10
         @test fold(+, Map(parseint ∘ first), dict) == 10
         @test fold(add, Map(parseint ∘ first), dict) == 10
+    end
+end
+
+# TODO: make them work with `dreduce`
+@testset "$fold" for fold in [reduce_bs1, reduce]
+    @testset "eduction" begin
+        @test fold(+, eduction(x for x in 1:10 if isodd(x))) == 25
+        @test fold(+, Map(identity), eduction(x for x in 1:10 if isodd(x))) == 25
+        @test fold(right, eduction(x for x in 1:10 if isodd(x))) == 9
+        @test fold(right, Map(identity), eduction(x for x in 1:10 if isodd(x))) == 9
     end
 end
 
