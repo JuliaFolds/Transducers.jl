@@ -203,9 +203,9 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[MatrixFactorizations]]
 deps = ["ArrayLayouts", "LinearAlgebra", "Random"]
-git-tree-sha1 = "17eb65dfd08ea0a4b3b297916429f4e043f79c85"
+git-tree-sha1 = "9ebb16ae3c1cc772a3461741fc666c4a23e80bb1"
 uuid = "a3b82374-2e81-5b9e-98ce-41277c0e4c87"
-version = "0.5.0"
+version = "0.5.1"
 
 [[MicroCollections]]
 deps = ["BangBang", "Setfield"]
