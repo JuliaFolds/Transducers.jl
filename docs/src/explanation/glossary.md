@@ -12,7 +12,7 @@ foldl(step, xf, input, init=...)
 #  `-- transducible process
 ```
 
-## Reducing step function
+## [Reducing step function](@id glossary-rf)
 
 **Reducing function** or **Reducing step (function)**: A reducing
 function combines result-so-far with the input.  It in a narrow
