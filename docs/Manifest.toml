@@ -156,6 +156,14 @@ git-tree-sha1 = "82a49cc6c1a38980c537edef7f9998a1843b441d"
 uuid = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
 version = "2.3.0"
 
+[[LiterateTest]]
+deps = ["Test"]
+git-tree-sha1 = "cfa586597c307b04972257b8505e7c8e6f34c5fd"
+repo-rev = "master"
+repo-url = "https://github.com/tkf/LiterateTest.jl.git"
+uuid = "d77d25b0-90d3-4a16-b10a-412a9d48f625"
+version = "0.1.0"
+
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
