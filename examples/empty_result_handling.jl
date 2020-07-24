@@ -8,17 +8,16 @@
 # functions _throw_ an exception if the given collection is empty or
 # filtered out by the transducers:
 
+using LiterateTest                                                     #src
 using Test                                                             #src
 
 using Transducers
 
 add1(x) = x + 1
 
-err = try                                                            # hide
-foldl(*, Map(add1), [])
-catch err; err; end                                                  # hide
-@test err isa Transducers.EmptyResultError                           #src
-#md showerror(stdout, err)                                           # hide
+@evaltest_throw "foldl(*, Map(add1), [])" begin
+    @test ans isa Transducers.EmptyResultError
+end
 
 # To write robust code, it is recommended to use `init` if there is a
 # reasonable default.  However, it may be useful to postpone
@@ -49,35 +48,40 @@ using InitialValues: InitialValue
 # `result` is known to be a scalar that is multiplied by a matrix just
 # after the `foldl`:
 
-@test ones(2, 2) ==                                                    #src
-result * ones(2, 2)
+@test begin
+    result * ones(2, 2)
+end == ones(2, 2)
 
 # The identities `Init(*)` and `Init(+)` can be `convert`ed to numbers:
 
-@test 1 ===                                                            #src
-convert(Int, Init(*))
+@test begin
+    convert(Int, Init(*))
+end === 1
 
 # `Init(*)` can also be `convert`ed to a `String`:
 
-@test "" ===                                                           #src
-convert(String, Init(*))
+@test begin
+    convert(String, Init(*))
+end === ""
 
 # This means that no special code is required if the result is going
 # to be stored into, e.g., an `Array` or a `struct`:
 
-@test begin                                                            #src
-xs = [true, true]
-xs[1] = Init(+)
-xs
-end == [false, true]                                                   #src
+@test begin
+    xs = [true, true]
+    xs[1] = Init(+)
+    xs
+end == [false, true]
 
 # They can be converted into numbers also by using `Integer`:
 
-@test 0 ===                                                            #src
-Integer(Init(+))
+@test begin
+    Integer(Init(+))
+end === 0
 
 # or `float`:
 
-@test 1.0 ===                                                          #src
-float(Init(*))
+@test begin
+    float(Init(*))
+end === 1.0
 #-
