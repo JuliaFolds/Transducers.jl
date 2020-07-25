@@ -1,7 +1,15 @@
 module TestExamplesTutorialMissings
-using LiterateTest.AssertAsTest: @assert
-include("../examples/tutorial_missings.jl")
 include("preamble.jl")
+
+argext_step(should_update) =
+    (old, (index, value)) ->
+        if old === nothing || should_update(old[2], value)
+            (index, value)
+        else
+            old
+        end
+
+xf_scanext(should_update) = Scan(argext_step(should_update), nothing)
 
 slow_xf_fullextrema =
     opcompose(Zip(Count(), NotA(Missing)), Zip(xf_scanext(>), xf_scanext(<)))
