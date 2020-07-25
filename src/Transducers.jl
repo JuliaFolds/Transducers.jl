@@ -50,6 +50,9 @@ export AdHocFoldable,
     dreduce,
     dtransduce,
     eduction,
+    foldxd,
+    foldxl,
+    foldxt,
     ifunreduced,
     opcompose,
     push!!,
@@ -139,6 +142,7 @@ include("simd.jl")
 include("processes.jl")
 include("reduce.jl")
 include("dreduce.jl")
+include("folds.jl")
 include("unordered.jl")
 include("air.jl")
 include("lister.jl")
