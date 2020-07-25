@@ -46,6 +46,7 @@ end
     @testset for xs in iterator_variants(1:10)
         xs isa Base.Generator && continue
         @test collect(Scan(+), xs) == cumsum(xs)
+        @test collect(Scan((a, b) -> a + b), xs) == cumsum(xs)
     end
 
     xs0 = [0, -1, 3, -2, 1]
