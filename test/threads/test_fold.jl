@@ -18,6 +18,9 @@ const parseint = Base.Fix1(parse, Int)
     reduce,
     dreduce_bs1,
     dreduce,
+    foldxl,
+    foldxt,
+    foldxd,
 ]
     @testset "no init" begin
         @test fold(+, Map(identity), 1:4) == 10
@@ -36,7 +39,7 @@ const parseint = Base.Fix1(parse, Int)
         @test fold(right, GroupBy(isodd, Map(last), +), 1:10) ==
               Dict(true => 25, false => 30)
     end
-    if fold ∉ (simple_reduce, random_reduce, dreduce_bs1, dreduce)
+    if fold ∉ (simple_reduce, random_reduce, dreduce_bs1, dreduce, foldxd)
         @testset "NoAdjoint" begin
             @test fold(
                 +,
@@ -47,7 +50,15 @@ const parseint = Base.Fix1(parse, Int)
     end
 end
 
-@testset "$fold" for fold in [foldl, simple_reduce, random_reduce, reduce_bs1, reduce]
+@testset "$fold" for fold in [
+    foldl,
+    simple_reduce,
+    random_reduce,
+    reduce_bs1,
+    reduce,
+    foldxl,
+    foldxt,
+]
     # TODO: test them with `dreduce` (don't use local functions)
     @testset "AdHocRF" begin
         averaging =
@@ -98,6 +109,13 @@ end
         @test fold(right, eduction(x for x in 1:10 if isodd(x))) == 9
         @test fold(right, Map(identity), eduction(x for x in 1:10 if isodd(x))) == 9
     end
+end
+
+@testset "$fold" for fold in [foldxl, foldxt, foldxd]
+    foldxl = foldl = nothing  # don't use
+    @test fold(TeeRF(min, max), [5, 2, 6, 8, 3]) === (2, 8)
+    @test [5, 2, 6, 8, 3] |> fold(TeeRF(min, max)) === (2, 8)
+    @test 1:5 |> Filter(isodd) |> fold(+) == 9
 end
 
 end  # module
