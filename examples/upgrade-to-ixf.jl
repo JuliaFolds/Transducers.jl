@@ -4,36 +4,42 @@
 # following examples:
 
 using Transducers
+using LiterateTest                                                     #src
 using Test                                                             #src
 using Logging                                                        # hide
 
-with_logger(NullLogger()) do                                         # hide
-global old1 =                                                          #src
-collect(Filter(isodd) |> Map(inv), 1:5)
-global old2 =                                                          #src
-foldl(+, Filter(isodd) |> Map(inv), 1:5)
-end                                                                  # hide
+@dedent old1 = with_logger(NullLogger()) do
+    collect(Filter(isodd) |> Map(inv), 1:5)
+end
+@dedent old2 = with_logger(NullLogger()) do
+    foldl(+, Filter(isodd) |> Map(inv), 1:5)
+end
 nothing                                                              # hide
 
 # It is now recommended to write
 
-@test old1 ==                                                          #src
-1:5 |> Filter(isodd) |> Map(inv) |> collect
-@test old2 ==                                                          #src
-foldl(+, 1:5 |> Filter(isodd) |> Map(inv))
+@test begin
+    1:5 |> Filter(isodd) |> Map(inv) |> collect
+end == old1
+@test begin
+    foldl(+, 1:5 |> Filter(isodd) |> Map(inv))
+end == old2
 nothing                                                              # hide
 
 # The last snippet can also be written as
 
-@test old2 ==                                                          #src
-1:5 |> Filter(isodd) |> Map(inv) |> sum
+@test begin
+    1:5 |> Filter(isodd) |> Map(inv) |> sum
+end == old2
 nothing                                                              # hide
 
 # Note that `|>` now is compatible with the standard function
 # application definition of `|>` (i.e., `x |> f == f(x)`):
 
 if VERSION >= v"1.3"                                                   #src
-@assert 1:5 |> Filter(isodd) |> Map(inv) === Map(inv)(Filter(isodd)(1:5))
+    @dedent begin
+        @assert 1:5 |> Filter(isodd) |> Map(inv) === Map(inv)(Filter(isodd)(1:5))
+    end
 end                                                                    #src
 
 # !!! note
@@ -43,16 +49,18 @@ end                                                                    #src
 
 # If there is no input collection; e.g.,
 
-with_logger(NullLogger()) do                                         # hide
-global old3 =                                                          #src
-foldl(right, GroupBy(x -> gcd(x, 6), Map(last) |> Filter(isodd), push!!), 1:10)
-end                                                                  # hide
+@dedent old3 = with_logger(NullLogger()) do
+    xf = Map(last) |> Filter(isodd)
+    foldl(right, GroupBy(x -> gcd(x, 6), xf, push!!), 1:10)
+end
 nothing                                                              # hide
 
 # use the opposite composition `opcompose` instead:
 
-@test old3 ==                                                          #src
-foldl(right, GroupBy(x -> gcd(x, 6), opcompose(Map(last), Filter(isodd)), push!!), 1:10)
+@test begin
+    xf = opcompose(Map(last), Filter(isodd))
+    foldl(right, GroupBy(x -> gcd(x, 6), xf, push!!), 1:10)
+end == old3
 nothing                                                              # hide
 
 # In Julia ≥ 1.5,
@@ -81,7 +89,7 @@ ys = Int[]
 foreach(1:5 |> Filter(isodd)) do x
     push!(ys, x)
 end
-@test old4 == ys                                                       #src
+@test old4 == ys
 nothing                                                              # hide
 
 # when the performance is important.
@@ -92,8 +100,9 @@ nothing                                                              # hide
 # compute even minimum and odd maximum in one go:
 
 rf = TeeRF(Filter(iseven)'(min), Filter(isodd)'(max))
-@test (2, 9) ==                                                        #src
-reduce(rf, Map(identity), 1:10)
+@test begin
+    reduce(rf, Map(identity), 1:10)
+end == (2, 9)
 
 # More details can be found in the reference entries such as
 # [`Transducer`](@ref), [`eduction`](@ref), [`adjoint`](@ref),

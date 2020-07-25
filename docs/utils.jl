@@ -32,6 +32,7 @@ function transducers_literate(;
         outputdir = joinpath(outputbase, dirname(outpath))
         Literate.markdown(
             inputfile, outputdir;
+            config = LiterateTest.config(),
             documenter = true,
             kwargs...)
     end

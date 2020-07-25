@@ -1,4 +1,5 @@
 module TestExamplesWords
+using LiterateTest.AssertAsTest: @assert
 include("../preamble.jl")
 include("../../examples/words.jl")
 

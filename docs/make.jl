@@ -14,6 +14,7 @@ exec ${JULIA} "${BASH_SOURCE[0]}" "$@"
 include("utils.jl")
 import JSON
 using Literate
+using LiterateTest
 
 include("../test/LoadAllPackages.jl")
 LoadAllPackages.loadall(joinpath((@__DIR__), "Project.toml"))
