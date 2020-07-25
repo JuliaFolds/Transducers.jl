@@ -320,21 +320,24 @@ Call [`__foldl__`](@ref) without calling [`complete`](@ref).
 @inline foldl_nocomplete(rf, init, coll) = __foldl__(skipcomplete(rf), init, coll)
 
 """
+    foldxl(step, xf::Transducer, reducible; init, simd) :: T
+    foldxl(step, reducible; init, simd) :: T
     foldl(step, xf::Transducer, reducible; init, simd) :: T
     foldl(step, ed::Eduction; init, simd) :: T
     transduce(xf, step, init, reducible; simd) :: Union{T, Reduced{T}}
 
+e**X**tended **l**eft fold.
 Compose transducer `xf` with reducing step function `step` and reduce
 `itr` using it.
 
 !!! note
-    `transduce` differs from `foldl` as `Reduced{T}` is returned if
+    `transduce` differs from `foldxl` as `Reduced{T}` is returned if
     the transducer `xf` or `step` aborts the reduction and `step` is
     _not_ automatically wrapped by [`Completing`](@ref).
 
 This API is modeled after $(_cljref("transduce")).
 
-For parallel versions, see [`reduce`](@ref) and [`dreduce`](@ref).
+For parallel versions, see [`foldxt`](@ref) and [`foldxd`](@ref).
 
 See also: [Empty result handling](@ref).
 
@@ -370,14 +373,48 @@ julia> foldl(Filter(isodd), 1:4, init=0.0) do state, input
 (state, input) = (0.0, 1)
 (state, input) = (1.0, 3)
 4.0
+
+julia> foldxl(+, 1:5 |> Filter(isodd))
+9
+
+julia> 1:5 |> Filter(isodd) |> foldxl(+)
+9
 ```
+
+Since [`TeeRF`](@ref) requires the extended fold protocol,
+`foldl(TeeRF(min, max), [5, 2, 6, 8, 3])` does not work while it works
+with `foldxl`:
+
+```jldoctest; setup = :(using Transducers)
+julia> foldxl(TeeRF(min, max), [5, 2, 6, 8, 3])
+(2, 8)
+```
+
+The unary method of `foldlx` is useful when combined with `|>`:
+
+```jldoctest; setup = :(using Transducers)
+julia> (1:5, 4:-1:1) |> Cat() |> Filter(isodd) |> Enumerate() |> foldxl() do a, b
+           a[2] < b[2] ? b : a
+       end
+(3, 5)
+```
+"""
+foldxl
+foldxl(rf; kw...) = itr -> foldxl(rf, itr; kw...)
+foldxl(rf, itr; kw...) = foldl(rf, extract_transducer(itr)...; kw...)
+
+"""
+    foldl(step, xf::Transducer, reducible; init, simd) :: T
+    foldl(step, ed::Eduction; init, simd) :: T
+
+See [`foldxl`](@ref).
 """
 foldl
 
 """
     transduce(xf, step, init, reducible) :: Union{T, Reduced{T}}
 
-See [`foldl`](@ref).
+See [`foldxl`](@ref).
 """
 transduce
 
@@ -481,7 +518,7 @@ _unreduced__foldl__(rf, step, coll) = unreduced(__foldl__(rf, step, coll))
 end
 
 Base.mapfoldl(f::F, step::OP, itr::Foldable; kw...) where {F, OP} =
-    foldl(step, Map(f), itr; kw...)
+    foldxl(step, Map(f), itr; kw...)
 
 struct Eduction{F, C} <: Foldable
     rf::F
@@ -879,13 +916,12 @@ julia> copy!(opcompose(PartitionBy(x -> x ÷ 3), Map(sum)), Int[], 1:10)
 """
 Base.copy!(xf::Transducer, dest, src) = append!(xf, empty!(dest), src)
 
-Base.foldl(step, xform::Transducer, itr; init = DefaultInit, kw...) =
+foldxl(step, xform, itr; init = DefaultInit, kw...) =
     unreduced(transduce(xform, Completing(step), init, itr; kw...))
 
-@inline function Base.foldl(step, foldable::Foldable; init = DefaultInit, kwargs...)
-    xf, coll = extract_transducer(foldable)
-    return unreduced(transduce(xf, Completing(step), init, coll; kwargs...))
-end
+Base.foldl(step, xform::Transducer, itr; kw...) = foldxl(step, xform, itr; kw...)
+
+@inline Base.foldl(step, foldable::Foldable; kw...) = foldxl(step, foldable; kw...)
 
 """
     foreach(eff, xf::Transducer, reducible; simd)

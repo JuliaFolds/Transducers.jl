@@ -15,9 +15,9 @@ foldl(+, Map(sin), xs)
 
 # ### Thread-based parallelism
 
-# Just replace `foldl` with `reduce`, to make use of multiple cores:
+# Just replace `foldl` with `foldxt`, to make use of multiple cores:
 
-reduce(+, Map(sin), xs)
+foldxt(+, Map(sin), xs)
 
 # (In my laptop (4 core machine) I start seeing some speedup around
 # `length(xs) ≥ 100_000` for this transducer and reducing function.)
@@ -27,23 +27,23 @@ reduce(+, Map(sin), xs)
 using Distributed
 #md addprocs(4)
 
-dreduce(+, Map(sin), xs)
+foldxd(+, Map(sin), xs)
 
 # (Note: there is likely no speedup for light-weight computation and
-# large input data like this, when using `dreduce`.)
+# large input data like this, when using `foldxd`.)
 
 # ### Parallel processing with iterator comprehensions
 
 # You can also use [`eduction`](@ref) to use iterator comprehension
-# with multi-thread `reduce`:
+# with multi-thread `foldxt`:
 
-reduce(+, eduction(sin(x) for x in xs if abs(x) < 1); basesize = 500_000)
+foldxt(+, eduction(sin(x) for x in xs if abs(x) < 1); basesize = 500_000)
 
 #-
 
 if VERSION >= v"1.3"                                                   #src
     @test begin
-        reduce(+, eduction(x * y for x in 1:3, y in 1:3))
+        foldxt(+, eduction(x * y for x in 1:3, y in 1:3))
     end == 36
 end                                                                    #src
 
@@ -61,11 +61,11 @@ table = StructVector(a = [1, 2, 3], b = [5, 6, 7])
     tcopy((A = row.a + 1, B = row.b - 1) for row in table if isodd(row.a))
 end == StructVector(A = [2, 4], B = [4, 6])
 
-# ## When can I use `reduce` and `dreduce`?
+# ## When can I use `foldxt` and `foldxd`?
 
 # ### Requirement 1: Associative reducing step function
 #
-# Parallel reductions such as [`reduce`](@ref) and [`dreduce`](@ref)
+# Parallel reductions such as [`foldxt`](@ref) and [`foldxd`](@ref)
 # requires _associative_ [reducing step function](@ref Glossary).
 # Recall that
 # [associativity](https://en.wikipedia.org/wiki/Associative_property)
@@ -108,14 +108,14 @@ a, b, c = 1, 2, 3  # for example
 #     Do not confuse associativity with _commutativity_ `op(a, b) =
 #     op(b, a)`.  For example, matrix multiplication `*(::Matrix,
 #     ::Matrix)` is associative but _not_ commutative in general.
-#     However, since `reduce` only requires associativity, it is valid
-#     to use `reduce(*, xf, matrices)`.
+#     However, since `foldxt` only requires associativity, it is valid
+#     to use `foldxt(*, xf, matrices)`.
 
 # As reducing function `+` is associative, it can be used with
-# `reduce` (and `dreduce`):
+# `foldxt` (and `foldxd`):
 
 @dedent y1 = begin
-    reduce(+, Map(identity), 1:10; init = 0, basesize = 1)
+    foldxt(+, Map(identity), 1:10; init = 0, basesize = 1)
 end
 
 # and the result is the same as the sequential version:
@@ -125,15 +125,15 @@ end
 end
 @test y1 == y2
 
-# Note: `basesize` is for forcing `reduce` to avoid falling back to
+# Note: `basesize` is for forcing `foldxt` to avoid falling back to
 # `foldl` for small length container such as `1:10`.
 
 # On the other hand, binary function `-` is not associative.  Thus,
-# `reduce` cannot be used instead of `foldl` (they produce different
+# `foldxt` cannot be used instead of `foldl` (they produce different
 # result):
 
 @dedent y3 = begin
-    reduce(-, Map(identity), 1:10; init = 0, basesize = 1)
+    foldxt(-, Map(identity), 1:10; init = 0, basesize = 1)
 end
 #-
 
@@ -147,16 +147,16 @@ end
 # Parallel reduction only work with stateless transducers
 # [`Map`](@ref), [`Filter`](@ref), [`Cat`](@ref), etc. and you will
 # get an error when using stateful transducers such as `Scan` with
-# `reduce` or `dreduce`:
+# `foldxt` or `foldxd`:
 
-@evaltest_throw "reduce(+, Scan(+), 1:10; basesize = 1)" begin
+@evaltest_throw "foldxt(+, Scan(+), 1:10; basesize = 1)" begin
     @test occursin(
         "Stateful transducer Scan(+) does not support `combine`",
         sprint(showerror, ans),
     )
 end
 
-# Stateful transducers cannot be used with `reduce` because it is
+# Stateful transducers cannot be used with `foldxt` because it is
 # impossible to start processing input collection from the middle when
 # the transducers need to know all previous elements (= stateful).
 #
@@ -194,7 +194,7 @@ nothing                                                              # hide
 using BangBang: append!!
 
 singleton_vector(x) = [x]
-y2 = reduce(append!!, xs |> xf_compute |> Map(singleton_vector))
+y2 = foldxt(append!!, xs |> xf_compute |> Map(singleton_vector))
 @assert y1 == y2
 
 # This code illustrates the common pattern in parallel processing:
@@ -205,7 +205,7 @@ y2 = reduce(append!!, xs |> xf_compute |> Map(singleton_vector))
 # 2. Then "merge" the (singleton) solution into the exsiting one.
 #    This is done by `append!!` in the above example.
 
-# To illustrate how `reduce(append!!, xs |> ... |>
+# To illustrate how `foldxt(append!!, xs |> ... |>
 # Map(singleton_vector))` works, let's create a reducing function that
 # records the arguments and returned values of `append!!`:
 
@@ -226,7 +226,7 @@ nothing                                                              # hide
 # This function can be used instead of `append!!`.  Let's try simpler
 # and shorter example.  This is equivalent to `collect(1:4)`:
 
-reduce(append_and_log!!, Map(singleton_vector), 1:4; basesize = 1, init = Union{}[])
+foldxt(append_and_log!!, Map(singleton_vector), 1:4; basesize = 1, init = Union{}[])
 
 # (See below for why we are using `init = Union{}[]` here.)
 #
@@ -269,7 +269,7 @@ records
 
 # ### Optimization and generic container handling
 #
-# Above usage of `reduce` is not quite efficient as `singleton_vector`
+# Above usage of `foldxt` is not quite efficient as `singleton_vector`
 # allocates small objects in the heap.  Thus, it makes sense to use
 # immutable objects for the singleton solutions so that Julia compiler
 # can eliminate allocation of the intermediate singleton solutions.
@@ -278,7 +278,7 @@ records
 
 using StaticArrays: SVector
 
-@evaltest "reduce(append!!, Map(SVector), 1:4)" begin
+@evaltest "foldxt(append!!, Map(SVector), 1:4)" begin
     @test ans isa SVector
     @test ans == 1:4
 end
@@ -288,12 +288,12 @@ end
 # type can be specified by `init`.  We can simply use `init =
 # Union{}[]` in this case:
 
-@evaltest "reduce(append!!, Map(SVector), 1:4; init = Union{}[])" begin
+@evaltest "foldxt(append!!, Map(SVector), 1:4; init = Union{}[])" begin
     @test ans isa Vector
     @test ans == 1:4
 end
 
-# Note that passing `Vector` to `init` of `reduce` is usually a wrong
+# Note that passing `Vector` to `init` of `foldxt` is usually a wrong
 # choice as it would mean that the same object is simultaneously
 # mutated by different threads.  However, since `Vector{Union{}}`
 # cannot have any element (as there is no object of type `Union{}`),
@@ -313,9 +313,9 @@ using BangBang: Empty
 using DataFrames: DataFrame
 
 ans = begin
-    reduce(append!!, Map(x -> SVector((a = x,))), 1:4; init = Empty(DataFrame))
+    foldxt(append!!, Map(x -> SVector((a = x,))), 1:4; init = Empty(DataFrame))
 end
-@testset "reduce(append!!, ...; init = Empty(DataFrame))" begin
+@testset "foldxt(append!!, ...; init = Empty(DataFrame))" begin
     @test ans isa DataFrame
     @test ans.a == 1:4
 end
@@ -335,7 +335,7 @@ Text(ans)                                                            # hide
 #src using StructArrays: StructVector
 #src
 #src y6 =                                                                   #src
-#src reduce(append!!, Map(x -> SVector((a = x,))), 1:4; init = Empty(StructVector))
+#src foldxt(append!!, Map(x -> SVector((a = x,))), 1:4; init = Empty(StructVector))
 #src @test y6 is StructVector                                               #src
 #src @test y6.a == 1:4                                                      #src
 #src
@@ -344,7 +344,7 @@ Text(ans)                                                            # hide
 #src using TypedTables: Table
 #src
 #src y7 =                                                                   #src
-#src reduce(append!!, Map(x -> SVector((a = x,))), 1:4; init = Empty(Table))
+#src foldxt(append!!, Map(x -> SVector((a = x,))), 1:4; init = Empty(Table))
 #src @test y7 is Table                                                      #src
 #src @test y7.a == 1:4                                                      #src
 #src
@@ -376,19 +376,19 @@ rf! = mergewith!(+)
 end == Dict(:a => 1, :b => 5, :c => 4)
 
 # This is the form of binary function appropriate for `foldl` and
-# `reduce`.
+# `foldxt`.
 #
 # Note that it is OK to use in-place function `mergewith!` here because
 # the dictionary passed as `a` is created by `Dict(y => 1)` and not shared by
 # anyone.  When there is no such guarantee, passing [`init =
 # OnInit(Dict{Int,Int})`](@ref OnInit) is a good option.  Note that
-# passing `init = Dict{Int,Int}()` to `reduce` is not correct as
+# passing `init = Dict{Int,Int}()` to `foldxt` is not correct as
 # multiple tasks would share and try to mutate the same dictionary
 # this way.
 
-# Let's try this with parallel `reduce`:
+# Let's try this with parallel `foldxt`:
 
-counts1 = reduce(mergewith!(+), dicts1)
+counts1 = foldxt(mergewith!(+), dicts1)
 nothing                                                              # hide
 
 # Compare the result with `foldl`:
@@ -409,13 +409,13 @@ dicts2 = xs |> Map(abs) |> Filter(x -> x > 1) |> Map() do x
     ntuple(i -> i == y, 9)
 end
 
-counts3 = reduce(dicts2; init=ntuple(_ -> 0, 9)) do a, b
+counts3 = foldxt(dicts2; init=ntuple(_ -> 0, 9)) do a, b
     map(+, a, b)
 end
 @assert Dict(zip(1:9, counts3)) == counts1
 
 # Note that, as tuples are immutable, it is valid to pass it as `init`
-# of `reduce`.
+# of `foldxt`.
 
 # ### MicroCollections.jl for efficient singleton solution
 #
@@ -464,7 +464,7 @@ dicts3 = xs |> Map(abs) |> Filter(x -> x > 1) |> Map() do x
     SingletonDict(y => 1)
 end
 
-counts4 = reduce(mergewith!!(+), dicts3)
+counts4 = foldxt(mergewith!!(+), dicts3)
 @assert counts1 == counts4
 
 # ## Example: early termination
@@ -472,7 +472,7 @@ counts4 = reduce(mergewith!!(+), dicts3)
 # Find the _first_ element that is multiple of three:
 
 @test begin
-    reduce(ReduceIf(x -> x % 3 == 0), 1:10; init = nothing, basesize = 1) do _, x
+    foldxt(ReduceIf(x -> x % 3 == 0), 1:10; init = nothing, basesize = 1) do _, x
         ## # Uncomment for demo:
         ## x == 3 ? sleep(0.1) : @show x  # give other tasks a chance to finish first
         return x

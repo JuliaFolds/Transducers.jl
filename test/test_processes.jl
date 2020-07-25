@@ -314,10 +314,10 @@ end
     end === reduced()
 end
 
-@testset "reduce" begin
+@testset "foldxt" begin
     # Test that InitialValues.jl can handle right identity
-    @test reduce(+, Filter(x -> x == 1), 1:2; basesize=1) == 1
-    @test reduce(+, eduction(x for x in 1:2 if x == 1); basesize=1) == 1
+    @test foldxt(+, Filter(x -> x == 1), 1:2; basesize=1) == 1
+    @test foldxt(+, eduction(x for x in 1:2 if x == 1); basesize=1) == 1
 end
 
 end  # module

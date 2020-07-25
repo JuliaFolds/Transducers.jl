@@ -17,7 +17,7 @@ foldl(step, xf, input, init=...)
 **Reducing function** or **Reducing step (function)**: A reducing
 function combines result-so-far with the input.  It in a narrow
 sense is a "callable" `op` of the signature `op(::X, ::Y) :: X` (or
-`op(::X, ::X) :: X` in case for [`reduce`](@ref)) or
+`op(::X, ::X) :: X` in case for [`foldxt`](@ref)) or
 schematically:
 
 ```math
@@ -134,6 +134,6 @@ canonical fallback implementation.
 
 ## Transducible process
 
-A function that can reduce reducible collections using transducers is
+A function that can foldxt reducible collections using transducers is
 a transducible process.  Examples are [`foldl`](@ref) and
-[`reduce`](@ref).  Find more in [Transducible processes](@ref).
+[`foldxt`](@ref).  Find more in [Transducible processes](@ref).

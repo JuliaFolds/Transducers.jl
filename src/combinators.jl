@@ -209,7 +209,7 @@ julia> using Transducers
 
 julia> rf = AdHocRF(push!, combine = append!);
 
-julia> reduce(rf, Map(identity), 1:4; basesize = 1, init = OnInit(() -> []))
+julia> foldxt(rf, Map(identity), 1:4; basesize = 1, init = OnInit(() -> []))
 4-element Array{Any,1}:
  1
  2
@@ -301,7 +301,7 @@ result = acc
 return complete(result)
 ```
 
-In `reduce`, a collection is split in multiple parts and then above
+In `foldxt`, a collection is split in multiple parts and then above
 `foldl` except for `complete` is run on them, yielding multiple
 `result`s which are combined by repeatedly calling `combine(result_1,
 result_2)`.  Note that this allows non-associative function for `next`
@@ -321,14 +321,14 @@ See also [`next`](@ref), [`start`](@ref), [`complete`](@ref), and
 # Extended help
 ## Examples
 
-An example for using non-associative reducing function in `reduce`:
+An example for using non-associative reducing function in `foldxt`:
 
 ```jldoctest wheninit
 julia> using Transducers
 
 julia> collector! = push! |> whencombine(append!) |> wheninit(() -> []);
 
-julia> reduce(collector!, Filter(isodd), 1:5; basesize = 1)
+julia> foldxt(collector!, Filter(isodd), 1:5; basesize = 1)
 3-element Array{Any,1}:
  1
  3
@@ -340,7 +340,7 @@ More "tightly" typed vector can returned by using BangBang.jl interface:
 ```jldoctest wheninit
 julia> collector!! = push!! |> whencombine(append!!) |> wheninit(Vector{Union{}});
 
-julia> reduce(collector!!, Filter(isodd), 1:5; basesize = 1)
+julia> foldxt(collector!!, Filter(isodd), 1:5; basesize = 1)
 3-element Array{Int64,1}:
  1
  3
@@ -363,7 +363,7 @@ julia> averaging = function add_average((sum, count), x)
 julia> foldl(averaging, Filter(isodd), 1:5)
 3.0
 
-julia> reduce(averaging, Filter(isodd), 1:50; basesize = 1)
+julia> foldxt(averaging, Filter(isodd), 1:50; basesize = 1)
 25.0
 ```
 
@@ -382,7 +382,7 @@ julia> averaging2 = function merge_average((sum1, count1), (sum2, count2))
 julia> foldl(averaging2, Filter(isodd), 1:5)
 3.0
 
-julia> reduce(averaging2, Filter(isodd), 1:50; basesize = 1)
+julia> foldxt(averaging2, Filter(isodd), 1:50; basesize = 1)
 25.0
 ```
 """

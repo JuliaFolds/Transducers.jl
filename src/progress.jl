@@ -2,10 +2,10 @@
     withprogress(foldable) -> foldable′
 
 Wrap a foldable so that progress is shown in logging-based progress meter
-(e.g., Juno) during [`foldl`](@ref), [`reduce`](@ref), [`dreduce`](@ref), etc.
+(e.g., Juno) during [`foldl`](@ref), [`foldxt`](@ref), [`foldxd`](@ref), etc.
 
-For parallel reduction such as `reduce` and `dreduce`, reasonably small
-`basesize` and `threads_basesize` (for `dreduce`) must be used to ensure that
+For parallel reduction such as `foldxt` and `foldxd`, reasonably small
+`basesize` and `threads_basesize` (for `foldxd`) must be used to ensure that
 progress information is updated frequently.  However, it may slow down the
 computation if `basesize` is too small.
 
@@ -26,8 +26,8 @@ julia> foldl(+, xf, withprogress(1:100; interval=1e-3))  # see progress meter
 5050
 ```
 
-In `foldl` and `reduce`, `withprogress` can be nested.  This is not supported
-in `dreduce`.
+In `foldl` and `foldxt`, `withprogress` can be nested.  This is not supported
+in `foldxd`.
 
 ```jldoctest; setup = :(using Transducers)
 julia> xf = opcompose(
@@ -42,7 +42,7 @@ julia> xf = opcompose(
 
 julia> if VERSION >= v"1.3-alpha"
            # Calling `sleep` in thread is safe in Julia 1.3:
-           reduce(+, xf, withprogress(1:10; interval=1e-3); basesize=1)
+           foldxt(+, xf, withprogress(1:10; interval=1e-3); basesize=1)
        else
            foldl(+, xf, withprogress(1:10; interval=1e-3))
        end
@@ -162,7 +162,7 @@ function _reduce_progress(reduce_impl, rf0, init, coll)
     progress_task = @async let n = length(coll.reducible.foldable)
         __progress() do id
             foreach(Scan(+), chan) do i
-                @logmsg PROGRESSLEVEL "reduce" _id=id progress=i/n
+                @logmsg PROGRESSLEVEL "foldxt" _id=id progress=i/n
             end
         end
     end
@@ -253,11 +253,11 @@ function dtransduce(
                 catch
                     return
                 end
-                @logmsg PROGRESSLEVEL "dreduce" _id=id progress=i/n
+                @logmsg PROGRESSLEVEL "foldxd" _id=id progress=i/n
             end
             #=
             foreach(Scan(+), chan) do i
-                @logmsg PROGRESSLEVEL "dreduce" _id=id progress=i/n
+                @logmsg PROGRESSLEVEL "foldxd" _id=id progress=i/n
             end
             =#
         end

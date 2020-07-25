@@ -3,7 +3,7 @@ module TestProductRF
 include("preamble.jl")
 
 @testset "count_sum" begin
-    @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
+    @testset "$fold" for fold in [foldl, simple_reduce, foldxt_bs1, foldxt]
         foldl = nothing
         count_sum(xs, xf = Map(identity)) =
             fold(ProductRF(+, +), opcompose(xf, Map(x -> (1, x))), xs)
@@ -16,7 +16,7 @@ include("preamble.jl")
 end
 
 @testset "partially started" begin
-    @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
+    @testset "$fold" for fold in [foldl, simple_reduce, foldxt_bs1, foldxt]
         foldl = nothing
         f(xs) =
             fold(ProductRF(min, reducingfunction(Filter(isodd), max)), Map(x -> (x, x)), xs)
@@ -26,7 +26,7 @@ end
 end
 
 @testset "init" begin
-    @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
+    @testset "$fold" for fold in [foldl, simple_reduce, foldxt_bs1, foldxt]
         foldl = nothing
         @test fold(ProductRF(+, +), Map(x -> (x, x)), 1:9) == (45, 45)
         @test fold(ProductRF(+, +), Map(x -> (x, x)), 1:9, init = (0, 0)) == (45, 45)

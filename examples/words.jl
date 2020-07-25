@@ -235,7 +235,7 @@ nothing  # hide
 # Putting the transducer and reducing function together, we get:
 
 countwords(s; kwargs...) =
-    reduce(mergewith!!(+), countxf, s; init = CopyInit(Dict{String,Int}()), kwargs...)
+    foldxt(mergewith!!(+), countxf, s; init = CopyInit(Dict{String,Int}()), kwargs...)
 nothing  # hide
 
 # Side note: We use [`CopyInit`](@ref) to create a fresh initial
