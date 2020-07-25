@@ -1,4 +1,5 @@
 module TestExamplesTutorialParallel
+using LiterateTest.AssertAsTest: @assert
 
 # It looks like `Channel` was not thread-safe before 1.2.
 # * https://travis-ci.com/JuliaFolds/Transducers.jl/jobs/270458293
