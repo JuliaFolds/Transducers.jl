@@ -152,7 +152,7 @@ end
 @evaltest_throw "reduce(+, Scan(+), 1:10; basesize = 1)" begin
     @test occursin(
         "Stateful transducer Scan(+) does not support `combine`",
-        sprint(showerror, err),
+        sprint(showerror, ans),
     )
 end
 
