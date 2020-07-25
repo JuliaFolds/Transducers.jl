@@ -27,15 +27,7 @@ maybewordv(s::String) = isempty(s) ? String[] : [s]</code></pre><p>Input is a se
     else
         return append!(append!(maybewordv(g.l), g.A), maybewordv(g.r))
     end
-end</code></pre><p>Let&#39;s run a few tests covering some edge cases:</p><pre><code class="language-julia">using Test
-@testset begin
-    @test collectwords(&quot;This is a sample&quot;) == [&quot;This&quot;, &quot;is&quot;, &quot;a&quot;, &quot;sample&quot;]
-    @test collectwords(&quot; Here is another sample &quot;) == [&quot;Here&quot;, &quot;is&quot;, &quot;another&quot;, &quot;sample&quot;]
-    @test collectwords(&quot;JustOneWord&quot;) == [&quot;JustOneWord&quot;]
-    @test collectwords(&quot; &quot;) == []
-    @test collectwords(&quot;&quot;) == []
-end</code></pre><pre class="documenter-example-output">Test Summary: | Pass  Total
-test set      |    5      5</pre><h2 id="String-splitting-transducer"><a class="docs-heading-anchor" href="#String-splitting-transducer">String-splitting transducer</a><a id="String-splitting-transducer-1"></a><a class="docs-heading-anchor-permalink" href="#String-splitting-transducer" title="Permalink"></a></h2><p>Let&#39;s make it re-usable by packaging it into a transducer.</p><p>Rather than accumulating words into a vector, we are going to write a transducer that &quot;emits&quot; a word as soon as it is ready.  The downstream transducer may choose to record everything or only aggregate, e.g., reduced statistics.  To this end, we replace <code>Segment</code> in the original algorithm with</p><pre><code class="language-julia">struct Vacant
+end</code></pre><p>Let&#39;s run a few tests covering some edge cases:</p><pre><code class="language-julia">using Test</code></pre><h2 id="String-splitting-transducer"><a class="docs-heading-anchor" href="#String-splitting-transducer">String-splitting transducer</a><a id="String-splitting-transducer-1"></a><a class="docs-heading-anchor-permalink" href="#String-splitting-transducer" title="Permalink"></a></h2><p>Let&#39;s make it re-usable by packaging it into a transducer.</p><p>Rather than accumulating words into a vector, we are going to write a transducer that &quot;emits&quot; a word as soon as it is ready.  The downstream transducer may choose to record everything or only aggregate, e.g., reduced statistics.  To this end, we replace <code>Segment</code> in the original algorithm with</p><pre><code class="language-julia">struct Vacant
     l::String
     r::String
 end</code></pre><p>and output the words in the &quot;middle&quot; without accumulating it.  So, instead of <code>segment_or_chunk</code>, we now have:</p><pre><code class="language-julia">vacant_or_chunk(c::Char) = c == &#39; &#39; ? Vacant(&quot;&quot;, &quot;&quot;) : Chunk(string(c))</code></pre><p>The idea is to create a custom transducer to create a transducer <code>WordsXF</code> such that</p><pre><code class="language-julia">... |&gt; Map(vacant_or_chunk) |&gt; WordsXF() |&gt; Filter(!isnothing) |&gt; ...</code></pre><p>so that the whole transducer streams non-empty words to the downstream.  That is to say, the input stream is first processed by <code>vacant_or_chunk</code> which returns either a <code>Vacant</code> or a <code>Chunk</code>. This is processed by <code>WordsXF()</code> which outputs either a word (a <code>String</code>) or <code>nothing</code>.  We are using <code>Filter(!isnothing)</code> in the downstream to simplify the definition of <code>WordsXF</code>.</p><p>We define a function <code>extract(x::Union{Chunk,Vacant}, y::Union{Chunk,Vacant}) -&gt; (output, state)</code>.  It is something like <code>⊕</code> but works with <code>Chunk</code> and <code>Vacant</code>:</p><pre><code class="language-julia">extract(x::Chunk, y::Chunk) = nothing, Chunk(x.s * y.s)
@@ -71,36 +63,11 @@ end</code></pre><p>That&#39;s all we need for using this transducer with sequent
     return wrap(rf, uc, irc)
 end
 
-wordsxf = opcompose(Map(vacant_or_chunk), WordsXF(), Filter(!isnothing))</code></pre><p>Test:</p><pre><code class="language-julia">@testset begin
-    @test collect(wordsxf, &quot;This is a sample&quot;) == [&quot;This&quot;, &quot;is&quot;, &quot;a&quot;, &quot;sample&quot;]
-    @test collect(wordsxf, &quot; Here is another sample &quot;) == [&quot;Here&quot;, &quot;is&quot;, &quot;another&quot;, &quot;sample&quot;]
-    @test collect(wordsxf, &quot;JustOneWord&quot;) == [&quot;JustOneWord&quot;]
-    @test collect(wordsxf, &quot; &quot;) == []
-    @test collect(wordsxf, &quot;&quot;) == []
-end</code></pre><pre class="documenter-example-output">Test Summary: | Pass  Total
-test set      |    5      5</pre><h2 id="Word-counting-transducer"><a class="docs-heading-anchor" href="#Word-counting-transducer">Word-counting transducer</a><a id="Word-counting-transducer-1"></a><a class="docs-heading-anchor-permalink" href="#Word-counting-transducer" title="Permalink"></a></h2><p>We can pipe the resulting words into various transducers.</p><pre><code class="language-julia">using MicroCollections: SingletonDict
+wordsxf = opcompose(Map(vacant_or_chunk), WordsXF(), Filter(!isnothing))</code></pre><p>Test:</p><h2 id="Word-counting-transducer"><a class="docs-heading-anchor" href="#Word-counting-transducer">Word-counting transducer</a><a id="Word-counting-transducer-1"></a><a class="docs-heading-anchor-permalink" href="#Word-counting-transducer" title="Permalink"></a></h2><p>We can pipe the resulting words into various transducers.</p><pre><code class="language-julia">using MicroCollections: SingletonDict
 
 processcount(word) = SingletonDict(word =&gt; 1)
 countxf = opcompose(wordsxf, Map(processcount))</code></pre><pre class="documenter-example-output">Map(vacant_or_chunk) ⨟
     WordsXF() ⨟
     Filter(Base.λ❓) ⨟
     Map(processcount)</pre><p>Transducer <code>countxf</code> constructs a &quot;singleton solution&quot; as a dictionary which then accumulated with the associative reducing step function <code>mergewith!!(+)</code> from BangBang.jl:</p><pre><code class="language-julia">using BangBang: mergewith!!</code></pre><p>Putting the transducer and reducing function together, we get:</p><pre><code class="language-julia">countwords(s; kwargs...) =
-    reduce(mergewith!!(+), countxf, s; init = CopyInit(Dict{String,Int}()), kwargs...)</code></pre><p>Side note: We use <a href="../../reference/manual/#Transducers.CopyInit"><code>CopyInit</code></a> to create a fresh initial state for each sub-reduce to avoid overwriting mutable data between threads.</p><p>Let&#39;s run some tests with different <code>basesize</code> (<code>length(s) / basesize</code> corresponds to number of tasks to be used):</p><pre><code class="language-julia">@testset for basesize in [1, 2, 4]
-    @test countwords(&quot;This is a sample&quot;, basesize=basesize) ==
-        Dict(&quot;This&quot; =&gt; 1, &quot;is&quot; =&gt; 1, &quot;a&quot; =&gt; 1, &quot;sample&quot; =&gt; 1)
-    @test countwords(&quot; Here is another sample &quot;, basesize=basesize) ==
-        Dict(&quot;Here&quot; =&gt; 1, &quot;is&quot; =&gt; 1, &quot;another&quot; =&gt; 1, &quot;sample&quot; =&gt; 1)
-    @test countwords(&quot;JustOneWord&quot;, basesize=basesize) ==
-        Dict(&quot;JustOneWord&quot; =&gt; 1)
-    @test countwords(&quot; &quot;, basesize=basesize) == Dict()
-    @test countwords(&quot;&quot;, basesize=basesize) == Dict()
-    @test countwords(&quot;aaa bb aaa aaa bb bb aaa&quot;, basesize=basesize) ==
-        Dict(&quot;aaa&quot; =&gt; 4, &quot;bb&quot; =&gt; 3)
-    @test countwords(&quot;あああ いい あああ あああ いい いい あああ&quot;, basesize=basesize) ==
-        Dict(&quot;あああ&quot; =&gt; 4, &quot;いい&quot; =&gt; 3)
-end</code></pre><pre class="documenter-example-output">Test Summary: | Pass  Total
-basesize = 1  |    7      7
-Test Summary: | Pass  Total
-basesize = 2  |    7      7
-Test Summary: | Pass  Total
-basesize = 4  |    7      7</pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tutorial_parallel/">« Tutorial: Parallelism</a><a class="docs-footer-nextpage" href="../../howto/upgrade-to-ixf/">Upgrade to new <code>|&gt;</code> of Transducers.jl 0.4.39 »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Saturday 25 July 2020 04:38">Saturday 25 July 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+    reduce(mergewith!!(+), countxf, s; init = CopyInit(Dict{String,Int}()), kwargs...)</code></pre><p>Side note: We use <a href="../../reference/manual/#Transducers.CopyInit"><code>CopyInit</code></a> to create a fresh initial state for each sub-reduce to avoid overwriting mutable data between threads.</p><p>Let&#39;s run some tests with different <code>basesize</code> (<code>length(s) / basesize</code> corresponds to number of tasks to be used):</p><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tutorial_parallel/">« Tutorial: Parallelism</a><a class="docs-footer-nextpage" href="../../howto/upgrade-to-ixf/">Upgrade to new <code>|&gt;</code> of Transducers.jl 0.4.39 »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Saturday 25 July 2020 05:11">Saturday 25 July 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
