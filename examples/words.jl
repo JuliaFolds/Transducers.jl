@@ -108,8 +108,8 @@ end
 vacant_or_chunk(c::Char) = c == ' ' ? Vacant("", "") : Chunk(string(c))
 nothing  # hide
 
-# The idea is to create a custom transducer to create a transducer
-# `WordsXF` such that
+# The idea is to create a custom transducer `WordsXF` that is used as
+# in
 #
 # ```julia
 # ... |> Map(vacant_or_chunk) |> WordsXF() |> Filter(!isnothing) |> ...
