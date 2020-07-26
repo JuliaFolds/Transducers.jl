@@ -3,6 +3,7 @@
 # See also: [Overview of parallel processing in Transducers.jl](@ref
 # overview-parallel)
 
+using LiterateTest                                                     #src
 using Test                                                             #src
 
 # ## Quick examples
@@ -41,8 +42,9 @@ reduce(+, eduction(sin(x) for x in xs if abs(x) < 1); basesize = 500_000)
 #-
 
 if VERSION >= v"1.3"                                                   #src
-@test 36 ==                                                            #src
-reduce(+, eduction(x * y for x in 1:3, y in 1:3))
+    @test begin
+        reduce(+, eduction(x * y for x in 1:3, y in 1:3))
+    end == 36
 end                                                                    #src
 
 # You can omit `eduction` when using Transducers.jl-specific functions
@@ -55,8 +57,9 @@ tcollect(sin(x) for x in xs if abs(x) < 1)
 using StructArrays: StructVector
 table = StructVector(a = [1, 2, 3], b = [5, 6, 7])
 
-@test StructVector(A = [2, 4], B = [4, 6]) ==                          #src
-tcopy((A = row.a + 1, B = row.b - 1) for row in table if isodd(row.a))
+@test begin
+    tcopy((A = row.a + 1, B = row.b - 1) for row in table if isodd(row.a))
+end == StructVector(A = [2, 4], B = [4, 6])
 
 # ## When can I use `reduce` and `dreduce`?
 
@@ -111,14 +114,16 @@ a, b, c = 1, 2, 3  # for example
 # As reducing function `+` is associative, it can be used with
 # `reduce` (and `dreduce`):
 
-y1 =                                                                   #src
-reduce(+, Map(identity), 1:10; init = 0, basesize = 1)
+@dedent y1 = begin
+    reduce(+, Map(identity), 1:10; init = 0, basesize = 1)
+end
 
 # and the result is the same as the sequential version:
 
-y2 =                                                                   #src
-foldl(+, Map(identity), 1:10; init = 0)
-@test y1 == y2                                                         #src
+@dedent y2 = begin
+    foldl(+, Map(identity), 1:10; init = 0)
+end
+@test y1 == y2
 
 # Note: `basesize` is for forcing `reduce` to avoid falling back to
 # `foldl` for small length container such as `1:10`.
@@ -127,13 +132,15 @@ foldl(+, Map(identity), 1:10; init = 0)
 # `reduce` cannot be used instead of `foldl` (they produce different
 # result):
 
-y3 =                                                                   #src
-reduce(-, Map(identity), 1:10; init = 0, basesize = 1)
+@dedent y3 = begin
+    reduce(-, Map(identity), 1:10; init = 0, basesize = 1)
+end
 #-
 
-y4 =                                                                   #src
-foldl(+, Map(identity), 1:10; init = 0)
-@test y3 != y4                                                         #src
+@dedent y4 = begin
+    foldl(+, Map(identity), 1:10; init = 0)
+end
+@test y3 != y4
 
 # ### Requirement 2: stateless transducers
 
@@ -142,15 +149,12 @@ foldl(+, Map(identity), 1:10; init = 0)
 # get an error when using stateful transducers such as `Scan` with
 # `reduce` or `dreduce`:
 
-err = try                                                            # hide
-reduce(+, Scan(+), 1:10; basesize = 1)
-catch err; err; end                                                  # hide
-@test occursin(                                                        #src
-    "Stateful transducer Scan(+) does not support `combine`",          #src
-    sprint(showerror, err),                                            #src
-)                                                                      #src
-#md print(stdout, "ERRPR: ")                                         # hide
-#md showerror(stdout, err)                                           # hide
+@evaltest_throw "reduce(+, Scan(+), 1:10; basesize = 1)" begin
+    @test occursin(
+        "Stateful transducer Scan(+) does not support `combine`",
+        sprint(showerror, ans),
+    )
+end
 
 # Stateful transducers cannot be used with `reduce` because it is
 # impossible to start processing input collection from the middle when
@@ -233,17 +237,19 @@ records = Pair[]
 while isready(chan)
     push!(records, take!(chan))
 end
-if VERSION >= v"1.3"                                                   #src
-    @test Set(records) == Set([                                        #src
-        (Union{}[], [1]) => [1],                                       #src
-        (Union{}[], [2]) => [2],                                       #src
-        (Union{}[], [3]) => [3],                                       #src
-        (Union{}[], [4]) => [4],                                       #src
-        ([1], [2]) => [1, 2],                                          #src
-        ([3], [4]) => [3, 4],                                          #src
-        ([1, 2], [3, 4]) => [1, 2, 3, 4],                              #src
-    ])                                                                 #src
-end                                                                    #src
+@testset "check records" begin
+    if VERSION >= v"1.3"
+        @test Set(records) == Set([
+            (Union{}[], [1]) => [1],
+            (Union{}[], [2]) => [2],
+            (Union{}[], [3]) => [3],
+            (Union{}[], [4]) => [4],
+            ([1], [2]) => [1, 2],
+            ([3], [4]) => [3, 4],
+            ([1, 2], [3, 4]) => [1, 2, 3, 4],
+        ])
+    end
+end
 records
 
 # This recorded inputs and outputs of `append!!` show that its "call
@@ -272,20 +278,20 @@ records
 
 using StaticArrays: SVector
 
-y3 =                                                                   #src
-reduce(append!!, Map(SVector), 1:4)
-@test y3 isa SVector                                                    #src
-@test y3 == 1:4                                                        #src
+@evaltest "reduce(append!!, Map(SVector), 1:4)" begin
+    @test ans isa SVector
+    @test ans == 1:4
+end
 
 # However, notice that the return value is a static vector.  This is
 # not ideal when the input collection is large.  The output collection
 # type can be specified by `init`.  We can simply use `init =
 # Union{}[]` in this case:
 
-y4 =                                                                   #src
-reduce(append!!, Map(SVector), 1:4; init = Union{}[])
-@test y4 isa Vector                                                     #src
-@test y4 == 1:4                                                        #src
+@evaltest "reduce(append!!, Map(SVector), 1:4; init = Union{}[])" begin
+    @test ans isa Vector
+    @test ans == 1:4
+end
 
 # Note that passing `Vector` to `init` of `reduce` is usually a wrong
 # choice as it would mean that the same object is simultaneously
@@ -306,11 +312,14 @@ reduce(append!!, Map(SVector), 1:4; init = Union{}[])
 using BangBang: Empty
 using DataFrames: DataFrame
 
-y5 =                                                                 # hide
-reduce(append!!, Map(x -> SVector((a = x,))), 1:4; init = Empty(DataFrame))
-Text(y5)                                                             # hide
-@test y5 isa DataFrame                                                  #src
-@test y5.a == 1:4                                                      #src
+ans = begin
+    reduce(append!!, Map(x -> SVector((a = x,))), 1:4; init = Empty(DataFrame))
+end
+@testset "reduce(append!!, ...; init = Empty(DataFrame))" begin
+    @test ans isa DataFrame
+    @test ans.a == 1:4
+end
+Text(ans)                                                            # hide
 
 # It is slightly more tricky to make this approach work with other
 # table types such as
@@ -362,8 +371,9 @@ nothing                                                              # hide
 
 using Compat: mergewith!  # not required in Julia >= 1.5
 rf! = mergewith!(+)
-@test Dict(:a => 1, :b => 5, :c => 4) ==                               #src
-rf!(Dict(:a => 1, :b => 2), Dict(:b => 3, :c => 4))
+@test begin
+    rf!(Dict(:a => 1, :b => 2), Dict(:b => 3, :c => 4))
+end == Dict(:a => 1, :b => 5, :c => 4)
 
 # This is the form of binary function appropriate for `foldl` and
 # `reduce`.
@@ -422,7 +432,7 @@ using BangBang: mergewith!!
 using MicroCollections: SingletonDict
 
 acc1 = mergewith!!(+, SingletonDict(:a => 1), SingletonDict(:b => 1))
-@test acc1 isa Dict                                                    #src
+@test acc1 isa Dict
 Text(acc1)                                                           # hide
 
 # This dictionary is reused in the subsequent iterations:
@@ -461,13 +471,13 @@ counts4 = reduce(mergewith!!(+), dicts3)
 
 # Find the _first_ element that is multiple of three:
 
-ans =                                                                  #src
-reduce(ReduceIf(x -> x % 3 == 0), 1:10; init = nothing, basesize = 1) do _, x
-    ## # Uncomment for demo:
-    ## x == 3 ? sleep(0.1) : @show x  # give other tasks a chance to finish first
-    return x
-end
-@test ans == 3                                                         #src
+@test begin
+    reduce(ReduceIf(x -> x % 3 == 0), 1:10; init = nothing, basesize = 1) do _, x
+        ## # Uncomment for demo:
+        ## x == 3 ? sleep(0.1) : @show x  # give other tasks a chance to finish first
+        return x
+    end
+end == 3
 
 # This snippet always returns `3`, even though the reductions for `c =
 # 6` and `c = 9` may finish first.

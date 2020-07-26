@@ -1184,7 +1184,7 @@ struct Scan{F, T} <: Transducer
     init::T
 end
 
-Scan(f) = Scan(f, Init)  # TODO: DefaultInit?
+Scan(f) = Scan(_asmonoid(f), Init)  # TODO: DefaultInit?
 
 isexpansive(::Scan) = false
 
