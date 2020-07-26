@@ -37,6 +37,29 @@ using Pkg
 Pkg.add("Transducers")
 ```
 
+## Related packages
+
+* [ThreadsX.jl](https://github.com/tkf/ThreadsX.jl) implements
+  `Base`-like API based on Transducers.jl.  It is highly recommended
+  for using threaded computation without fully switching to
+  transducers.
+* [LazyGroupBy.jl](https://github.com/JuliaFolds/LazyGroupBy.jl) wraps
+  `Transducers.Groupby` in an easy-to-use syntax.
+* [DataTools.jl](https://github.com/JuliaFolds/DataTools.jl) is a set
+  of tools for data analysis built on top of Transducers.jl.
+* [BangBang.jl](https://github.com/JuliaFolds/BangBang.jl) implements
+  mutate-or-widen API.  This is the foundation of
+  [typocalypse](https://discourse.julialang.org/search?q=typocalypse)-free
+  `map`/`collect`-like functions.  Functions such as `append!!`,
+  `merge!!`, `mergewith!!`, `union!!`, etc. are useful as a reducing
+  function.
+* [InitialValues.jl](https://github.com/JuliaFolds/InitialValues.jl)
+  provides a framework for initial/identity element of folds.
+* [MicroCollections.jl](https://github.com/JuliaFolds/MicroCollections.jl)
+  provides empty and singleton collections (arrays, dicts and sets).
+  They are useful when writing transducers and reducing functions that
+  construct a data collection.
+
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-stable-url]: https://juliafolds.github.io/Transducers.jl/stable
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
