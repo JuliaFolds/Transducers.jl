@@ -73,6 +73,12 @@ git-tree-sha1 = "5a431d46abf2ef2a4d5d00bd0ae61f651cf854c8"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 version = "0.17.10"
 
+[[DataTools]]
+deps = ["InitialValues", "Setfield", "StaticNumbers", "Statistics", "Tables", "Transducers"]
+git-tree-sha1 = "5925807ebba0e15001d28f6c47a7cb871b44dbe1"
+uuid = "96c8136d-373b-4a4f-9482-8552faa6eb26"
+version = "0.1.2"
+
 [[DataValueInterfaces]]
 git-tree-sha1 = "bfc1187b79289637fa0ef6d4436ebdfe6905cbd6"
 uuid = "e2d170a0-9d28-54be-80f0-106bbe20a464"
@@ -345,6 +351,12 @@ deps = ["LinearAlgebra", "Random", "Statistics"]
 git-tree-sha1 = "5a3bcb6233adabde68ebc97be66e95dcb787424c"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
 version = "0.12.1"
+
+[[StaticNumbers]]
+deps = ["Requires"]
+git-tree-sha1 = "a0df7d5ade3fd0f0e6c93ad63facc05b12c40e6a"
+uuid = "c5e4b96a-f99f-5557-8ed2-dc63ef9b5131"
+version = "0.3.3"
 
 [[Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
