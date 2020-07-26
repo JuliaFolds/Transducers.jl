@@ -87,8 +87,7 @@ julia> 1:3 |> MapCat(x -> 1:x) |> collect  # concatenate mapped results
 
 ```
 
-Transducers can be composed (without, unlike iterators, referring to
-the input):
+Transducers can be composed:
 
 ```jldoctest filter-map
 julia> 1:6 |> Filter(iseven) |> Map(x -> 2x) |> collect
@@ -99,8 +98,8 @@ julia> 1:6 |> Filter(iseven) |> Map(x -> 2x) |> collect
 ```
 
 An efficient way to use transducers is combination with
-[`foldl`](@ref).  This computation is done without creating any
-intermediate lazy object and compiles to a single loop:
+[`foldl`](@ref).  The computation is compiled down to an efficient
+loop you would write by hand::
 
 ```jldoctest filter-map
 julia> foldl(+, 1:6 |> Filter(iseven) |> Map(x -> 2x))
