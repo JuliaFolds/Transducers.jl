@@ -30,9 +30,14 @@ function transducers_literate(;
         name, = splitext(basename(outpath))
         inputfile = joinpath(inputbase, "$name.jl")
         outputdir = joinpath(outputbase, dirname(outpath))
+        if name == "words"
+            config = Dict()
+        else
+            config = LiterateTest.config()
+        end
         Literate.markdown(
             inputfile, outputdir;
-            config = LiterateTest.config(),
+            config = config,
             documenter = true,
             kwargs...)
     end
