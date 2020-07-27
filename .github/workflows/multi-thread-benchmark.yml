@@ -25,8 +25,11 @@ jobs:
       - name: Push results
         run: julia -e '
           using BenchmarkCI;
-          BenchmarkCI.pushresult(title = "Multi-thread benchmark result");
+          BenchmarkCI.pushresult(;
+              title = "Multi-thread benchmark result",
+              url = "git@github.com:JuliaFolds/Transducers-data.git",
+          );
           '
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KEY: ${{ secrets.DATA_SSH_KEY }}
