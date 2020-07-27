@@ -67,6 +67,12 @@ git-tree-sha1 = "edad9434967fdc0a2631a65d902228400642120c"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 version = "0.17.19"
 
+[[DataTools]]
+deps = ["InitialValues", "Setfield", "StaticNumbers", "Statistics", "Tables", "Transducers"]
+git-tree-sha1 = "5925807ebba0e15001d28f6c47a7cb871b44dbe1"
+uuid = "96c8136d-373b-4a4f-9482-8552faa6eb26"
+version = "0.1.2"
+
 [[DataValueInterfaces]]
 git-tree-sha1 = "bfc1187b79289637fa0ef6d4436ebdfe6905cbd6"
 uuid = "e2d170a0-9d28-54be-80f0-106bbe20a464"
@@ -164,11 +170,11 @@ version = "2.5.0"
 
 [[LiterateTest]]
 deps = ["Test"]
-git-tree-sha1 = "13fc201bf7691a258a53ee8ea0574d32eed599dc"
+git-tree-sha1 = "83cb895561b8a64bacddbf8d5d0f95e47ccddc88"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/LiterateTest.jl.git"
 uuid = "d77d25b0-90d3-4a16-b10a-412a9d48f625"
-version = "0.1.2-DEV"
+version = "0.1.3-DEV"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
@@ -308,6 +314,12 @@ deps = ["LinearAlgebra", "Random", "Statistics"]
 git-tree-sha1 = "016d1e1a00fabc556473b07161da3d39726ded35"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
 version = "0.12.4"
+
+[[StaticNumbers]]
+deps = ["Requires"]
+git-tree-sha1 = "a0df7d5ade3fd0f0e6c93ad63facc05b12c40e6a"
+uuid = "c5e4b96a-f99f-5557-8ed2-dc63ef9b5131"
+version = "0.3.3"
 
 [[Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
