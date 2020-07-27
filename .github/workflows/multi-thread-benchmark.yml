@@ -12,7 +12,7 @@ jobs:
         with:
           version: 1.4
       - name: Install dependencies
-        run: julia -e 'using Pkg; pkg"add PkgBenchmark https://github.com/tkf/BenchmarkCI.jl"'
+        run: julia -e 'using Pkg; pkg"add PkgBenchmark BenchmarkCI@0.1"'
       - name: Run benchmarks
         run: julia -e '
           using PkgBenchmark, BenchmarkCI;
