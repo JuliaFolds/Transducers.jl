@@ -28,6 +28,7 @@ jobs:
           BenchmarkCI.pushresult(;
               title = "Multi-thread benchmark result",
               url = "git@github.com:JuliaFolds/Transducers-data.git",
+              branch = "multi-thread-benchmark-results",
           );
           '
         env:
