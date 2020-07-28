@@ -9,7 +9,8 @@ pull_request_rules:
       - base=master
       - "#approved-reviews-by>=1"
       - status-success=Travis CI - Pull Request
-      - status-success=Benchmark
+      - status-success=benchmark
+      - status-success=multi-thread-benchmark
       - status-success=Documenter
       - status-success=Test xfail Julia 1.4
       - -status-failure=vanilla-test
@@ -23,7 +24,8 @@ pull_request_rules:
       - base=master
       - "#approved-reviews-by>=1"
       - status-success=Travis CI - Pull Request
-      - status-success=Benchmark
+      - status-success=benchmark
+      - status-success=multi-thread-benchmark
       - status-success=Documenter
       - status-success=Test xfail Julia 1.4
       - -status-failure=vanilla-test
@@ -37,7 +39,8 @@ pull_request_rules:
       - base=master
       - "#approved-reviews-by>=1"
       - status-success=Travis CI - Pull Request
-      - status-success=Benchmark
+      - status-success=benchmark
+      - status-success=multi-thread-benchmark
       - status-success=Documenter
       - status-success=Test xfail Julia 1.4
       - -status-failure=vanilla-test
@@ -51,7 +54,8 @@ pull_request_rules:
       - author=tkf
       - base=master
       - status-success=Travis CI - Pull Request
-      - status-success=Benchmark
+      - status-success=benchmark
+      - status-success=multi-thread-benchmark
       - status-success=Documenter
       - status-success=Test xfail Julia 1.4
       - -status-failure=vanilla-test
