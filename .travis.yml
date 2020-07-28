@@ -25,7 +25,7 @@ before_install:
 install:
   - julia -e 'using Run; Run.prepare("test/environments/main")'
 script:
-  - julia -e 'using Run; Run.test(project="test/environments/main")'
+  - julia -e 'using Run; Run.test(project="test/environments/main", depwarn=:error)'
 after_success:
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
