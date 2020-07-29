@@ -31,7 +31,7 @@ version = "0.3.7"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "653a75c359a9750e6fb9693f5fa5494c0e490795"
+git-tree-sha1 = "998caf862e1af03571b61ab193ebd1708f32101d"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
@@ -148,7 +148,7 @@ uuid = "313cdc1a-70c2-5d6a-ae34-0150d3930a38"
 version = "1.1.0"
 
 [[InitialValues]]
-git-tree-sha1 = "da5d9371c7c62081d46683ee93e8f821d2c37055"
+git-tree-sha1 = "d938c94f5de974ee74836d4090043672a43afc2d"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/InitialValues.jl.git"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
