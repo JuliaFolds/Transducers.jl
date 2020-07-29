@@ -879,10 +879,15 @@ julia> copy!(opcompose(PartitionBy(x -> x ÷ 3), Map(sum)), Int[], 1:10)
 """
 Base.copy!(xf::Transducer, dest, src) = append!(xf, empty!(dest), src)
 
-Base.foldl(step, xform::Transducer, itr; init = DefaultInit, kw...) =
+Base.foldl(step::RF, xform::Transducer, itr; init = DefaultInit, kw...) where {RF} =
     unreduced(transduce(xform, Completing(step), init, itr; kw...))
 
-@inline function Base.foldl(step, foldable::Foldable; init = DefaultInit, kwargs...)
+@inline function Base.foldl(
+    step::RF,
+    foldable::Foldable;
+    init = DefaultInit,
+    kwargs...,
+) where {RF}
     xf, coll = extract_transducer(foldable)
     return unreduced(transduce(xf, Completing(step), init, coll; kwargs...))
 end
@@ -1030,9 +1035,9 @@ julia> simpler_has2([1, missing])
 false
 ```
 """
-Base.foreach(eff, xform::Transducer, coll; kwargs...) =
+Base.foreach(eff::F, xform::Transducer, coll; kwargs...) where {F} =
     transduce(xform, SideEffect(eff), nothing, coll; kwargs...)
-function Base.foreach(eff, reducible::Reducible; kwargs...)
+function Base.foreach(eff::F, reducible::Reducible; kwargs...) where {F}
     xf, coll = extract_transducer(reducible)
     return transduce(xf, SideEffect(eff), nothing, coll; kwargs...)
 end
