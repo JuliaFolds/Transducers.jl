@@ -67,7 +67,6 @@ jobs:
               title = "Benchmark result (via Travis)",
               url = "git@github.com:JuliaFolds/Transducers-data.git",
               branch = "travis-benchmark-results",
-              sshkey = ENV["DATA_SSH_KEY"],
           );
           '
       after_success: skip
@@ -94,7 +93,6 @@ jobs:
               title = "Multi-thread benchmark result (via Travis)",
               url = "git@github.com:JuliaFolds/Transducers-data.git",
               branch = "travis-multi-thread-benchmark-results",
-              sshkey = ENV["DATA_SSH_KEY"],
           );
           '
       script:
