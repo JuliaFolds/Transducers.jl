@@ -24,8 +24,8 @@ end
             [[3, 2, 1, 0], [6, 5, 4], [9, 8, 7]]
             )
         @test collect(MapCat(reverse), xs) == 0:9
-        @test collect(MapCat(reverse) |> Map(inc), xs) == 1:10
-        @test collect(MapCat(x -> reverse(x) |> Map(inc)), xs) == 1:10
+        @test xs |> MapCat(reverse) |> Map(inc) |> collect == 1:10
+        @test xs |> MapCat(x -> reverse(x) |> Map(inc)) |> collect == 1:10
     end
 end
 
