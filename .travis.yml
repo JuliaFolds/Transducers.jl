@@ -45,7 +45,7 @@ jobs:
       os: linux
       before_install:
         - unset JULIA_PROJECT
-        - julia -e 'using Pkg; pkg"add PkgBenchmark https://github.com/tkf/BenchmarkCI.jl"'
+        - julia -e 'using Pkg; pkg"add PkgBenchmark BenchmarkCI@0.1"'
       install:
         # Run benchmark outside `script` so that it's hidden by default:
         - julia -e '
@@ -61,6 +61,15 @@ jobs:
           '
       script:
         - julia -e 'using BenchmarkCI; BenchmarkCI.displayjudgement()'
+        - julia -e '
+          using BenchmarkCI;
+          BenchmarkCI.pushresult(;
+              title = "Benchmark result (via Travis)",
+              url = "git@github.com:JuliaFolds/Transducers-data.git",
+              branch = "travis-benchmark-results",
+              sshkey = ENV["DATA_SSH_KEY"],
+          );
+          '
       after_success: skip
       after_script: lscpu
       if: type != push
@@ -68,7 +77,7 @@ jobs:
       os: linux
       before_install:
         - unset JULIA_PROJECT
-        - julia -e 'using Pkg; pkg"add PkgBenchmark https://github.com/tkf/BenchmarkCI.jl"'
+        - julia -e 'using Pkg; pkg"add PkgBenchmark BenchmarkCI@0.1"'
       install:
         # Run benchmark outside `script` so that it's hidden by default:
         - julia -e '
@@ -77,6 +86,15 @@ jobs:
             PkgBenchmark.BenchmarkConfig(env = Dict("JULIA_NUM_THREADS" => "2"));
             script = "benchmark/multi-thread/benchmarks.jl",
             project = "benchmark",
+          );
+          '
+        - julia -e '
+          using BenchmarkCI;
+          BenchmarkCI.pushresult(;
+              title = "Multi-thread benchmark result (via Travis)",
+              url = "git@github.com:JuliaFolds/Transducers-data.git",
+              branch = "travis-"multi-thread-benchmark-results",
+              sshkey = ENV["DATA_SSH_KEY"],
           );
           '
       script:
