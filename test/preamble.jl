@@ -9,6 +9,8 @@ using Transducers: Transducer, simple_transduce, Reduced, isexpansive,
 using Logging: NullLogger, with_logger
 using SplittablesBase: SplittablesBase
 
+const DEPWARN_ERROR = !(Base.JLOptions().depwarn in (0, 1))
+
 @nospecialize
 
 """

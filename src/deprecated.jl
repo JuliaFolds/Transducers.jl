@@ -38,6 +38,36 @@ end
 
 @deprecate Distinct() Unique()
 @deprecate TeeZip(xf) ZipSource(xf) false
+@deprecate Keep(f) opcompose(Map(f), NotA(Nothing))
+
+"""
+    Keep(f)
+
+Pass non-`nothing` output of `f` to the inner reducing step.
+
+!!! warning
+
+    `Keep(f)` is a deprecated. Use `... |> Map(f) |> NotA(Nothing)`.
+    If `f` does not return a `Some`, [`KeepSomething`](@ref) can also
+    be used.
+
+# Examples
+```julia
+julia> using Transducers
+
+julia> xf = Keep() do x
+           if x < 3
+               x + 1
+           end
+       end;
+
+julia> collect(xf, 1:5)
+2-element Array{Int64,1}:
+ 2
+ 3
+```
+"""
+Keep
 
 # It wasn't a public API but to play on the safe side:
 @deprecate induction(itr) extract_transducer(itr) false

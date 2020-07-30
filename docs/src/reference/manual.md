@@ -102,4 +102,5 @@ withprogress
 ```@docs
 mapfoldl
 mapreduce
+Keep
 ```

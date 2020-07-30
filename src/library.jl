@@ -958,40 +958,61 @@ function complete(rf::R_{PartitionBy}, ps)
     return complete(inner(rf), iresult)
 end
 
-# https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/keep
-# https://clojuredocs.org/clojure.core/keep
 """
-    Keep(f)
+    KeepSomething(f = identity)
 
-Pass non-`nothing` output of `f` to the inner reducing step.
+Pass non-`nothing` output of `f` to the inner reducing step after
+possibly unwrapping `Some`.
 
 $(_thx_clj("keep"))
 
 # Examples
-```jldoctest
+```jldoctest KeepSomething
 julia> using Transducers
 
-julia> xf = Keep() do x
-           if x < 3
-               x + 1
+julia> xf = KeepSomething() do x
+           if x == 0
+               :zero
+           elseif x == 1
+               Some(:one)
+           elseif x == 2
+               Some(nothing)
            end
        end;
 
-julia> collect(xf, 1:5)
+julia> collect(xf, 0:3)
+3-element Array{Union{Nothing, Symbol},1}:
+ :zero
+ :one
+ nothing
+```
+
+Note that [`NotA(Nothing)`](@ref) can be used to avoid automatically
+unwrapping `Some`:
+
+```jldoctest KeepSomething
+julia> [Some(1), 2, nothing] |> KeepSomething() |> collect
 2-element Array{Int64,1}:
+ 1
  2
- 3
+
+julia> [Some(1), 2, nothing] |> NotA(Nothing) |> collect
+2-element Array{Any,1}:
+  Some(1)
+ 2
 ```
 """
-struct Keep{F} <: Transducer
+struct KeepSomething{F} <: Transducer
     f::F
 end
 
-isexpansive(::Keep) = false
+KeepSomething() = KeepSomething(identity)
 
-function next(rf::R_{Keep}, result, input)
+isexpansive(::KeepSomething) = false
+
+function next(rf::R_{KeepSomething}, result, input)
     iinput = xform(rf).f(input)
-    return iinput === nothing ? result : next(inner(rf), result, iinput)
+    return iinput === nothing ? result : next(inner(rf), result, something(iinput))
 end
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/distinct

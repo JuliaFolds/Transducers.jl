@@ -1,8 +1,6 @@
 module TestMapfoldl
 include("preamble.jl")
 
-const DEPWARN_ERROR = !(Base.JLOptions().depwarn in (0, 1))
-
 @testset "mapfoldl" begin
     xf = opcompose(Filter(isodd), Map(inc))
 
