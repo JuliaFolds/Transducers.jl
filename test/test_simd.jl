@@ -65,7 +65,7 @@ end
 end
 
 @testset "invalid option" begin
-    err = @test_error reduce(+, Map(identity), 1:1; simd = :invalid_option)
+    err = @test_error foldxt(+, Map(identity), 1:1; simd = :invalid_option)
     @test occursin("Unknown `simd` argument: invalid_option", sprint(showerror, err))
 end
 

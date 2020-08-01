@@ -139,8 +139,8 @@ function slow_test(f, title, limit)
     return
 end
 
-reduce_bs1(args...; kw...) = reduce(args...; basesize = 1, kw...)
-dreduce_bs1(args...; kw...) = dreduce(args...; basesize = 1, kw...)
+foldxt_bs1(args...; kw...) = foldxt(args...; basesize = 1, kw...)
+foldxd_bs1(args...; kw...) = foldxd(args...; basesize = 1, kw...)
 
 function simple_reduce_impl(rf, init, itr, basesize)
     if SplittablesBase.amount(itr) < basesize

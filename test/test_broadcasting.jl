@@ -3,7 +3,7 @@ module TestBroadcasting
 include("preamble.jl")
 
 @testset "count_sum" begin
-    @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
+    @testset "$fold" for fold in [foldl, simple_reduce, foldxt_bs1, foldxt]
         foldl = nothing
 
         count_sum(xs, xf = Map(identity)) =
@@ -16,7 +16,7 @@ include("preamble.jl")
 end
 
 @testset "partially started" begin
-    @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
+    @testset "$fold" for fold in [foldl, simple_reduce, foldxt_bs1, foldxt]
         foldl = nothing
         f(xs) =
             fold(max, opcompose(Map(x -> (x + 1, x)), Broadcasting(), Filter(isodd)), xs)
@@ -26,7 +26,7 @@ end
 end
 
 @testset "init" begin
-    @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
+    @testset "$fold" for fold in [foldl, simple_reduce, foldxt_bs1, foldxt]
         foldl = nothing
         @test fold(+, Broadcasting(), 1:9) == 45
         @test fold(+, Broadcasting(), 1:9, init = [0]) == [45]
