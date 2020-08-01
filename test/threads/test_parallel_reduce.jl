@@ -23,7 +23,7 @@ end
 @testset "early termination (runtime)" begin
     recorder = Recorder()
     records = recorder.records
-    @test reduce(right, 1:32 |> Map(recorder) |> ReduceIf(==(1));
+    @test foldxt(right, 1:32 |> Map(recorder) |> ReduceIf(==(1));
                  basesize=1) === 1
     if VERSION >= v"1.3-alpha"
         if Threads.nthreads() == 1
@@ -39,7 +39,7 @@ end
 
 @testset "early termination (grid)" begin
     @testset for needle in 1:20, len in 1:20, stoppable in [true, false]
-        @test reduce(
+        @test foldxt(
             right,
             ReduceIf(x -> x >= needle),
             1:len;
@@ -55,14 +55,14 @@ end
         basesize = 16
         xs = collect(enumerate(rand(rng, 1:100, 100 * basesize)))
         xf = ReduceIf(x -> x[2] >= p)
-        @test reduce(right, xf, xs; basesize=basesize) == foldl(right, xf, xs)
-        @test reduce(right, xf, xs; basesize = basesize, stoppable = false) ==
+        @test foldxt(right, xf, xs; basesize=basesize) == foldl(right, xf, xs)
+        @test foldxt(right, xf, xs; basesize = basesize, stoppable = false) ==
             foldl(right, xf, xs)
     end
 end
 
 @testset "empty case" begin
-    err = @test_error reduce(+, Map(identity), 1:0)
+    err = @test_error foldxt(+, Map(identity), 1:0)
     msg = sprint(showerror, err)
     @test occursin("The input collection is empty or", msg)
 end
@@ -129,12 +129,12 @@ end
         @test tcollect(Map(identity), Iterators.product(1:3, 4:5); basesize = basesize) ==
               vec(collect(Iterators.product(1:3, 4:5)))
     end
-    @test reduce(+, MapSplat(*), Iterators.product(1:3, 1:3); basesize = 1) == 36
-    @test reduce(+, eduction(x * y for x in 1:3, y in 1:3); basesize = 1) == 36
+    @test foldxt(+, MapSplat(*), Iterators.product(1:3, 1:3); basesize = 1) == 36
+    @test foldxt(+, eduction(x * y for x in 1:3, y in 1:3); basesize = 1) == 36
 end
 
 @testset "zip" begin
-    @test reduce(+, MapSplat(*), zip(1:5, 1:5); basesize = 1) == 55
+    @test foldxt(+, MapSplat(*), zip(1:5, 1:5); basesize = 1) == 55
 end
 
 @testset "partition" begin
@@ -184,7 +184,7 @@ end
     # right style, but it was in the tutorial in v0.4.x series so
     # let's keep testing it.
 
-    @test reduce(
+    @test foldxt(
         Map(x -> x % 3 == 0 ? x : nothing),
         1:10;
         init = nothing,
@@ -194,7 +194,7 @@ end
         c === nothing ? nothing : reduced(c)
     end == 3
 
-    @test reduce(
+    @test foldxt(
         Map(x -> x % 3 == 0 ? x : nothing),
         1:10;
         init = nothing,
@@ -210,19 +210,19 @@ end
     xf = Map() do x
         x
     end
-    @test reduce(+, xf, withprogress(1:100; interval=0); basesize=1) == 5050
-    @test reduce(+, xf, withprogress(1:100; interval=0); basesize=1, simd=true) == 5050
+    @test foldxt(+, xf, withprogress(1:100; interval=0); basesize=1) == 5050
+    @test foldxt(+, xf, withprogress(1:100; interval=0); basesize=1, simd=true) == 5050
 
     xf2 = ScanEmit(0) do u, x
         y = u + x
         y, y
     end
-    @test reduce(right, xf2, withprogress(1:100; interval=0); basesize=1) == 5050
-    @test reduce(right, xf2, withprogress(1:100; interval=0); basesize=1, simd=true) == 5050
+    @test foldxt(right, xf2, withprogress(1:100; interval=0); basesize=1) == 5050
+    @test foldxt(right, xf2, withprogress(1:100; interval=0); basesize=1, simd=true) == 5050
 
     xf3 = ReduceIf(x -> x == 100)
-    @test reduce(right, xf3, withprogress(1:1000; interval=0); basesize=1) == 100
-    @test reduce(right, xf3, withprogress(1:1000; interval=0); basesize=1, simd=true) == 100
+    @test foldxt(right, xf3, withprogress(1:1000; interval=0); basesize=1) == 100
+    @test foldxt(right, xf3, withprogress(1:1000; interval=0); basesize=1, simd=true) == 100
 end
 
 end  # module

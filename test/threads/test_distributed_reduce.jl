@@ -9,20 +9,20 @@ using Test: collect_test_logs
 
 const ProgressLevel = LogLevel(-1)
 
-@testset "dreduce" begin
+@testset "foldxd" begin
     fname = gensym(:attach_pid)
     @everywhere $fname(x) = [(x, getpid())]
     fun = getproperty(Main, fname)
 
     pids = fetch.(map(id -> remotecall(getpid, id), workers()))
     xs0 = 1:10
-    @testset "dreduce(..., $xslabel; $kwargs...)" for (xslabel, xs) in Any[
+    @testset "foldxd(..., $xslabel; $kwargs...)" for (xslabel, xs) in Any[
             # Input containers:
             ("$xs0", xs0),
             ("withprogress(xs; interval=0)", withprogress(xs0; interval = 0)),
         ],
         kwargs in Any[
-            # Keyword arguments to `dreduce`:
+            # Keyword arguments to `foldxd`:
             (),
             (basesize = 1,),
             (basesize = 1, threads_basesize = 1),
@@ -30,7 +30,7 @@ const ProgressLevel = LogLevel(-1)
             (basesize = 4, threads_basesize = 2, simd = true),
         ]
 
-        ys = dreduce(append!!, Map(fun), xs; init = Union{}[], kwargs...)
+        ys = foldxd(append!!, Map(fun), xs; init = Union{}[], kwargs...)
         @test first.(ys) == xs0
         @test Set(last.(ys)) == Set(pids)
     end
@@ -67,15 +67,15 @@ end
 
 @testset "withprogress" begin
     xs = 1:10
-    @testset "dreduce(..., withprogress(xs; interval=0); $kwargs...)" for kwargs in Any[
-        # Keyword arguments to `dreduce`:
+    @testset "foldxd(..., withprogress(xs; interval=0); $kwargs...)" for kwargs in Any[
+        # Keyword arguments to `foldxd`:
         (),
         (basesize = 4, threads_basesize = typemax(Int)),
         (basesize = 4, threads_basesize = 2),
         (basesize = 4, threads_basesize = 2, simd = true),
     ]
         logs, ans = collect_test_logs(min_level = ProgressLevel) do
-            dreduce(+, Map(identity), withprogress(xs; interval = 0.0); kwargs...)
+            foldxd(+, Map(identity), withprogress(xs; interval = 0.0); kwargs...)
         end
         logs = [l for l in logs if l.level == ProgressLevel]
         @test ans == sum(xs)

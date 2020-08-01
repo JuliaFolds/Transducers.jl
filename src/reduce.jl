@@ -1,9 +1,11 @@
 """
-    reduce(step, xf, reducible; [init, simd, basesize, stoppable]) :: T
+    foldxt(step, xf, reducible; [init, simd, basesize, stoppable]) :: T
 
-Thread-based parallelization of [`foldl`](@ref).  The "bottom"
-reduction function `step(::T, ::T) :: T` must be associative and
-`init` must be its identity element.
+e**X**tended **t**hreaded fold (reduce).  This is a multi-threaded
+`reduce` based on extended fold protocol defined in Transducers.jl.
+
+The "bottom" reduction function `step(::T, ::T) :: T` must be
+associative and `init` must be its identity element.
 
 Transducers composing `xf` must be stateless (e.g., [`Map`](@ref),
 [`Filter`](@ref), [`Cat`](@ref), etc.) except for [`ScanEmit`](@ref).
@@ -14,7 +16,7 @@ Use [`tcollect`](@ref) or [`tcopy`](@ref) to collect results into a
 container.
 
 See also: [Parallel processing tutorial](@ref tutorial-parallel),
-[`foldl`](@ref), [`dreduce`](@ref).
+[`foldxl`](@ref), [`foldxd`](@ref).
 
 # Keyword Arguments
 - `basesize::Integer = amount(reducible) ÷ nthreads()`: A size of
@@ -24,7 +26,7 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
     * computation can be terminated by [`reduced`](@ref) or
       transducers using it, such as [`ReduceIf`](@ref)
 - `stoppable::Bool`: [This option usually does not have to be set
-  manually.]  Transducers.jl's `reduce` executed in the "stoppable"
+  manually.]  Transducers.jl's `foldxt` executed in the "stoppable"
   mode used for optimizing reduction with [`reduced`](@ref) has a
   slight overhead if `reduced` is not used.  This mode can be disabled
   by passing `stoppable = false`.  It is usually automatically
@@ -40,25 +42,38 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
 ```jldoctest
 julia> using Transducers
 
-julia> reduce(+, 1:3 |> Map(exp) |> Map(log))
+julia> foldxt(+, 1:3 |> Map(exp) |> Map(log))
 6.0
 
 julia> using BangBang: append!!
 
-julia> reduce(append!!, Map(x -> 1:x), 1:2; basesize=1, init=Union{}[])
+julia> foldxt(append!!, Map(x -> 1:x), 1:2; basesize=1, init=Union{}[])
 3-element Array{Int64,1}:
  1
  1
  2
+
+julia> 1:5 |> Filter(isodd) |> foldxt(+)
+9
+
+julia> foldxt(TeeRF(min, max), [5, 2, 6, 8, 3])
+(2, 8)
 ```
+"""
+foldxt
+
+"""
+    reduce(step, xf, reducible)
+
+`reduce(step, xf, reducible)` is a deprecated alias of [`foldxt`](@ref).
 """
 Base.reduce
 
 const _MAPREDUCE_DEPWARN = (
     "`mapreduce(::Transducer, rf, itr)` is deprecated. " *
-    " Use `reduce(rf, ::Transducer, itr)` if you do not need to call single-argument" *
+    " Use `foldxt(rf, ::Transducer, itr)` if you do not need to call single-argument" *
     " `rf` on `complete`." *
-    " Use `reduce(whencomplete(rf, rf), ::Transducer, itr)` to call the" *
+    " Use `foldxt(whencomplete(rf, rf), ::Transducer, itr)` to call the" *
     " single-argument method of `rf` on complete."
 )
 
@@ -69,7 +84,7 @@ const _MAPREDUCE_DEPWARN = (
 
     $_MAPREDUCE_DEPWARN
 
-Like [`reduce`](@ref) but `step` is _not_ automatically wrapped by
+Like [`foldxt`](@ref) but `step` is _not_ automatically wrapped by
 [`Completing`](@ref).
 """
 Base.mapreduce
@@ -85,7 +100,7 @@ foldable(reducible::SizedReducible) = reducible.reducible
     Transducers.issmall(reducible, basesize) :: Bool
 
 Check if `reducible` collection is considered small compared to
-`basesize` (an integer).  Fold functions such as [`reduce`](@ref)
+`basesize` (an integer).  Fold functions such as [`foldxt`](@ref)
 switches to sequential `__foldl__` when `issmall` returns `true`.
 
 Default implementation is `amount(reducible) <= basesize`.
@@ -272,7 +287,7 @@ combine_step(rf) =
         return combine(rf, a, b0)
     end
 
-# The output of `reduce` is correct regardless of the value of
+# The output of `foldxt` is correct regardless of the value of
 # `stoppable`.  Thus, we can use `return_type` here purely for
 # optimization.
 _might_return_reduced(rf, init, coll) =
@@ -300,11 +315,13 @@ function __reduce_dummy(rf, init, reducible)
     end
 end
 
-Base.reduce(step::F, xform::Transducer, itr; init = DefaultInit, kwargs...) where {F} =
+foldxt(step::F, xform::Transducer, itr; init = DefaultInit, kwargs...) where {F} =
     unreduced(transduce_assoc(xform, Completing(step), init, itr; kwargs...))
 
-Base.reduce(step::F, foldable::Foldable; kwargs...) where {F} =
-    reduce(step, extract_transducer(foldable)...; kwargs...)
+foldxt(step::F, foldable; kwargs...) where {F} =
+    foldxt(step, extract_transducer(foldable)...; kwargs...)
+
+foldxt(rf; kw...) = itr -> foldxt(rf, itr; kw...)
 
 """
     tcopy(xf::Transducer, T, reducible; basesize) :: Union{T, Empty{T}}
@@ -312,7 +329,7 @@ Base.reduce(step::F, foldable::Foldable; kwargs...) where {F} =
     tcopy([T,] itr; basesize) :: Union{T, Empty{T}}
 
 Thread-based parallel version of [`copy`](@ref).
-Keyword arguments are passed to [`reduce`](@ref).
+Keyword arguments are passed to [`foldxt`](@ref).
 
 See also: [Parallel processing tutorial](@ref tutorial-parallel)
 (especially [Example: parallel `collect`](@ref tutorial-parallel-collect)).
@@ -364,7 +381,7 @@ julia> @assert table |>
 ```
 
 If you have [`Cat`](@ref) or [`MapCat`](@ref) at the end of the
-transducer, consider using [`reduce`](@ref) directly:
+transducer, consider using [`foldxt`](@ref) directly:
 
 ```jldoctest
 julia> using Transducers
@@ -378,7 +395,7 @@ julia> @assert tcopy(
 
 julia> using BangBang: Empty, append!!
 
-julia> @assert reduce(
+julia> @assert foldxt(
            append!!,
            Map(x -> DataFrame(a = [x])),
            1:2;
@@ -391,13 +408,13 @@ Note that above snippet assumes that it is OK to mutate the dataframe
 returned by the transducer.  Use `init = Empty(DataFrame)` if this is
 not the case.
 
-This approach of using `reduce` works with other containers; e.g.,
+This approach of using `foldxt` works with other containers; e.g.,
 with `TypedTables.Table`:
 
 ```jldoctest; setup = :(using Transducers)
 julia> using TypedTables
 
-julia> @assert reduce(
+julia> @assert foldxt(
            append!!,
            Map(x -> Table(a = [x])),
            1:2;
@@ -407,7 +424,7 @@ julia> @assert reduce(
 ```
 """
 tcopy(xf, T, reducible; kwargs...) =
-    reduce(append!!, Map(SingletonVector) ∘ xf, reducible; init = Empty(T), kwargs...)
+    foldxt(append!!, Map(SingletonVector) ∘ xf, reducible; init = Empty(T), kwargs...)
 tcopy(xf, reducible; kwargs...) = tcopy(xf, _materializer(reducible), reducible; kwargs...)
 
 function tcopy(::Type{T}, itr; kwargs...) where {T}
@@ -421,7 +438,7 @@ function tcopy(itr; kwargs...)
 end
 
 tcopy(xf, T::Type{<:AbstractSet}, reducible; kwargs...) =
-    reduce(union!!, Map(SingletonVector) ∘ xf, reducible; init = Empty(T), kwargs...)
+    foldxt(union!!, Map(SingletonVector) ∘ xf, reducible; init = Empty(T), kwargs...)
 
 function tcopy(
     ::typeof(Map(identity)),
@@ -431,7 +448,7 @@ function tcopy(
     kwargs...,
 )
     @argcheck basesize >= 1
-    return reduce(
+    return foldxt(
         union!!,
         Map(identity),
         Iterators.partition(array, basesize);

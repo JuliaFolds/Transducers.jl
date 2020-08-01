@@ -12,7 +12,7 @@ const parseint = Base.Fix1(parse, Int)
 const square = Base.Fix2(^, 2)
 const lessthan5 = Base.Fix2(<, 5)
 
-@testset "$_fold" for _fold in [foldl, reduce, dreduce]
+@testset "$_fold" for _fold in [foldl, foldxt, foldxd]
     if _fold === foldl
         fold = _fold
     else
@@ -29,7 +29,7 @@ end
 @testset "non-zero `nobs`" begin
     m = Mean()
     fit!(m, 1)
-    @testset "$fold" for fold in [reduce, dreduce]
+    @testset "$fold" for fold in [foldxt, foldxd]
         @test_throws OSNonZeroNObsError fold(m, Map(identity), 2:9)
     end
     @testset "foldl" begin
