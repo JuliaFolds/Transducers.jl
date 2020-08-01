@@ -304,14 +304,29 @@ end
 
 # https://clojuredocs.org/clojure.core/keep
 @testset "Keep" begin
-    xf = Keep() do x
+    xf = @test_deprecated Keep() do x
         if x % 3 == 0
             x
         end
     end
-    @testset for xs in iterator_variants(1:10)
+    DEPWARN_ERROR || @testset for xs in iterator_variants(1:10)
         @test xs |> xf |> collect == 3:3:10
     end
+end
+
+@testset "KeepSomething" begin
+    @test [Some(1), nothing, 2, Some(nothing)] |> KeepSomething() |> collect ==
+          [1, 2, nothing]
+
+    xf = KeepSomething() do x
+        if x == 0
+            :zero
+        elseif x == 1
+            Some(:one)
+        end
+    end
+
+    @test collect(xf, 0:3) == [:zero, :one]
 end
 
 # https://clojuredocs.org/clojure.core/distinct
