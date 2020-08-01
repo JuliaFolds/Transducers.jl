@@ -76,5 +76,25 @@ import Base: reduce
 @deprecate reduce(rf, itr::Foldable; kw...) foldxt(rf, itr; kw...) false
 using Base: reduce
 
+"""
+    reduce(rf, [xf,] itr)
+
+Multi-threaded reduce.
+
+!!! warning
+    `reduce` is a deprecated. Use [`foldxt`](@ref) instead.
+"""
+reduce
+
 @deprecate dreduce(rf, xf, itr; kw...) foldxd(rf, xf, itr; kw...)
 @deprecate dreduce(rf, itr; kw...) foldxd(rf, itr; kw...)
+
+"""
+    dreduce(rf, [xf,] itr)
+
+Distributed reduce.
+
+!!! warning
+    `dreduce` is a deprecated. Use [`foldxd`](@ref) instead.
+"""
+dreduce
