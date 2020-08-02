@@ -101,7 +101,7 @@ nothing                                                              # hide
 
 rf = TeeRF(Filter(iseven)'(min), Filter(isodd)'(max))
 @test begin
-    reduce(rf, Map(identity), 1:10)
+    foldxt(rf, Map(identity), 1:10)
 end == (2, 9)
 
 # More details can be found in the reference entries such as

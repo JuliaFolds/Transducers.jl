@@ -8,7 +8,7 @@ TeeRF_by_ProductRF(fs::Tuple) =
 
 @testset "extrema" begin
     @testset "$TeeRF" for TeeRF in [TeeRF, TeeRF_by_ProductRF]
-        @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
+        @testset "$fold" for fold in [foldl, simple_reduce, foldxt_bs1, foldxt]
             foldl = nothing
             custom_extrema(xs, xf = Map(identity)) = fold(TeeRF(min, max), xf, xs)
             @test custom_extrema([5, 2, 6, 8, 3]) == (2, 8)
@@ -21,7 +21,7 @@ end
 
 @testset "partially started" begin
     @testset "$TeeRF" for TeeRF in [TeeRF, TeeRF_by_ProductRF]
-        @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
+        @testset "$fold" for fold in [foldl, simple_reduce, foldxt_bs1, foldxt]
             foldl = nothing
             f(xs) =
                 fold(TeeRF(min, reducingfunction(Filter(isodd), max)), Map(identity), xs)
@@ -33,7 +33,7 @@ end
 
 @testset "nested" begin
     @testset "$TeeRF" for TeeRF in [TeeRF, TeeRF_by_ProductRF]
-        @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
+        @testset "$fold" for fold in [foldl, simple_reduce, foldxt_bs1, foldxt]
             foldl = nothing
             @test fold(
                 TeeRF(TeeRF(min, max), +, TeeRF(reducingfunction(Map(isodd), |), *)),
@@ -48,7 +48,7 @@ end
 
 @testset "trivial" begin
     @testset "$TeeRF" for TeeRF in [TeeRF, TeeRF_by_ProductRF]
-        @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
+        @testset "$fold" for fold in [foldl, simple_reduce, foldxt_bs1, foldxt]
             @test fold(TeeRF(()), Map(identity), [5, 2, 6, 8, 3]) === ()
         end
     end
@@ -56,7 +56,7 @@ end
 
 @testset "init" begin
     @testset "$TeeRF" for TeeRF in [TeeRF, TeeRF_by_ProductRF]
-        @testset "$fold" for fold in [foldl, simple_reduce, reduce_bs1, reduce]
+        @testset "$fold" for fold in [foldl, simple_reduce, foldxt_bs1, foldxt]
             foldl = nothing
             @test fold(TeeRF(+, +), Map(identity), 1:9) === (45, 45)
             @test fold(TeeRF(+, +), Map(identity), 1:9, init = 0.0) === (45.0, 45.0)
