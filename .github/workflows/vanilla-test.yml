@@ -7,6 +7,7 @@ jobs:
   vanilla-test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Resolve refs
         run: |
           git_fetch_branch() {
@@ -34,8 +35,6 @@ jobs:
           fi
       - name: Show output
         run: echo "${{ steps.check-project-toml.outputs.need_test }}"
-      - uses: actions/checkout@v2
-        if: ${{ steps.check-project-toml.outputs.need_test == 'yes' }}
       - uses: julia-actions/setup-julia@v1
         if: ${{ steps.check-project-toml.outputs.need_test == 'yes' }}
         with:
