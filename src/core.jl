@@ -530,7 +530,7 @@ complete(rf::AbstractReduction, result) =
 This is an optional interface for a transducer.  If transducer `X` is
 stateful (i.e., [`wrap`](@ref) is used in [`start`](@ref)), it has to
 be able to combine the private states to support fold functions that
-require an associative reducing function such as [`reduce`](@ref).
+require an associative reducing function such as [`foldxt`](@ref).
 Typical implementation takes the following form:
 
 ```julia
@@ -886,7 +886,7 @@ Call a callable `f` to create an initial value.
 See also [`CopyInit`](@ref).
 
 `OnInit` or `CopyInit` must be used whenever using in-place reduction
-with [`reduce`](@ref) etc.
+with [`foldxt`](@ref) etc.
 
 # Examples
 ```jldoctest OnInit

@@ -30,7 +30,7 @@ Transducer(o::OnlineStatsBase.OnlineStat) =
     reducingfunction([xf::Transducer,] o::OnlineStat; simd)
 
 Convert an `OnlineStat` to a reducing function.  Returned function can
-be used with [`foldl`](@ref), [`reduce`](@ref), and [`dreduce`](@ref).
+be used with [`foldl`](@ref), [`foldxt`](@ref), and [`foldxd`](@ref).
 Note that input `o` is only used as a "prototype"; i.e., it's not
 going to be mutated.
 
@@ -45,17 +45,17 @@ Mean: n=4 | value=7.5
 julia> foldl(Mean(), Map(x -> x^2), 1:4)  # equivalent to above
 Mean: n=4 | value=7.5
 
-julia> reduce(Mean(), Map(x -> x^2), 1:4)  # threaded
+julia> foldxt(Mean(), Map(x -> x^2), 1:4)  # threaded
 Mean: n=4 | value=7.5
 
 julia> foldl(Mean(), eduction(x^2 for x in 1:4))  # ditto
 Mean: n=4 | value=7.5
 
-julia> reduce(Mean(), eduction(x^2 for x in 1:4))  # ditto
+julia> foldxt(Mean(), eduction(x^2 for x in 1:4))  # ditto
 Mean: n=4 | value=7.5
 ```
 
-[`dreduce`](@ref) can be used instead of `reduce`.  However the usual caveats
+[`foldxd`](@ref) can be used instead of `foldxt`.  However the usual caveats
 of code availability for Distributed.jl apply.
 """
 reducingfunction(xf::Transducer, stat::OnlineStatsBase.OnlineStat; kwargs...) =
@@ -101,7 +101,7 @@ combine(
 
 const OSNonZeroNObsError = ArgumentError(
     "An `OnlineStat` with one or more observations cannot be used with " *
-    "`reduce` and `dreduce`.",
+    "`foldxt` and `foldxd`.",
 )
 
 function validate_reduce_ostat(stat)
@@ -112,25 +112,25 @@ function validate_reduce_ostat(stat)
 end
 
 # Method plumbing:
-Base.foldl(stat::OnlineStatsBase.OnlineStat, xform::Transducer, itr; kwargs...) =
-    foldl(reducingfunction(stat), xform, itr; kwargs...)
+foldxl(stat::OnlineStatsBase.OnlineStat, xform::Transducer, itr; kwargs...) =
+    foldxl(reducingfunction(stat), xform, itr; kwargs...)
 
-Base.foldl(stat::OnlineStatsBase.OnlineStat, foldable::Foldable; kwargs...) =
-    foldl(reducingfunction(stat), extract_transducer(foldable)...; kwargs...)
+foldxl(stat::OnlineStatsBase.OnlineStat, foldable; kwargs...) =
+    foldxl(reducingfunction(stat), extract_transducer(foldable)...; kwargs...)
 
-Base.reduce(stat::OnlineStatsBase.OnlineStat, xform::Transducer, itr; kwargs...) =
-    reduce(reducingfunction(validate_reduce_ostat(stat)), xform, itr; kwargs...)
+foldxt(stat::OnlineStatsBase.OnlineStat, xform::Transducer, itr; kwargs...) =
+    foldxt(reducingfunction(validate_reduce_ostat(stat)), xform, itr; kwargs...)
 
-Base.reduce(stat::OnlineStatsBase.OnlineStat, foldable::Foldable; kwargs...) = reduce(
+foldxt(stat::OnlineStatsBase.OnlineStat, foldable; kwargs...) = foldxt(
     reducingfunction(validate_reduce_ostat(stat)),
     extract_transducer(foldable)...;
     kwargs...,
 )
 
-dreduce(stat::OnlineStatsBase.OnlineStat, xform::Transducer, itr; kwargs...) =
-    dreduce(reducingfunction(validate_reduce_ostat(stat)), xform, itr; kwargs...)
+foldxd(stat::OnlineStatsBase.OnlineStat, xform::Transducer, itr; kwargs...) =
+    foldxd(reducingfunction(validate_reduce_ostat(stat)), xform, itr; kwargs...)
 
-dreduce(stat::OnlineStatsBase.OnlineStat, foldable::Foldable; kwargs...) = dreduce(
+foldxd(stat::OnlineStatsBase.OnlineStat, foldable; kwargs...) = foldxd(
     reducingfunction(validate_reduce_ostat(stat)),
     extract_transducer(foldable)...;
     kwargs...,

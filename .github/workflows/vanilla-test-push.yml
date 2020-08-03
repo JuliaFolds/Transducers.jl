@@ -1,0 +1,23 @@
+name: Run test via Pkg.test()
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - Project.toml
+      - test/environments/main/Project.toml
+
+jobs:
+  vanilla-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: 1.4
+      - uses: julia-actions/julia-buildpkg@latest
+      - uses: julia-actions/julia-runtest@latest
+        env:
+          JULIA_NUM_THREADS: "2"
+          CI: "true"

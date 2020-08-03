@@ -23,7 +23,8 @@ end
     @test collector!!.oninit === EmptyVector
     @test complete(collector!!, Val(1)) === Val(1)
     @test foldl(collector!!, Filter(isodd), 1:5) == 1:2:5
-    @test reduce(collector!!, Filter(isodd), 1:5; basesize = 1) == 1:2:5
+    @test foldxl(collector!!, Filter(isodd), 1:5) == 1:2:5
+    @test foldxt(collector!!, Filter(isodd), 1:5; basesize = 1) == 1:2:5
 end
 
 getoninit(rf) = rf.oninit

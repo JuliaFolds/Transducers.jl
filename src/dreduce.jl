@@ -1,17 +1,17 @@
 """
-    dreduce(step, xform::Transducer, array; [init, simd, basesize, threads_basesize, pool])
+    foldxd(step, xform::Transducer, array; [init, simd, basesize, threads_basesize, pool])
 
-Distributed.jl-based parallelization of [`foldl`](@ref).  Input
-collection must be indexable.
+e**X**tended **d**istributed fold (reduce).  This is a distributed
+`reduce` based on extended fold protocol defined in Transducers.jl.
 
-Unlike [`reduce`](@ref), early termination by [`reduced`](@ref) is not
+Unlike [`foldxt`](@ref), early termination by [`reduced`](@ref) is not
 supported yet.
 
 Use [`dcollect`](@ref) or [`dcopy`](@ref) to collect results into a
 container.
 
 See also: [Parallel processing tutorial](@ref tutorial-parallel),
-[`foldl`](@ref), [`reduce`](@ref).
+[`foldxl`](@ref), [`foldxt`](@ref).
 
 !!! compat "Transducers.jl 0.4.3"
 
@@ -35,19 +35,27 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
 ```jldoctest
 julia> using Transducers
 
-julia> dreduce(+, 1:3 |> Map(exp) |> Map(log))
+julia> foldxd(+, 1:3 |> Map(exp) |> Map(log))
 6.0
+
+julia> 1:5 |> Filter(isodd) |> foldxd(+)
+9
+
+julia> foldxd(TeeRF(min, max), [5, 2, 6, 8, 3])
+(2, 8)
 ```
 """
-dreduce(step, xform::Transducer, itr; init = DefaultInit, kwargs...) =
+foldxd
+foldxd(rf; kw...) = itr -> foldxd(rf, itr; kw...)
+foldxd(step, xform::Transducer, itr; init = DefaultInit, kwargs...) =
     unreduced(dtransduce(xform, Completing(step), init, itr; kwargs...))
-dreduce(step::F, foldable::Foldable; kwargs...) where {F} =
-    dreduce(step, extract_transducer(foldable)...; kwargs...)
+foldxd(step::F, foldable; kwargs...) where {F} =
+    foldxd(step, extract_transducer(foldable)...; kwargs...)
 
 """
     dtransduce(xform::Transducer, step, init, array; [simd, basesize, threads_basesize, pool])
 
-See [`dreduce`](@ref) and [`transduce`](@ref).
+See [`foldxd`](@ref) and [`transduce`](@ref).
 """
 function dtransduce(
     xform::Transducer, step, init, coll;
@@ -87,7 +95,7 @@ end
     dcopy([T,] itr; [basesize, threads_basesize]) :: Union{T, Empty{T}}
 
 Distributed.jl-based parallel version of [`copy`](@ref).  Keyword
-arguments are passed to [`dreduce`](@ref).  For examples, see
+arguments are passed to [`foldxd`](@ref).  For examples, see
 [`tcopy`](@ref).
 
 See also: [Parallel processing tutorial](@ref tutorial-parallel)
@@ -102,7 +110,7 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel)
     `dcopy` now accepts iterator comprehensions and eductions.
 """
 dcopy(xf, T, reducible; kwargs...) =
-    dreduce(append!!, Map(SingletonVector) ∘ xf, reducible; init = Empty(T), kwargs...)
+    foldxd(append!!, Map(SingletonVector) ∘ xf, reducible; init = Empty(T), kwargs...)
 dcopy(xf, reducible; kwargs...) = dcopy(xf, _materializer(reducible), reducible; kwargs...)
 
 function dcopy(::Type{T}, itr; kwargs...) where {T}

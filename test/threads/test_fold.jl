@@ -14,10 +14,8 @@ const parseint = Base.Fix1(parse, Int)
     foldl,
     simple_reduce,
     random_reduce,
-    reduce_bs1,
-    reduce,
-    dreduce_bs1,
-    dreduce,
+    foldxt_bs1,
+    foldxd_bs1,
     foldxl,
     foldxt,
     foldxd,
@@ -39,7 +37,7 @@ const parseint = Base.Fix1(parse, Int)
         @test fold(right, GroupBy(isodd, Map(last), +), 1:10) ==
               Dict(true => 25, false => 30)
     end
-    if fold ∉ (simple_reduce, random_reduce, dreduce_bs1, dreduce, foldxd)
+    if fold ∉ (simple_reduce, random_reduce, foldxd_bs1, foldxd)
         @testset "NoAdjoint" begin
             @test fold(
                 +,
@@ -54,12 +52,11 @@ end
     foldl,
     simple_reduce,
     random_reduce,
-    reduce_bs1,
-    reduce,
+    foldxt_bs1,
     foldxl,
     foldxt,
 ]
-    # TODO: test them with `dreduce` (don't use local functions)
+    # TODO: test them with `foldxd` (don't use local functions)
     @testset "AdHocRF" begin
         averaging =
             function add_average((sum, count), x)
@@ -91,7 +88,7 @@ end
         @test fold(averaging2, Filter(isodd), 1:50) === 25.0
     end
 
-    # TODO: make them work with `dreduce`
+    # TODO: make them work with `foldxd`
     @testset "dict" begin
         dict = Dict(zip("1234", 1:4))
         @test fold(+, Map(last), dict) == 10
@@ -101,8 +98,8 @@ end
     end
 end
 
-# TODO: make them work with `dreduce`
-@testset "$fold" for fold in [reduce_bs1, reduce]
+# TODO: make them work with `foldxd`
+@testset "$fold" for fold in [foldxt_bs1, foldxt]
     @testset "eduction" begin
         @test fold(+, eduction(x for x in 1:10 if isodd(x))) == 25
         @test fold(+, Map(identity), eduction(x for x in 1:10 if isodd(x))) == 25

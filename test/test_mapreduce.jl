@@ -2,8 +2,6 @@ module TestMapreduce
 include("preamble.jl")
 using Transducers: air
 
-const DEPWARN_ERROR = !(Base.JLOptions().depwarn in (0, 1))
-
 @testset "mapreduce" begin
     xf = opcompose(Filter(isodd), Map(inc))
 

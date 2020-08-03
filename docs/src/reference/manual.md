@@ -8,11 +8,12 @@ Order = [:function, :type]
 ## Transducible processes
 
 ```@docs
+foldxl
 transduce
 foldl
 foreach
-reduce
-dreduce
+foldxt
+foldxd
 dtransduce
 eduction
 map!
@@ -31,9 +32,6 @@ Channel
 ### Experimental transducible processes
 
 ```@docs
-foldxl
-foldxt
-foldxd
 Transducers.channel_unordered
 Transducers.append_unordered!
 ```
@@ -100,6 +98,9 @@ withprogress
 ## Deprecated
 
 ```@docs
+reduce
+dreduce
 mapfoldl
 mapreduce
+Keep
 ```

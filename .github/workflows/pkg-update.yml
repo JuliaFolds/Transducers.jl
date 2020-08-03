@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - actions/trigger/pkg-update
+  workflow_dispatch:
 
 jobs:
   build:
