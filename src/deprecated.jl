@@ -114,7 +114,7 @@ Multi-threaded reduce.
 !!! warning
     `reduce` is a deprecated. Use [`foldxt`](@ref) instead.
 """
-reduce
+reduce(rf, xf::Transducer, itr)
 
 @deprecate dreduce(rf, xf, itr; kw...) foldxd(rf, xf, itr; kw...)
 @deprecate dreduce(rf, itr; kw...) foldxd(rf, itr; kw...)
