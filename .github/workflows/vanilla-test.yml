@@ -19,9 +19,7 @@ jobs:
           echo
           git_fetch_branch ${GITHUB_HEAD_REF}
           git_fetch_branch ${GITHUB_BASE_REF}
-          echo
-          set -ex
-          git diff --name-only "origin/${GITHUB_BASE_REF}" "origin/${GITHUB_HEAD_REF}"
+      - run: git diff --name-only "origin/${GITHUB_BASE_REF}" "origin/${GITHUB_HEAD_REF}"
       - name: Check if Pkg.test() is required
         id: check-project-toml
         run: |
