@@ -150,7 +150,7 @@ const FOLDL_RECURSION_LIMIT = Val(10)
 _dec(::Nothing) = nothing
 _dec(::Val{n}) where n = Val(n - 1)
 
-function __foldl__(rf, init::T, coll) where {T}
+function __foldl__(rf::RF, init::T, coll) where {RF,T}
     ret = iterate(coll)
     ret === nothing && return complete(rf, init)
     x, state = ret
@@ -168,7 +168,7 @@ function __foldl__(rf, init::T, coll) where {T}
     end
 end
 
-@inline function _foldl_iter(rf, val::T, iter, state, counter) where T
+@inline function _foldl_iter(rf::RF, val::T, iter, state, counter) where {RF,T}
     while true
         ret = iterate(iter, state)
         ret === nothing && break
@@ -181,7 +181,7 @@ end
     return complete(rf, val)
 end
 
-@inline __foldl__(rf, init, coll::Tuple) =
+@inline __foldl__(rf::RF, init, coll::Tuple) where {RF} =
     complete(rf, @return_if_reduced foldlargs(rf, init, coll...))
 
 # TODO: use IndexStyle
