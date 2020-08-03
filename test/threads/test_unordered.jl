@@ -56,7 +56,7 @@ end
         input = Channel(Map(identity), 1:input_length)
         trace = Channel(input_length)
         ntasks = 10
-        block = Threads.Event()
+        block = Channel{Nothing}(1)
         xs = input |> Map() do x
             put!(trace, x)
             wait(block)
@@ -69,8 +69,8 @@ end
             for _ in 1:ntasks
                 push!(traced, popfirst!(trace))
             end
-            # Now all tasks completed `put!`.
-            notify(block)
+            # Now all tasks completed `put!(trace, x)`.
+            put!(block, nothing)
             for x in trace
                 push!(traced, x)
             end
@@ -86,7 +86,7 @@ end
         input = Channel(Map(identity), 1:input_length)
         trace = Channel(input_length)
         ntasks = 10
-        block = Threads.Event()
+        block = Channel{Nothing}(1)
         xs = input |> Map() do x
             put!(trace, x)
             wait(block)
@@ -103,8 +103,8 @@ end
             for _ in 1:ntasks
                 push!(traced, popfirst!(trace))
             end
-            # Now all tasks completed `put!`.
-            notify(block)
+            # Now all tasks completed `put!(trace, x)`.
+            put!(block, nothing)
             for x in trace
                 push!(traced, x)
             end
