@@ -1,27 +1,41 @@
 name: Run test via Pkg.test()
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - Project.toml
-      - test/environments/main/Project.toml
   pull_request:
-    paths:
-      - Project.toml
-      - test/environments/main/Project.toml
 
 jobs:
   vanilla-test:
     runs-on: ubuntu-latest
     steps:
+      - name: Show basic info
+        run: |
+          echo GITHUB_HEAD_REF=${GITHUB_HEAD_REF}
+          echo GITHUB_BASE_REF=${GITHUB_BASE_REF}
+          set -ex
+          git diff --name-only "${GITHUB_BASE_REF}" "${GITHUB_HEAD_REF}"
+      - name: Check if Pkg.test() is required
+        id: check-project-toml
+        run: |
+          if git diff --name-only ${GITHUB_BASE_REF} ${GITHUB_HEAD_REF} | \
+              grep -E '^Project\.toml|test/environments/main/Project\.toml$' > \
+              /dev/null
+          then
+              echo "::set-output name=need_test::yes"
+          else
+              echo "::set-output name=need_test::no"
+          fi
+      - name: Show output
+        run: echo "${{ steps.check-project-toml.outputs.need_test }}"
       - uses: actions/checkout@v2
+        if: ${{ steps.check-project-toml.outputs.need_test == 'yes' }}
       - uses: julia-actions/setup-julia@v1
+        if: ${{ steps.check-project-toml.outputs.need_test == 'yes' }}
         with:
           version: 1.4
       - uses: julia-actions/julia-buildpkg@latest
+        if: ${{ steps.check-project-toml.outputs.need_test == 'yes' }}
       - uses: julia-actions/julia-runtest@latest
+        if: ${{ steps.check-project-toml.outputs.need_test == 'yes' }}
         env:
           JULIA_NUM_THREADS: "2"
           CI: "true"
