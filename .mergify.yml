@@ -1,3 +1,8 @@
+# [NOTE] This setting relies on "required status check":
+# https://docs.github.com/en/github/administering-a-repository/about-required-status-checks
+# Keeping `vanilla-test` here since it's tricky to setup "conditional"
+# status check.
+
 pull_request_rules:
   - name: remove outdated reviews
     conditions:
@@ -8,11 +13,6 @@ pull_request_rules:
     conditions:
       - base=master
       - "#approved-reviews-by>=1"
-      - status-success=Travis CI - Pull Request
-      - status-success=benchmark
-      - status-success=multi-thread-benchmark
-      - status-success=Documenter
-      - status-success=Test xfail Julia 1.4
       - -status-failure=vanilla-test
       - label=ready-to-merge:squash
       - label!=work-in-progress
@@ -23,11 +23,6 @@ pull_request_rules:
     conditions:
       - base=master
       - "#approved-reviews-by>=1"
-      - status-success=Travis CI - Pull Request
-      - status-success=benchmark
-      - status-success=multi-thread-benchmark
-      - status-success=Documenter
-      - status-success=Test xfail Julia 1.4
       - -status-failure=vanilla-test
       - label=ready-to-merge:rebase
       - label!=work-in-progress
@@ -38,11 +33,6 @@ pull_request_rules:
     conditions:
       - base=master
       - "#approved-reviews-by>=1"
-      - status-success=Travis CI - Pull Request
-      - status-success=benchmark
-      - status-success=multi-thread-benchmark
-      - status-success=Documenter
-      - status-success=Test xfail Julia 1.4
       - -status-failure=vanilla-test
       - label=ready-to-merge:merge
       - label!=work-in-progress
@@ -53,11 +43,6 @@ pull_request_rules:
     conditions:
       - author=tkf
       - base=master
-      - status-success=Travis CI - Pull Request
-      - status-success=benchmark
-      - status-success=multi-thread-benchmark
-      - status-success=Documenter
-      - status-success=Test xfail Julia 1.4
       - -status-failure=vanilla-test
       - label~=ready-to-merge:.*
     actions:
