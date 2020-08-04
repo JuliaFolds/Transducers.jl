@@ -34,4 +34,8 @@ end
     end
 end
 
+@testset "Stale dependencies" begin
+    Aqua.test_stale_deps(Transducers)
+end
+
 end  # module
