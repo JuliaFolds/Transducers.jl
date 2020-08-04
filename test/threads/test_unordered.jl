@@ -56,21 +56,29 @@ end
         input = Channel(Map(identity), 1:input_length)
         trace = Channel(input_length)
         ntasks = 10
+        block = Channel{Nothing}(1)
         xs = input |> Map() do x
             put!(trace, x)
-
-            # Try to make sure all tasks hits above line.  This may
-            # not be required since `put!` would invoke task switch.
-            # But let's play on the safe side:
-            sleep(0.1)
-
+            wait(block)
             x
         end |> Map() do x
             error("Throwing error with x = $x")
         end
+        bg = @async begin
+            traced = Int[]
+            for _ in 1:ntasks
+                push!(traced, popfirst!(trace))
+            end
+            # Now all tasks completed `put!(trace, x)`.
+            put!(block, nothing)
+            for x in trace
+                push!(traced, x)
+            end
+            traced
+        end
         @test_throws Exception take!(channel_unordered(xs; ntasks=ntasks))
         close(trace)
-        consumed = sort!(collect(trace))
+        consumed = sort!(fetch(bg))
         @test consumed == 1:ntasks
     end
     @testset "error handling (terminate other tasks)" begin
@@ -78,21 +86,34 @@ end
         input = Channel(Map(identity), 1:input_length)
         trace = Channel(input_length)
         ntasks = 10
+        block = Channel{Nothing}(1)
         xs = input |> Map() do x
             put!(trace, x)
-            sleep(0.01)
+            wait(block)
             x
         end |> Map() do x
             if x == 1
-                sleep(0.02)
                 error("Throwing error with x = $x")
             end
+            sleep(0.01)
             x
+        end
+        bg = @async begin
+            traced = Int[]
+            for _ in 1:ntasks
+                push!(traced, popfirst!(trace))
+            end
+            # Now all tasks completed `put!(trace, x)`.
+            put!(block, nothing)
+            for x in trace
+                push!(traced, x)
+            end
+            traced
         end
         @test_throws Exception collect(channel_unordered(xs; ntasks=ntasks))
         close(trace)
-        consumed = sort!(collect(trace))
-        @test length(consumed) > ntasks
+        consumed = sort!(fetch(bg))
+        @test length(consumed) >= ntasks
         @test length(consumed) < input_length
     end
 end
