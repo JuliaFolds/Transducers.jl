@@ -112,7 +112,7 @@ using Base: reduce
 Multi-threaded reduce.
 
 !!! warning
-    `reduce` is a deprecated. Use [`foldxt`](@ref) instead.
+    `reduce` is deprecated. Use [`foldxt`](@ref) instead.
 """
 reduce
 
@@ -125,6 +125,6 @@ reduce
 Distributed reduce.
 
 !!! warning
-    `dreduce` is a deprecated. Use [`foldxd`](@ref) instead.
+    `dreduce` is deprecated. Use [`foldxd`](@ref) instead.
 """
 dreduce
