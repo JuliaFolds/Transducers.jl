@@ -62,13 +62,6 @@ julia> foldxt(TeeRF(min, max), [5, 2, 6, 8, 3])
 """
 foldxt
 
-"""
-    reduce(step, xf, reducible)
-
-`reduce(step, xf, reducible)` is a deprecated alias of [`foldxt`](@ref).
-"""
-Base.reduce
-
 const _MAPREDUCE_DEPWARN = (
     "`mapreduce(::Transducer, rf, itr)` is deprecated. " *
     " Use `foldxt(rf, ::Transducer, itr)` if you do not need to call single-argument" *
