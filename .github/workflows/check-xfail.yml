@@ -29,7 +29,7 @@ jobs:
           else
               echo "No branch named $xfailbranch"
           fi
-        # Note: `$GITHUB_SHA` contains something like "refs/pull/26/merge".
+        # Note: `$GITHUB_REF` contains something like "refs/pull/26/merge".
         # It seems `$GITHUB_HEAD_REF` contains the correct branch name.
         # See also GitHub context `github.head_ref`:
         # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/contexts-and-expression-syntax-for-github-actions#github-context
