@@ -150,7 +150,7 @@ const FOLDL_RECURSION_LIMIT = Val(10)
 _dec(::Nothing) = nothing
 _dec(::Val{n}) where n = Val(n - 1)
 
-function __foldl__(rf, init::T, coll) where {T}
+function __foldl__(rf::RF, init::T, coll) where {RF,T}
     ret = iterate(coll)
     ret === nothing && return complete(rf, init)
     x, state = ret
@@ -168,7 +168,7 @@ function __foldl__(rf, init::T, coll) where {T}
     end
 end
 
-@inline function _foldl_iter(rf, val::T, iter, state, counter) where T
+@inline function _foldl_iter(rf::RF, val::T, iter, state, counter) where {RF,T}
     while true
         ret = iterate(iter, state)
         ret === nothing && break
@@ -181,7 +181,7 @@ end
     return complete(rf, val)
 end
 
-@inline __foldl__(rf, init, coll::Tuple) =
+@inline __foldl__(rf::RF, init, coll::Tuple) where {RF} =
     complete(rf, @return_if_reduced foldlargs(rf, init, coll...))
 
 # TODO: use IndexStyle
@@ -916,12 +916,14 @@ julia> copy!(opcompose(PartitionBy(x -> x ÷ 3), Map(sum)), Int[], 1:10)
 """
 Base.copy!(xf::Transducer, dest, src) = append!(xf, empty!(dest), src)
 
-foldxl(step, xform, itr; init = DefaultInit, kw...) =
+foldxl(step::RF, xform, itr; init = DefaultInit, kw...) where {RF} =
     unreduced(transduce(xform, Completing(step), init, itr; kw...))
 
-Base.foldl(step, xform::Transducer, itr; kw...) = foldxl(step, xform, itr; kw...)
+Base.foldl(step::RF, xform::Transducer, itr; kw...) where {RF} =
+    foldxl(step, xform, itr; kw...)
 
-@inline Base.foldl(step, foldable::Foldable; kw...) = foldxl(step, foldable; kw...)
+@inline Base.foldl(step::RF, foldable::Foldable; kw...) where {RF} =
+    foldxl(step, foldable; kw...)
 
 """
     foreach(eff, xf::Transducer, reducible; simd)
@@ -1066,9 +1068,9 @@ julia> simpler_has2([1, missing])
 false
 ```
 """
-Base.foreach(eff, xform::Transducer, coll; kwargs...) =
+Base.foreach(eff::F, xform::Transducer, coll; kwargs...) where {F} =
     transduce(xform, SideEffect(eff), nothing, coll; kwargs...)
-function Base.foreach(eff, reducible::Reducible; kwargs...)
+function Base.foreach(eff::F, reducible::Reducible; kwargs...) where {F}
     xf, coll = extract_transducer(reducible)
     return transduce(xf, SideEffect(eff), nothing, coll; kwargs...)
 end
