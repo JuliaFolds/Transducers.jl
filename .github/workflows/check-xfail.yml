@@ -13,11 +13,7 @@ jobs:
     name: Test xfail Julia ${{ matrix.julia-version }}
     steps:
       - uses: actions/checkout@v2
-      - name: Setup julia
-        uses: julia-actions/setup-julia@v1
-        with:
-          version: ${{ matrix.julia-version }}
-      - name: Check that test fail
+      - name: Try to fetch xfail branch
         run: |
           git_fetch_branch() {
               refspec="refs/heads/$1:refs/remotes/origin/$1"
@@ -30,10 +26,6 @@ jobs:
               git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
               git config --global user.name "$GITHUB_ACTOR"
               git merge "origin/$xfailbranch"
-              git log --graph --oneline -n10
-              git show --no-patch --format='format:%S %H %T'
-              julia -e 'using Pkg; pkg"add https://github.com/tkf/Run.jl"'
-              julia -e 'using Run; Run.test(project = "test/environments/main", xfail = true)'
           else
               echo "No branch named $xfailbranch"
           fi
@@ -41,5 +33,31 @@ jobs:
         # It seems `$GITHUB_HEAD_REF` contains the correct branch name.
         # See also GitHub context `github.head_ref`:
         # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/contexts-and-expression-syntax-for-github-actions#github-context
+
+      - run: git log --graph --oneline -n10
+      - run: git show --no-patch --format='format:%S %H %T'
+
+      - name: Check if xfail test is required
+        id: check-xfail-needed
+        run: |
+          xfailbranch=xfail/"${GITHUB_HEAD_REF#refs/heads/}"
+          if git rev-parse "$xfailbranch" -- > /dev/null
+          then
+              echo "::set-output name=need_xfail::yes"
+          else
+              echo "::set-output name=need_xfail::no"
+          fi
+
+      - name: Setup julia
+        if: ${{ steps.check-xfail-needed.outputs.need_xfail == 'yes' }}
+        uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.julia-version }}
+
+      - run: julia -e 'using Pkg; pkg"add https://github.com/tkf/Run.jl"'
+        if: ${{ steps.check-xfail-needed.outputs.need_xfail == 'yes' }}
+
+      - run: julia -e 'using Run; Run.test(project = "test/environments/main", xfail = true)'
+        if: ${{ steps.check-xfail-needed.outputs.need_xfail == 'yes' }}
         env:
           JULIA_NUM_THREADS: '2'
