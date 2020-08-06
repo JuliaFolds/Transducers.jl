@@ -13,7 +13,7 @@ jobs:
     name: Test xfail Julia ${{ matrix.julia-version }}
     steps:
       - uses: actions/checkout@v2
-      - name: Try to fetch xfail branch
+      - name: Try to merge xfail branch
         run: |
           git_fetch_branch() {
               refspec="refs/heads/$1:refs/remotes/origin/$1"
