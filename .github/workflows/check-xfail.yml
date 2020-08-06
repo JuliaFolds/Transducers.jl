@@ -41,7 +41,7 @@ jobs:
         id: check-xfail-needed
         run: |
           xfailbranch=xfail/"${GITHUB_HEAD_REF#refs/heads/}"
-          if git rev-parse "$xfailbranch" -- > /dev/null
+          if git rev-parse "refs/remotes/origin/$xfailbranch" -- > /dev/null
           then
               echo "::set-output name=need_xfail::yes"
           else
