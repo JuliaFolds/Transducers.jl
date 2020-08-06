@@ -312,13 +312,6 @@ end
     @test foreach(counting) do i
         i == 3 && return reduced()
     end === reduced()
-
-    fold123 = AdHocFoldable() do rf, acc, _
-        acc = @next(rf, acc, 1)
-        acc = @next(rf, acc, 2)
-        acc = @next(rf, acc, 3)
-    end
-    @test collect(fold123) ==ₜ [1, 2, 3]
 end
 
 @testset "foldxt" begin
