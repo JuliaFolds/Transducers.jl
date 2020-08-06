@@ -35,7 +35,7 @@ jobs:
         # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/contexts-and-expression-syntax-for-github-actions#github-context
 
       - run: git log --graph --oneline -n10
-      - run: git show --no-patch --format='format:%S %H %T'
+      - run: git show --no-patch --format='format:%H %T'
       - run: echo $GITHUB_SHA
       - run: git diff $GITHUB_SHA
 
