@@ -36,6 +36,8 @@ jobs:
 
       - run: git log --graph --oneline -n10
       - run: git show --no-patch --format='format:%S %H %T'
+      - run: echo $GITHUB_SHA
+      - run: git diff $GITHUB_SHA
 
       - name: Check if xfail test is required
         id: check-xfail-needed
