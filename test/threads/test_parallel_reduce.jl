@@ -170,6 +170,14 @@ end
         @test collect(xf, 1:3) == desired
         @test collect(xf, 0:3) == desired
     end
+    @testset "Map(x -> 1:x |> Map(x -> 2x)) ⨟ TCat(1)" begin
+        xf = opcompose(Map(x -> 1:x |> Map(x -> 2x)), TCat(1))
+        desired = [2, 2, 4, 2, 4, 6]
+        @test collect(xf, 1:3) ==ₜ desired
+        @test collect(xf, 0:3) ==ₜ desired
+        @test tcollect(xf, 1:3) ==ₜ desired
+        @test tcollect(xf, 0:3) ==ₜ desired
+    end
 end
 
 @testset "TakeWhile" begin
