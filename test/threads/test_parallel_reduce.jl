@@ -225,4 +225,11 @@ end
     @test foldxt(right, xf3, withprogress(1:1000; interval=0); basesize=1, simd=true) == 100
 end
 
+@testset "nestlevel" begin
+    xs = 1:3 |> MapCat(x -> 1:x) |> MapCat(x -> 1:x) |> MapCat(x -> 1:x)
+    @test foldxt(+, xs; basesize = 1, nestlevel = 3) == sum(xs)
+    @test foldxt(+, xs; basesize = 1, nestlevel = Val(2)) == sum(xs)
+    @test foldxt(+, xs; basesize = 1, nestlevel = Val(:inf)) == sum(xs)
+end
+
 end  # module

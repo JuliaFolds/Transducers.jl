@@ -1,5 +1,5 @@
 """
-    foldxt(step, xf, reducible; [init, simd, basesize, stoppable]) :: T
+    foldxt(step, xf, reducible; [init, simd, basesize, stoppable, nestlevel]) :: T
 
 e**X**tended **t**hreaded fold (reduce).  This is a multi-threaded
 `reduce` based on extended fold protocol defined in Transducers.jl.
@@ -32,6 +32,14 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
   by passing `stoppable = false`.  It is usually automatically
   detected and set appropriately.  Note that this option is purely for
   optimization and does not affect the result value.
+- `nestlevel::Union{Integer,Val}`: Specify how many inner `Cat`
+  (flatten) transducers to be multi-threaded (using [`TCat`](@ref)).
+  It must be a positive integer, `Val` of positive integer, or
+  `Val(:inf)`.  `Val(:inf)` means to use multi-threading for all `Cat`
+  transducers.  Note that `Cat` transducer should be statically known.
+  That is to say, `nestlevel` can handle `... |> Map(f) |> Cat()` but
+  not `... |> Map(x -> Cat(f(x)))` even though they are semantically
+  identical.
 - For other keyword arguments, see [`foldl`](@ref).
 
 !!! compat "Transducers.jl 0.4.23"
@@ -152,9 +160,19 @@ function transduce_assoc(
     simd::SIMDFlag = Val(false),
     basesize::Union{Integer,Nothing} = nothing,
     stoppable::Union{Bool,Nothing} = nothing,
+    nestlevel::Union{Val,Integer,Nothing} = nothing,
 ) where {F}
     rf0 = _reducingfunction(xform, step; init = init)
     rf, coll = retransform(rf0, coll0)
+    if nestlevel !== nothing
+        if basesize === nothing
+            throw(ArgumentError("`nestlevel` requires `basesize`"))
+        end
+        if has(rf, Union{Cat,TCat})
+            rf = use_threads_for_inner_cats(rf, basesize, nestlevel)
+            basesize = 1
+        end
+    end
     if stoppable === nothing
         stoppable = _might_return_reduced(rf, init, coll)
     end
@@ -487,3 +505,33 @@ julia> tcollect(x^2 for x in 1:2)
 """
 tcollect(xf, reducible; kwargs...) = tcopy(xf, Vector, reducible; kwargs...)
 tcollect(itr; kwargs...) = tcollect(extract_transducer(itr)...; kwargs...)
+
+verify_nestlevel(lvl::Val{:inf}) = lvl
+verify_nestlevel(lvl::Integer) = verify_nestlevel(Val(Int(lvl)))
+function verify_nestlevel(::Val{n}) where {n}
+    n isa Integer ||
+        throw(ArgumentError("`nestlevel` must be an integer, `Val` of `Int`, or `Val(:inf)`"))
+    lvl = Int(n)
+    lvl > 0 || throw(ArgumentError("`nestlevel` must be positive"))
+    return Val(lvl)
+end
+
+_dec_lvl(lvl::Val{:inf}) = lvl
+_dec_lvl(::Val{n}) where {n} = Val(n - 1)
+
+use_threads_for_inner_cats(rf, basesize, nestlevel) =
+    cats_to_tcats(rf, TCat(basesize), verify_nestlevel(nestlevel))
+
+# TODO: handle `TeeRF` etc?
+cats_to_tcats(rf::R_, innermost_tcat, lvl::Val) =
+    Reduction(xform(rf), cats_to_tcats(inner(rf), innermost_tcat, lvl))
+cats_to_tcats(rf::R_{Union{Cat,TCat}}, innermost_tcat, lvl::Val) =
+    if has(inner(rf), Union{Cat,TCat})
+        if lvl isa Val{1}
+            setxform(rf, innermost_tcat)
+        else
+            Reduction(TCat(1), cats_to_tcats(inner(rf), innermost_tcat, _dec_lvl(lvl)))
+        end
+    else
+        setxform(rf, innermost_tcat)
+    end
