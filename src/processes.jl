@@ -765,7 +765,7 @@ function Base.collect(xf::Transducer, coll)
 end
 # Base.collect(xf, coll) = append!([], xf, coll)
 
-Base.collect(ed::Eduction) = collect(extract_transducer(ed)...)
+Base.collect(foldable::Foldable) = collect(extract_transducer(foldable)...)
 
 """
     copy(xf::Transducer, T, foldable) :: Union{T, Empty{T}}
