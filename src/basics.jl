@@ -95,3 +95,19 @@ abstract type _Function <: Function end
 Base.show(io::IO, ::MIME"text/plain", f::_Function) = show(io, f)
 Base.print(io::IO, f::_Function) = show(io, f)
 @specialize
+
+
+# Doing "manual Union splitting" (?).  This *somehow* helps the
+# compiler to generate faster code even though the code inside the
+# `if` branches are identical.
+# * https://github.com/JuliaFolds/Transducers.jl/pull/188
+# * https://github.com/JuliaLang/julia/pull/34293#discussion_r363550608
+macro manual_union_split(cond, body)
+    quote
+        if $cond
+            $body
+        else
+            $body
+        end
+    end |> esc
+end

@@ -565,6 +565,9 @@ combine(rf::Reduction, a, b) =
         combine(inner(rf), a, b)
     end
 
+is_prelude(_) = false
+is_prelude(::InitialValues.InitialValue) = true
+
 privatestate(::T, state, result) where {T <: AbstractReduction} =
     privatestate(T, state, result)
 
@@ -597,6 +600,8 @@ ownsstate(::R, ::PrivateState{T}) where {R, T} = R === T
 # compile Extrema examples in ../examples/tutorial_missings.jl (it
 # took more than 10 min).  See also:
 # https://github.com/JuliaLang/julia/issues/30125
+
+@inline is_prelude(ps::PrivateState) = is_prelude(psstate(ps)) || is_prelude(psresult(ps))
 
 """
     unwrap(rf, result)

@@ -927,6 +927,7 @@ struct PartitionBy{F} <: Transducer
 end
 
 struct Unseen end
+is_prelude(::Unseen) = true
 
 isexpansive(::PartitionBy) = false
 
