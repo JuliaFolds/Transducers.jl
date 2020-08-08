@@ -176,13 +176,12 @@ end
 @inline __foldl__(rf::RF, init, coll::Tuple) where {RF} =
     complete(rf, @return_if_reduced foldlargs(rf, init, coll...))
 
-# TODO: use IndexStyle
-@inline function __foldl__(
-    rf::RF,
-    init::T,
-    arr::Union{AbstractArray,Broadcasted},
-) where {RF,T}
+@inline function __foldl__(rf::RF, init, arr::Union{AbstractArray,Broadcasted}) where {RF}
     isempty(arr) && return complete(rf, init)
+    return _foldl_array(rf, init, arr, IndexStyle(arr))
+end
+
+@inline function _foldl_array(rf::RF, init::T, arr, ::IndexLinear) where {RF,T}
     i = _firstindex(arr)
     acc = @next(rf, init, @inbounds arr[i])
     @manual_union_split acc isa T begin
@@ -217,6 +216,12 @@ end
         acc = y
     end
     return complete(rf, acc)
+end
+
+@inline function _foldl_array(rf0::RF, init, arr, ::IndexStyle) where {RF,T}
+    @inline getvalue(I) = @inbounds arr[I]
+    rf = Map(getvalue)'(rf0)
+    return __foldl__(rf, init, CartesianIndices(arr))
 end
 
 @inline _getvalues(i) = ()
