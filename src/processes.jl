@@ -286,6 +286,13 @@ end
     )
 end
 
+@inline function __foldl__(rf0, init, cartesian::CartesianIndices)
+    rf = Map(CartesianIndex)'(rf0)
+    val = _foldl_product(rf, init, (), cartesian.indices...)
+    val isa Reduced && return val
+    return complete(rf, val)
+end
+
 @inline function __foldl__(
         rf, init,
         prod::Iterators.ProductIterator{<:Tuple{Any,Any,Vararg{Any}}})
