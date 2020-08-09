@@ -179,7 +179,7 @@ end
 @inline function __foldl__(rf::RF, init, arr0::Union{AbstractArray,Broadcasted}) where {RF}
     arr = Broadcast.instantiate(arr0)
     isempty(arr) && return complete(rf, init)
-    return _foldl_array(rf, init, arr, IndexStyle(arr))
+    return _foldl_array(rf, init, arr, _IndexStyle(arr))
 end
 
 @inline function _foldl_array(rf::RF, init::T, arr, ::IndexLinear) where {RF,T}
