@@ -567,6 +567,8 @@ combine(rf::Reduction, a, b) =
 
 is_prelude(_) = false
 is_prelude(::InitialValues.InitialValue) = true
+is_prelude(xs::Tuple) = any(map(is_prelude, xs))
+is_prelude(xs::NamedTuple) = is_prelude(Tuple(xs))
 
 privatestate(::T, state, result) where {T <: AbstractReduction} =
     privatestate(T, state, result)
