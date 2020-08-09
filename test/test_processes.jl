@@ -60,6 +60,16 @@ include("preamble.jl")
         end
     end
 
+    @testset "CartesianIndices" begin
+        @testset for cartesian in [
+            CartesianIndices((1:2,)),
+            CartesianIndices((1:2, 3:5)),
+            CartesianIndices((1:2, 3:5, 6:9)),
+        ]
+            @test collect(Map(identity), cartesian) == vec(cartesian)
+        end
+    end
+
     @testset "product-of-iterators" begin
         iterator_prototypes = [
             (1, 2),
