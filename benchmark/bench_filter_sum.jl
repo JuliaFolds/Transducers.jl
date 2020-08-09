@@ -1,5 +1,6 @@
 module BenchFilterSum
 
+import Random
 using BenchmarkTools
 using Transducers
 
@@ -13,6 +14,7 @@ function naive_sum(xs, acc = false)
     return acc
 end
 
+Random.seed!(12345)
 for (xslabel, xs) in
     [(:ints, (x for x in 1:N if isodd(x))), (:floats, (x for x in randn(N) if x > 0))]
 
