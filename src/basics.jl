@@ -95,3 +95,26 @@ abstract type _Function <: Function end
 Base.show(io::IO, ::MIME"text/plain", f::_Function) = show(io, f)
 Base.print(io::IO, f::_Function) = show(io, f)
 @specialize
+
+
+# A macro for "manual Union splitting".  It is sometimes useful to let
+# the compiler know that it is beneficial to type-specialize `body`.
+# * https://github.com/JuliaFolds/Transducers.jl/pull/188
+# * https://github.com/JuliaLang/julia/pull/34293#discussion_r363550608
+macro manual_union_split(cond, body)
+    quote
+        if $cond
+            $body
+        else
+            $body
+        end
+    end |> esc
+end
+
+@inline _firstindex(arr) = firstindex(arr)
+@inline _lastindex(arr) = lastindex(arr)
+
+# Define `firstindex` and `lastindex` for `Broadcasted` with linear
+# index style:
+@inline _firstindex(bc::Broadcasted) = first((axes(bc)::Tuple{Any})[1])
+@inline _lastindex(bc::Broadcasted) = last((axes(bc)::Tuple{Any})[1])
