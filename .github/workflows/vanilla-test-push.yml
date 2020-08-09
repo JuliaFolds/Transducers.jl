@@ -7,9 +7,10 @@ on:
     paths:
       - Project.toml
       - test/environments/main/Project.toml
+  workflow_dispatch:
 
 jobs:
-  vanilla-test:
+  vanilla-test-push:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
