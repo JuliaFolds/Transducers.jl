@@ -185,7 +185,7 @@ end
     complete(rf, @return_if_reduced foldlargs(rf, init, coll...))
 
 # TODO: use IndexStyle
-@inline function __foldl__(rf, init, arr::Union{AbstractArray, Broadcasted})
+@inline function __foldl__(rf::RF, init, arr::Union{AbstractArray,Broadcasted}) where {RF}
     isempty(arr) && return complete(rf, init)
     idxs = eachindex(arr)
     val = @next(rf, init, @inbounds arr[idxs[firstindex(idxs)]])
@@ -324,7 +324,8 @@ end
 
 Call [`__foldl__`](@ref) without calling [`complete`](@ref).
 """
-@inline foldl_nocomplete(rf, init, coll) = __foldl__(skipcomplete(rf), init, coll)
+@inline foldl_nocomplete(rf::RF, init, coll) where {RF} =
+    __foldl__(skipcomplete(rf), init, coll)
 
 """
     foldxl(step, xf::Transducer, reducible; init, simd) :: T
