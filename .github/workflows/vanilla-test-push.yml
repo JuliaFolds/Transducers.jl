@@ -1,4 +1,4 @@
-name: Run test via Pkg.test()
+name: Run test via Pkg.test() on push
 
 on:
   push:
