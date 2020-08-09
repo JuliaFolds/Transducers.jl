@@ -97,9 +97,8 @@ Base.print(io::IO, f::_Function) = show(io, f)
 @specialize
 
 
-# Doing "manual Union splitting" (?).  This *somehow* helps the
-# compiler to generate faster code even though the code inside the
-# `if` branches are identical.
+# A macro for "manual Union splitting".  It is sometimes useful to let
+# the compiler know that it is beneficial to type-specialize `body`.
 # * https://github.com/JuliaFolds/Transducers.jl/pull/188
 # * https://github.com/JuliaLang/julia/pull/34293#discussion_r363550608
 macro manual_union_split(cond, body)
