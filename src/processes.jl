@@ -183,7 +183,7 @@ end
     arr::Union{AbstractArray,Broadcasted},
 ) where {RF,T}
     isempty(arr) && return complete(rf, init)
-    i = firstindex(arr)
+    i = _firstindex(arr)
     acc = @next(rf, init, @inbounds arr[i])
     @manual_union_split acc isa T begin
         if is_prelude(acc)
@@ -195,14 +195,14 @@ end
 end
 
 @inline function _foldl_linear_bulk(rf::RF, acc, arr, i0) where {RF}
-    @simd_if rf for i in i0:lastindex(arr)
+    @simd_if rf for i in i0:_lastindex(arr)
         acc = @next(rf, acc, @inbounds arr[i])
     end
     return complete(rf, acc)
 end
 
 @inline function _foldl_linear_rec(rf::RF, acc::T, arr, i0, counter) where {RF,T}
-    for i in i0:lastindex(arr)
+    for i in i0:_lastindex(arr)
         y = @next(rf, acc, @inbounds arr[i])
         if counter !== Val(0)
             if y isa T

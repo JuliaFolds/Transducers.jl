@@ -111,3 +111,11 @@ macro manual_union_split(cond, body)
         end
     end |> esc
 end
+
+@inline _firstindex(arr) = firstindex(arr)
+@inline _lastindex(arr) = lastindex(arr)
+
+# Define `firstindex` and `lastindex` for `Broadcasted` with linear
+# index style:
+@inline _firstindex(bc::Broadcasted) = first((axes(bc)::Tuple{Any})[1])
+@inline _lastindex(bc::Broadcasted) = last((axes(bc)::Tuple{Any})[1])
