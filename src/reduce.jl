@@ -37,9 +37,9 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
   It must be a positive integer, `Val` of positive integer, or
   `Val(:inf)`.  `Val(:inf)` means to use multi-threading for all `Cat`
   transducers.  Note that `Cat` transducer should be statically known.
-  That is to say, `nestlevel` can handle `... |> Map(f) |> Cat()` but
-  not `... |> Map(x -> Cat(f(x)))` even though they are semantically
-  identical.
+  That is to say, `foldxt` sees two `Cat`s in `... |> Map(f) |> Cat()
+  |> Cat()` but only one `Cat` in `... |> Map(x -> f(x) |> Cat()) |>
+  Cat()` even though they are semantically identical.
 - For other keyword arguments, see [`foldl`](@ref).
 
 !!! compat "Transducers.jl 0.4.23"
