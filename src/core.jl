@@ -324,6 +324,7 @@ end
 
 prependxf(rf::AbstractReduction, xf) = Reduction(xf, rf)
 setinner(rf::Reduction, inner) = Reduction(xform(rf), inner)
+setxform(rf::Reduction, xform) = Reduction(xform, inner(rf))
 
 Transducer(rf::Reduction) =
     if inner(rf) isa BottomRF
