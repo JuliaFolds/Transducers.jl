@@ -15,23 +15,23 @@ end
 
 Random.seed!(12345)
 for n in [1000, 10000]
-    s0 = SUITE[:n=>n] = BenchmarkGroup()
+    s0 = SUITE[string(n)] = BenchmarkGroup()
 
     for (xslabel, xs, init) in [
-        (:UnitRange, (x for x in 1:n if isodd(x)), 0),
-        (:RandomFloats, (x for x in randn(n) if x > 0), 0.0),
+        ("UnitRange", (x for x in 1:n if isodd(x)), 0),
+        ("RandomFloats", (x for x in randn(n) if x > 0), 0.0),
     ]
-        s1 = s0[:xs=>xslabel] = BenchmarkGroup()
+        s1 = s0[xslabel] = BenchmarkGroup()
 
-        s2 = s1[:withinit=>false] = BenchmarkGroup()
-        s2[:impl=>:naive] = @benchmarkable naive_sum($xs)
-        s2[:impl=>:base] = @benchmarkable sum($xs)
-        s2[:impl=>:xf] = @benchmarkable sum($(eduction(xs)))
+        s2 = s1["noinit"] = BenchmarkGroup()
+        s2["naive"] = @benchmarkable naive_sum($xs)
+        s2["base"] = @benchmarkable sum($xs)
+        s2["xf"] = @benchmarkable sum($(eduction(xs)))
 
-        s2 = s1[:withinit=>true] = BenchmarkGroup()
-        s2[:impl=>:naive] = @benchmarkable naive_sum($xs, $init)
-        s2[:impl=>:base] = @benchmarkable foldl(+, $xs; init = $init)
-        s2[:impl=>:xf] = @benchmarkable foldl(+, $(eduction(xs)); init = $init)
+        s2 = s1["withinit"] = BenchmarkGroup()
+        s2["naive"] = @benchmarkable naive_sum($xs, $init)
+        s2["base"] = @benchmarkable foldl(+, $xs; init = $init)
+        s2["xf"] = @benchmarkable foldl(+, $(eduction(xs)); init = $init)
     end
 end
 
