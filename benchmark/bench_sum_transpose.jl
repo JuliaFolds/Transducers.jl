@@ -23,19 +23,19 @@ end
 Random.seed!(12345)
 # for n in [30, 100]
 let n = 30
-    s1 = SUITE[:n=>n] = BenchmarkGroup()
+    s1 = SUITE[string(n)] = BenchmarkGroup()
 
     xs = randn(n, n)'
 
-    s2 = s1[:withinit=>false] = BenchmarkGroup()
-    s2[:impl=>:iter] = @benchmarkable iter_sum($xs)
-    s2[:impl=>:man] = @benchmarkable man_sum($xs)
-    s2[:impl=>:xf] = @benchmarkable foldxl(+, $xs)
+    s2 = s1["noinit"] = BenchmarkGroup()
+    s2["iter"] = @benchmarkable iter_sum($xs)
+    s2["man"] = @benchmarkable man_sum($xs)
+    s2["xf"] = @benchmarkable foldxl(+, $xs)
 
-    s2 = s1[:withinit=>true] = BenchmarkGroup()
-    s2[:impl=>:iter] = @benchmarkable iter_sum($xs, 0.0)
-    s2[:impl=>:man] = @benchmarkable man_sum($xs, 0.0)
-    s2[:impl=>:xf] = @benchmarkable foldxl(+, $xs; init = 0.0)
+    s2 = s1["withinit"] = BenchmarkGroup()
+    s2["iter"] = @benchmarkable iter_sum($xs, 0.0)
+    s2["man"] = @benchmarkable man_sum($xs, 0.0)
+    s2["xf"] = @benchmarkable foldxl(+, $xs; init = 0.0)
 end
 
 end  # module
