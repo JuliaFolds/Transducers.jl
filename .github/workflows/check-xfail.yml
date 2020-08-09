@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        julia-version: ['1.4']
+        julia-version: ['^1']
       fail-fast: false
     name: Test xfail Julia ${{ matrix.julia-version }}
     steps:
