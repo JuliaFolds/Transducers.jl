@@ -118,3 +118,8 @@ end
 # index style:
 @inline _firstindex(bc::Broadcasted) = first((axes(bc)::Tuple{Any})[1])
 @inline _lastindex(bc::Broadcasted) = last((axes(bc)::Tuple{Any})[1])
+
+@inline _CartesianIndices(arr) = CartesianIndices(arr)
+
+# `eachindex` on `Broadcasted` hopefully returns an `CartesianIndices`:
+@inline _CartesianIndices(bc::Broadcasted) = eachindex(bc)::CartesianIndices

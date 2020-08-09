@@ -176,7 +176,8 @@ end
 @inline __foldl__(rf::RF, init, coll::Tuple) where {RF} =
     complete(rf, @return_if_reduced foldlargs(rf, init, coll...))
 
-@inline function __foldl__(rf::RF, init, arr::Union{AbstractArray,Broadcasted}) where {RF}
+@inline function __foldl__(rf::RF, init, arr0::Union{AbstractArray,Broadcasted}) where {RF}
+    arr = Broadcast.instantiate(arr0)
     isempty(arr) && return complete(rf, init)
     return _foldl_array(rf, init, arr, IndexStyle(arr))
 end
@@ -221,7 +222,7 @@ end
 @inline function _foldl_array(rf0::RF, init, arr, ::IndexStyle) where {RF,T}
     @inline getvalue(I) = @inbounds arr[I]
     rf = Map(getvalue)'(rf0)
-    return __foldl__(rf, init, CartesianIndices(arr))
+    return __foldl__(rf, init, _CartesianIndices(arr))
 end
 
 @inline _getvalues(i) = ()
