@@ -110,13 +110,20 @@ include("preamble.jl")
         end
     end
 
-    @testset "broadcast" begin
+    @testset "broadcast (linear)" begin
         @testset for xs in iterator_variants(1:3)
             ys = @~ xs.^2
             @test collect(Map(identity), ys) == copy(ys)
             @test foldl(+, Filter(isodd), ys) == 10
             @test foldl(+, Filter(isodd), ys; init=0) == 10
         end
+    end
+
+    @testset "broadcast (cartesian)" begin
+        xs = @~ (1:3) .+ (4:5)'
+        @test collect(Map(identity), xs) == vec(copy(xs))
+        @test foldl(+, Filter(isodd), xs) == 19
+        @test foldl(+, Filter(isodd), xs; init = 0) == 19
     end
 end
 
