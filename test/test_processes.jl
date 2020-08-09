@@ -47,6 +47,15 @@ include("preamble.jl")
         @test_throws EmptyResultError foldl(+, nested_xf, iter)
     end
 
+    @testset "type-unstable arrays" begin
+        valof(::Val{x}) where {x} = x
+        valof(x) = x
+        @testset for n in 1:valof(Transducers.FOLDL_RECURSION_LIMIT) + 3
+            @test collect(Map(valof), [Val(i) for i in 1:n]) == 1:n
+        end
+        @test collect(Map(valof), [[Val(i) for i in 1:4]; 5:9;]) == 1:9
+    end
+
     @testset "zip-of-arrays" begin
         @testset for arrays in [
                 (0:3,),
