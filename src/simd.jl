@@ -7,6 +7,10 @@ The reducible can support it using `@simd_if`.
 struct UseSIMD{ivdep} <: Transducer end
 next(rf::R_{UseSIMD}, result, input) = next(inner(rf), result, input)
 
+# Keep `UseSIMD` as the outer-most transducer when appropriate:
+reducingfunction(xf::Transducer, step::R_{UseSIMD}) =
+    usesimd(Reduction(xf, inner(step)), xform(step))
+
 # Make sure UseSIMD is the outer-most transducer when UseSIMD is used
 # via Cat.
 skipcomplete(rf::R_{UseSIMD}) =

@@ -237,15 +237,16 @@ end
 
 next(rf::R_{TCat}, result, input) =
     wrapping(rf, result) do init, acc
+        rfi, itr = retransform(inner(rf), input)
         subresult = _transduce_assoc_nocomplete(
-            inner(rf),
+            rfi,
             init,
-            input,
+            itr,
             xform(rf).basesize,
         )
         subresult isa Reduced && return init, subresult
         acc isa Unseen && return init, subresult
-        return init, combine(inner(rf), acc, subresult)
+        return init, combine(rfi, acc, subresult)
     end
 
 function combine(rf::R_{TCat}, a, b)
@@ -926,6 +927,7 @@ struct PartitionBy{F} <: Transducer
 end
 
 struct Unseen end
+is_prelude(::Unseen) = true
 
 isexpansive(::PartitionBy) = false
 

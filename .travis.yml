@@ -3,8 +3,8 @@ language: julia
 os:
   - linux
 julia:
+  - 1.5  # to be used in benchmarks as well
   - 1.4
-  - 1.5
   - nightly
 env:
    global:

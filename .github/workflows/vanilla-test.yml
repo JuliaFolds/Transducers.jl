@@ -36,7 +36,7 @@ jobs:
       - uses: julia-actions/setup-julia@v1
         if: ${{ steps.check-project-toml.outputs.need_test == 'yes' }}
         with:
-          version: 1.4
+          version: ^1
       - uses: julia-actions/julia-buildpkg@latest
         if: ${{ steps.check-project-toml.outputs.need_test == 'yes' }}
       - uses: julia-actions/julia-runtest@latest

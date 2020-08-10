@@ -30,6 +30,22 @@ asrf(xfs...) = asrf(opcompose(xfs...))
           asrf(Map(sin), Cat(), Map(cos), Cat(), xfsimd, Map(tan))
 end
 
+@testset "reducingfunction" begin
+    @test opcompose(UseSIMD{false}(), Map(sin), Map(cos))'(+) ===
+        Map(sin)'(Map(cos)'(+; simd = true))
+    @test opcompose(MapCat(collect), UseSIMD{false}(), Map(cos))'(+) ===
+        MapCat(collect)'(Map(cos)'(+; simd = true))
+    @testset for (f, g) in [
+        (Map(sin), Map(cos)),
+        (MapCat(collect), Map(cos)),
+        (MapCat(collect), opcompose(MapCat(collect), Map(cos))),
+        (opcompose(MapCat(collect), MapCat(collect)), Map(cos)),
+    ]
+        @test f'(g'(+; simd = true)) === f'(g'(+); simd = true)
+        @test f'(g'(+; simd = true)) === opcompose(f, g)'(+; simd = true)
+    end
+end
+
 @testset "skipcomplete" begin
     @testset for rf in [
             asrf(UseSIMD{false}()),

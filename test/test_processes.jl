@@ -47,6 +47,15 @@ include("preamble.jl")
         @test_throws EmptyResultError foldl(+, nested_xf, iter)
     end
 
+    @testset "type-unstable arrays" begin
+        valof(::Val{x}) where {x} = x
+        valof(x) = x
+        @testset for n in 1:valof(Transducers.FOLDL_RECURSION_LIMIT) + 3
+            @test collect(Map(valof), [Val(i) for i in 1:n]) == 1:n
+        end
+        @test collect(Map(valof), [[Val(i) for i in 1:4]; 5:9;]) == 1:9
+    end
+
     @testset "zip-of-arrays" begin
         @testset for arrays in [
                 (0:3,),
@@ -57,6 +66,16 @@ include("preamble.jl")
             xs = zip(arrays...)
             VERSION >= v"1.1-" && @test xs isa Iterators.Zip
             @test foldl(+, MapSplat(*), xs) == sum(map(*, arrays...))
+        end
+    end
+
+    @testset "CartesianIndices" begin
+        @testset for cartesian in [
+            CartesianIndices((1:2,)),
+            CartesianIndices((1:2, 3:5)),
+            CartesianIndices((1:2, 3:5, 6:9)),
+        ]
+            @test collect(Map(identity), cartesian) == vec(cartesian)
         end
     end
 
@@ -91,13 +110,20 @@ include("preamble.jl")
         end
     end
 
-    @testset "broadcast" begin
+    @testset "broadcast (linear)" begin
         @testset for xs in iterator_variants(1:3)
             ys = @~ xs.^2
             @test collect(Map(identity), ys) == copy(ys)
             @test foldl(+, Filter(isodd), ys) == 10
             @test foldl(+, Filter(isodd), ys; init=0) == 10
         end
+    end
+
+    @testset "broadcast (cartesian)" begin
+        xs = @~ (1:3) .+ (4:5)'
+        @test collect(Map(identity), xs) == vec(copy(xs))
+        @test foldl(+, Filter(isodd), xs) == 19
+        @test foldl(+, Filter(isodd), xs; init = 0) == 19
     end
 end
 

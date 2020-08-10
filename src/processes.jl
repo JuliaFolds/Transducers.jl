@@ -155,15 +155,7 @@ function __foldl__(rf::RF, init::T, coll) where {RF,T}
     ret === nothing && return complete(rf, init)
     x, state = ret
     val = @next(rf, init, x)
-
-    # Doing "manual Union splitting" (?).  This somehow helps the
-    # compiler to generate faster code even though the code inside the
-    # `if` branches are identical.
-    # * https://github.com/JuliaFolds/Transducers.jl/pull/188
-    # * https://github.com/JuliaLang/julia/pull/34293#discussion_r363550608
-    if val isa T
-        return _foldl_iter(rf, val, coll, state, FOLDL_RECURSION_LIMIT)
-    else
+    @manual_union_split val isa T begin
         return _foldl_iter(rf, val, coll, state, FOLDL_RECURSION_LIMIT)
     end
 end
@@ -184,16 +176,53 @@ end
 @inline __foldl__(rf::RF, init, coll::Tuple) where {RF} =
     complete(rf, @return_if_reduced foldlargs(rf, init, coll...))
 
-# TODO: use IndexStyle
-@inline function __foldl__(rf, init, arr::Union{AbstractArray, Broadcasted})
+@inline function __foldl__(rf::RF, init, arr0::Union{AbstractArray,Broadcasted}) where {RF}
+    arr = Broadcast.instantiate(arr0)
     isempty(arr) && return complete(rf, init)
-    idxs = eachindex(arr)
-    val = @next(rf, init, @inbounds arr[idxs[firstindex(idxs)]])
-    @simd_if rf for k in firstindex(idxs) + 1:lastindex(idxs)
-        i = @inbounds idxs[k]
-        val = @next(rf, val, @inbounds arr[i])
+    return _foldl_array(rf, init, arr, _IndexStyle(arr))
+end
+
+@inline function _foldl_array(rf::RF, init::T, arr, ::IndexLinear) where {RF,T}
+    i = _firstindex(arr)
+    acc = @next(rf, init, @inbounds arr[i])
+    @manual_union_split acc isa T begin
+        if is_prelude(acc)
+            return _foldl_linear_rec(rf, acc, arr, i + 1, FOLDL_RECURSION_LIMIT)
+        else
+            return _foldl_linear_bulk(rf, acc, arr, i + 1)
+        end
     end
-    return complete(rf, val)
+end
+
+@inline function _foldl_linear_bulk(rf::RF, acc, arr, i0) where {RF}
+    @simd_if rf for i in i0:_lastindex(arr)
+        acc = @next(rf, acc, @inbounds arr[i])
+    end
+    return complete(rf, acc)
+end
+
+@inline function _foldl_linear_rec(rf::RF, acc::T, arr, i0, counter) where {RF,T}
+    for i in i0:_lastindex(arr)
+        y = @next(rf, acc, @inbounds arr[i])
+        if counter !== Val(0)
+            if y isa T
+            elseif is_prelude(y)
+                return _foldl_linear_rec(rf, y, arr, i + 1, _dec(counter))
+            else
+                # Otherwise, maybe it could be something like `Union{Float64,Missing}`
+                # where Julia's native loop is fast:
+                return _foldl_linear_bulk(rf, y, arr, i + 1)
+            end
+        end
+        acc = y
+    end
+    return complete(rf, acc)
+end
+
+@inline function _foldl_array(rf0::RF, init, arr, ::IndexStyle) where {RF,T}
+    @inline getvalue(I) = @inbounds arr[I]
+    rf = Map(getvalue)'(rf0)
+    return __foldl__(rf, init, _CartesianIndices(arr))
 end
 
 @inline _getvalues(i) = ()
@@ -263,6 +292,13 @@ end
     )
 end
 
+@inline function __foldl__(rf0, init, cartesian::CartesianIndices)
+    rf = Map(CartesianIndex)'(rf0)
+    val = _foldl_product(rf, init, (), cartesian.indices...)
+    val isa Reduced && return val
+    return complete(rf, val)
+end
+
 @inline function __foldl__(
         rf, init,
         prod::Iterators.ProductIterator{<:Tuple{Any,Any,Vararg{Any}}})
@@ -317,7 +353,8 @@ end
 
 Call [`__foldl__`](@ref) without calling [`complete`](@ref).
 """
-@inline foldl_nocomplete(rf, init, coll) = __foldl__(skipcomplete(rf), init, coll)
+@inline foldl_nocomplete(rf::RF, init, coll) where {RF} =
+    __foldl__(skipcomplete(rf), init, coll)
 
 """
     foldxl(step, xf::Transducer, reducible; init, simd) :: T

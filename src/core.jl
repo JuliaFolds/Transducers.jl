@@ -324,6 +324,7 @@ end
 
 prependxf(rf::AbstractReduction, xf) = Reduction(xf, rf)
 setinner(rf::Reduction, inner) = Reduction(xform(rf), inner)
+setxform(rf::Reduction, xform) = Reduction(xform, inner(rf))
 
 Transducer(rf::Reduction) =
     if inner(rf) isa BottomRF
@@ -564,6 +565,11 @@ combine(rf::Reduction, a, b) =
         combine(inner(rf), a, b)
     end
 
+is_prelude(_) = false
+is_prelude(::InitialValues.InitialValue) = true
+is_prelude(xs::Tuple) = any(map(is_prelude, xs))
+is_prelude(xs::NamedTuple) = is_prelude(Tuple(xs))
+
 privatestate(::T, state, result) where {T <: AbstractReduction} =
     privatestate(T, state, result)
 
@@ -596,6 +602,8 @@ ownsstate(::R, ::PrivateState{T}) where {R, T} = R === T
 # compile Extrema examples in ../examples/tutorial_missings.jl (it
 # took more than 10 min).  See also:
 # https://github.com/JuliaLang/julia/issues/30125
+
+@inline is_prelude(ps::PrivateState) = is_prelude(psstate(ps)) || is_prelude(psresult(ps))
 
 """
     unwrap(rf, result)

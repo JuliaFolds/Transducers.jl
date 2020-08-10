@@ -170,6 +170,14 @@ end
         @test collect(xf, 1:3) == desired
         @test collect(xf, 0:3) == desired
     end
+    @testset "Map(x -> 1:x |> Map(x -> 2x)) ⨟ TCat(1)" begin
+        xf = opcompose(Map(x -> 1:x |> Map(x -> 2x)), TCat(1))
+        desired = [2, 2, 4, 2, 4, 6]
+        @test collect(xf, 1:3) ==ₜ desired
+        @test collect(xf, 0:3) ==ₜ desired
+        @test tcollect(xf, 1:3) ==ₜ desired
+        @test tcollect(xf, 0:3) ==ₜ desired
+    end
 end
 
 @testset "TakeWhile" begin
@@ -223,6 +231,13 @@ end
     xf3 = ReduceIf(x -> x == 100)
     @test foldxt(right, xf3, withprogress(1:1000; interval=0); basesize=1) == 100
     @test foldxt(right, xf3, withprogress(1:1000; interval=0); basesize=1, simd=true) == 100
+end
+
+@testset "nestlevel" begin
+    xs = 1:3 |> MapCat(x -> 1:x) |> MapCat(x -> 1:x) |> MapCat(x -> 1:x)
+    @test foldxt(+, xs; basesize = 1, nestlevel = 3) == sum(xs)
+    @test foldxt(+, xs; basesize = 1, nestlevel = Val(2)) == sum(xs)
+    @test foldxt(+, xs; basesize = 1, nestlevel = Val(:inf)) == sum(xs)
 end
 
 end  # module
