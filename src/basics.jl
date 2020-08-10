@@ -26,6 +26,9 @@ else
     _Channel(f, ::Type{T}, size; kwargs...) where {T} = Channel{T}(f, size; kwargs...)
 end
 
+_valof(::Val{x}) where {x} = x
+_valof(x) = x
+
 _typeof(::Type{T}) where {T} = Type{T}
 _typeof(::T) where {T} = T
 

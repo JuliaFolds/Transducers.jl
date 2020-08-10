@@ -149,6 +149,7 @@ const FOLDL_RECURSION_LIMIT = Val(10)
 # const FOLDL_RECURSION_LIMIT = nothing
 _dec(::Nothing) = nothing
 _dec(::Val{n}) where n = Val(n - 1)
+_dec(n::Int) = n - 1
 
 function __foldl__(rf::RF, init::T, coll) where {RF,T}
     ret = iterate(coll)
@@ -185,6 +186,13 @@ end
 @inline function _foldl_array(rf::RF, init::T, arr, ::IndexLinear) where {RF,T}
     i = _firstindex(arr)
     acc = @next(rf, init, @inbounds arr[i])
+    if Core.Compiler.return_type(next, Tuple{RF,T,eltype(arr)}) === Any
+        if is_prelude(acc)
+            return _foldl_linear_rec(rf, acc, arr, i + 1, _valof(FOLDL_RECURSION_LIMIT))
+        else
+            return _foldl_linear_bulk(rf, acc, arr, i + 1)
+        end
+    end
     @manual_union_split acc isa T begin
         if is_prelude(acc)
             return _foldl_linear_rec(rf, acc, arr, i + 1, FOLDL_RECURSION_LIMIT)
@@ -204,7 +212,7 @@ end
 @inline function _foldl_linear_rec(rf::RF, acc::T, arr, i0, counter) where {RF,T}
     for i in i0:_lastindex(arr)
         y = @next(rf, acc, @inbounds arr[i])
-        if counter !== Val(0)
+        if counter !== 0 && counter !== Val(0)
             if y isa T
             elseif is_prelude(y)
                 return _foldl_linear_rec(rf, y, arr, i + 1, _dec(counter))
