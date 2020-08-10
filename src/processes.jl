@@ -145,7 +145,7 @@ __foldl__
 # multiple locations.  This easily leads to non-concrete types in the
 # inference.
 
-const FOLDL_RECURSION_LIMIT = Val(1)
+const FOLDL_RECURSION_LIMIT = Val(2)
 # const FOLDL_RECURSION_LIMIT = nothing
 _dec(::Nothing) = nothing
 _dec(::Val{n}) where n = Val(n - 1)
