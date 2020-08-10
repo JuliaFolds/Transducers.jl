@@ -1,47 +1,20 @@
 # Documentation: http://docs.travis-ci.com/user/languages/julia/
 language: julia
-os:
-  - linux
-julia:
-  - 1.5  # to be used in benchmarks as well
-  - 1.4
-  - nightly
-env:
-   global:
-     - JULIA_NUM_THREADS=2
-     - COVERALLS_PARALLEL=true
 notifications:
   email: false
-  webhooks: https://coveralls.io/webhook
 
 # Only build branches via PR to avoid running CI twice.
 # https://docs.travis-ci.com/user/conditional-builds-stages-jobs
 # https://docs.travis-ci.com/user/conditions-v1
 if: branch = master OR tag IS present OR type != push
 
-before_install:
-  - unset JULIA_PROJECT
-  - julia -e 'using Pkg; pkg"add https://github.com/tkf/Run.jl"'
-install:
-  - julia -e 'using Run; Run.prepare("test/environments/main")'
-script:
-  - julia -e 'using Run; Run.test(project="test/environments/main")'
-after_success:
-  - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
-  - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
-
 jobs:
   allow_failures:
     - julia: nightly
   fast_finish: true
   include:
-    - julia: 1.0
-      os: linux
-      install:
-        - julia -e 'using Run; Run.prepare("test/environments/jl10")'
-      script:
-        - julia -e 'using Run; Run.test(project="test/environments/jl10")'
     - name: "Benchmark (Sequential)"
+      julia: 1.5
       os: linux
       before_install:
         - unset JULIA_PROJECT
@@ -69,10 +42,10 @@ jobs:
               branch = "travis-benchmark-results",
           );
           '
-      after_success: skip
       after_script: lscpu
       if: type != push
     - name: "Benchmark (Multi-thread)"
+      julia: 1.5
       os: linux
       before_install:
         - unset JULIA_PROJECT
@@ -97,6 +70,5 @@ jobs:
           '
       script:
         - julia -e 'using BenchmarkCI; BenchmarkCI.displayjudgement()'
-      after_success: skip
       after_script: lscpu
       if: type != push
