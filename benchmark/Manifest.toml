@@ -166,9 +166,9 @@ uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[PkgBenchmark]]
 deps = ["BenchmarkTools", "Dates", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Pkg", "Printf", "TerminalLoggers", "UUIDs"]
-git-tree-sha1 = "20f191fe973e446192e773223cb386b05bfdb14a"
+git-tree-sha1 = "6e2856f677f8dcab289ded9c3ffb018fad38f29c"
 uuid = "32113eaa-f34f-5b0d-bd6c-c81e245fc73d"
-version = "0.2.9"
+version = "0.2.10"
 
 [[Printf]]
 deps = ["Unicode"]
