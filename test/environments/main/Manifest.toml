@@ -26,10 +26,10 @@ uuid = "dce04be8-c92d-5529-be00-80e4d2c0e197"
 version = "2.1.0"
 
 [[ArrayLayouts]]
-deps = ["FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "951c3fc1ff93497c88fb1dfa893f4de55d0b38e3"
+deps = ["FillArrays", "LinearAlgebra", "SparseArrays"]
+git-tree-sha1 = "be27dd13f3412e7db24d8506523a66c0711919a7"
 uuid = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
-version = "0.3.8"
+version = "0.4.2"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
@@ -43,10 +43,10 @@ version = "0.3.30-DEV"
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[BlockArrays]]
-deps = ["ArrayLayouts", "Compat", "LinearAlgebra"]
-git-tree-sha1 = "aabca4dc05a4bb8ac5e638940aa40e1951af6d32"
+deps = ["ArrayLayouts", "Compat", "FillArrays", "LinearAlgebra"]
+git-tree-sha1 = "7657b0d61bcdceb4d7a404f9514e93c27e8bcebb"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.12.11"
+version = "0.12.12"
 
 [[CategoricalArrays]]
 deps = ["DataAPI", "Future", "JSON", "Missings", "Printf", "Statistics", "Unicode"]
@@ -135,9 +135,9 @@ version = "0.25.1"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
-git-tree-sha1 = "4863cbb7910079369e258dee4add9d06ead5063a"
+git-tree-sha1 = "ee36767ad1580c40559da6a3a55cf6f3856c6517"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.8.14"
+version = "0.9.2"
 
 [[Future]]
 deps = ["Random"]
@@ -179,9 +179,9 @@ version = "0.21.0"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "MatrixFactorizations", "StaticArrays"]
-git-tree-sha1 = "e0b604d3b6da2a6e9e91c6cf928f79d2092619f3"
+git-tree-sha1 = "600008cc6ee87577f50980b7d0fdc5a0b8f41d91"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.16.16"
+version = "0.17.0"
 
 [[LibGit2]]
 deps = ["Printf"]
