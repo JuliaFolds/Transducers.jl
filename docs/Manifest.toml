@@ -164,9 +164,9 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Literate]]
 deps = ["Base64", "JSON", "REPL"]
-git-tree-sha1 = "7b32a23ef47295ac3bfe66b12718e9535f466dc7"
+git-tree-sha1 = "0ee3b052b944e1a84b6eb0ca15ce3899718df599"
 uuid = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
-version = "2.5.1"
+version = "2.6.0"
 
 [[LiterateTest]]
 deps = ["Test"]

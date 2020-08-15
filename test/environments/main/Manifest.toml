@@ -27,9 +27,9 @@ version = "2.1.0"
 
 [[ArrayLayouts]]
 deps = ["FillArrays", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "be27dd13f3412e7db24d8506523a66c0711919a7"
+git-tree-sha1 = "ea42754c300797b4b481fc43746270bb8966f8b0"
 uuid = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
-version = "0.4.2"
+version = "0.4.3"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
@@ -179,9 +179,9 @@ version = "0.21.0"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "MatrixFactorizations", "StaticArrays"]
-git-tree-sha1 = "600008cc6ee87577f50980b7d0fdc5a0b8f41d91"
+git-tree-sha1 = "29fdc6c84b4cdf4c233b84f98e44afef2af8e21e"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.17.0"
+version = "0.17.1"
 
 [[LibGit2]]
 deps = ["Printf"]
