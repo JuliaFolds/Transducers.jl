@@ -777,7 +777,7 @@ complete(rf::R_{FlagFirst}, result) = complete(inner(rf), unwrap(rf, result)[2])
     Partition(size, step = size, flush = false)
     Partition(size; step = size, flush = false)
 
-Sliding window of width `size` and interval `step`.
+Sliding non-overlapping window of width `size` and interval `step`.
 
 $_shared_vector_warning
 
