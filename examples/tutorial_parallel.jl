@@ -34,25 +34,26 @@ foldxd(+, Map(sin), xs)
 
 # ### Parallel processing with iterator comprehensions
 
-# You can also use [`eduction`](@ref) to use iterator comprehension
-# with multi-thread `foldxt`:
+# You can also use parallel processing functions in Transducers.jl
+# such as [`foldxt`](@ref), [`foldxd`](@ref), [`tcollect`](@ref),
+# [`dcollect`](@ref), [`tcopy`](@ref) and [`dcopy`](@ref) with
+# iterator comprehensions:
 
-foldxt(+, eduction(sin(x) for x in xs if abs(x) < 1); basesize = 500_000)
+foldxt(+, (sin(x) for x in xs if abs(x) < 1); basesize = 500_000)
 
 #-
 
 if VERSION >= v"1.3"                                                   #src
     @test begin
-        foldxt(+, eduction(x * y for x in 1:3, y in 1:3))
+        foldxt(+, (x * y for x in 1:3, y in 1:3))
     end == 36
 end                                                                    #src
 
-# You can omit `eduction` when using Transducers.jl-specific functions
-# like [`tcollect`](@ref)/[`dcollect`](@ref):
+#-
 
 tcollect(sin(x) for x in xs if abs(x) < 1)
 
-# and [`tcopy`](@ref)/[`dcopy`](@ref):
+#-
 
 using StructArrays: StructVector
 table = StructVector(a = [1, 2, 3], b = [5, 6, 7])
