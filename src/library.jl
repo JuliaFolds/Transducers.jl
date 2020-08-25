@@ -777,7 +777,9 @@ complete(rf::R_{FlagFirst}, result) = complete(inner(rf), unwrap(rf, result)[2])
     Partition(size, step = size, flush = false)
     Partition(size; step = size, flush = false)
 
-Sliding non-overlapping window of width `size` and interval `step`.
+Sliding window of width `size` and interval `step`. Note: because 
+`step` = `size` is the default, hence the default behaviour is 
+non-overlapping windows.
 
 $_shared_vector_warning
 
