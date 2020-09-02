@@ -779,6 +779,9 @@ complete(rf::R_{FlagFirst}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 Sliding window of width `size` and interval `step`.
 
+Note: `step` = `size` is the default.  Hence, the default behavior is
+non-overlapping windows.
+
 $_shared_vector_warning
 
 $(_thx_clj("partition-all"))
