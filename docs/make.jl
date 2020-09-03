@@ -17,8 +17,8 @@ import Literate
 import LiterateTest
 import OnlineStats
 import Random
-import Transducers
 using Documenter
+using Transducers
 
 EXAMPLE_PAGES = [
     "Tutorial: Missing values" => "tutorials/tutorial_missings.md",
