@@ -13,11 +13,12 @@ exec ${JULIA} "${BASH_SOURCE[0]}" "$@"
 
 import BangBang
 import JSON
+import Literate
+import LiterateTest
 import OnlineStats
+import Random
+import Transducers
 using Documenter
-using Literate
-using LiterateTest
-using Transducers
 
 EXAMPLE_PAGES = [
     "Tutorial: Missing values" => "tutorials/tutorial_missings.md",
@@ -123,9 +124,7 @@ function should_push_preview(event_path = get(ENV, "GITHUB_EVENT_PATH", nothing)
     return yes
 end
 
-import Random
 Random.seed!(1234)
-
 transducers_rm_duplicated_docs()
 transducers_literate()
 
