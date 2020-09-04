@@ -178,10 +178,10 @@ uuid = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 version = "0.21.0"
 
 [[LazyArrays]]
-deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "MatrixFactorizations", "StaticArrays"]
-git-tree-sha1 = "69b7891ef961ff208821f48acc86d0ff9e74b2f3"
+deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "MatrixFactorizations", "SparseArrays", "StaticArrays"]
+git-tree-sha1 = "8270b469a6372dce93d5364b4641ca5a6e1070e0"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.17.6"
+version = "0.17.7"
 
 [[LibGit2]]
 deps = ["Printf"]
