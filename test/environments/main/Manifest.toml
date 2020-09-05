@@ -27,9 +27,9 @@ version = "2.1.0"
 
 [[ArrayLayouts]]
 deps = ["FillArrays", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "e3e0a1e7dcbfdb1fc1061bfd889581a1d942cfcb"
+git-tree-sha1 = "2d8ac01e2d62d6bc9172e71ddcc9c904d478633f"
 uuid = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
-version = "0.4.5"
+version = "0.4.6"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
@@ -83,9 +83,9 @@ version = "0.21.7"
 
 [[DataStructures]]
 deps = ["Compat", "InteractiveUtils", "OrderedCollections"]
-git-tree-sha1 = "65974157a18f4e19c07e5a94576328814ae23f9b"
+git-tree-sha1 = "6189e66c78a2d840db5ee530ac2326505b3cc7ae"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.18.3"
+version = "0.18.4"
 
 [[DataTools]]
 deps = ["InitialValues", "Setfield", "StaticNumbers", "Statistics", "Tables", "Transducers"]

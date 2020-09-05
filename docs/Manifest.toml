@@ -63,9 +63,9 @@ version = "0.21.7"
 
 [[DataStructures]]
 deps = ["Compat", "InteractiveUtils", "OrderedCollections"]
-git-tree-sha1 = "65974157a18f4e19c07e5a94576328814ae23f9b"
+git-tree-sha1 = "6189e66c78a2d840db5ee530ac2326505b3cc7ae"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.18.3"
+version = "0.18.4"
 
 [[DataTools]]
 deps = ["InitialValues", "Setfield", "StaticNumbers", "Statistics", "Tables", "Transducers"]
