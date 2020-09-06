@@ -1,5 +1,6 @@
 module TestTransducers
 
+import LoadAllPackages
 import PerformanceTestTools
 using Distributed: addprocs, nworkers
 using Test
@@ -12,7 +13,6 @@ if get(ENV, "CI", "false") == "true"
     # at the same time.  This can happen when the tests are run via
     # `Pkg.test`.  Doing this after `addprocs` to workaround a quirk
     # in Distributed.jl.
-    include("LoadAllPackages.jl")
     LoadAllPackages.loadall()
 end
 @info "Testing with:" nworkers()
