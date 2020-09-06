@@ -1,7 +1,7 @@
 """
     _foldl_blockarray(rf, acc, coll::BlockArrays.BlockArray)
 """
-function _foldl_blockarray(rf, acc, coll)
+function _foldl_blockarray(rf::RF, acc, coll) where {RF}
     # `isempty` is required for `map(first, blockaxes(coll))` below
     isempty(coll) && return complete(rf, acc)
     return complete(rf, @return_if_reduced _foldl_blockarray(
@@ -14,7 +14,7 @@ end
 
 # Looping over outer/right dimensions; i.e., one of `b`, `c`, `d` in
 # `coll[a, b, c, d]` but not `a`.
-@inline function _foldl_blockarray(rf, acc, coll, block, offset, ValN₋₁)
+@inline function _foldl_blockarray(rf::RF, acc, coll, block, offset, ValN₋₁) where {RF}
     blockaxes = BlockArrays.blockaxes
 
     d = ndims(coll) - length(block)
@@ -32,13 +32,13 @@ end
 
 # Finally, looping over the inner/left -most dimension:
 @inline function _foldl_blockarray(
-    rf,
+    rf::RF,
     acc,
     coll,
     block::NTuple{N₋₁, Any},
     offset::NTuple{N₋₁, Int},
     ::Val{N₋₁},
-) where {N₋₁}
+) where {RF,N₋₁}
 
     blockaxes = BlockArrays.blockaxes
 
