@@ -21,6 +21,14 @@ Check that _type_ and value of `x` and `y` are equal.
 ==ₜ(_, _) = false
 ==ₜ(x::T, y::T) where T = x == y
 
+"""
+    ==ₛ(a::AbstractString, b::AbstractString)
+
+Equality check ignoring white spaces
+"""
+==ₛ(a::AbstractString, b::AbstractString) =
+    replace(a, r"\s" => "") == replace(b, r"\s" => "")
+
 prettytypeof(x) = prettytypeof(typeof(x))
 prettytypeof(x::Type) = nameof(x)
 

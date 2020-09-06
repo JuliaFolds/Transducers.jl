@@ -2,6 +2,12 @@ module TestShow
 
 include("preamble.jl")
 
+if VERSION >= v"1.6-"
+    ==ᵣ = ==ₛ
+else
+    ==ᵣ = ==
+end
+
 xforms = [
     Cat(),
     Count(),
@@ -94,10 +100,10 @@ end
 @testset "TeeRF{2,Tuple{Any,Any}}((min, max))" begin
     rf = TeeRF{2,Tuple{Any,Any}}((min, max))
     kw = (; context = :module => Base)
-    @test repr(rf; kw...) == "Transducers.TeeRF{2,Tuple{Any,Any}}((min, max))"
-    @test sprint(print, rf; kw...) == "Transducers.TeeRF{2,Tuple{Any,Any}}((min, max))"
-    @test sprint(show, rf; kw...) == "Transducers.TeeRF{2,Tuple{Any,Any}}((min, max))"
-    @test sprint(show, "text/plain", rf; kw...) ==
+    @test repr(rf; kw...) ==ᵣ "Transducers.TeeRF{2,Tuple{Any,Any}}((min, max))"
+    @test sprint(print, rf; kw...) ==ᵣ "Transducers.TeeRF{2,Tuple{Any,Any}}((min, max))"
+    @test sprint(show, rf; kw...) ==ᵣ "Transducers.TeeRF{2,Tuple{Any,Any}}((min, max))"
+    @test sprint(show, "text/plain", rf; kw...) ==ᵣ
           "Transducers.TeeRF{2,Tuple{Any,Any}}((min, max))"
 end
 
@@ -113,10 +119,10 @@ end
 @testset "ProductRF{2,Tuple{Any,Any}}((min, max))" begin
     rf = ProductRF{2,Tuple{Any,Any}}((min, max))
     kw = (; context = :module => Base)
-    @test repr(rf; kw...) == "Transducers.ProductRF{2,Tuple{Any,Any}}((min, max))"
-    @test sprint(print, rf; kw...) == "Transducers.ProductRF{2,Tuple{Any,Any}}((min, max))"
-    @test sprint(show, rf; kw...) == "Transducers.ProductRF{2,Tuple{Any,Any}}((min, max))"
-    @test sprint(show, "text/plain", rf; kw...) ==
+    @test repr(rf; kw...) ==ᵣ "Transducers.ProductRF{2,Tuple{Any,Any}}((min, max))"
+    @test sprint(print, rf; kw...) ==ᵣ "Transducers.ProductRF{2,Tuple{Any,Any}}((min, max))"
+    @test sprint(show, rf; kw...) ==ᵣ "Transducers.ProductRF{2,Tuple{Any,Any}}((min, max))"
+    @test sprint(show, "text/plain", rf; kw...) ==ᵣ
           "Transducers.ProductRF{2,Tuple{Any,Any}}((min, max))"
 end
 
