@@ -15,6 +15,7 @@ import BangBang
 import JSON
 import Literate
 import LiterateTest
+import LoadAllPackages
 import OnlineStats
 import Random
 using Documenter
@@ -30,7 +31,6 @@ EXAMPLE_PAGES = [
     "Writing reducibles" => "howto/reducibles.md",
 ]
 
-include("../test/LoadAllPackages.jl")
 LoadAllPackages.loadall(joinpath((@__DIR__), "Project.toml"))
 
 function transducers_literate(;
