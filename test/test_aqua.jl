@@ -12,8 +12,14 @@ using Transducers
 # )
 
 @testset "Method ambiguity" begin
+    if VERSION >= v"1.6.0-DEV.816"
+        @warn "Ignoring ambiguities from `Base` to workaround JuliaLang/julia#36962"
+        packages = [Transducers]
+    else
+        packages = [Transducers, Base]
+    end
     Aqua.test_ambiguities(
-        [Transducers, Base],
+        packages,
         exclude = [Base.get, Setfield.set, Setfield.modify, map!],
     )
 end

@@ -15,6 +15,7 @@ import BangBang
 import JSON
 import Literate
 import LiterateTest
+import LoadAllPackages
 import OnlineStats
 import Random
 using Documenter
@@ -30,7 +31,6 @@ EXAMPLE_PAGES = [
     "Writing reducibles" => "howto/reducibles.md",
 ]
 
-include("../test/LoadAllPackages.jl")
 LoadAllPackages.loadall(joinpath((@__DIR__), "Project.toml"))
 
 function transducers_literate(;
@@ -128,39 +128,35 @@ Random.seed!(1234)
 transducers_rm_duplicated_docs()
 transducers_literate()
 
-let examples = EXAMPLE_PAGES,
-    strict = get(ENV, "CI", "false") == "true",
-    doctest = get(ENV, "CI", "false") == "true"
+examples = EXAMPLE_PAGES
+strict = get(ENV, "CI", "false") == "true"
+doctest = get(ENV, "CI", "false") == "true"
 
-    tutorials = filter(((_, path),) -> startswith(path, "tutorials/"), examples)
-    howto = filter(((_, path),) -> startswith(path, "howto/"), examples)
-    @assert issetequal(union(tutorials, howto), examples)
-    @info "`makedocs` with" strict doctest
-    makedocs(;
-        modules = [Transducers],
-        pages = [
-            "Home" => "index.md",
-            "Reference" => [
-                "Manual" => "reference/manual.md",
-                "Interface" => "reference/interface.md",
-            ],
-            "Tutorials" => tutorials,
-            "How-to guides" => howto,
-            "Explanation" => [
-                "Parallelism" => "parallelism.md",  # TODO: merge this to index.md
-                "Comparison to iterators" => "explanation/comparison_to_iterators.md",
-                "Glossary" => "explanation/glossary.md",
-                hide("Internals" => "explanation/internals.md"),
-            ],
+tutorials = filter(((_, path),) -> startswith(path, "tutorials/"), examples)
+howto = filter(((_, path),) -> startswith(path, "howto/"), examples)
+@assert issetequal(union(tutorials, howto), examples)
+@info "`makedocs` with" strict doctest
+makedocs(;
+    modules = [Transducers],
+    pages = [
+        "Home" => "index.md",
+        "Reference" =>
+            ["Manual" => "reference/manual.md", "Interface" => "reference/interface.md"],
+        "Tutorials" => tutorials,
+        "How-to guides" => howto,
+        "Explanation" => [
+            "Parallelism" => "parallelism.md",  # TODO: merge this to index.md
+            "Comparison to iterators" => "explanation/comparison_to_iterators.md",
+            "Glossary" => "explanation/glossary.md",
+            hide("Internals" => "explanation/internals.md"),
         ],
-        repo = "https://github.com/JuliaFolds/Transducers.jl/blob/{commit}{path}#L{line}",
-        sitename = "Transducers.jl",
-        authors = "Takafumi Arakaki",
-        root = @__DIR__,
-        strict = strict,
-        doctest = doctest,
-    )
-end
+    ],
+    repo = "https://github.com/JuliaFolds/Transducers.jl/blob/{commit}{path}#L{line}",
+    sitename = "Transducers.jl",
+    authors = "Takafumi Arakaki",
+    strict = strict,
+    doctest = doctest,
+)
 
 transducers_make_redirections()
 deploydocs(;
