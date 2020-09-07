@@ -44,4 +44,8 @@ end
     Aqua.test_stale_deps(Transducers)
 end
 
+@testset "Compat bounds" begin
+    Aqua.test_deps_compat(Transducers)
+end
+
 end  # module
