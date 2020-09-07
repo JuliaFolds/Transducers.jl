@@ -33,7 +33,7 @@ Transducers = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 TypedTables = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
 
 [compat]
-Aqua = "0.4.6"
+Aqua = "0.4.7"
 Compat = ">= 3.9"
 DataFrames = ">= 0.20"
 LiterateTest = "0.1.1"
