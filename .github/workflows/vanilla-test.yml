@@ -6,8 +6,6 @@ on:
 jobs:
   vanilla-test:
     runs-on: ubuntu-latest
-    env:
-      JULIA_PKG_SERVER: ""
     steps:
       - uses: actions/checkout@v2
       - name: Resolve refs
