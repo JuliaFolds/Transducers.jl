@@ -13,7 +13,7 @@ version = "2.1.0"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "ffa0f05f51a4f87535249131eafb163e006d17b8"
+git-tree-sha1 = "436f6d3c7543caffc6de84178cba06c0e3acd175"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
@@ -103,9 +103,9 @@ version = "1.0.0"
 
 [[JSON]]
 deps = ["Dates", "Mmap", "Parsers", "Unicode"]
-git-tree-sha1 = "b34d7cef7b337321e97d22242c3c2b91f476748e"
+git-tree-sha1 = "81690084b6198a2e1da36fcfda16eeca9f9f24e4"
 uuid = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
-version = "0.21.0"
+version = "0.21.1"
 
 [[LeftChildRightSiblingTrees]]
 deps = ["AbstractTrees"]
@@ -268,7 +268,7 @@ uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 deps = ["ArgCheck", "BangBang", "CompositionsBase", "DefineSingletons", "Distributed", "InitialValues", "Logging", "Markdown", "Requires", "Setfield", "SplittablesBase", "Tables"]
 path = ".."
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
-version = "0.4.51-DEV"
+version = "0.4.52-DEV"
 
 [[UUIDs]]
 deps = ["Random", "SHA"]
