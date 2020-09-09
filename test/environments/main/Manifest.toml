@@ -14,11 +14,11 @@ version = "2.0.2"
 
 [[Aqua]]
 deps = ["Pkg", "Test"]
-git-tree-sha1 = "3adc536b8a80ecfcbb0c07c868eddf4a8e1582d4"
+git-tree-sha1 = "970639e9858ea37ef1347637faa3a4d1a445d27f"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/Aqua.jl.git"
 uuid = "4c88cf16-eb10-579e-8560-4a9242c79595"
-version = "0.4.8-DEV"
+version = "0.4.9-DEV"
 
 [[ArgCheck]]
 git-tree-sha1 = "dedbbb2ddb876f899585c4ec4433265e3017215a"
@@ -33,7 +33,7 @@ version = "0.4.7"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "436f6d3c7543caffc6de84178cba06c0e3acd175"
+git-tree-sha1 = "f1fec31e154d6cea107e7674e619c173d957dd65"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
@@ -150,11 +150,11 @@ uuid = "313cdc1a-70c2-5d6a-ae34-0150d3930a38"
 version = "1.1.0"
 
 [[InitialValues]]
-git-tree-sha1 = "d938c94f5de974ee74836d4090043672a43afc2d"
+git-tree-sha1 = "a9abff7c4d902acc09f1a0c96a4d3f820e51f283"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/InitialValues.jl.git"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
-version = "0.2.10-DEV"
+version = "0.2.11-DEV"
 
 [[InteractiveUtils]]
 deps = ["Markdown"]
