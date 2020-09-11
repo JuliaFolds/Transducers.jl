@@ -232,7 +232,7 @@ version = "1.1.3"
 
 [[SplittablesBase]]
 deps = ["Setfield", "Test"]
-git-tree-sha1 = "3f41fda7043ef64f2a4b7266889a9319a62fb8bb"
+git-tree-sha1 = "eb880df5b12bcae91f663ca49af963e3f90dc1ab"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/SplittablesBase.jl.git"
 uuid = "171d559e-b47b-412a-8079-5efa626c420e"

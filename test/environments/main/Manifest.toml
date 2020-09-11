@@ -14,7 +14,7 @@ version = "2.0.2"
 
 [[Aqua]]
 deps = ["Pkg", "Test"]
-git-tree-sha1 = "970639e9858ea37ef1347637faa3a4d1a445d27f"
+git-tree-sha1 = "8df6f7b8c94b8c1c7e620f83b71e49ac56787fc4"
 repo-rev = "master"
 repo-url = "https://github.com/tkf/Aqua.jl.git"
 uuid = "4c88cf16-eb10-579e-8560-4a9242c79595"
@@ -150,7 +150,7 @@ uuid = "313cdc1a-70c2-5d6a-ae34-0150d3930a38"
 version = "1.1.0"
 
 [[InitialValues]]
-git-tree-sha1 = "6c71201824a14aa71f4932875acf8a320ea3b830"
+git-tree-sha1 = "d2665bfbf3c3d093c75e972263253a6037ced0f0"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/InitialValues.jl.git"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
@@ -347,7 +347,7 @@ version = "1.1.3"
 
 [[SplittablesBase]]
 deps = ["Setfield", "Test"]
-git-tree-sha1 = "3f41fda7043ef64f2a4b7266889a9319a62fb8bb"
+git-tree-sha1 = "eb880df5b12bcae91f663ca49af963e3f90dc1ab"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/SplittablesBase.jl.git"
 uuid = "171d559e-b47b-412a-8079-5efa626c420e"
