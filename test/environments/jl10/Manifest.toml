@@ -245,9 +245,9 @@ version = "1.5.6"
 
 [[OnlineStatsBase]]
 deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "509f36ef5e66d40c4141a661dbdab2e6a99d3a01"
+git-tree-sha1 = "ed076aedbd3cb85731730268d60a7acfa4ac92f3"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.4.3"
+version = "1.4.4"
 
 [[OrderedCollections]]
 git-tree-sha1 = "16c08bf5dba06609fe45e30860092d6fa41fde7b"
