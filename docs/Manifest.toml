@@ -169,11 +169,9 @@ version = "2.3.0"
 
 [[LiterateTest]]
 deps = ["Test"]
-git-tree-sha1 = "f7c6d901d24ecb2629c2008ce04d121653578609"
-repo-rev = "master"
-repo-url = "https://github.com/tkf/LiterateTest.jl.git"
+git-tree-sha1 = "f10e6f4d46da26a33e9cea7a5aed3476b592bbfb"
 uuid = "d77d25b0-90d3-4a16-b10a-412a9d48f625"
-version = "0.1.1"
+version = "0.1.4"
 
 [[LoadAllPackages]]
 deps = ["Pkg"]
