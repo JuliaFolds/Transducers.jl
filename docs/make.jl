@@ -29,6 +29,7 @@ EXAMPLE_PAGES = [
     "Empty result handling" => "howto/empty_result_handling.md",
     "Writing transducers" => "howto/transducers.md",
     "Writing reducibles" => "howto/reducibles.md",
+    "Useful patterns" => "howto/useful_patterns.md",
 ]
 
 LoadAllPackages.loadall(joinpath((@__DIR__), "Project.toml"))
