@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial: Missing values · Transducers.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">Transducers.jl</span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Reference</span><ul><li><a class="tocitem" href="../../reference/manual/">Manual</a></li><li><a class="tocitem" href="../../reference/interface/">Interface</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li class="is-active"><a class="tocitem" href>Tutorial: Missing values</a><ul class="internal"><li><a class="tocitem" href="#Dot-product"><span>Dot product</span></a></li><li><a class="tocitem" href="#Covariance"><span>Covariance</span></a></li><li><a class="tocitem" href="#Vectorized-reduction"><span>Vectorized reduction</span></a></li><li><a class="tocitem" href="#findmax-and-findmin"><span><code>findmax</code> and <code>findmin</code></span></a></li><li><a class="tocitem" href="#tutorial-findminmax"><span>Extrema (<code>findminmax</code>)</span></a></li><li><a class="tocitem" href="#Early-termination"><span>Early termination</span></a></li><li><a class="tocitem" href="#Ad-hoc-imputation"><span>Ad-hoc imputation</span></a></li></ul></li><li><a class="tocitem" href="../tutorial_parallel/">Tutorial: Parallelism</a></li><li><a class="tocitem" href="../words/">Parallel word count</a></li></ul></li><li><span class="tocitem">How-to guides</span><ul><li><a class="tocitem" href="../../howto/upgrade-to-ixf/">Upgrade to new <code>|&gt;</code> of Transducers.jl 0.4.39</a></li><li><a class="tocitem" href="../../howto/empty_result_handling/">Empty result handling</a></li><li><a class="tocitem" href="../../howto/transducers/">Writing transducers</a></li><li><a class="tocitem" href="../../howto/reducibles/">Writing reducibles</a></li><li><a class="tocitem" href="../../howto/useful_patterns/">Useful patterns</a></li></ul></li><li><span class="tocitem">Explanation</span><ul><li><a class="tocitem" href="../../parallelism/">Parallelism</a></li><li><a class="tocitem" href="../../explanation/comparison_to_iterators/">Comparison to iterators</a></li><li><a class="tocitem" href="../../explanation/glossary/">Glossary</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Tutorial: Missing values</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Tutorial: Missing values</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/JuliaFolds/Transducers.jl/blob/master/examples/tutorial_missings.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Tutorial:-missing-value-handling"><a class="docs-heading-anchor" href="#Tutorial:-missing-value-handling">Tutorial: missing value handling</a><a id="Tutorial:-missing-value-handling-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial:-missing-value-handling" title="Permalink"></a></h1><p>This tutorial illustrates the usage of Transducers.jl by stepping through various handling of missing values.</p><pre><code class="language-julia">using Transducers</code></pre><h2 id="Dot-product"><a class="docs-heading-anchor" href="#Dot-product">Dot product</a><a id="Dot-product-1"></a><a class="docs-heading-anchor-permalink" href="#Dot-product" title="Permalink"></a></h2><p>Here is a simple way to compute a dot product using <a href="../../reference/manual/#Transducers.MapSplat"><code>MapSplat</code></a>:</p><pre><code class="language-julia">zip(1:3, 10:2:14) |&gt; MapSplat(*) |&gt; sum</code></pre><pre class="documenter-example-output">76</pre><p>Let&#39;s see what it does step by step.  First we create a &quot;printer&quot; transducer using the following function (see <a href="../../reference/manual/#Transducers.Map"><code>Map</code></a>):</p><pre><code class="language-julia">xf_printer(label) = Map() do x
+    println(label, &quot;: &quot;, x)
+    return x  # just return it as-is
+end</code></pre><p>This transducer just pass-through the input while printing its value (prefixed by a <code>label</code>).  Let&#39;s sandwich the previous <code>MapSplat(*)</code> with it:</p><pre><code class="language-julia">zip(1:3, 10:2:14) |&gt;
+xf_printer(&quot; input&quot;) |&gt;
+MapSplat(*) |&gt;
+xf_printer(&quot;output&quot;) |&gt;
+sum</code></pre><pre class="documenter-example-output"> input: (1, 10)
+output: 10
+ input: (2, 12)
+output: 24
+ input: (3, 14)
+output: 42</pre><p>You can see that the input tuple <code>(1, 10)</code> is splatted into function <code>*</code> by <code>MapSplat</code> which then outputs <code>10</code>.  This is repeated for all inputs.</p><p>Perhaps unfortunately, this way of computing a dot product propagates any missing values contained in the input arrays to the result (which may actually be desired in certain cases).</p><pre><code class="language-julia">xs = [1, missing, 3, 2]
+ys = [10, 14, missing, 12]
+zip(xs, ys) |&gt; MapSplat(*) |&gt; sum</code></pre><pre class="documenter-example-output">missing</pre><p>However, it is very simple to ignore any missing values using <a href="../../reference/manual/#Transducers.OfType"><code>OfType</code></a>:</p><pre><code class="language-julia">zip(xs, ys) |&gt; OfType(Tuple{Vararg{Number}}) |&gt; MapSplat(*) |&gt; sum</code></pre><pre class="documenter-example-output">34</pre><p>Here, <code>Tuple{Vararg{Number}}</code> is a type that matches with a tuple of any length with numbers.  It does not match with a tuple if it has a <code>missing</code>.</p><pre><code class="language-julia">@assert (1, 0.5) isa Tuple{Vararg{Number}}
+@assert (1, 0.5, 2im) isa Tuple{Vararg{Number}}
+@assert !((1, missing) isa Tuple{Vararg{Number}})</code></pre><p>The part <code>... |&gt; OfType(Tuple{Vararg{Number}}) |&gt; MapSplat(*)</code> can be factored out using <a href="../../reference/manual/#Base.:∘"><code>opcompose</code></a>:</p><pre><code class="language-julia">xf_mdot = opcompose(OfType(Tuple{Vararg{Number}}), MapSplat(*));</code></pre><p>or equivalently (in Julia ≥ 1.5):</p><pre><code class="language-julia">OfType(Tuple{Vararg{Number}}) ⨟ MapSplat(*)</code></pre><p>The transducer <code>xf_mdot</code> can be used where previously <code>OfType(Tuple{Vararg{Number}}) |&gt; MapSplat(*)</code> was used:</p><pre><code class="language-julia">zip(xs, ys) |&gt; xf_mdot |&gt; sum</code></pre><pre class="documenter-example-output">34</pre><h2 id="Covariance"><a class="docs-heading-anchor" href="#Covariance">Covariance</a><a id="Covariance-1"></a><a class="docs-heading-anchor-permalink" href="#Covariance" title="Permalink"></a></h2><p>Transducer <code>xf_mdot</code> above can also be used to compute the covariance.  First, we need the number of pairs of elements in <code>xs</code> and <code>ys</code> that <em>both</em> of them are not <code>missing</code>:</p><pre><code class="language-julia">nonmissings = zip(xs, ys) |&gt; Map(x -&gt; x isa Tuple{Vararg{Number}}) |&gt; count</code></pre><pre class="documenter-example-output">2</pre><p>Finally, we have to pre-process the input to <code>xf_mdot</code> by subtracting the average.  It&#39;s easy to do this with <code>Map</code>:</p><pre><code class="language-julia">using Statistics: mean
+
+function xf_demean(xs, ys)
+    xmean = mean(skipmissing(xs))
+    ymean = mean(skipmissing(ys))
+    return Map(((x, y),) -&gt; (x - xmean, y - ymean))
+end</code></pre><p>We can then compute the covariance by combining <code>xf_demean</code> and <code>xf_mdot</code>:</p><pre><code class="language-julia">s = zip(xs, ys) |&gt; xf_demean(xs, ys) |&gt; xf_mdot |&gt; sum
+s / nonmissings</code></pre><pre class="documenter-example-output">1.0</pre><p>In <code>xf_demean</code>, the averages of the vectors <code>xs</code> and <code>ys</code> are computed separately.  It is also easy to compute the averages of the elements where both <code>xs</code> and <code>ys</code> are non-<code>missing</code>:</p><pre><code class="language-julia">function xf_demean2(xs, ys)
+    n, xsum, ysum =
+        zip(xs, ys) |&gt;
+        OfType(Tuple{Vararg{Number}}) |&gt;
+        Map(((x, y),) -&gt; (1, x, y)) |&gt;
+        Broadcasting() |&gt;
+        sum
+    xmean = xsum / n
+    ymean = ysum / n
+    return Map(((x, y),) -&gt; (x - xmean, y - ymean))
+end
+
+s = zip(xs, ys) |&gt; xf_demean2(xs, ys) |&gt; xf_mdot |&gt; sum
+s / nonmissings</code></pre><pre class="documenter-example-output">0.5</pre><p>In <code>xf_demean2</code>, we used <a href="../../reference/manual/#Transducers.Broadcasting"><code>Broadcasting</code></a> transducer to broadcast elements of the tuple <code>(1, x, y)</code> over the reducing function of <code>sum</code> (i.e., <code>+</code>).</p><h3 id="Advanced:-TeeRF-and-ProductRF"><a class="docs-heading-anchor" href="#Advanced:-TeeRF-and-ProductRF">Advanced: <code>TeeRF</code> and <code>ProductRF</code></a><a id="Advanced:-TeeRF-and-ProductRF-1"></a><a class="docs-heading-anchor-permalink" href="#Advanced:-TeeRF-and-ProductRF" title="Permalink"></a></h3><p>Alternatively, it can also be computed using by combining <a href="../../reference/manual/#Transducers.foldxl"><code>foldxl</code></a>, <a href="../../reference/manual/#Transducers.ProductRF"><code>ProductRF</code></a>, <a href="../../reference/manual/#Transducers.TeeRF"><code>TeeRF</code></a>, and <a href="https://juliafolds.github.io/DataTools.jl/dev/"><code>DataTools.inc1</code></a> (see <a href="#tutorial-findminmax">below</a> for how <code>TeeRF</code> and <code>ProductRF</code> work):</p><pre><code class="language-julia">using DataTools: inc1
+
+function xf_demean3(xs, ys)
+    n, (xsum, ysum) =
+        zip(xs, ys) |&gt;
+        OfType(Tuple{Vararg{Number}}) |&gt;
+        foldxl(TeeRF(inc1, ProductRF(+, +)))
+    xmean = xsum / n
+    ymean = ysum / n
+    return Map(((x, y),) -&gt; (x - xmean, y - ymean))
+end
+
+s = zip(xs, ys) |&gt; xf_demean3(xs, ys) |&gt; xf_mdot |&gt; sum
+s / nonmissings</code></pre><pre class="documenter-example-output">0.5</pre><h2 id="Vectorized-reduction"><a class="docs-heading-anchor" href="#Vectorized-reduction">Vectorized reduction</a><a id="Vectorized-reduction-1"></a><a class="docs-heading-anchor-permalink" href="#Vectorized-reduction" title="Permalink"></a></h2><p><code>reduce</code>, <code>sum</code>, etc. in <code>Base</code> support <code>dims</code> argument. Transducers.jl does not support this argument as of writing. However, this can easily be emulated using <code>eachcol</code>, <code>eachrow</code>, or <code>eachslice</code> iterators in <code>Base</code>.</p><pre><code class="language-julia">xs = [
+    0       missing 1       2
+    3       4       5       missing
+    missing 6       7       missing
+]
+
+if VERSION &lt; v&quot;1.1&quot;
+    using Compat: eachcol
+end
+eachcol(xs) |&gt; Broadcasting() |&gt; NotA(Missing) |&gt; sum</code></pre><pre class="documenter-example-output">3-element Array{Any,1}:
+  3
+ 12
+ 13</pre><p>Here, we use <a href="../../reference/manual/#Transducers.NotA"><code>NotA</code></a> transducer that filters out <code>missing</code> values:</p><pre><code class="language-julia">[1, 2, missing, 3] |&gt; NotA(Missing) |&gt; collect</code></pre><pre class="documenter-example-output">3-element Array{Int64,1}:
+ 1
+ 2
+ 3</pre><p>Above computation returns the sum over each row without taking into account the relationship within a column.  Another possibly useful reduction is the sum of the columns with no missing values.  This can easily be done by filtering before:</p><pre><code class="language-julia">eachcol(xs) |&gt; Filter(x -&gt; !any(ismissing, x)) |&gt; Broadcasting() |&gt; sum</code></pre><pre class="documenter-example-output">3-element Array{Int64,1}:
+ 1
+ 5
+ 7</pre><h2 id="findmax-and-findmin"><a class="docs-heading-anchor" href="#findmax-and-findmin"><code>findmax</code> and <code>findmin</code></a><a id="findmax-and-findmin-1"></a><a class="docs-heading-anchor-permalink" href="#findmax-and-findmin" title="Permalink"></a></h2><p>Another useful operation is <code>findmax</code>/<code>findmin</code>.  Using <code>Filter</code>, <code>missing</code> values can be filtered out by</p><pre><code class="language-julia">filtered_pairs = [1, 3, missing, 0] |&gt; pairs |&gt; Filter(!(ismissing ∘ last))
+collect(filtered_pairs)</code></pre><pre class="documenter-example-output">3-element Array{Pair{Int64,Union{Missing, Int64}},1}:
+ 1 =&gt; 1
+ 2 =&gt; 3
+ 4 =&gt; 0</pre><p>These key-value pairs can be accumulated by the following reducing step function:</p><pre><code class="language-julia">#                     ,--- current state
+#                     |
+#                     |              ,-- input
+#                     |              |
+function findmax_step((argmax, max), (index, value))
+    argmax, max = value &gt; max ? (index, value) : (argmax, max)
+    return argmax =&gt; max
+    #        \
+    #         \__ next state
+end
+
+foldxl(findmax_step, filtered_pairs)</code></pre><pre class="documenter-example-output">2 =&gt; 3</pre><p>or equivalently</p><pre><code class="language-julia">[1, 3, missing, 0] |&gt; pairs |&gt; Filter(!(ismissing ∘ last)) |&gt; foldxl(findmax_step)</code></pre><pre class="documenter-example-output">2 =&gt; 3</pre><p><a href="../../reference/manual/#Transducers.foldxl"><code>foldxl</code></a> is like <a href="tutorials/@refe"><code>foldl</code></a> but always uses Transducers.jl&#39;s extended fold protocol.  It also has the unary curried method <code>foldxl(rf)</code> defined as <code>xs -&gt; foldxl(rf, xs)</code>.  It is handy to use in the piping context as in the latter example.</p><p><a href="https://juliafolds.github.io/DataTools.jl/dev/"><code>DataTools.rightif</code></a> can be used for defining <code>findmax</code>/<code>findmin</code>-like functions on the fly:</p><pre><code class="language-julia">using DataTools: rightif
+
+foldxl(rightif(&lt;, last), filtered_pairs)</code></pre><pre class="documenter-example-output">Pair{Int64,Union{Missing, Int64}}(2, 3)</pre><h3 id="Side-note:-why-Pair{Int64,Union{Missing,Int}}?"><a class="docs-heading-anchor" href="#Side-note:-why-Pair{Int64,Union{Missing,Int}}?">Side note: why <code>Pair{Int64,Union{Missing,Int}}</code>?</a><a id="Side-note:-why-Pair{Int64,Union{Missing,Int}}?-1"></a><a class="docs-heading-anchor-permalink" href="#Side-note:-why-Pair{Int64,Union{Missing,Int}}?" title="Permalink"></a></h3><p>The result type just above using <code>rightif</code> is <code>Pair{Int64,Union{Missing,Int}}</code>:</p><pre><code class="language-julia">typeof(foldxl(rightif(&lt;, last), filtered_pairs))</code></pre><pre class="documenter-example-output">Pair{Int64,Union{Missing, Int64}}</pre><p>This is because that&#39;s the element type of <code>pairs([1, 3, missing, 0])</code> and <code>rightif</code> does not re-construct the input <code>Pair</code> like <code>findmax_step</code>:</p><pre><code class="language-julia">[1, 3, missing, 0] |&gt; pairs |&gt; first |&gt; typeof</code></pre><pre class="documenter-example-output">Pair{Int64,Union{Missing, Int64}}</pre><p>We can avoid this by pre-processing the input with <code>MapSplat(Pair)</code>:</p><pre><code class="language-julia">foldxl(rightif(&lt;, last), filtered_pairs |&gt; MapSplat(Pair))</code></pre><pre class="documenter-example-output">2 =&gt; 3</pre><h3 id="findmin"><a class="docs-heading-anchor" href="#findmin"><code>findmin</code></a><a id="findmin-1"></a><a class="docs-heading-anchor-permalink" href="#findmin" title="Permalink"></a></h3><p>Similarly, we can define <code>findmin</code> with</p><pre><code class="language-julia">function findmin_step((argmin, min), (index, value))
+    argmin, min = value &lt; min ? (index, value) : (argmin, min)
+    return argmin =&gt; min
+end
+
+foldxl(findmin_step, filtered_pairs)</code></pre><pre class="documenter-example-output">4 =&gt; 0</pre><p>and</p><pre><code class="language-julia">foldxl(rightif(&gt;, last), filtered_pairs)</code></pre><pre class="documenter-example-output">Pair{Int64,Union{Missing, Int64}}(4, 0)</pre><h2 id="tutorial-findminmax"><a class="docs-heading-anchor" href="#tutorial-findminmax">Extrema (<code>findminmax</code>)</a><a id="tutorial-findminmax-1"></a><a class="docs-heading-anchor-permalink" href="#tutorial-findminmax" title="Permalink"></a></h2><p>To compute <code>findmax</code> and <code>findmax</code> in a single sweep, we can use <a href="../../reference/manual/#Transducers.TeeRF"><code>TeeRF</code></a> to &quot;fan out&quot; the input stream to multiple reducing step functions:</p><pre><code class="language-julia">foldxl(TeeRF(findmin_step, findmax_step), filtered_pairs)</code></pre><pre class="documenter-example-output">(4 =&gt; 0, 2 =&gt; 3)</pre><p>or equivalently</p><pre><code class="language-julia">foldxl(TeeRF(rightif(&gt;, last), rightif(&lt;, last)), filtered_pairs)</code></pre><pre class="documenter-example-output">(Pair{Int64,Union{Missing, Int64}}(4, 0), Pair{Int64,Union{Missing, Int64}}(2, 3))</pre><p>In general, multiple folds on a same collection</p><pre><code class="language-julia">a₁ = foldxl(rf₁, xs)
+a₂ = foldxl(rf₂, xs)
+...
+aₙ = foldxl(rfₙ, xs)</code></pre><p>can be fused into a single fold using <code>TeeRF</code></p><pre><code class="language-julia">a₁, a₂, ..., aₙ = foldxl(TeeRF(rf₁, rf₂, ..., rfₙ), xs)</code></pre><p>provided that the input collection <code>xs</code> and the reducing functions <code>rf₁</code>, <code>rf₂</code>, ..., and <code>rfₙ</code> are not stateful.</p><h3 id="More-fusing-by-transforming-reducing-functions"><a class="docs-heading-anchor" href="#More-fusing-by-transforming-reducing-functions">More fusing by transforming reducing functions</a><a id="More-fusing-by-transforming-reducing-functions-1"></a><a class="docs-heading-anchor-permalink" href="#More-fusing-by-transforming-reducing-functions" title="Permalink"></a></h3><p>In the above computation, we have a <a href="../../explanation/glossary/#glossary-rf">reducing (step) function</a></p><pre><code class="language-julia">rf = TeeRF(rightif(&gt;, last), rightif(&lt;, last));</code></pre><p>a <a href="../../explanation/glossary/#glossary-transducer">transducer</a></p><pre><code class="language-julia">xf = Filter(!(ismissing ∘ last));</code></pre><p>and an iterable</p><pre><code class="language-julia">xs = pairs([1, 3, missing, 0]);</code></pre><p>In Transducers.jl, a transducer acts as iterator transformation <code>xf(xs)</code> as well as reducing function transformation <code>xf&#39;(rf)</code>. Thus, the following calls are equivalent:</p><pre><code class="language-julia">@assert foldxl(rf, xf, xs) == (4 =&gt; 0, 2 =&gt; 3)
+@assert foldxl(rf, xf(xs)) == (4 =&gt; 0, 2 =&gt; 3)
+@assert foldxl(xf&#39;(rf), xs) == (4 =&gt; 0, 2 =&gt; 3)</code></pre><p>By exploiting this equality, we can fuse more computations by moving the transformation on the side of reducing function.  For example, we can compute non-missing extrema and count missings at the same time:</p><pre><code class="language-julia">[1, 3, missing, 0] |&gt;
+pairs |&gt;
+MapSplat(Pair) |&gt;  # avoid `Pair{Int64,Union{Missing, Int}}`
+foldxl(TeeRF(
+    Map(ismissing ∘ last)&#39;(+),  # count number of missings
+    Filter(!(ismissing ∘ last))&#39;(TeeRF(
+        rightif(&gt;, last),  # find non-missing minimum
+        rightif(&lt;, last),  # find non-missing maximum
+    )),
+))</code></pre><pre class="documenter-example-output">(1, (4 =&gt; 0, 2 =&gt; 3))</pre><p>Using <code>ProductRF</code>, we can compute <code>findmax</code> of individual and <code>zip</code>ped items at the same time</p><pre><code class="language-julia">zip(
+    pairs([1, 3, missing, 0]),  # produces k1 =&gt; v1
+    pairs([4, missing, 6, 5]),  # produces k2 =&gt; v2
+) |&gt;
+Map() do ((k1, v1), (k2, v2))
+    (k1 =&gt; v1, k2 =&gt; v2, (k1, k2) =&gt; (v1, v2))
+end |&gt;
+foldxl(ProductRF(
+    Filter(!(ismissing ∘ last))&#39;(rightif(&lt;, last)),  # max of k1 =&gt; v1
+    Filter(!(ismissing ∘ last))&#39;(rightif(&lt;, last)),  # max of k2 =&gt; v2
+    Filter(((_, (v1, v2)),) -&gt; v1 !== missing &amp;&amp; v2 !== missing)&#39;(
+        rightif(&lt;, last)  # max (k1, k2) =&gt; (v1, v2)
+    ),
+))</code></pre><pre class="documenter-example-output">(2 =&gt; 3, 3 =&gt; 6, (1, 1) =&gt; (1, 4))</pre><p><code>ProductRF</code> is like <code>TeeRF</code> but acts on the input that is already a tuple.  That is to say, given a collection of <code>n</code>-tuple <code>xs</code>, multiple folds on a same collection</p><pre><code class="language-julia">a₁ = foldxl(rf₁, (x[1] for x in xs))
+a₂ = foldxl(rf₂, (x[2] for x in xs))
+...
+aₙ = foldxl(rfₙ, (x[n] for x in xs))</code></pre><p>can be fused into a single fold using <code>ProductRF</code></p><pre><code class="language-julia">a₁, a₂, ..., aₙ = foldxl(ProductRF(rf₁, rf₂, ..., rfₙ), xs)</code></pre><p>provided that the input collection <code>xs</code> and the reducing functions <code>rf₁</code>, <code>rf₂</code>, ..., and <code>rfₙ</code> are not stateful.</p><h2 id="Early-termination"><a class="docs-heading-anchor" href="#Early-termination">Early termination</a><a id="Early-termination-1"></a><a class="docs-heading-anchor-permalink" href="#Early-termination" title="Permalink"></a></h2><p><code>Base</code>&#39;s <code>maximum</code> reports the maximum to be <code>missing</code> when it receives a container with a <code>missing</code>:</p><pre><code class="language-julia">maximum([1, 2, missing, 3])</code></pre><pre class="documenter-example-output">missing</pre><p>We can obtain the same behavior by using <code>isless</code> instead of <code>&gt;</code> in <code>findmax_step′</code>:</p><pre><code class="language-julia">function findmax_step′((argmax, max), (index, value))
+    argmax, max = isless(max, value) ? (index, value) : (argmax, max)
+    return argmax =&gt; max
+end
+
+foldl(findmax_step′, pairs([1, 2, missing, 3]))</code></pre><pre class="documenter-example-output">3 =&gt; missing</pre><p><code>foldl(findmax_step′, ...)</code> does not stop even after it observed <code>missing</code>.  We can easily add early termination by using <a href="../../reference/manual/#Transducers.ReduceIf"><code>ReduceIf</code></a>:</p><pre><code class="language-julia">[1, 2, missing, 3] |&gt; pairs |&gt; ReduceIf(ismissing ∘ last) |&gt; foldxl(findmax_step′)</code></pre><pre class="documenter-example-output">3 =&gt; missing</pre><p>Note that <a href="../../reference/manual/#Transducers.ReduceIf"><code>ReduceIf(f)</code></a> is not same as <a href="../../reference/manual/#Transducers.TakeWhile"><code>TakeWhile(!f)</code></a>:</p><pre><code class="language-julia">[1, 2, missing, 3] |&gt; pairs |&gt; TakeWhile(!(ismissing ∘ last)) |&gt; foldxl(findmax_step′)</code></pre><pre class="documenter-example-output">2 =&gt; 2</pre><p>That is to say, <code>TakeWhile</code> does not evaluate the inner reducing step function with the item that triggers the early termination. That&#39;s why we need <code>ReduceIf</code> here.</p><h3 id="findmin-with-missing-and-NaN"><a class="docs-heading-anchor" href="#findmin-with-missing-and-NaN"><code>findmin</code> with <code>missing</code> and <code>NaN</code></a><a id="findmin-with-missing-and-NaN-1"></a><a class="docs-heading-anchor-permalink" href="#findmin-with-missing-and-NaN" title="Permalink"></a></h3><p>Unfortunately, we do not have <code>min</code>-compatible &quot;total&quot; ordering in <code>Base</code>.  Thus, we need to create a function that special-cases <code>missing</code> and <code>NaN</code>:</p><pre><code class="language-julia">function isgreater(x, y)
+    xisnan = x != x
+    xisnan isa Bool || return false  # x is missing
+    yisnan = y != y
+    yisnan isa Bool || return true  # y is missing
+    xisnan &amp;&amp; return false
+    yisnan &amp;&amp; return true
+    return isless(y, x)
+end
+
+@assert isgreater(2, 1)
+@assert isgreater(1, missing)
+@assert isgreater(NaN, missing)
+@assert isgreater(1, NaN)
+@assert !isgreater(1, 2)
+@assert !isgreater(missing, 1)
+@assert !isgreater(missing, NaN)
+@assert !isgreater(NaN, 1)</code></pre><p>Using <code>isgreater</code> instead of <code>&lt;</code>, we can define <code>findmin_step′</code> like <code>findmax_step′</code>:</p><pre><code class="language-julia">function findmin_step′((argmin, min), (index, value))
+    argmin, min = isgreater(min, value) ? (index, value) : (argmin, min)
+    return argmin =&gt; min
+end
+
+foldl(findmax_step′, pairs([1, 2, missing, 3]))</code></pre><pre class="documenter-example-output">3 =&gt; missing</pre><h3 id="Extrema-(findminmax)-with-early-termination"><a class="docs-heading-anchor" href="#Extrema-(findminmax)-with-early-termination">Extrema (<code>findminmax</code>) with early termination</a><a id="Extrema-(findminmax)-with-early-termination-1"></a><a class="docs-heading-anchor-permalink" href="#Extrema-(findminmax)-with-early-termination" title="Permalink"></a></h3><p>As before, we can fuse <code>findmin_step′</code> and <code>findmax_step′</code> using <code>TeeRF</code>.  This can also be composed with <code>ReduceIf</code>:</p><pre><code class="language-julia">[1, 2, 3, 0, 2] |&gt;
+pairs |&gt;
+ReduceIf(ismissing ∘ last) |&gt;
+foldxl(TeeRF(findmin_step′, findmax_step′))</code></pre><pre class="documenter-example-output">(4 =&gt; 0, 3 =&gt; 3)</pre><pre><code class="language-julia">[1, 2, missing, 0, 2] |&gt;
+pairs |&gt;
+ReduceIf(ismissing ∘ last) |&gt;
+foldxl(TeeRF(findmin_step′, findmax_step′))</code></pre><pre class="documenter-example-output">(3 =&gt; missing, 3 =&gt; missing)</pre><h2 id="Ad-hoc-imputation"><a class="docs-heading-anchor" href="#Ad-hoc-imputation">Ad-hoc imputation</a><a id="Ad-hoc-imputation-1"></a><a class="docs-heading-anchor-permalink" href="#Ad-hoc-imputation" title="Permalink"></a></h2><p>Using <a href="../../reference/manual/#Transducers.Scan"><code>Scan</code></a>, it is straightforward to fill <code>missing</code> items with the last non-<code>missing</code> item (last observation carried forward):</p><pre><code class="language-julia">[1, 3, missing, 0, 2, missing, missing] |&gt;
+pairs |&gt;
+MapSplat(Pair) |&gt;
+Scan() do last, (k, v)
+    ismissing(v) ? last : k =&gt; v
+end |&gt;
+collect</code></pre><pre class="documenter-example-output">7-element Array{Pair{Int64,Int64},1}:
+ 1 =&gt; 1
+ 2 =&gt; 3
+ 2 =&gt; 3
+ 4 =&gt; 0
+ 5 =&gt; 2
+ 5 =&gt; 2
+ 5 =&gt; 2</pre><p><code>rightif</code> can also be used:</p><pre><code class="language-julia">[1, 3, missing, 0, 2, missing, missing] |&gt;
+pairs |&gt;
+MapSplat(Pair) |&gt;
+Scan(rightif(!(ismissing ∘ right), last)) |&gt;
+collect</code></pre><p>Note that the output still may contain <code>missing</code> if the first item is <code>missing</code>:</p><pre><code class="language-julia">[missing, 1, missing] |&gt;
+pairs |&gt;
+MapSplat(Pair) |&gt;
+Scan(rightif(!(ismissing ∘ right), last)) |&gt;
+collect</code></pre><pre class="documenter-example-output">3-element Array{Pair{Int64,Union{Missing, Int64}},1}:
+ 1 =&gt; missing
+ 2 =&gt; 1
+ 2 =&gt; 1</pre><p>This can be worked around by specifying <code>init</code> argument for <code>Scan</code>:</p><pre><code class="language-julia">[missing, 1, missing] |&gt;
+pairs |&gt;
+MapSplat(Pair) |&gt;
+Scan(rightif(!(ismissing ∘ right), last), 0 =&gt; 0) |&gt;
+collect</code></pre><pre class="documenter-example-output">3-element Array{Pair{Int64,Int64},1}:
+ 0 =&gt; 0
+ 2 =&gt; 1
+ 2 =&gt; 1</pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../reference/interface/">« Interface</a><a class="docs-footer-nextpage" href="../tutorial_parallel/">Tutorial: Parallelism »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Sunday 27 September 2020 20:49">Sunday 27 September 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
