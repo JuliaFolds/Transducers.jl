@@ -101,6 +101,11 @@ git-tree-sha1 = "1c593d1efa27437ed9dd365d1143c594b563e138"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 version = "0.25.1"
 
+[[ExprTools]]
+git-tree-sha1 = "7fce513fcda766962ff67c5596cb16c463dfd371"
+uuid = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
+version = "0.1.2"
+
 [[Future]]
 deps = ["Random"]
 uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
@@ -194,6 +199,12 @@ version = "0.5.4"
 [[Markdown]]
 deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
+
+[[Maybe]]
+deps = ["Compat", "ExprTools"]
+git-tree-sha1 = "c82125bae11348db0e35a6da664655e14955d7f6"
+uuid = "334f122f-1118-46cc-837f-bff747ee6f78"
+version = "0.1.4"
 
 [[MicroCollections]]
 deps = ["BangBang", "Setfield"]
