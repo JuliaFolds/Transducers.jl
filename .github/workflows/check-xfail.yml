@@ -56,7 +56,7 @@ jobs:
         with:
           version: ${{ matrix.julia-version }}
 
-      - run: julia -e 'using Pkg; pkg"add https://github.com/tkf/Run.jl"'
+      - run: julia -e 'using Pkg; pkg"add Run@0.1"'
         if: ${{ steps.check-xfail-needed.outputs.need_xfail == 'yes' }}
 
       - run: julia -e 'using Run; Run.test(project = "test/environments/main", xfail = true)'
