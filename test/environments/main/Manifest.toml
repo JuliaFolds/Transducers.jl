@@ -31,7 +31,7 @@ version = "0.4.8"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "12284fcacb53ecee85e1a87ddcc7af06193726b9"
+git-tree-sha1 = "f57bbb6ebd696470055619abbd5c56f5e4564951"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
@@ -131,6 +131,11 @@ git-tree-sha1 = "fb1ff838470573adc15c71ba79f8d31328f035da"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 version = "0.25.2"
 
+[[ExprTools]]
+git-tree-sha1 = "7fce513fcda766962ff67c5596cb16c463dfd371"
+uuid = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
+version = "0.1.2"
+
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
 git-tree-sha1 = "b955c227b0d1413a1a97e2ca0635a5de019d7337"
@@ -148,7 +153,7 @@ uuid = "313cdc1a-70c2-5d6a-ae34-0150d3930a38"
 version = "1.1.0"
 
 [[InitialValues]]
-git-tree-sha1 = "ce35fc31f0ed9d426632cb6e789e03732f7c3df9"
+git-tree-sha1 = "7fefc31a78e39c564247dae8533d12432ce0179d"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/InitialValues.jl.git"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
@@ -224,6 +229,12 @@ deps = ["ArrayLayouts", "LinearAlgebra", "Random"]
 git-tree-sha1 = "f609fbed57eede4fd9c8529f59b3d30454f9e5ca"
 uuid = "a3b82374-2e81-5b9e-98ce-41277c0e4c87"
 version = "0.5.2"
+
+[[Maybe]]
+deps = ["Compat", "ExprTools"]
+git-tree-sha1 = "c82125bae11348db0e35a6da664655e14955d7f6"
+uuid = "334f122f-1118-46cc-837f-bff747ee6f78"
+version = "0.1.4"
 
 [[MicroCollections]]
 deps = ["BangBang", "Setfield"]
