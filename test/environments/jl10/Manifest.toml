@@ -1,10 +1,8 @@
 [[Aqua]]
 deps = ["Pkg", "Test"]
-git-tree-sha1 = "71bbfd1312212c06ebf8e97b9f3513603d42e001"
-repo-rev = "master"
-repo-url = "https://github.com/tkf/Aqua.jl.git"
+git-tree-sha1 = "6775799bef0635cb3d96d2fdd0f145087edf8a73"
 uuid = "4c88cf16-eb10-579e-8560-4a9242c79595"
-version = "0.5.0-DEV"
+version = "0.4.9"
 
 [[ArgCheck]]
 git-tree-sha1 = "59c256cf71c3982484ae4486ee86a3d7da891dea"
@@ -119,6 +117,11 @@ git-tree-sha1 = "f3464968c65fc78846dad1c038c474a2c39bbb23"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 version = "0.25.0"
 
+[[ExprTools]]
+git-tree-sha1 = "7fce513fcda766962ff67c5596cb16c463dfd371"
+uuid = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
+version = "0.1.2"
+
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
 git-tree-sha1 = "85c6b57e2680fa28d5c8adc798967377646fbf66"
@@ -218,6 +221,12 @@ version = "0.5.4"
 [[Markdown]]
 deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
+
+[[Maybe]]
+deps = ["Compat", "ExprTools"]
+git-tree-sha1 = "c82125bae11348db0e35a6da664655e14955d7f6"
+uuid = "334f122f-1118-46cc-837f-bff747ee6f78"
+version = "0.1.4"
 
 [[MicroCollections]]
 deps = ["BangBang", "Setfield"]
