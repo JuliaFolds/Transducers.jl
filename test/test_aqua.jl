@@ -10,10 +10,6 @@ Aqua.test_all(
     # https://github.com/JuliaCollections/DataStructures.jl/pull/511
     ambiguities = (; exclude = [Base.get, Setfield.set, Setfield.modify, map!]),
     unbound_args = false,  # TODO: make it work
-    project_extras = true,
-    stale_deps = true,
-    deps_compat = true,
-    project_toml_formatting = true,
 )
 
 @testset "Compare test/Project.toml and test/environments/main/Project.toml" begin
