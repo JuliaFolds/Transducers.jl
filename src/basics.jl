@@ -128,3 +128,58 @@ _IndexStyle(arr) = IndexStyle(arr)
 _IndexStyle(bc::Broadcasted) = _IndexStyle(typeof(bc))
 _IndexStyle(::Type{<:Broadcasted{<:Any,<:Tuple{Any}}}) = IndexLinear()
 _IndexStyle(::Type{<:Broadcasted{<:Any}}) = IndexCartesian()
+
+
+struct Err{T}
+    value::T
+end
+
+struct Ok{T}
+    value::T
+end
+
+
+struct Promise
+    value::Base.RefValue{Any}
+    isset::Threads.Atomic{Bool}
+    notify::Threads.Condition
+end
+
+Promise() = Promise(Ref{Any}(), Threads.Atomic{Bool}(false), Threads.Condition())
+
+tryfetch(::Nothing) = nothing
+tryfetch(p::Promise) = p.isset[] ? Some(p.value[]) : nothing
+
+function tryput!(p::Promise, value)
+    p.isset[] && return Some(p.value[])
+    lock(p.notify) do
+        p.isset[] && return Some(p.value[])
+        p.value[] = value
+        p.isset[] = true
+        notify(p.notify)
+        return nothing
+    end
+end
+
+function Base.fetch(p::Promise)
+    p.isset[] && return p.value[]
+    lock(p.notify) do
+        while !p.isset[]
+            wait(p.notify)
+        end
+        return p.value[]
+    end
+end
+
+
+function async_foreach(f, xs)
+    @sync for x in xs
+        @async f(x)
+    end
+end
+
+function spawn_foreach(f, xs)
+    @sync for x in xs
+        @spawn f(x)
+    end
+end

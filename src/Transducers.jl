@@ -22,6 +22,7 @@ export AdHocFoldable,
     Map,
     MapCat,
     MapSplat,
+    NondeterministicThreading,
     NotA,
     OfType,
     OnInit,
@@ -90,6 +91,7 @@ using InitialValues:
     asmonoid,
     hasinitialvalue
 using Logging: @logmsg, LogLevel
+using MicroCollections: UndefVector
 using Requires
 using Setfield: @lens, @set, set, setproperties
 using SplittablesBase: SplittablesBase, amount, halve
@@ -141,6 +143,7 @@ include("combinators.jl")
 include("simd.jl")
 include("processes.jl")
 include("reduce.jl")
+include("nondeterministic_threading.jl")
 include("dreduce.jl")
 include("unordered.jl")
 include("air.jl")
