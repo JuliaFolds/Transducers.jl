@@ -71,7 +71,7 @@ function start(rf::R_{NondeterministicThreading}, init)
     irf = inner(rf)
     taskref = Ref{Task}()
     err_promise = Promise()
-    ichan = Channel(0; taskref = taskref) do ichan
+    ichan = _Channel(Any, 0; taskref = taskref) do ichan
         async_foreach(1:ntasks) do _
             spawn_foreach(ichan) do (lbridge, buffer, rbridge)
                 try
