@@ -34,6 +34,8 @@ end
         end
     end
 
+    VERSION < v"1.3" && file == "test_nondeterministic_threading.jl" && continue
+
     # Do not support `Broadcasting` in Julia 1.0
     VERSION < v"1.1" && file == "test_broadcasting.jl" && continue
 

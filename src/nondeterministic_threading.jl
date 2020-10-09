@@ -33,6 +33,9 @@ particular, the data collection does not have to implement
     changed in the future (e.g. it may be automatically tuned at
     run-time).
 
+!!! note
+    `NondeterministicThreading` does not work with Julia < 1.3.
+
 # Keyword Arguments
 - `basesize::Integer`: The number of input elements to be accumulated
   in a buffer before sent to a task.
