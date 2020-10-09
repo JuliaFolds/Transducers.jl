@@ -56,10 +56,13 @@ julia> collect(1:4 |> NondeterministicThreading() |> Filter(isodd))
  3
 ```
 """
-Base.@kwdef struct NondeterministicThreading <: Transducer
-    basesize::Int = 1
-    ntasks::Int = Threads.nthreads()
+struct NondeterministicThreading <: Transducer
+    basesize::Int
+    ntasks::Int
 end
+
+NondeterministicThreading(; basesize = 1, ntasks = Threads.nthreads()) =
+    NondeterministicThreading(basesize, ntasks)
 
 function start(rf::R_{NondeterministicThreading}, init)
     buffer = UndefVector(xform(rf).basesize)
