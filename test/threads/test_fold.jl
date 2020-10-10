@@ -3,6 +3,7 @@ module TestFold
 include("../preamble.jl")
 using Distributed: @everywhere
 using InitialValues: INIT
+using Transducers: foldx_base
 
 const add = let fname = gensym(:add)
     @everywhere $fname(a, b) = a + b
@@ -19,6 +20,7 @@ const parseint = Base.Fix1(parse, Int)
     foldxl,
     foldxt,
     foldxd,
+    foldx_base,
 ]
     @testset "no init" begin
         @test fold(+, Map(identity), 1:4) == 10
@@ -55,6 +57,7 @@ end
     foldxt_bs1,
     foldxl,
     foldxt,
+    foldx_base,
 ]
     # TODO: test them with `foldxd` (don't use local functions)
     @testset "AdHocRF" begin
@@ -99,7 +102,7 @@ end
 end
 
 # TODO: make them work with `foldxd`
-@testset "$fold" for fold in [foldxt_bs1, foldxt]
+@testset "$fold" for fold in [foldxt_bs1, foldxt, foldx_base]
     @testset "eduction" begin
         @test fold(+, eduction(x for x in 1:10 if isodd(x))) == 25
         @test fold(+, Map(identity), eduction(x for x in 1:10 if isodd(x))) == 25
@@ -108,7 +111,7 @@ end
     end
 end
 
-@testset "$fold" for fold in [foldxl, foldxt, foldxd]
+@testset "$fold" for fold in [foldxl, foldxt, foldxd, foldx_base]
     foldxl = foldl = nothing  # don't use
     @test fold(TeeRF(min, max), [5, 2, 6, 8, 3]) === (2, 8)
     @test [5, 2, 6, 8, 3] |> fold(TeeRF(min, max)) === (2, 8)

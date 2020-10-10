@@ -151,6 +151,7 @@ include("lister.jl")
 include("show.jl")
 include("comprehensions.jl")
 include("progress.jl")
+include("fallback.jl")
 include("deprecated.jl")
 
 include("interop/blockarrays.jl")
