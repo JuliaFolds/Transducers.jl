@@ -1,7 +1,7 @@
 name = "Transducers"
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 authors = ["Takafumi Arakaki <aka.tkf@gmail.com>"]
-version = "0.4.52-DEV"
+version = "0.4.53-DEV"
 
 [deps]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
@@ -12,6 +12,7 @@ Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 InitialValues = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
+MicroCollections = "128add7d-3638-4c79-886c-908ea0c25c34"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
 SplittablesBase = "171d559e-b47b-412a-8079-5efa626c420e"
@@ -23,6 +24,7 @@ BangBang = "0.3.28"
 CompositionsBase = "0.1"
 DefineSingletons = "0.1"
 InitialValues = "0.2.8"
+MicroCollections = "0.1"
 Requires = "0.5, 1.0"
 Setfield = "0.3, 0.4, 0.5, 0.6, 0.7"
 SplittablesBase = "0.1.2"
@@ -43,7 +45,6 @@ LazyArrays = "5078a376-72f3-5289-bfd5-ec5146d43c02"
 LiterateTest = "d77d25b0-90d3-4a16-b10a-412a9d48f625"
 LoadAllPackages = "b37bcd2d-1570-475d-a8c6-9b4fae6d0ba9"
 Maybe = "334f122f-1118-46cc-837f-bff747ee6f78"
-MicroCollections = "128add7d-3638-4c79-886c-908ea0c25c34"
 OnlineStats = "a15396b6-48d5-5d58-9928-6d29437db91e"
 PerformanceTestTools = "dc46b164-d16f-48ec-a853-60448fc869fe"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
@@ -56,4 +57,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 TypedTables = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
 
 [targets]
-test = ["Aqua", "BlockArrays", "Compat", "DataFrames", "DataTools", "Dates", "Distributed", "Documenter", "InteractiveUtils", "LazyArrays", "LiterateTest", "LoadAllPackages", "Maybe", "MicroCollections", "OnlineStats", "PerformanceTestTools", "Pkg", "Random", "SparseArrays", "StaticArrays", "Statistics", "StructArrays", "Test", "TypedTables"]
+test = ["Aqua", "BlockArrays", "Compat", "DataFrames", "DataTools", "Dates", "Distributed", "Documenter", "InteractiveUtils", "LazyArrays", "LiterateTest", "LoadAllPackages", "Maybe", "OnlineStats", "PerformanceTestTools", "Pkg", "Random", "SparseArrays", "StaticArrays", "Statistics", "StructArrays", "Test", "TypedTables"]
