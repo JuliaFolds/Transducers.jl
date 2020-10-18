@@ -37,6 +37,9 @@ const parseint = Base.Fix1(parse, Int)
         @test fold(right, GroupBy(isodd, Map(last), +), 1:10) ==
               Dict(true => 25, false => 30)
     end
+    @testset "StepRange{UInt64, UInt64}" begin
+        @test fold(min, Map(identity), UInt64(0):typemax(UInt64)÷128:typemax(UInt64)) == 0
+    end
     if fold ∉ (simple_reduce, random_reduce, foldxd_bs1, foldxd)
         @testset "NoAdjoint" begin
             @test fold(
