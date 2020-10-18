@@ -90,9 +90,9 @@ Like [`foldxt`](@ref) but `step` is _not_ automatically wrapped by
 """
 Base.mapreduce
 
-struct SizedReducible{T,S<:Integer} <: Reducible
+struct SizedReducible{T} <: Reducible
     reducible::T
-    basesize::S
+    basesize::Int
 end
 
 foldable(reducible::SizedReducible) = reducible.reducible
