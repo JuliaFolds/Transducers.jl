@@ -98,9 +98,9 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[Dictionaries]]
 deps = ["Indexing", "Random"]
-git-tree-sha1 = "79d24b6604651ffdf39d99f116b43da9587ebd12"
+git-tree-sha1 = "56f85b0aeec74fe82fb2fba3efbab86ad38504d2"
 uuid = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
-version = "0.3.3"
+version = "0.3.4"
 
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
@@ -114,9 +114,9 @@ version = "0.8.3"
 
 [[Documenter]]
 deps = ["Base64", "Dates", "DocStringExtensions", "IOCapture", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Test", "Unicode"]
-git-tree-sha1 = "e7b7acd1d25ffdc1fe6226a3c2fd807fe64f898d"
+git-tree-sha1 = "a4875e0763112d6d017126f3944f4133abb342ae"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-version = "0.25.4"
+version = "0.25.5"
 
 [[ExprTools]]
 git-tree-sha1 = "10407a39b87f29d47ebaca8edbc75d7c302ff93e"
