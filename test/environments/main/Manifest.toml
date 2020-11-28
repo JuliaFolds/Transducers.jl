@@ -25,9 +25,9 @@ version = "2.1.0"
 
 [[ArrayLayouts]]
 deps = ["Compat", "FillArrays", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "8f6af27c33b766f19fa6cfe46e629775cda81f88"
+git-tree-sha1 = "a577e27915fdcb3f6b96118b56655b38e3b466f2"
 uuid = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
-version = "0.4.11"
+version = "0.4.12"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
@@ -42,9 +42,9 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[BlockArrays]]
 deps = ["ArrayLayouts", "Compat", "FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "824b1094a47d7da81f9ff77cb56c3341f2f92097"
+git-tree-sha1 = "5bbbb77619e555687beff95e0b1bf4b94f846048"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.12.14"
+version = "0.13.0"
 
 [[CategoricalArrays]]
 deps = ["DataAPI", "Future", "JSON", "Missings", "Printf", "Statistics", "StructTypes", "Unicode"]
@@ -116,9 +116,9 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[Dictionaries]]
 deps = ["Indexing", "Random"]
-git-tree-sha1 = "56f85b0aeec74fe82fb2fba3efbab86ad38504d2"
+git-tree-sha1 = "51665e54ed110d3a3187927c7a2923c98b33fe65"
 uuid = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
-version = "0.3.4"
+version = "0.3.5"
 
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
@@ -143,9 +143,9 @@ version = "0.1.3"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
-git-tree-sha1 = "502b3de6039d5b78c76118423858d981349f3823"
+git-tree-sha1 = "c1cf9e87a5c45f0c05dc31ae95757f706e70865a"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.9.7"
+version = "0.10.1"
 
 [[Formatting]]
 deps = ["Printf"]
@@ -198,10 +198,10 @@ uuid = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 version = "0.21.1"
 
 [[LazyArrays]]
-deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "MatrixFactorizations", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "1e9f6f50e6b39b2cabb18d5f0fafdd45d9c2a28f"
+deps = ["LinearAlgebra", "Test"]
+git-tree-sha1 = "30dd5ca1981163296f5deba6c094d91db4b4fd6a"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.18.1"
+version = "0.1.0"
 
 [[LibGit2]]
 deps = ["Printf"]
@@ -240,12 +240,6 @@ version = "0.5.6"
 [[Markdown]]
 deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
-
-[[MatrixFactorizations]]
-deps = ["ArrayLayouts", "LinearAlgebra", "Random"]
-git-tree-sha1 = "f609fbed57eede4fd9c8529f59b3d30454f9e5ca"
-uuid = "a3b82374-2e81-5b9e-98ce-41277c0e4c87"
-version = "0.5.2"
 
 [[Maybe]]
 deps = ["Compat", "ExprTools"]
@@ -387,9 +381,9 @@ version = "0.1.11-DEV"
 
 [[StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "da4cf579416c81994afd6322365d00916c79b8ae"
+git-tree-sha1 = "794e88df12426adc7eb3370b4ec3aee12f8d6911"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "0.12.5"
+version = "1.0.0"
 
 [[StaticNumbers]]
 deps = ["Requires"]
