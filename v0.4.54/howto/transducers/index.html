@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Writing transducers · Transducers.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">Transducers.jl</span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Reference</span><ul><li><a class="tocitem" href="../../reference/manual/">Manual</a></li><li><a class="tocitem" href="../../reference/interface/">Interface</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../../tutorials/tutorial_missings/">Tutorial: Missing values</a></li><li><a class="tocitem" href="../../tutorials/tutorial_parallel/">Tutorial: Parallelism</a></li><li><a class="tocitem" href="../../tutorials/words/">Parallel word count</a></li></ul></li><li><span class="tocitem">How-to guides</span><ul><li><a class="tocitem" href="../upgrade-to-ixf/">Upgrade to new <code>|&gt;</code> of Transducers.jl 0.4.39</a></li><li><a class="tocitem" href="../empty_result_handling/">Empty result handling</a></li><li class="is-active"><a class="tocitem" href>Writing transducers</a><ul class="internal"><li><a class="tocitem" href="#Stateless-transducer"><span>Stateless transducer</span></a></li><li><a class="tocitem" href="#Stateful-transducer"><span>Stateful transducer</span></a></li></ul></li><li><a class="tocitem" href="../reducibles/">Writing reducibles</a></li><li><a class="tocitem" href="../useful_patterns/">Useful patterns</a></li></ul></li><li><span class="tocitem">Explanation</span><ul><li><a class="tocitem" href="../../parallelism/">Parallelism</a></li><li><a class="tocitem" href="../../explanation/comparison_to_iterators/">Comparison to iterators</a></li><li><a class="tocitem" href="../../explanation/glossary/">Glossary</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">How-to guides</a></li><li class="is-active"><a href>Writing transducers</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Writing transducers</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/JuliaFolds/Transducers.jl/blob/master/examples/transducers.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="How-to-write-transducers"><a class="docs-heading-anchor" href="#How-to-write-transducers">How to write transducers</a><a id="How-to-write-transducers-1"></a><a class="docs-heading-anchor-permalink" href="#How-to-write-transducers" title="Permalink"></a></h1><p><code>Transducers</code> don&#39;t export public interface for implementing transducers (and reducible collections).  Let&#39;s import some handy ones:</p><pre><code class="language-julia">using Transducers
+using Transducers: Transducer, R_, next, inner, xform</code></pre><h2 id="Stateless-transducer"><a class="docs-heading-anchor" href="#Stateless-transducer">Stateless transducer</a><a id="Stateless-transducer-1"></a><a class="docs-heading-anchor-permalink" href="#Stateless-transducer" title="Permalink"></a></h2><p>Let&#39;s write manually what <code>opcompose(Filter(x -&gt; x isa Int), Map(x -&gt; x + 1))</code> would do:</p><pre><code class="language-julia">struct AddOneIfInt &lt;: Transducer end
+
+function Transducers.next(rf::R_{AddOneIfInt}, result, input)
+    if input isa Int</code></pre><p>Output <code>input + 1</code> is passed to the &quot;inner&quot; reducing step:</p><pre><code class="language-julia">        next(inner(rf), result, input + 1)
+    else</code></pre><p>Filtering out is done by &quot;doing nothing&quot;; return <code>result</code>-so-far as-is:</p><pre><code class="language-julia">        result
+    end
+end</code></pre><p>Ineed, for integer collection, it increments input by one:</p><pre><code class="language-julia">collect(AddOneIfInt(), 1:5)</code></pre><pre class="documenter-example-output">5-element Array{Int64,1}:
+ 2
+ 3
+ 4
+ 5
+ 6</pre><p>Non integer elements are filtered out:</p><pre><code class="language-julia">collect(AddOneIfInt(), Any[3, nothing, 2.0, missing, 5])</code></pre><pre class="documenter-example-output">2-element Array{Int64,1}:
+ 4
+ 6</pre><h2 id="Stateful-transducer"><a class="docs-heading-anchor" href="#Stateful-transducer">Stateful transducer</a><a id="Stateful-transducer-1"></a><a class="docs-heading-anchor-permalink" href="#Stateful-transducer" title="Permalink"></a></h2><p><code>AddOneIfInt</code> is a stateless transducer which is very easy to implement.  A stateful transducer needs a bit more code.</p><pre><code class="language-julia">using Transducers: start, complete, wrap, unwrap, wrapping
+using Random</code></pre><p>Let&#39;s define a transducer that spits out a random past element from the buffer:</p><pre><code class="language-julia">struct RandomRecall &lt;: Transducer
+    history::Int
+    seed::Int
+end
+RandomRecall() = RandomRecall(3, 0)</code></pre><p>A stateful transducer needs to implement <a href="../../reference/interface/#Transducers.start"><code>Transducers.start</code></a> to &quot;allocate&quot; its private state.  Here, the private state is a <code>buffer</code> and a random number generator state <code>rng</code>:</p><pre><code class="language-julia">function Transducers.start(rf::R_{RandomRecall}, result)
+    buffer = []
+    rng = MersenneTwister(xform(rf).seed)
+    private_state = (buffer, rng)
+    return wrap(rf, private_state, start(inner(rf), result))
+end</code></pre><p>Stateful transducer needs to unwrap its private state inside <a href="../../reference/interface/#Transducers.next"><code>Transducers.next</code></a> and then re-wrap it.  There is a helper function <a href="../../reference/interface/#Transducers.wrapping"><code>Transducers.wrapping</code></a> does that with the <code>do</code> block:</p><pre><code class="language-julia">function Transducers.next(rf::R_{RandomRecall}, result, input)
+    wrapping(rf, result) do (buffer, rng), iresult</code></pre><p>Pickup a random element to be passed to the inner reducing function. Replace it with the new incoming one in the buffer:</p><pre><code class="language-julia">        if length(buffer) &lt; xform(rf).history
+            push!(buffer, input)
+            iinput = rand(rng, buffer)
+        else
+            i = rand(rng, 1:length(buffer))
+            iinput = buffer[i]
+            buffer[i] = input
+        end</code></pre><p>Call the inner reducing function.  Note that <code>iresult</code> unwrapped by <a href="../../reference/interface/#Transducers.wrapping"><code>Transducers.wrapping</code></a> must be passed to <code>next</code>:</p><pre><code class="language-julia">        iresult = next(inner(rf), iresult, iinput)
+        return (buffer, rng), iresult
+    end
+end</code></pre><p>Any transducer with custom <a href="../../reference/interface/#Transducers.start"><code>Transducers.start</code></a> must have a corresponding <a href="../../reference/interface/#Transducers.complete"><code>Transducers.complete</code></a>.  It is responsible for unwrapping the <code>result</code> and call the <code>complete</code> for the inner reducing function.</p><pre><code class="language-julia">function Transducers.complete(rf::R_{RandomRecall}, result)
+    _private_state, inner_result = unwrap(rf, result)
+    return complete(inner(rf), inner_result)
+end</code></pre><p>Here is how it works:</p><pre><code class="language-julia">collect(RandomRecall(), 1:5)</code></pre><pre class="documenter-example-output">5-element Array{Int64,1}:
+ 1
+ 1
+ 2
+ 2
+ 1</pre><p>Indeed, it picks up some random elements from the past elements. With slightly more complex transducer:</p><pre><code class="language-julia">1:100 |&gt; Filter(isodd) |&gt; RandomRecall() |&gt; Filter(x -&gt; x &gt; 10) |&gt; Take(5) |&gt; collect</code></pre><pre class="documenter-example-output">5-element Array{Int64,1}:
+ 13
+ 11
+ 19
+ 17
+ 21</pre><p>Note that <a href="../../reference/interface/#Transducers.complete"><code>Transducers.complete</code></a> can do more than <code>unwrap</code> and <code>complete</code>.  It is useful for, e.g., flushing the buffer.</p><pre><code class="language-julia">function Transducers.complete(rf::R_{RandomRecall}, result)
+    (buffer, _), iresult = unwrap(rf, result)
+    for x in buffer</code></pre><p>Note that inner <code>next</code> can be called more than one time inside <code>next</code> and <code>complete</code>:</p><pre><code class="language-julia">        iresult = next(inner(rf), iresult, x)
+    end</code></pre><p><code>complete</code> for inner reducing function must be called exactly once:</p><pre><code class="language-julia">    return complete(inner(rf), iresult)
+end</code></pre><p>This then adds 3 (<code>= RandomRecall().history</code>) more elements to the output:</p><pre><code class="language-julia">collect(RandomRecall(), 1:5)</code></pre><pre class="documenter-example-output">8-element Array{Int64,1}:
+ 1
+ 1
+ 2
+ 2
+ 1
+ 5
+ 4
+ 3</pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../empty_result_handling/">« Empty result handling</a><a class="docs-footer-nextpage" href="../reducibles/">Writing reducibles »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 5 January 2021 09:52">Tuesday 5 January 2021</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
