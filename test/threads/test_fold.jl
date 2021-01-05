@@ -84,9 +84,7 @@ end
             whencomplete() do (sum, count)
                 sum / count
             end |>
-            Map() do x
-                (x, 1)
-            end'
+            Map(x -> (x, 1))'
         @test fold(averaging2, Filter(isodd), 1:5) === 3.0
         @test fold(averaging2, Filter(isodd), 1:50) === 25.0
     end
