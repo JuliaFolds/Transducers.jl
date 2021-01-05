@@ -116,4 +116,17 @@ end
     @test 1:5 |> Filter(isodd) |> fold(+) == 9
 end
 
+@testset "$ex" for ex in [SequentialEx, ThreadedEx, DistributedEx]
+    fold = Transducers.fold
+    @test transduce(Map(identity), min, Init(min), [5, 2, 6, 8, 3], ex()) === 2
+    @test transduce(Map(-), max, Init(max), [5, 2, 6, 8, 3], ex()) === -2
+    @test fold(min, [5, 2, 6, 8, 3], ex()) === 2
+    @test fold(TeeRF(min, max), [5, 2, 6, 8, 3], ex()) === (2, 8)
+end
+
+@testset "default executor" begin
+    @test Transducers.fold(min, [5, 2, 6, 8, 3]) === 2
+    @test [5, 2, 6, 8, 3] |> Transducers.fold(min) === 2
+end
+
 end  # module

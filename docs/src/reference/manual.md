@@ -79,6 +79,14 @@ unreduced
 ifunreduced
 ```
 
+## Executors
+
+```@docs
+SequentialEx
+ThreadedEx
+DistributedEx
+```
+
 ## Miscellaneous
 
 ```@docs

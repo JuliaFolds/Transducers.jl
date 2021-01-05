@@ -361,7 +361,7 @@ Call [`__foldl__`](@ref) without calling [`complete`](@ref).
     foldxl(step, reducible; init, simd) :: T
     foldl(step, xf::Transducer, reducible; init, simd) :: T
     foldl(step, ed::Eduction; init, simd) :: T
-    transduce(xf, step, init, reducible; simd) :: Union{T, Reduced{T}}
+    transduce(xf, step, init, reducible, [executor]; simd) :: Union{T, Reduced{T}}
 
 e**X**tended **l**eft fold.
 Compose transducer `xf` with reducing step function `step` and reduce
@@ -384,6 +384,7 @@ See also: [Empty result handling](@ref).
   accepts 2 arguments, wrap it with [`Completing`](@ref) to "add"
   1-argument form (i.e., [`complete`](@ref) protocol).
 - `reducible`: A reducible object (array, dictionary, any iterator, etc.).
+- `executor`: Specify an executor. See [`SequentialEx`](@ref).
 - `init`: An initial value fed to the first argument to reducing step
   function `step`.  This argument can be omitted for well know binary
   operations like `+` or `*`.  Supported binary operations are listed
