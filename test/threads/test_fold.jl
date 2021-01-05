@@ -126,6 +126,7 @@ end
 
 @testset "default executor" begin
     @test Transducers.fold(min, [5, 2, 6, 8, 3]) === 2
+    @test [5, 2, 6, 8, 3] |> Transducers.fold(min) === 2
 end
 
 end  # module
