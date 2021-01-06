@@ -7,6 +7,7 @@ export AdHocFoldable,
     CopyInit,
     Count,
     Dedupe,
+    DistributedEx,
     Drop,
     DropLast,
     DropWhile,
@@ -34,12 +35,14 @@ export AdHocFoldable,
     Replace,
     Scan,
     ScanEmit,
+    SequentialEx,
     TCat,
     Take,
     TakeLast,
     TakeNth,
     TakeWhile,
     TeeRF,
+    ThreadedEx,
     Transducer,
     Unique,
     Zip,
@@ -141,6 +144,7 @@ include("groupby.jl")
 include("broadcasting.jl")
 include("combinators.jl")
 include("simd.jl")
+include("executors.jl")
 include("processes.jl")
 include("reduce.jl")
 include("nondeterministic_threading.jl")
