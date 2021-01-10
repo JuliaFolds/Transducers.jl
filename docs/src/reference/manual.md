@@ -85,6 +85,7 @@ ifunreduced
 SequentialEx
 ThreadedEx
 DistributedEx
+PreferParallel
 ```
 
 ## Miscellaneous
