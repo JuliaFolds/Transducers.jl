@@ -30,12 +30,13 @@ keyword arguments.
 
 A "placeholder" executor that indicates preference to parallel execution.
 
-This lets the input data collection to decided preferred execution strategy
+This lets the input data collection decide preferred execution strategy
 (e.g., `CUDAEx` for `CuArray` when FoldsCUDA.jl is available), **assuming
 that the reducing function is associative**. The default executor is
 [`ThreadedEx`](@ref). As an optional feature, some input data collections
-(e.g., `AbstractChannel`) automatically support demoting the execution
-strategy to [`SequentialEx`](@ref).
+support (e.g., `AbstractChannel`) automatically demoting the execution
+strategy to [`SequentialEx`](@ref).  An error is thrown if the automatic
+detection fails,
 """
 PreferParallel
 
