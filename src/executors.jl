@@ -89,8 +89,8 @@ executor_for(xs::Any, exc) = executor_from(executor_type(xs), exc)
 @inline executor_type(xs::Iterators.ProductIterator) =
     mapfoldlargs(executor_type, executor_promote_type, PreferParallel, xs.iterators...)
 
-@inline executor_type(xs::Iterators.Zip) =
-    mapfoldlargs(executor_type, executor_promote_type, PreferParallel, xs.is...)
+@inline executor_type(xs::_Zip) =
+    mapfoldlargs(executor_type, executor_promote_type, PreferParallel, arguments(xs)...)
 
 @inline executor_promote_type(::Type{T}, ::Type{T}) where {T} = T
 @inline function executor_promote_type(::Type{T}, ::Type{S}) where {T,S}

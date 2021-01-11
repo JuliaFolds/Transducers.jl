@@ -10,11 +10,11 @@ Transducers.executor_type(::Opinionated{T}) where {T} = T
 @testset "executor_type (promote)" begin
     @testset for (xs, ex) in [
         (1:2, PreferParallel),
-        (Channel(), SequentialEx),
+        (Channel(0), SequentialEx),
         (zip(1:2, 3:4), PreferParallel),
-        (zip(1:2, Channel()), SequentialEx),
+        (zip(1:2, Channel(0)), SequentialEx),
         (Iterators.product(1:2, 3:4), PreferParallel),
-        (Iterators.product(1:2, Channel()), SequentialEx),
+        (Iterators.product(1:2, Channel(0)), SequentialEx),
         (Opinionated(DistributedEx), DistributedEx),
         (zip(Opinionated(DistributedEx), 1:2), DistributedEx),
         (zip(1:2, Opinionated(DistributedEx)), DistributedEx),
