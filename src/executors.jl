@@ -53,10 +53,9 @@ transduce(xf, rf, init, coll, exc::DistributedEx) =
     dtransduce(xf, rf, init, coll; exc.kwargs...)
 
 fold(rf::RF, coll, exec::Executor; init = DefaultInit) where {RF} =
-    transduce(IdentityTransducer(), rf, init, coll, exec)
-
+    unreduced(transduce(IdentityTransducer(), Completing(rf), init, coll, exec))
 fold(rf::RF, coll; init = DefaultInit, kwargs...) where {RF} =
-    unreduced(transduce(IdentityTransducer(), Completing(rf), init, coll, PreferParallel(; kwargs...)))
+    fold(rf, coll, PreferParallel(; kwargs...); init = init)
 
 function transduce(xf, rf, init, coll, exc::PreferParallel)
     xf0, coll0 = extract_transducer(coll)
