@@ -4,6 +4,7 @@ export AdHocFoldable,
     Broadcasting,
     Cat,
     Completing,
+    Consecutive,
     CopyInit,
     Count,
     Dedupe,
@@ -75,6 +76,7 @@ export AdHocFoldable,
     withprogress
 
 using Base.Broadcast: Broadcasted
+using Base: tail
 
 import Setfield
 import Tables
@@ -142,6 +144,7 @@ include("library.jl")
 include("teezip.jl")
 include("groupby.jl")
 include("broadcasting.jl")
+include("consecutive.jl")
 include("combinators.jl")
 include("simd.jl")
 include("executors.jl")
