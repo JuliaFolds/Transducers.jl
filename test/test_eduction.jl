@@ -12,7 +12,7 @@ using Transducers
     @test Transducer(ed3) === opcompose(Map(sin), Map(cos), Map(tan))
     @test eduction(Map(cos), eduction(Map(sin), 1:2)) ===
           eduction(opcompose(Map(sin), Map(cos)), 1:2)
-    @test eduction(sin(x) for x in 1:2) === eduction(Map(sin), 1:2)
+    @test collect(eduction(x^2 for x in 1:2)) == collect(eduction(Map(x -> x^2), 1:2))
 end
 
 end  # module
