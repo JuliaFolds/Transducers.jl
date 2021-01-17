@@ -777,10 +777,13 @@ complete(rf::R_{FlagFirst}, result) = complete(inner(rf), unwrap(rf, result)[2])
     Partition(size, step = size, flush = false)
     Partition(size; step = size, flush = false)
 
-Sliding window of width `size` and interval `step`.
+Sliding window of width `size` and interval `step`. Yield vectors.
 
 Note: `step` = `size` is the default.  Hence, the default behavior is
 non-overlapping windows.
+
+For small `size`, see [`Consecutive`](@ref) for a similar transducer that
+yields tuples instead.
 
 $_shared_vector_warning
 
