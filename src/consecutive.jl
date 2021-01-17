@@ -66,12 +66,6 @@ eduction(
 mapvalue(f, ::Val{x}) where {x} = Val(f(x))
 valueof(::Val{x}) where {x} = x
 
-@inline foldl_static_range(rf::F, acc, v::Val) where {F} =
-    _foldl_static_range(rf, acc, Val(1), v)
-@inline _foldl_static_range(_, acc, ::Val{n}, ::Val{n}) where {n} = acc
-@inline _foldl_static_range(rf::F, acc, ::Val{i}, len) where {F,i} =
-    _foldl_static_range(rf, @next(rf, acc, i), Val(i + 1), len)
-
 asval(x::Val) = x
 asval(x) = Val(x)
 
