@@ -183,7 +183,15 @@ simple_reduce(rf, xf, itr; kwargs...) = simple_reduce(
     kwargs...,
 )
 
-random_basesize(itr) = rand(3:SplittablesBase.amount(itr))
+function random_basesize(itr)
+    n = SplittablesBase.amount(itr)
+    if n >= 3
+        return rand(3:n)
+    else
+        # return rand(1:2)  # TODO: this should work
+        return 2
+    end
+end
 
 # For reducing functions with _exactly_ associative inner-most
 # semigroup, this should yield same result always
@@ -192,5 +200,22 @@ random_reduce(rf, xf, itr; kwargs...) =
 
 random_reduce(rf, itr; kwargs...) =
     simple_reduce(rf, itr; kwargs..., basesize = random_basesize(itr))
+
+inprocess_folds() = [
+    foldl,
+    foldxl,
+    simple_reduce,
+    random_reduce,
+    # Folds using `ThreadedEx`:
+    foldxt_bs1,
+    foldxt,
+]
+
+all_folds() = [
+    inprocess_folds()...,
+    # Folds using `DistributedEx`:
+    foldxd_bs1,
+    foldxd,
+]
 
 @specialize
