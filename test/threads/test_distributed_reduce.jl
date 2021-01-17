@@ -40,6 +40,11 @@ end
     square = Base.Fix2(^, 2)
     @test foldxd(+, Map(identity), 1:9 |> Map(square)) == 285
     @test dtransduce(Map(identity), +, 0, 1:9 |> Map(square)) == 285
+    @test foldxd(+, Map(square), Iterators.filter(isodd, 1:9)) == 165
+    @test foldxd(+, Map(identity), Iterators.filter(isodd, 1:9) |> Map(square)) == 165
+    @test dtransduce(Map(square), +, 0, Iterators.filter(isodd, 1:9)) == 165
+    @test dtransduce(Map(identity), +, 0, Iterators.filter(isodd, 1:9) |> Map(square)) ==
+          165
 end
 
 @testset "dcollect & dcopy" begin

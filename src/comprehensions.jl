@@ -108,7 +108,11 @@ true
 ```
 """
 extract_transducer(iter) = IdentityTransducer(), iter
-extract_transducer(ed::Eduction) = Transducer(ed.rf), ed.coll
+
+function extract_transducer(ed::Eduction)
+    xf, bottom = extract_transducer(ed.coll)
+    return Transducer(ed.rf) ∘ xf, bottom
+end
 
 function extract_transducer(iter::Iterators.Generator)
     xf, bottom = extract_transducer(iterinner(iter))
