@@ -58,33 +58,17 @@ foldxd(step::F, foldable; kwargs...) where {F} =
 See [`foldxd`](@ref) and [`transduce`](@ref).
 """
 function dtransduce(
-    xform::Transducer,
-    step,
-    init,
-    coll0;
+    xform::Transducer, step, init, coll;
     simd::SIMDFlag = Val(false),
-    basesize::Union{Integer,Nothing} = nothing,
-    threads_basesize::Union{Integer,Nothing} = nothing,
+    basesize::Integer = max(1, amount(coll) ÷ Distributed.nworkers()),
+    threads_basesize::Integer = max(1, basesize ÷ Threads.nthreads()),
     pool::Distributed.AbstractWorkerPool = Distributed.default_worker_pool(),
     _remote_reduce = _transduce_assoc_nocomplete,
 )
-    rf0 = _reducingfunction(xform, step; init = init)
-    rf1, coll = retransform(rf0, coll0)
-    rf = maybe_usesimd(rf1, simd)
+    @argcheck basesize > 0
     isempty(coll) && return init
     load_me_everywhere()
-    basesize = if basesize === nothing
-        max(1, amount(coll) ÷ Distributed.nworkers())
-    else
-        Int(basesize)
-    end
-    threads_basesize = if threads_basesize === nothing
-        max(1, basesize ÷ Threads.nthreads())
-    else
-        Int(threads_basesize)
-    end
-    @argcheck basesize > 0
-    @argcheck threads_basesize > 0
+    rf = _reducingfunction(xform, step; init = init, simd = simd)
     futures = map(firstindex(coll):basesize:lastindex(coll)) do start
         Distributed.remotecall(
             _remote_reduce,
