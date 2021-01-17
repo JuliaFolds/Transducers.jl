@@ -37,8 +37,9 @@ const ProgressLevel = LogLevel(-1)
 end
 
 @testset "retransform" begin
-    @test foldxd(+, Map(identity), 1:9 |> Map(<=(2))) == 2
-    @test dtransduce(Map(identity), +, 0, 1:9 |> Map(<=(2))) == 2
+    square = Base.Fix2(^, 2)
+    @test foldxd(+, Map(identity), 1:9 |> Map(square)) == 285
+    @test dtransduce(Map(identity), +, 0, 1:9 |> Map(square)) == 285
 end
 
 @testset "dcollect & dcopy" begin
