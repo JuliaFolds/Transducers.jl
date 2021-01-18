@@ -15,8 +15,10 @@ if isdefined(Iterators, :Zip1)  # VERSION < v"1.1-"
     arguments(xs::Iterators.Zip1) = (xs.a,)
     arguments(xs::Iterators.Zip2) = (xs.a, xs.b)
     arguments(xs::Iterators.Zip) = (xs.a, arguments(xs.z)...)
+    const _Zip = Iterators.AbstractZipIterator
 else
     arguments(xs::Iterators.Zip) = xs.is
+    const _Zip = Iterators.Zip
 end
 
 if VERSION < v"1.3"
