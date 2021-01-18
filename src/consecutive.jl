@@ -8,8 +8,12 @@ This transducer is like [`Partition`](@ref) but feeds tuples to the
 downstream transducers instead of vectors.
 
 If `step == 1`, this transducer supports parallel reduction for any
-collections; i.e., `Consecutive(size, Val(1))'(op)` is associative if
+collections; i.e., `Consecutive(size, 1)'(op)` is associative if
 `op` is associative.
+
+!!! warning
+    Currently, in parallel folds, `Consecutive(size, 1)` cannot be
+    used with reducing functions that can produce a `Reduced`.
 
 If `step > 1`, this transducer can, in principle, support parallel reduction
 if the input colection allows random access (e.g., arrays). However, this
