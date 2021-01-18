@@ -10,16 +10,7 @@ const add = let fname = gensym(:add)
 end
 const parseint = Base.Fix1(parse, Int)
 
-@testset "$fold" for fold in [
-    foldl,
-    simple_reduce,
-    random_reduce,
-    foldxt_bs1,
-    foldxd_bs1,
-    foldxl,
-    foldxt,
-    foldxd,
-]
+@testset "$fold" for fold in all_folds()
     @testset "no init" begin
         @test fold(+, Map(identity), 1:4) == 10
         @test fold(add, Map(identity), 1:4) == 10
@@ -51,14 +42,7 @@ const parseint = Base.Fix1(parse, Int)
     end
 end
 
-@testset "$fold" for fold in [
-    foldl,
-    simple_reduce,
-    random_reduce,
-    foldxt_bs1,
-    foldxl,
-    foldxt,
-]
+@testset "$fold" for fold in inprocess_folds()
     # TODO: test them with `foldxd` (don't use local functions)
     @testset "AdHocRF" begin
         averaging =
