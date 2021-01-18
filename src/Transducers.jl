@@ -39,6 +39,7 @@ export AdHocFoldable,
     Scan,
     ScanEmit,
     SequentialEx,
+    SplitBy,
     TCat,
     Take,
     TakeLast,
@@ -148,6 +149,7 @@ include("groupby.jl")
 include("broadcasting.jl")
 include("consecutive.jl")
 include("partitionby.jl")
+include("splitby.jl")
 include("combinators.jl")
 include("simd.jl")
 include("executors.jl")
