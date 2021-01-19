@@ -29,10 +29,10 @@ end
 end
 
 @testset "constructors" begin
-    @test Consecutive(5) ===  Consecutive(5, 5)
-    @test Consecutive(5; step = 3) ===  Consecutive(5, 3)
-    @test Consecutive(Val(5)) ===  Consecutive(5, 5)
-    @test Consecutive(Val(5); step = Val(3)) ===  Consecutive(5, 3)
+    @test Consecutive(5) === Consecutive(5, 5)
+    @test Consecutive(5; step = 3) === Consecutive(5, 3)
+    @test Consecutive(Val(5)) === Consecutive(5, 5)
+    @test Consecutive(Val(5); step = Val(3)) === Consecutive(5, 3)
 end
 
 end

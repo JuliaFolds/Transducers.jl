@@ -1,8 +1,37 @@
 module TestExecutorTypes
 
-using Test
-using Transducers
-using Transducers: maybe_set_simd
+include("preamble.jl")
+using Transducers: Executor, PreferParallel, executor_type, maybe_set_simd
+
+struct Opinionated{T<:Executor} end
+Opinionated(::Type{T}) where {T} = Opinionated{T}()
+Transducers.executor_type(::Opinionated{T}) where {T} = T
+
+@testset "executor_type (promote)" begin
+    @testset for (xs, ex) in [
+        (1:2, PreferParallel),
+        (Channel(0), SequentialEx),
+        (zip(1:2, 3:4), PreferParallel),
+        (zip(1:2, Channel(0)), SequentialEx),
+        (Iterators.product(1:2, 3:4), PreferParallel),
+        (Iterators.product(1:2, Channel(0)), SequentialEx),
+        (Opinionated(DistributedEx), DistributedEx),
+        (zip(Opinionated(DistributedEx), 1:2), DistributedEx),
+        (zip(1:2, Opinionated(DistributedEx)), DistributedEx),
+        (zip(Opinionated(DistributedEx), 1:2, 3:4), DistributedEx),
+        (zip(1:2, Opinionated(DistributedEx), 3:4), DistributedEx),
+        (zip(1:2, 3:4, Opinionated(DistributedEx)), DistributedEx),
+    ]
+        @test @inferred(executor_type(xs)) === ex
+    end
+end
+
+@testset "executor_type (error)" begin
+    err =
+        @test_error executor_type(zip(Opinionated(ThreadedEx), Opinionated(DistributedEx)))
+    msg = sprint(showerror, err)
+    @test occursin("failed to promote executors", msg)
+end
 
 @testset "show" begin
     @test occursin("ThreadedEx()", sprint(show, ThreadedEx()))

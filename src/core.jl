@@ -1024,6 +1024,8 @@ Base.show(io::IO, init::CopyInit) = _default_show(io, init)
               @next(op, x1, x2),
               xs...)
 
+@inline mapfoldlargs(f, op, xs...) = foldlargs(Map(f)'(op), xs...)
+
 """
     @default_finaltype(xf::Transducer, coll)
 
