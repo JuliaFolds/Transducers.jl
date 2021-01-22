@@ -68,7 +68,7 @@ executor_from(::Type{Ex}, exc::PreferParallel) where {Ex<:Executor} = Ex(exc.kwa
 executor_from(::Type{PreferParallel}, exc::PreferParallel) = ThreadedEx(exc.kwargs)
 executor_from(::Type{SequentialEx}, exc::PreferParallel) =
     SequentialEx(; _seq_ex_kwargs(; exc.kwargs...)...)
-_seq_ex_kwargs(; simd = Val{False}, _...) = (simd = simd,)
+_seq_ex_kwargs(; simd = Val(false), _...) = (simd = simd,)
 
 executor_for(xs::Any, exc) = executor_from(executor_type(xs), exc)
 # * `ThreadedEx` part sould be determined by the property of transducers (and,
@@ -83,7 +83,7 @@ executor_for(xs::Any, exc) = executor_from(executor_type(xs), exc)
 
 # Some "famous" containers known to be sequential-only:
 @inline executor_type(::AbstractChannel) = SequentialEx
-@inline executor_type(::Distributed.RemoteChannel) = SequentialEx
+# @inline executor_type(::Distributed.RemoteChannel) = SequentialEx
 @inline executor_type(::Iterators.Stateful) = SequentialEx
 
 @inline executor_type(xs::Iterators.ProductIterator) =
