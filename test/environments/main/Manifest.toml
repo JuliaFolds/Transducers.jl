@@ -427,9 +427,9 @@ version = "1.0.0"
 
 [[Tables]]
 deps = ["DataAPI", "DataValueInterfaces", "IteratorInterfaceExtensions", "LinearAlgebra", "TableTraits", "Test"]
-git-tree-sha1 = "240d19b8762006ff04b967bdd833269ad642d550"
+git-tree-sha1 = "97385160861239fc4e906cefdafb7c2e56fa7570"
 uuid = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
-version = "1.2.2"
+version = "1.3.0"
 
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
@@ -439,7 +439,7 @@ uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 deps = ["ArgCheck", "BangBang", "CompositionsBase", "DefineSingletons", "Distributed", "InitialValues", "Logging", "Markdown", "MicroCollections", "Requires", "Setfield", "SplittablesBase", "Tables"]
 path = "../../.."
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
-version = "0.4.56-DEV"
+version = "0.4.57-DEV"
 
 [[TypedTables]]
 deps = ["SplitApplyCombine", "Tables", "Unicode"]
