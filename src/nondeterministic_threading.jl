@@ -83,25 +83,25 @@ function start(rf::R_{NondeterministicThreading}, init)
                         x = tryfetch(lbridge::Union{Nothing,Promise})
                         x isa Some{<:Ok} || break
                         lacc, lbridge = something(x).value
-                        acc = combine(irf, lacc, acc)
+                        acc = combine_reduced(irf, lacc, acc)
                     end
                     while true
                         x = tryfetch(rbridge::Promise)
                         x isa Some{<:Ok} || break
                         racc, rbridge = something(x).value
-                        acc = combine(irf, acc, racc)
+                        acc = combine_reduced(irf, acc, racc)
                     end
                     while true
                         if lbridge isa Promise && isodd(time_ns())
                             x = tryput!(lbridge::Promise, Ok((acc, rbridge)))
                             x isa Some{<:Ok} || break
                             lacc, lbridge = something(x).value
-                            acc = combine(irf, lacc, acc)
+                            acc = combine_reduced(irf, lacc, acc)
                         else
                             x = tryput!(rbridge::Promise, Ok((acc, lbridge)))
                             x isa Some{<:Ok} || break
                             racc, rbridge = something(x).value
-                            acc = combine(irf, acc, racc)
+                            acc = combine_reduced(irf, acc, racc)
                         end
                     end
                 catch err
@@ -189,7 +189,7 @@ function complete(
                     x = fetch(lbridge)
                     x isa Ok || return
                     lacc, lbridge = x.value
-                    acc = combine(inner(rf), lacc, acc)
+                    acc = combine_reduced(inner(rf), lacc, acc)
                 end
                 tryput!(err_promise, nothing)  # cancel `errtask`
                 return acc
