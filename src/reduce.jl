@@ -258,6 +258,13 @@ end
 combine_right_reduced(rf, a, b0::Reduced) =
     reduced(combine(_realbottomrf(rf), a, unreduced(b0)))
 
+# TODO: make this the default behavior of `combine`
+function combine_reduced(rf, a, b)
+    a isa Reduced && return a
+    b isa Reduced && return combine_right_reduced(rf, a, b)
+    return combine(rf, a, b)
+end
+
 function _reduce_threads_for(rf, init, reducible::SizedReducible{<:AbstractArray})
     arr = reducible.reducible
     basesize = reducible.basesize
