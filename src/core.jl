@@ -725,6 +725,25 @@ iscontractive(::AbstractFilter) = true
 iscontractive(rf::Reduction) = iscontractive(xform(rf)) && iscontractive(inner(rf))
 =#
 
+# TODO: merge `isexpansive` and `OutputSize`
+abstract type OutputSize end
+struct SizeStable <: OutputSize end
+# struct SizeExpansive <: OutputSize end
+struct SizeChanging <: OutputSize end
+OutputSize(::Type{<:Transducer}) = SizeChanging()
+OutputSize(::Type{Composition{XO,XI}}) where {XO, XI} =
+    combine_outputsize(OutputSize(XO), OutputSize(XI))
+
+combine_outputsize(::SizeStable, ::SizeStable) = SizeStable()
+combine_outputsize(::OutputSize, ::OutputSize) = SizeChanging()
+
+# outputsize(::XF) where {XF <: Transducers} = OutputSize(XF)
+
+# For `Eduction` (which stores `Reduction` rather than `Transducer`):
+outputsize(::Type{Reduction{X,I}}) where {X, I <: Reduction} =
+    combine_outputsize(OutputSize(X), outputsize(I))
+outputsize(::Type{Reduction{X,I}}) where {X, I} = OutputSize(X)
+
 struct NoComplete <: Transducer end
 next(rf::R_{NoComplete}, result, input) = next(inner(rf), result, input)
 complete(::R_{NoComplete}, result) = result  # don't call inner complete
