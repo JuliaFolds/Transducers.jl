@@ -574,7 +574,18 @@ Transducer(ed::Eduction) = Transducer(ed.rf)
 transduce(xform::Transducer, f, init, ed::Eduction) =
     transduce(opcompose(Transducer(ed), xform), f, init, ed.coll)
 
-Base.IteratorSize(::Type{<:Eduction}) = Base.SizeUnknown()
+Base.IteratorSize(::Type{Eduction{F,C}}) where{F,C} =
+    outputsize(F) isa SizeStable ? Base.IteratorSize(C) : Base.SizeUnknown()
+
+function Base.length(ed::Eduction)
+    @argcheck Base.IteratorSize(ed) isa Union{Base.HasLength,Base.HasShape}
+    return length(ed.coll)
+end
+
+function Base.size(ed::Eduction)
+    @argcheck Base.IteratorSize(ed) isa Base.HasShape
+    return size(ed.coll)
+end
 
 function Base.iterate(ts::Eduction, state = nothing)
     if state === nothing
