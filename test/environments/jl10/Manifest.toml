@@ -23,7 +23,7 @@ version = "2.1.0"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "01bf34da7ad93817c205ace8e504769adb673fa2"
+git-tree-sha1 = "d5d3674b85623dfecf7b4a31678808b91f74821f"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
@@ -66,9 +66,9 @@ uuid = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
 version = "4.0.4"
 
 [[DataAPI]]
-git-tree-sha1 = "25ccd31003243d2ce83e474cf11663dddf48035f"
+git-tree-sha1 = "6d64b28d291cb94a0d84e6e41081fb081e7f717f"
 uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
-version = "1.4.1"
+version = "1.5.0"
 
 [[DataFrames]]
 deps = ["CategoricalArrays", "Compat", "DataAPI", "Future", "InvertedIndices", "IteratorInterfaceExtensions", "LinearAlgebra", "Markdown", "Missings", "PooledArrays", "PrettyTables", "Printf", "REPL", "Reexport", "SortingAlgorithms", "Statistics", "TableTraits", "Tables", "Unicode"]
