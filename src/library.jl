@@ -49,6 +49,7 @@ end
 
 Map(::Type{T}) where T = Map{Type{T}}(T)  # specialization workaround
 
+OutputSize(::Type{<:Map}) = SizeStable()
 isexpansive(::Map) = false
 @inline next(rf::R_{Map}, result, input) = next(inner(rf), result, xform(rf).f(input))
 
@@ -75,6 +76,7 @@ end
 
 MapSplat(::Type{T}) where T = MapSplat{Type{T}}(T)  # specialization workaround
 
+OutputSize(::Type{<:MapSplat}) = SizeStable()
 isexpansive(::MapSplat) = false
 @inline next(rf::R_{MapSplat}, result, input) =
     next(inner(rf), result, xform(rf).f(input...))
@@ -121,6 +123,7 @@ struct Replace{D} <: Transducer
     d::D  # dictionary-like object
 end
 
+OutputSize(::Type{<:Replace}) = SizeStable()
 isexpansive(::Replace) = false
 @inline next(rf::R_{Replace}, result, input) =
     next(inner(rf), result, get(xform(rf).d, input, input))
@@ -760,6 +763,7 @@ julia> collect(FlagFirst(), 1:3)
 """
 struct FlagFirst <: Transducer end
 
+OutputSize(::Type{<:FlagFirst}) = SizeStable()
 isexpansive(::FlagFirst) = false
 
 start(rf::R_{FlagFirst}, result) = wrap(rf, true, start(inner(rf), result))
@@ -1445,6 +1449,7 @@ struct Iterated{F, T} <: Transducer
     init::T
 end
 
+OutputSize(::Type{<:Iterated}) = SizeStable()
 isexpansive(::Iterated) = false
 start(rf::R_{Iterated}, result) =
     wrap(rf, _initvalue(rf), start(inner(rf), result))
@@ -1492,6 +1497,7 @@ end
 
 Count(start = 1) = Count(start, oneunit(start))
 
+OutputSize(::Type{<:Count}) = SizeStable()
 isexpansive(::Count) = false
 start(rf::R_{Count}, result) = wrap(rf, xform(rf).start, start(inner(rf), result))
 complete(rf::R_{Count}, result) = complete(inner(rf), unwrap(rf, result)[2])
@@ -1533,6 +1539,7 @@ end
 GetIndex{inbounds}(array::A) where {inbounds, A} = GetIndex{inbounds, A}(array)
 GetIndex(array) = GetIndex{false}(array)
 
+OutputSize(::Type{<:GetIndex}) = SizeStable()
 isexpansive(::GetIndex) = false
 
 @inline next(rf::R_{GetIndex{true}}, result, input) =
@@ -1575,6 +1582,7 @@ end
 SetIndex{inbounds}(array::A) where {inbounds, A} = SetIndex{inbounds, A}(array)
 SetIndex(array) = SetIndex{false}(array)
 
+OutputSize(::Type{<:SetIndex}) = SizeStable()
 isexpansive(::SetIndex) = false
 
 @inline next(rf::R_{SetIndex{true}}, result, input::NTuple{2, Any}) =
@@ -1680,6 +1688,7 @@ end
 
 Enumerate(start = 1) = Enumerate(start, oneunit(start))
 
+OutputSize(::Type{<:Enumerate}) = SizeStable()
 isexpansive(::Enumerate) = false
 start(rf::R_{Enumerate}, result) =
     wrap(rf, xform(rf).start, start(inner(rf), result))

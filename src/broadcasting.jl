@@ -82,6 +82,9 @@ true
 """
 struct Broadcasting <: Transducer end
 
+
+OutputSize(::Type{<:Broadcasting}) = SizeStable()
+
 struct LazyInit{I}
     init::I
 end
