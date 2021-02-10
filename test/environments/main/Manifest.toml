@@ -441,10 +441,10 @@ uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 version = "0.4.60-DEV"
 
 [[TypedTables]]
-deps = ["SplitApplyCombine", "Tables", "Unicode"]
-git-tree-sha1 = "3e5bd6b4a43a1de21f21faa4a309501c14da58bc"
+deps = ["Adapt", "SplitApplyCombine", "Tables", "Unicode"]
+git-tree-sha1 = "a6485a11be4d76c04d8fe721caf4cf54c0c04401"
 uuid = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
-version = "1.2.2"
+version = "1.2.3"
 
 [[UUIDs]]
 deps = ["Random", "SHA"]
