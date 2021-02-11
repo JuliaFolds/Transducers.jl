@@ -40,9 +40,10 @@ uuid = "a33af91c-f02d-484b-be07-31d278c5ca2b"
 version = "0.1.0"
 
 [[ConstructionBase]]
-git-tree-sha1 = "a2a6a5fea4d6f730ec4c18a76d27ec10e8ec1c50"
+deps = ["LinearAlgebra"]
+git-tree-sha1 = "48920211c95a6da1914a06c44ec94be70e84ffff"
 uuid = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
-version = "1.0.0"
+version = "1.1.0"
 
 [[DataAPI]]
 git-tree-sha1 = "8ab70b4de35bb3b8cc19654f6b893cf5164f8ee8"
