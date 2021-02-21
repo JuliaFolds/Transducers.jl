@@ -79,7 +79,7 @@ unreduced
 ifunreduced
 ```
 
-## Executors
+## [Executors](@id man-executor)
 
 ```@docs
 SequentialEx
