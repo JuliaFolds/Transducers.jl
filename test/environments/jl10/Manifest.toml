@@ -1,8 +1,7 @@
 [[AbstractTrees]]
-deps = ["Markdown"]
-git-tree-sha1 = "33e450545eaf7699da1a6e755f9ea65f14077a45"
+git-tree-sha1 = "03e0550477d86222521d254b741d470ba17ea0b5"
 uuid = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
-version = "0.3.3"
+version = "0.3.4"
 
 [[Adapt]]
 deps = ["LinearAlgebra"]
