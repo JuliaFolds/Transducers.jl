@@ -264,10 +264,10 @@ deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "R
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[PooledArrays]]
-deps = ["DataAPI"]
-git-tree-sha1 = "0e8f5c428a41a81cd71f76d76f2fc3415fe5a676"
+deps = ["DataAPI", "Future"]
+git-tree-sha1 = "cde4ce9d6f33219465b55162811d8de8139c0414"
 uuid = "2dfb63ee-cc39-5dd5-95bd-886bf059d720"
-version = "1.1.0"
+version = "1.2.1"
 
 [[PrettyTables]]
 deps = ["Crayons", "Formatting", "Markdown", "Reexport", "Tables"]
@@ -410,9 +410,9 @@ version = "0.4.60-DEV"
 
 [[TypedTables]]
 deps = ["Adapt", "SplitApplyCombine", "Tables", "Unicode"]
-git-tree-sha1 = "a6485a11be4d76c04d8fe721caf4cf54c0c04401"
+git-tree-sha1 = "4be59166b709f448938bde983b84836bc2913776"
 uuid = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
-version = "1.2.3"
+version = "1.2.4"
 
 [[UUIDs]]
 deps = ["Random", "SHA"]
