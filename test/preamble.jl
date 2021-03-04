@@ -1,3 +1,4 @@
+using BangBang: BangBang, append!!, collector, finish!
 using Test
 using Random
 using SparseArrays: issparse, sparse
@@ -5,7 +6,7 @@ using Statistics: mean
 using Transducers
 using Transducers: Transducer, simple_transduce, Reduced, isexpansive,
     ZipSource, GetIndex, SetIndex, Inject, @~, IdentityTransducer,
-    EmptyResultError, IdentityNotDefinedError, AbortIf, @next
+    EmptyResultError, IdentityNotDefinedError, AbortIf, wheninit, @next
 using Logging: NullLogger, with_logger
 using SplittablesBase: SplittablesBase
 
@@ -146,6 +147,16 @@ function slow_test(f, title, limit)
     end
     return
 end
+
+fcollect(ex::Transducers.Executor) = itr -> fcollect(itr, ex)
+fcollect(itr, ex = PreferParallel()) =
+    finish!(unreduced(transduce(
+        Map(BangBang.SingletonVector),
+        wheninit(collector, append!!),
+        collector(),
+        itr,
+        ex,
+    )))
 
 foldxt_bs1(args...; kw...) = foldxt(args...; basesize = 1, kw...)
 foldxd_bs1(args...; kw...) = foldxd(args...; basesize = 1, kw...)
