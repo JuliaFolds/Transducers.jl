@@ -23,6 +23,8 @@ end
 
 @testset "array_partitionby" begin
     @test PartitionBy(identity)(1:3) === Transducers.array_partitionby(identity, 1:3)
+    # Test for Julia < 1.3:
+    @test 1:3 |> PartitionBy(identity) === Transducers.array_partitionby(identity, 1:3)
 end
 
 end  # module

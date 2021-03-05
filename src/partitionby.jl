@@ -171,3 +171,7 @@ function array_partitionby(f::F, xs) where {F}
 end
 
 (f::PartitionBy)(xs::AbstractArray) = array_partitionby(f.f, xs)
+
+if VERSION < v"1.3"
+    Base.:|>(xs::AbstractArray, f::PartitionBy) = array_partitionby(f.f, xs)
+end
