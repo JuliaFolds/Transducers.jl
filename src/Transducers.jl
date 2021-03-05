@@ -33,6 +33,7 @@ export AdHocFoldable,
     PreferParallel,
     ProductRF,
     ReduceIf,
+    ReducePartitionBy,
     Reduced,
     Replace,
     Scan,
@@ -146,6 +147,7 @@ include("teezip.jl")
 include("groupby.jl")
 include("broadcasting.jl")
 include("consecutive.jl")
+include("partitionby.jl")
 include("combinators.jl")
 include("simd.jl")
 include("executors.jl")

@@ -703,8 +703,17 @@ next(rf::R_{MyTransducer}, result, input) =
 See [`wrap`](@ref), [`unwrap`](@ref), and [`next`](@ref).
 """
 @inline function wrapping(f, rf, result)
+    #=
     state0, iresult0 = unwrap(rf, result)
     state1, iresult1 = f(state0, iresult0)
+    =#
+    # `first`/`last` behaves nicer with type inference for `Union` of `Tuple`s:
+    a = unwrap(rf, result)
+    state0 = first(a)
+    iresult0 = last(a)
+    b = f(state0, iresult0)
+    state1 = first(b)
+    iresult1 = last(b)
     return wrap(rf, state1, iresult1)
 end
 
