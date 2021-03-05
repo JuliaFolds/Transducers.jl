@@ -198,7 +198,7 @@ end
     @simd_if rf for i in i0:_lastindex(arr)
         acc = @next(rf, acc, @inbounds arr[i])
     end
-    return restack(complete(rf, acc))
+    return complete(rf, acc)
 end
 
 @inline function _foldl_linear_rec(rf::RF, acc::T, arr, i0, counter) where {RF,T}
