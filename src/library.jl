@@ -925,11 +925,11 @@ $(_thx_clj("partition-by"))
 julia> using Transducers
 
 julia> 1:9 |> PartitionBy(x -> (x + 1) ÷ 3) |> Map(copy) |> collect
-4-element Array{Array{Int64,1},1}:
- [1]
- [2, 3, 4]
- [5, 6, 7]
- [8, 9]
+4-element Array{UnitRange{Int64},1}:
+ 1:1
+ 2:4
+ 5:7
+ 8:9
 ```
 """
 struct PartitionBy{F} <: Transducer
