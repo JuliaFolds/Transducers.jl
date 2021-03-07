@@ -8,6 +8,9 @@ struct Opinionated{T<:Executor} <: AbstractVector{Int} end
 Opinionated(::Type{T}) where {T} = Opinionated{T}()
 Transducers.executor_type(::Opinionated{T}) where {T} = T
 
+# Minimal interface to make printing happy:
+Base.size(::Opinionated) = (0,)
+
 @testset "executor_type (promote)" begin
     @testset for (xs, ex) in [
         (1:2, PreferParallel),
