@@ -49,6 +49,7 @@ OnlineStats = "a15396b6-48d5-5d58-9928-6d29437db91e"
 PerformanceTestTools = "dc46b164-d16f-48ec-a853-60448fc869fe"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Referenceables = "42d2dcc6-99eb-4e98-b66c-637b7d73030e"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
@@ -57,4 +58,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 TypedTables = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
 
 [targets]
-test = ["Aqua", "BlockArrays", "Compat", "DataFrames", "DataTools", "Dates", "Distributed", "Documenter", "InteractiveUtils", "LazyArrays", "LiterateTest", "LoadAllPackages", "Maybe", "OnlineStats", "PerformanceTestTools", "Pkg", "Random", "SparseArrays", "StaticArrays", "Statistics", "StructArrays", "Test", "TypedTables"]
+test = ["Aqua", "BlockArrays", "Compat", "DataFrames", "DataTools", "Dates", "Distributed", "Documenter", "InteractiveUtils", "LazyArrays", "LiterateTest", "LoadAllPackages", "Maybe", "OnlineStats", "PerformanceTestTools", "Pkg", "Random", "Referenceables", "SparseArrays", "StaticArrays", "Statistics", "StructArrays", "Test", "TypedTables"]
