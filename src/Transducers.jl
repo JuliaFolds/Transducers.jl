@@ -184,6 +184,9 @@ function __init__()
     @require DataFrames="a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
         include("interop/dataframes.jl")
     end
+    @require Referenceables="42d2dcc6-99eb-4e98-b66c-637b7d73030e" begin
+        include("interop/referenceables.jl")
+    end
 end
 
 end # module
