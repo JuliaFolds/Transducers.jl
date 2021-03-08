@@ -1,11 +1,15 @@
 module TestExecutorTypes
 
 include("preamble.jl")
+using Referenceables: referenceable
 using Transducers: Executor, PreferParallel, executor_type, maybe_set_simd
 
-struct Opinionated{T<:Executor} end
+struct Opinionated{T<:Executor} <: AbstractVector{Int} end
 Opinionated(::Type{T}) where {T} = Opinionated{T}()
 Transducers.executor_type(::Opinionated{T}) where {T} = T
+
+# Minimal interface to make printing happy:
+Base.size(::Opinionated) = (0,)
 
 @testset "executor_type (promote)" begin
     @testset for (xs, ex) in [
@@ -21,6 +25,8 @@ Transducers.executor_type(::Opinionated{T}) where {T} = T
         (zip(Opinionated(DistributedEx), 1:2, 3:4), DistributedEx),
         (zip(1:2, Opinionated(DistributedEx), 3:4), DistributedEx),
         (zip(1:2, 3:4, Opinionated(DistributedEx)), DistributedEx),
+        (referenceable([]), PreferParallel),
+        (referenceable(Opinionated(SequentialEx)), SequentialEx),
     ]
         @test @inferred(executor_type(xs)) === ex
     end
