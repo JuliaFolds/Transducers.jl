@@ -31,6 +31,8 @@ end
 _typeof(::Type{T}) where {T} = Type{T}
 _typeof(::T) where {T} = T
 
+const ValBool = Union{Val{false}, Val{true}}
+
 function _materializer(xs)
     T = Tables.materializer(xs)
     return T isa Type ? T : _materializer(typeof(xs))
