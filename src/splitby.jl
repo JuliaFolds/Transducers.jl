@@ -194,20 +194,20 @@ julia> using Transducers
 julia> xs = [1, 2, 3, 0, 1, 2, 3, 4, 0, 0, 1, 2];  # input
 
 julia> xs |> SplitBy(iszero) |> Map(collect) |> collect
-3-element Vector{Vector{Int64}}:
+3-element Array{Array{Int64,1},1}:
  [1, 2, 3]
  [1, 2, 3, 4]
  [1, 2]
 
 julia> xs |> SplitBy(iszero; keepempty = true) |> Map(collect) |> collect
-4-element Vector{Vector{Int64}}:
+4-element Array{Array{Int64,1},1}:
  [1, 2, 3]
  [1, 2, 3, 4]
  []
  [1, 2]
 
 julia> xs |> SplitBy(iszero; keepend = true) |> Map(collect) |> collect
-4-element Vector{Vector{Int64}}:
+4-element Array{Array{Int64,1},1}:
  [1, 2, 3, 0]
  [1, 2, 3, 4, 0]
  [0]
