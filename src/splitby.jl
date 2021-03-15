@@ -183,7 +183,7 @@ input     keepend=false       keepend=false        keepend=true
 2            | y3                | y4                | y4
 ```
 
-In the above diagram, `yi` (`i = 1, 2, 3, 4`) are the output `SplitBy`. This
+In the above diagram, `yi` (`i = 1, 2, 3, 4`) are the output of `SplitBy`. This
 can be checked in the REPL easily as follows. (Note: we are using
 `Map(collect)` for cleaner printing; it's not required unless the arrays is
 mutated in the downstream.)
