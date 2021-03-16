@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Useful patterns · Transducers.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">Transducers.jl</span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Reference</span><ul><li><a class="tocitem" href="../../reference/manual/">Manual</a></li><li><a class="tocitem" href="../../reference/interface/">Interface</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../../tutorials/tutorial_missings/">Tutorial: Missing values</a></li><li><a class="tocitem" href="../../tutorials/tutorial_parallel/">Tutorial: Parallelism</a></li><li><a class="tocitem" href="../../tutorials/words/">Parallel word count</a></li></ul></li><li><span class="tocitem">How-to guides</span><ul><li><a class="tocitem" href="../upgrade-to-ixf/">Upgrade to new <code>|&gt;</code> of Transducers.jl 0.4.39</a></li><li><a class="tocitem" href="../empty_result_handling/">Empty result handling</a></li><li><a class="tocitem" href="../transducers/">Writing transducers</a></li><li><a class="tocitem" href="../reducibles/">Writing reducibles</a></li><li class="is-active"><a class="tocitem" href>Useful patterns</a><ul class="internal"><li><a class="tocitem" href="#Flattening-nested-objects-using-MapCat"><span>Flattening nested objects using <code>MapCat</code></span></a></li><li><a class="tocitem" href="#&quot;Missing-value&quot;-handling-with-KeepSomething"><span>&quot;Missing value&quot; handling with <code>KeepSomething</code></span></a></li><li><a class="tocitem" href="#Multiple-outputs"><span>Multiple outputs</span></a></li></ul></li></ul></li><li><span class="tocitem">Explanation</span><ul><li><a class="tocitem" href="../../parallelism/">Parallelism</a></li><li><a class="tocitem" href="../../explanation/comparison_to_iterators/">Comparison to iterators</a></li><li><a class="tocitem" href="../../explanation/glossary/">Glossary</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">How-to guides</a></li><li class="is-active"><a href>Useful patterns</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Useful patterns</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/JuliaFolds/Transducers.jl/blob/master/examples/useful_patterns.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Useful-patterns"><a class="docs-heading-anchor" href="#Useful-patterns">Useful patterns</a><a id="Useful-patterns-1"></a><a class="docs-heading-anchor-permalink" href="#Useful-patterns" title="Permalink"></a></h1><p>This page includes some useful patterns using Transducers.jl.</p><pre><code class="language-julia">using Transducers</code></pre><h2 id="Flattening-nested-objects-using-MapCat"><a class="docs-heading-anchor" href="#Flattening-nested-objects-using-MapCat">Flattening nested objects using <code>MapCat</code></a><a id="Flattening-nested-objects-using-MapCat-1"></a><a class="docs-heading-anchor-permalink" href="#Flattening-nested-objects-using-MapCat" title="Permalink"></a></h2><h3 id="Simple-MapCat-usage"><a class="docs-heading-anchor" href="#Simple-MapCat-usage">Simple <code>MapCat</code> usage</a><a id="Simple-MapCat-usage-1"></a><a class="docs-heading-anchor-permalink" href="#Simple-MapCat-usage" title="Permalink"></a></h3><p>Consider a vector of &quot;objects&quot; (here just <code>NamedTuple</code>s) which in turn contain a vector of objects:</p><pre><code class="language-julia">nested_objects = [
+    (a = 1,  b = [(c = 2,  d = 3),  (c = 4,  d = 5)]),
+    (a = 10, b = [(c = 20, d = 30), (c = 40, d = 50)]),
+];</code></pre><p>We can flatten this into a table by using <code>Map</code> inside <code>MapCat</code>:</p><pre><code class="language-julia">using TypedTables
+astable(xs) = copy(Table, xs)  # using `TypedTables` for a nice display
+
+table1 = nested_objects |&gt; MapCat() do x
+    x.b |&gt; Map() do b  # not `MapCat`
+        (a = x.a, b...)
+    end
+end |&gt; astable</code></pre><pre class="documenter-example-output">Table with 3 columns and 4 rows:
+     a   c   d
+   ┌───────────
+ 1 │ 1   2   3
+ 2 │ 1   4   5
+ 3 │ 10  20  30
+ 4 │ 10  40  50</pre><p>(Note that the transducer used inside <code>MapCat</code> is <code>Map</code>, not <code>MapCat</code>)</p><h3 id="Nested-MapCat"><a class="docs-heading-anchor" href="#Nested-MapCat">Nested <code>MapCat</code></a><a id="Nested-MapCat-1"></a><a class="docs-heading-anchor-permalink" href="#Nested-MapCat" title="Permalink"></a></h3><p>This pattern can handle more nested objects:</p><pre><code class="language-julia">more_nested_objects = [
+    (a = 1,  b = [(c = 2,  d = [(e = 3,  f = 4),  (e = 4,  f = 5)]),
+                  (c = 6,  d = [])]),
+    (a = 10, b = [(c = 20, d = [(e = 30, f = 40), (e = 40, f = 50)])]),
+];</code></pre><p>By using nested <code>MapCat</code> (except for the &quot;inner most&quot; processing which uses <code>Map</code> since there is nothing to con<strong>cat</strong>enate):</p><pre><code class="language-julia">table3 =
+    more_nested_objects |&gt; MapCat() do x
+        x.b |&gt; MapCat() do b
+            b.d |&gt; Map() do d
+                (a = x.a, c = b.c, d...)
+            end
+        end
+    end |&gt; astable</code></pre><pre class="documenter-example-output">Table with 4 columns and 4 rows:
+     a   c   e   f
+   ┌───────────────
+ 1 │ 1   2   3   4
+ 2 │ 1   2   4   5
+ 3 │ 10  20  30  40
+ 4 │ 10  20  40  50</pre><h3 id="Comparison-with-iterator-comprehension"><a class="docs-heading-anchor" href="#Comparison-with-iterator-comprehension">Comparison with iterator comprehension</a><a id="Comparison-with-iterator-comprehension-1"></a><a class="docs-heading-anchor-permalink" href="#Comparison-with-iterator-comprehension" title="Permalink"></a></h3><p>As a comparison, here is how to do it with iterator comprehension</p><pre><code class="language-julia">rows = (
+    (a = x.a, c = b.c, d...)
+    for x in more_nested_objects
+    for b in x.b
+    for d in b.d
+)
+@assert Table(collect(rows)) == table3</code></pre><p>For a simple flattening and mapping, iterator comprehension as above perhaps is the simplest solution.</p><p>Note that Transducers.jl works well with iterator comprehensions. Transducers.jl-specific entry points like <a href="../../reference/manual/#Transducers.foldxl"><code>foldxl</code></a> converts iterator comprehensions to transducers internally. <a href="../../reference/manual/#Transducers.eduction"><code>eduction</code></a> can be used to explicitly do this conversion:</p><pre><code class="language-julia">@assert astable(eduction(rows)) == table3</code></pre><h3 id="Complex-MapCat-example"><a class="docs-heading-anchor" href="#Complex-MapCat-example">Complex <code>MapCat</code> example</a><a id="Complex-MapCat-example-1"></a><a class="docs-heading-anchor-permalink" href="#Complex-MapCat-example" title="Permalink"></a></h3><p>For more complex processing that requires intermediate variables, the iterator comprehension does not work well.  Fortunately, it is easy to use intermediate variables with transducers:</p><pre><code class="language-julia">more_nested_objects |&gt;
+MapCat() do x
+    a2 = x.a * 2
+    x.b |&gt; MapCat() do b
+        a2_plus_c = a2 + b.c
+        b.d |&gt; Map() do d
+            c_plus_e = b.c + d.e
+            c_plus_f = b.c + d.f
+            (a2_plus_c = a2_plus_c, c_plus_e = c_plus_e, c_plus_f = c_plus_f)
+        end
+    end
+end |&gt;
+astable</code></pre><pre class="documenter-example-output">Table with 3 columns and 4 rows:
+     a2_plus_c  c_plus_e  c_plus_f
+   ┌──────────────────────────────
+ 1 │ 4          5         6
+ 2 │ 4          6         7
+ 3 │ 40         50        60
+ 4 │ 40         60        70</pre><h3 id="MapCat-with-zip"><a class="docs-heading-anchor" href="#MapCat-with-zip"><code>MapCat</code> with <code>zip</code></a><a id="MapCat-with-zip-1"></a><a class="docs-heading-anchor-permalink" href="#MapCat-with-zip" title="Permalink"></a></h3><p>Note also that <code>MapCat</code> can be combined with arbitrary iterator combinators such as <code>zip</code></p><pre><code class="language-julia">[(a = 1:3, b = &#39;x&#39;:&#39;z&#39;), (a = 1:4, b = &#39;i&#39;:&#39;l&#39;)] |&gt;
+MapCat() do x
+    zip(x.a, x.b)
+end |&gt;
+MapSplat((a, b) -&gt; (a = a, b = b)) |&gt;
+astable</code></pre><pre class="documenter-example-output">Table with 2 columns and 7 rows:
+     a  b
+   ┌─────
+ 1 │ 1  x
+ 2 │ 2  y
+ 3 │ 3  z
+ 4 │ 1  i
+ 5 │ 2  j
+ 6 │ 3  k
+ 7 │ 4  l</pre><h3 id="MapCat-with-Iterators.product"><a class="docs-heading-anchor" href="#MapCat-with-Iterators.product"><code>MapCat</code> with <code>Iterators.product</code></a><a id="MapCat-with-Iterators.product-1"></a><a class="docs-heading-anchor-permalink" href="#MapCat-with-Iterators.product" title="Permalink"></a></h3><p>... and <code>product</code></p><pre><code class="language-julia">[(a = 1:3, b = &#39;x&#39;:&#39;z&#39;), (a = 1:4, b = &#39;i&#39;:&#39;l&#39;)] |&gt;
+MapCat() do x
+    Iterators.product(x.a, x.b)
+end |&gt;
+Enumerate() |&gt;
+Filter(x -&gt; x[1] % 5 == 0) |&gt;  # include only every five item
+MapSplat((n, (a, b)) -&gt; (n = n, a = a, b = b)) |&gt;
+astable</code></pre><pre class="documenter-example-output">Table with 3 columns and 5 rows:
+     n   a  b
+   ┌─────────
+ 1 │ 5   2  y
+ 2 │ 10  1  i
+ 3 │ 15  2  j
+ 4 │ 20  3  k
+ 5 │ 25  4  l</pre><h2 id="&quot;Missing-value&quot;-handling-with-KeepSomething"><a class="docs-heading-anchor" href="#&quot;Missing-value&quot;-handling-with-KeepSomething">&quot;Missing value&quot; handling with <code>KeepSomething</code></a><a id="&quot;Missing-value&quot;-handling-with-KeepSomething-1"></a><a class="docs-heading-anchor-permalink" href="#&quot;Missing-value&quot;-handling-with-KeepSomething" title="Permalink"></a></h2><p>Transducers.jl has a generic filtering such as <a href="../../reference/manual/#Transducers.Filter"><code>Filter</code></a> as well as type-based filtering such as <a href="../../reference/manual/#Transducers.NotA"><code>NotA</code></a> and <a href="../../reference/manual/#Transducers.OfType"><code>OfType</code></a>.  These transducers can be used to filter out &quot;missing values&quot; represented as <code>missing</code> or <code>nothing</code>.</p><p><a href="../../reference/manual/#Transducers.KeepSomething"><code>KeepSomething</code></a> is a transducer that is useful for working on <code>Union{Nothing,Some{T}}</code>.  It filters out <code>nothing</code> and yield itmes after applying <code>something</code>.</p><pre><code class="language-julia">[nothing, 1, Some(nothing), 2, 3] |&gt; KeepSomething(identity) |&gt; collect</code></pre><pre class="documenter-example-output">4-element Array{Union{Nothing, Int64},1}:
+ 1
+  nothing
+ 2
+ 3</pre><p>Thus, <code>KeepSomething</code> works well with any tools that operate on <code>Union{Nothing,Some{T}}</code>.  Here is an example of using it with <a href="https://github.com/tkf/Maybe.jl">Maybe.jl</a>.  Consider a vector of heterogeneous dictionaries with varying set of keys:</p><pre><code class="language-julia">heterogeneous_objects = [
+    Dict(:a =&gt; 1, :b =&gt; Dict(:c =&gt; 2)),
+    Dict(:a =&gt; 1),                          # missing key
+    Dict(:a =&gt; 1, :b =&gt; Dict()),            # missing key
+    Dict(:b =&gt; Dict(:c =&gt; 2)),              # missing key
+    Dict(:a =&gt; 10, :b =&gt; Dict(:ccc =&gt; 20)), # alternative key name
+];</code></pre><p>Using <code>@something</code> and <code>@?</code> macros from Maybe.jl, we can convert this to a regular table quite easily:</p><pre><code class="language-julia">using Maybe
+
+heterogeneous_objects |&gt;
+KeepSomething() do x
+    c = @something {       # (1)
+        @? x[:b][:c];      # (2)
+        @? x[:b][:ccc];    # (3)
+        return;            # (4)
+    }
+    @? (a = x[:a], c = c)  # (5)
+end |&gt;
+astable</code></pre><pre class="documenter-example-output">Table with 2 columns and 2 rows:
+     a   c
+   ┌───────
+ 1 │ 1   2
+ 2 │ 10  20</pre><p>In this example, for each dictionary <code>x</code>, the body of the <code>do</code> block works as follows:</p><ul><li>(1) Try to extract the item <code>c</code>.<ul><li>(2) First, try to get it from <code>x[:b][:c]</code>.</li><li>(3) If <code>x[:b][:c]</code> doesn&#39;t exist, try <code>x[:b][:ccc]</code> next.</li><li>(4) If both <code>x[:b][:c]</code> and <code>x[:b][:ccc]</code> do not exist, return <code>nothing</code>.  <code>KeepSomething</code> will filter out this entry.</li></ul></li><li>(5) Try to extract the item <code>a</code> from <code>x[:a]</code>.<ul><li>If this does not exist, the whole expression wrapped by <code>@?</code> evaluates to <code>nothing</code>.  This, in turn, will be filtered out by <code>KeepSomething</code>.</li><li>If <code>x[:a]</code> exists, <code>@? (a = x[:a], c = c)</code> evaluates to <code>Some((a = value_of_a, c = value_of_c))</code>.  The <code>Some</code> wrapper is unwrapped by <code>something</code> called by <code>KeepSomething</code>.</li></ul></li></ul><p>For more information, see the tutorial in <a href="https://tkf.github.io/Maybe.jl/dev/">Maybe.jl documentation</a>.</p><h2 id="Multiple-outputs"><a class="docs-heading-anchor" href="#Multiple-outputs">Multiple outputs</a><a id="Multiple-outputs-1"></a><a class="docs-heading-anchor-permalink" href="#Multiple-outputs" title="Permalink"></a></h2><p>Usually, reducers like <code>sum</code> and <code>collect</code> have one output.  However we can use <a href="../../reference/manual/#Transducers.TeeRF"><code>TeeRF</code></a> etc. to &quot;fan-out&quot; input items to multiple outputs.</p><h3 id="Multiple-output-vectors"><a class="docs-heading-anchor" href="#Multiple-output-vectors">Multiple output vectors</a><a id="Multiple-output-vectors-1"></a><a class="docs-heading-anchor-permalink" href="#Multiple-output-vectors" title="Permalink"></a></h3><p>Here is an example of creating two output vectors of integers and symbols in one go:</p><pre><code class="language-julia">ints, symbols =
+    [1, :two, missing, 3, 4, :five, 6] |&gt;
+    Filter(!isequal(6)) |&gt;
+    foldxl(TeeRF(
+        OfType(Int)&#39;(push!!),    # push integers to a vector
+        OfType(Symbol)&#39;(push!!), # push symbols to a vector
+    ))</code></pre><pre class="documenter-example-output">([1, 3, 4], [:two, :five])</pre><p>Here, we use <code>TeeRF(rf₁, rf₂, ..., rfₙ)</code> to fan-out input items to multiple reducing functions.  To compose each reducing function, we use <a href="../../reference/manual/#Transducers.OfType"><code>OfType</code></a> transducer as reducing function transformation <a href="../../reference/manual/#Base.adjoint"><code>xf&#39;(rf)</code></a>.</p><h3 id="Handling-empty-results"><a class="docs-heading-anchor" href="#Handling-empty-results">Handling empty results</a><a id="Handling-empty-results-1"></a><a class="docs-heading-anchor-permalink" href="#Handling-empty-results" title="Permalink"></a></h3><p>Note that fold with <code>push!!</code> throws when the input is empty.  To obtain an empty vector when the input is empty or all filtered out, we need to specify <code>init</code>. <a href="https://github.com/JuliaFolds/MicroCollections.jl">MicroCollections.jl</a> includes a library of collections useful as <code>init</code>.  Here, we can use <code>EmptyVector</code>:</p><pre><code class="language-julia">using MicroCollections
+
+ints, strings =
+    [1, :two, missing, 3, 4, :five, 6] |&gt;
+    Filter(!isequal(6)) |&gt;
+    foldxl(TeeRF(
+        OfType(Int)&#39;(push!!),    # push integers to a vector
+        OfType(String)&#39;(push!!), # push strings to a vector (but there is no string)
+    ); init = EmptyVector())</code></pre><pre class="documenter-example-output">([1, 3, 4], Union{}[])</pre><h3 id="Composed-transducers-with-TeeRF"><a class="docs-heading-anchor" href="#Composed-transducers-with-TeeRF">Composed transducers with <code>TeeRF</code></a><a id="Composed-transducers-with-TeeRF-1"></a><a class="docs-heading-anchor-permalink" href="#Composed-transducers-with-TeeRF" title="Permalink"></a></h3><p>Each reducing function passed to <code>TeeRF</code> can use arbitrary complex transducers.  Here is an example of filtering-in symbols and then map them to strings:</p><pre><code class="language-julia">ints, strings =
+    [1, :two, missing, 3, 4, :five, 6] |&gt;
+    Filter(!isequal(6)) |&gt;
+    foldxl(
+        TeeRF(
+            OfType(Int)&#39;(push!!),
+            opcompose(OfType(Symbol), Map(String))&#39;(push!!),  # filter _then_ map
+        );
+        init = EmptyVector(),
+    )</code></pre><pre class="documenter-example-output">([1, 3, 4], [&quot;two&quot;, &quot;five&quot;])</pre><h3 id="Nested-TeeRF"><a class="docs-heading-anchor" href="#Nested-TeeRF">Nested <code>TeeRF</code></a><a id="Nested-TeeRF-1"></a><a class="docs-heading-anchor-permalink" href="#Nested-TeeRF" title="Permalink"></a></h3><p>Each reducing function itself passed to <code>TeeRF</code> can even be composed using <code>TeeRF</code> (or other reducing function combinators; e.g., <a href="../../reference/manual/#Transducers.ProductRF"><code>ProductRF</code></a>).  Here is an example of computing extrema on integers:</p><pre><code class="language-julia">(imin, imax), strings =
+    [1, :two, missing, 3, 4, :five, 6] |&gt;
+    Filter(!isequal(6)) |&gt;
+    foldxl(
+        TeeRF(
+            OfType(Int)&#39;(TeeRF(max, min)),  # extrema on integers
+            opcompose(OfType(Symbol), Map(String))&#39;(push!!),  # filter _then_ map
+        );
+        init = ((typemin(Int), typemax(Int)), EmptyVector()),
+    )</code></pre><pre class="documenter-example-output">((4, 1), [&quot;two&quot;, &quot;five&quot;])</pre><h3 id="When-input-is-a-tuple:-ProductRF"><a class="docs-heading-anchor" href="#When-input-is-a-tuple:-ProductRF">When input is a tuple: <code>ProductRF</code></a><a id="When-input-is-a-tuple:-ProductRF-1"></a><a class="docs-heading-anchor-permalink" href="#When-input-is-a-tuple:-ProductRF" title="Permalink"></a></h3><p><a href="../../reference/manual/#Transducers.ProductRF"><code>ProductRF</code></a> is like <code>TeeRF</code> but it expects that the input is already a tuple:</p><pre><code class="language-julia">ints, io =
+    [(1:3, &#39;x&#39;:&#39;z&#39;), nothing, (1:4, &#39;i&#39;:&#39;l&#39;)] |&gt;
+    NotA(Nothing) |&gt;
+    foldxl(
+        ProductRF(
+            opcompose(Cat(), Filter(isodd))&#39;(push!!),    # process 1:3 etc.
+            Cat()&#39;((io, char) -&gt; (write(io, char); io)), # process &#39;x&#39;:&#39;z&#39; etc.
+        );
+        init = (EmptyVector(), IOBuffer()),
+    );</code></pre><pre><code class="language-julia">String(take!(io))</code></pre><pre class="documenter-example-output">&quot;xyzijkl&quot;</pre><pre><code class="language-julia">ints</code></pre><pre class="documenter-example-output">4-element Array{Int64,1}:
+ 1
+ 3
+ 1
+ 3</pre><h3 id="When-input-is-a-row:-DataTools.oncol"><a class="docs-heading-anchor" href="#When-input-is-a-row:-DataTools.oncol">When input is a row: <code>DataTools.oncol</code></a><a id="When-input-is-a-row:-DataTools.oncol-1"></a><a class="docs-heading-anchor-permalink" href="#When-input-is-a-row:-DataTools.oncol" title="Permalink"></a></h3><p><a href="https://juliafolds.github.io/DataTools.jl/dev/#DataTools.oncol"><code>oncol</code></a> from <a href="https://github.com/JuliaFolds/DataTools.jl">DataTools.jl</a> is like <code>ProductRF</code> but acts on <code>NamedTuple</code> (as well as any <a href="https://github.com/jw3126/Setfield.jl">Setfield.jl</a>-compatible possibly nested objects).</p><pre><code class="language-julia">using DataTools
+foldxl(oncol(a = +, b = *), [(a = 1, b = 2), (a = 3, b = 4)])</code></pre><pre class="documenter-example-output">(a = 4, b = 8)</pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reducibles/">« Writing reducibles</a><a class="docs-footer-nextpage" href="../../parallelism/">Parallelism »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 16 March 2021 00:02">Tuesday 16 March 2021</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
