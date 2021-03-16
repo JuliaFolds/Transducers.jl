@@ -91,6 +91,7 @@ PreferParallel
 ## Miscellaneous
 
 ```@docs
+SplitBy
 Transducer(::Transducers.Comprehension)
 Transducer(::OnlineStats.OnlineStat)
 reducingfunction
