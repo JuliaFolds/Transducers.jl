@@ -375,9 +375,9 @@ version = "0.5.0"
 
 [[StructTypes]]
 deps = ["Dates", "UUIDs"]
-git-tree-sha1 = "d7f4287dbc1e590265f50ceda1b40ed2bb31bbbb"
+git-tree-sha1 = "89b390141d2fb2ef3ac2dc32e336f7a5c4810751"
 uuid = "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
-version = "1.4.0"
+version = "1.5.0"
 
 [[SweepOperator]]
 deps = ["LinearAlgebra"]
