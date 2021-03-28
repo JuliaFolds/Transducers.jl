@@ -109,8 +109,8 @@ end
     @testset "PartitionBy" begin
         # Testing that DistributedEx can handle a stateful transducer based on
         # an anonymous functions defined in Main:
-        itr = @eval Main 1:10 |> $PartitionBy(x -> x ÷ 3) |> $Map(string)
-        @test itr |> fcollect(ex()) == ["1:2", "3:5", "6:8", "9:10"]
+        itr = @eval Main 1:10 |> $PartitionBy(x -> x ÷ 3) |> $Map(first)
+        @test itr |> fcollect(ex()) == [1, 3, 6, 9]
     end
 end
 
