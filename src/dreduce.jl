@@ -96,8 +96,15 @@ function dtransduce(
         )
     end
     # TODO: Cancel remote computation when there is a Reduced.
+
+    # If `rf` contains stateful transducers using anonymous functions, the
+    # states will be detected as incompatible for wrap/unwrap. Work around this
+    # issue by using the `rf` object that is used on the remotes.
+    frfr = Distributed.remotecall(identity, pool, rf)
+
     results = map(fetch, futures)
-    return complete(rf, combine_all(rf, results))
+    rfr = fetch(frfr)
+    return complete(rfr, combine_all(rfr, results))
 end
 
 function load_me_everywhere()
