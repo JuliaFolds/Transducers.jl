@@ -106,6 +106,12 @@ end
     @test transduce(Map(-), max, Init(max), [5, 2, 6, 8, 3], ex()) === -2
     @test fold(min, [5, 2, 6, 8, 3], ex()) === 2
     @test fold(TeeRF(min, max), [5, 2, 6, 8, 3], ex()) === (2, 8)
+    @testset "PartitionBy" begin
+        # Testing that DistributedEx can handle a stateful transducer based on
+        # an anonymous functions defined in Main:
+        itr = @eval Main 1:10 |> PartitionBy(x -> x ÷ 3) |> Map(string)
+        @test itr |> fcollect(ex()) == ["1:2", "3:5", "6:8", "9:10"]
+    end
 end
 
 @testset "default executor" begin
