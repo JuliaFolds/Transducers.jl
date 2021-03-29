@@ -96,9 +96,18 @@ function dtransduce(
         )
     end
     # TODO: Cancel remote computation when there is a Reduced.
-    results = map(fetch, futures)
-    return complete(rf, combine_all(rf, results))
+    return Distributed.remotecall_fetch(pool, futures) do futures
+        results = map(fetch, futures)
+        return complete(rf, combine_all(rf, results))
+        # TODO: call combine asynchronously
+    end
 end
+# Note: Calling combine on remote is useful not only for computation
+# off-loading but also for making it actually work. If `rf` contains any
+# stateful transducers that use any anonymous functions defined in `Main`,
+# `unwrap` will detect that the private states as incompatible. So, we need to
+# use `rf` that is deserialized by Distributed, when combining and completing
+# the stateful reductions.
 
 function load_me_everywhere()
     pkgid = Base.PkgId(@__MODULE__)
