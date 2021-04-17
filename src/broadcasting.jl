@@ -28,12 +28,12 @@ item in the first input array.  This makes using `Broadcasting` for
 julia> using Transducers
 
 julia> foldl(+, Broadcasting(), [[1, 2], [3, 4], 5])
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
   9
  11
 
 julia> foldl(+, Broadcasting(), [(0,), [1], [2.0], [3 + 0im]])
-1-element Array{Complex{Float64},1}:
+1-element Vector{ComplexF64}:
  6.0 + 0.0im
 
 julia> foldl(
@@ -41,7 +41,7 @@ julia> foldl(
            [[[1], [10, 100]], [[2], [20, 200]], [[3], [30, 300]]] |>
                Broadcasting() |> Broadcasting(),
        )
-2-element Array{Array{Int64,1},1}:
+2-element Vector{Vector{Int64}}:
  [6]
  [6000, 6000000]
 ```
@@ -56,7 +56,7 @@ julia> add!(a, b) = a .+= b;
 
 julia> foldl(add!, Broadcasting(), [[[1], [2, 3]], [[4, 5], 6]];
              init = Ref([0, 0]))
-2-element Array{Array{Int64,1},1}:
+2-element Vector{Vector{Int64}}:
  [13, 15]
  [13, 15]
 
@@ -69,7 +69,7 @@ Use `OnInit` to initialize a new array with each item in the input:
 ```jldoctest Broadcasting
 julia> foldl(add!, Broadcasting(), [[[1], [2, 3]], [[4, 5], 6]];
              init = OnInit(() -> [0, 0]))
-2-element Array{Array{Int64,1},1}:
+2-element Vector{Vector{Int64}}:
  [5, 6]
  [8, 9]
 

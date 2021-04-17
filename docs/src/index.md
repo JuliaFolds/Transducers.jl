@@ -65,19 +65,19 @@ it would look very familiar to you:
 julia> using Transducers
 
 julia> 1:3 |> Map(x -> 2x) |> collect  # double each element
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  2
  4
  6
 
 julia> 1:6 |> Filter(iseven) |> collect  # collect only evens
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  2
  4
  6
 
 julia> 1:3 |> MapCat(x -> 1:x) |> collect  # concatenate mapped results
-6-element Array{Int64,1}:
+6-element Vector{Int64}:
  1
  1
  2
@@ -91,7 +91,7 @@ Transducers can be composed:
 
 ```jldoctest filter-map
 julia> 1:6 |> Filter(iseven) |> Map(x -> 2x) |> collect
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
   4
   8
  12

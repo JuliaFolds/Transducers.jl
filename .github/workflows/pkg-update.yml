@@ -23,11 +23,16 @@ jobs:
           target: create-pull-request/pkg-update
 
       # https://github.com/tkf/julia-update-manifests
-      - name: Update */Manifest.toml
+      - name: Update */Manifest.toml (1.6)
+        uses: tkf/julia-update-manifests@v1
+        with:
+          version: '1.6'
+          projects: docs
+      - name: Update */Manifest.toml (1.4)
         uses: tkf/julia-update-manifests@v1
         with:
           version: '1.4'
-          projects: test/environments/main docs benchmark
+          projects: test/environments/main benchmark
       - name: Update test/environments/jl10/Manifest.toml
         uses: tkf/julia-update-manifests@v1
         with:

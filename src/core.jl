@@ -222,11 +222,11 @@ See also [`adjoint`](@ref) for `xf'(rf)`.
 julia> using Transducers
 
 julia> xs = Map(inv)(2:2:4)
-2-element StepRange{Int64,Int64} |>
+2-element StepRange{Int64, Int64} |>
     Map(inv)
 
 julia> collect(xs)
-2-element Array{Float64,1}:
+2-element Vector{Float64}:
  0.5
  0.25
 
@@ -932,7 +932,7 @@ julia> xf1 = Scan(push!, [])
 Scan(push!, Any[])
 
 julia> foldl(right, xf1, 1:3)
-3-element Array{Any,1}:
+3-element Vector{Any}:
  1
  2
  3
@@ -947,7 +947,7 @@ run:
 
 ```jldoctest OnInit
 julia> foldl(right, xf1, 10:11)
-5-element Array{Any,1}:
+5-element Vector{Any}:
   1
   2
   3
@@ -963,13 +963,13 @@ julia> xf2 = Scan(push!, OnInit(() -> []))
 Scan(push!, OnInit(##9#10()))
 
 julia> foldl(right, xf2, 1:3)
-3-element Array{Any,1}:
+3-element Vector{Any}:
  1
  2
  3
 
 julia> foldl(right, xf2, [10.0, 11.0])
-2-element Array{Any,1}:
+2-element Vector{Any}:
  10.0
  11.0
 ```
@@ -979,10 +979,10 @@ Keyword argument `init` for transducible processes also accept an
 
 ```jldoctest OnInit
 julia> foldl(push!, Map(identity), "abc"; init=OnInit(() -> []))
-3-element Array{Any,1}:
- 'a'
- 'b'
- 'c'
+3-element Vector{Any}:
+ 'a': ASCII/Unicode U+0061 (category Ll: Letter, lowercase)
+ 'b': ASCII/Unicode U+0062 (category Ll: Letter, lowercase)
+ 'c': ASCII/Unicode U+0063 (category Ll: Letter, lowercase)
 ```
 
 To create a copy of a mutable object, [`CopyInit`](@ref) is easier to
@@ -996,10 +996,10 @@ automatically finds the minimal element type.
 julia> using BangBang
 
 julia> foldl(push!!, Map(identity), "abc"; init=Union{}[])
-3-element Array{Char,1}:
- 'a'
- 'b'
- 'c'
+3-element Vector{Char}:
+ 'a': ASCII/Unicode U+0061 (category Ll: Letter, lowercase)
+ 'b': ASCII/Unicode U+0062 (category Ll: Letter, lowercase)
+ 'c': ASCII/Unicode U+0063 (category Ll: Letter, lowercase)
 ```
 """
 struct OnInit{F} <: AbstractInitializer
@@ -1026,13 +1026,13 @@ julia> using Transducers
 julia> init = CopyInit([]);
 
 julia> foldl(push!, Map(identity), 1:3; init=init)
-3-element Array{Any,1}:
+3-element Vector{Any}:
  1
  2
  3
 
 julia> foldl(push!, Map(identity), 1:3; init=init)  # `init` can be reused
-3-element Array{Any,1}:
+3-element Vector{Any}:
  1
  2
  3
