@@ -62,7 +62,7 @@ julia> xf = Keep() do x
        end;
 
 julia> collect(xf, 1:5)
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  2
  3
 ```

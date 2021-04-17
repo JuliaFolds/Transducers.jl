@@ -56,7 +56,7 @@ julia> foldxt(+, 1:3 |> Map(exp) |> Map(log))
 julia> using BangBang: append!!
 
 julia> foldxt(append!!, Map(x -> 1:x), 1:2; basesize=1, init=Union{}[])
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  1
  1
  2
@@ -295,7 +295,7 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel)
 julia> using Transducers
 
 julia> tcopy(Map(x -> x => x^2), Dict, 2:2)
-Dict{Int64,Int64} with 1 entry:
+Dict{Int64, Int64} with 1 entry:
   2 => 4
 
 julia> using TypedTables
@@ -430,12 +430,12 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel)
 julia> using Transducers
 
 julia> tcollect(Map(x -> x^2), 1:2)
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  4
 
 julia> tcollect(x^2 for x in 1:2)
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  4
 ```
