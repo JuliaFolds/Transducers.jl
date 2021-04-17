@@ -755,7 +755,7 @@ See also:
 julia> using Transducers
 
 julia> collect(FlagFirst(), 1:3)
-3-element Array{Tuple{Bool,Int64},1}:
+3-element Vector{Tuple{Bool, Int64}}:
  ($_true_str, 1)
  ($_false_str, 2)
  ($_false_str, 3)
@@ -1349,7 +1349,7 @@ julia> collect(xf, split(\"\"\"
        name: Cat |> Filter
        type: chaotic
        \"\"\", "\\n"; keepempty=false))
-4-element Array{NamedTuple{(:name, :lines),Tuple{SubString{String},Array{String,1}}},1}:
+4-element Vector{NamedTuple{(:name, :lines), Tuple{SubString{String}, Vector{String}}}}:
  (name = "Map", lines = ["name: Map", "type: onetoone"])
  (name = "Cat", lines = ["name: Cat", "type: expansive"])
  (name = "Filter", lines = ["name: Filter", "type: contractive"])

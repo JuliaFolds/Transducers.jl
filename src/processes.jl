@@ -1246,7 +1246,7 @@ julia> A = reshape(1:6, (3, 2))
  3  6
 
 julia> collect(Map(identity), uppertriangle(A))
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  1
  4
  5
@@ -1275,7 +1275,7 @@ julia> function circularwindows(xs::AbstractVector, h::Integer)
        end;
 
 julia> collect(Map(collect), circularwindows(1:9, 2))
-9-element Array{Array{Int64,1},1}:
+9-element Vector{Vector{Int64}}:
  [8, 9, 1, 2, 3]
  [9, 1, 2, 3, 4]
  [1, 2, 3, 4, 5]
@@ -1304,7 +1304,7 @@ julia> collect(Map(identity), expressions(\"\"\"
        x = 1
        y = 2
        \"\"\"))
-2-element Array{Expr,1}:
+2-element Vector{Expr}:
  :(x = 1)
  :(y = 2)
 
