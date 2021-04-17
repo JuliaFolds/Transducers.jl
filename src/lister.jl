@@ -51,7 +51,7 @@ TransducerLister() = TransducerLister(@__MODULE__)
 Transducer(tl::TransducerLister) = opcompose(
     Filter() do x
         t = getproperty(tl.m, x)
-        is_transducer_type(t) && !is_internal(t)
+        is_transducer_type(t)
     end,
     Map(x -> Docs.Binding(tl.m, x)),
 )
