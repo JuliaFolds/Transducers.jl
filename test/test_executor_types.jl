@@ -15,6 +15,8 @@ Base.size(::Opinionated) = (0,)
     @testset for (xs, ex) in [
         (1:2, PreferParallel),
         (Channel(0), SequentialEx),
+        (pairs(1:2), PreferParallel),
+        (pairs(Opinionated(DistributedEx)), DistributedEx),
         (zip(1:2, 3:4), PreferParallel),
         (zip(1:2, Channel(0)), SequentialEx),
         (Iterators.product(1:2, 3:4), PreferParallel),

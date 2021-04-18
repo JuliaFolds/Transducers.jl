@@ -86,6 +86,9 @@ executor_for(xs::Any, exc) = executor_from(executor_type(xs), exc)
 # @inline executor_type(::Distributed.RemoteChannel) = SequentialEx
 @inline executor_type(::Iterators.Stateful) = SequentialEx
 
+@inline executor_type(xs::Iterators.Pairs) =
+    executor_promote_type(executor_type(keys(xs)), executor_type(values(xs)))
+
 @inline executor_type(xs::Iterators.ProductIterator) =
     mapfoldlargs(executor_type, executor_promote_type, PreferParallel, xs.iterators...)
 
