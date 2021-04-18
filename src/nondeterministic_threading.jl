@@ -49,12 +49,12 @@ particular, the data collection does not have to implement
 julia> using Transducers
 
 julia> collect(1:4 |> Filter(isodd))
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  3
 
 julia> collect(1:4 |> NondeterministicThreading() |> Filter(isodd))
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  3
 ```

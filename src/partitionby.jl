@@ -11,7 +11,7 @@ Consider the input `1:6` "keyed" by a function `x -> x ÷ 3`:
 
 ```jldoctest
 julia> map(x -> x ÷ 3, 1:6)
-6-element Array{Int64,1}:
+6-element Vector{Int64}:
  0
  0
  1
@@ -28,13 +28,13 @@ partition by:
 julia> using Transducers
 
 julia> 1:6 |> ReducePartitionBy(x -> x ÷ 3, Map(_ -> 1)'(+)) |> collect
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  2
  3
  1
 
 julia> 1:6 |> ReducePartitionBy(x -> x ÷ 3, +) |> collect
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
   3
  12
   6

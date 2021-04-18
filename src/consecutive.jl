@@ -24,12 +24,12 @@ feature is not implemented yet.
 julia> using Transducers
 
 julia> 1:8 |> Consecutive(3) |> collect
-2-element Array{Tuple{Int64,Int64,Int64},1}:
+2-element Vector{Tuple{Int64, Int64, Int64}}:
  (1, 2, 3)
  (4, 5, 6)
 
 julia> 1:8 |> Consecutive(3; step = 1) |> collect
-6-element Array{Tuple{Int64,Int64,Int64},1}:
+6-element Vector{Tuple{Int64, Int64, Int64}}:
  (1, 2, 3)
  (2, 3, 4)
  (3, 4, 5)

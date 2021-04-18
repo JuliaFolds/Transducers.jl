@@ -28,7 +28,7 @@ julia> using Transducers
        using Transducers: ZipSource
 
 julia> collect(ZipSource(opcompose(Filter(isodd), Map(x -> x + 1))), 1:5)
-3-element Array{Tuple{Int64,Int64},1}:
+3-element Vector{Tuple{Int64, Int64}}:
  (1, 2)
  (3, 4)
  (5, 6)
@@ -189,7 +189,7 @@ inner reduction step.
 julia> using Transducers
 
 julia> collect(Zip(Map(identity), Map(x -> 10x), Map(x -> 100x)), 1:3)
-3-element Array{Tuple{Int64,Int64,Int64},1}:
+3-element Vector{Tuple{Int64, Int64, Int64}}:
  (1, 10, 100)
  (2, 20, 200)
  (3, 30, 300)
