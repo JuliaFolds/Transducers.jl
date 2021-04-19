@@ -149,6 +149,7 @@ makedocs(;
             "Parallelism" => "parallelism.md",  # TODO: merge this to index.md
             "Comparison to iterators" => "explanation/comparison_to_iterators.md",
             "Glossary" => "explanation/glossary.md",
+            "State machines" => "explanation/state_machines.md",
             hide("Internals" => "explanation/internals.md"),
         ],
     ],

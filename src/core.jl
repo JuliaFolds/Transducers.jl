@@ -565,6 +565,13 @@ combine(rf::Reduction, a, b) =
         combine(inner(rf), a, b)
     end
 
+"""
+    is_prelude(::T)
+
+Return `true` if it is better to tail-call when the accumulator or the
+private state changes its type from `T`.
+"""
+is_prelude
 is_prelude(_) = false
 is_prelude(::InitialValues.InitialValue) = true
 is_prelude(xs::Tuple) = any(map(is_prelude, xs))
