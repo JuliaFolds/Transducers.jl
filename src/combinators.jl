@@ -29,7 +29,7 @@ next(rf::AbstractMultiCastingRF, accs, x) = error(
 
 @inline function complete(rf::AbstractMultiCastingRF, accs)
     results = map((f, a) -> complete(f, a), rf.fs, accs)
-    if any(r -> r isa DefaultInitOf, results)  # is `any` too strict?
+    if Baselet.Specialized.any(r -> r isa DefaultInitOf, results)  # is `any` too strict?
         return DefaultInitOf{typeof(rf)}()
     end
     return results
