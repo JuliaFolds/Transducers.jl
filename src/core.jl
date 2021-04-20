@@ -338,6 +338,9 @@ Transducer(rf::Reduction) =
 # `Reduction` to `AbstractReduction`.
 Reduction(::IdentityTransducer, inner) = ensurerf(inner)
 
+Adapt.adapt_structure(to, rf::R) where {R <: Reduction} =
+    Reduction(Adapt.adapt(to, xform(rf)), Adapt.adapt(to, inner(rf)))
+
 """
     Transducers.R_{X}
 

@@ -81,6 +81,7 @@ export AdHocFoldable,
 using Base.Broadcast: Broadcasted
 using Base: tail
 
+import Adapt
 import Setfield
 import Tables
 using ArgCheck
