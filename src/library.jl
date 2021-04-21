@@ -53,6 +53,8 @@ OutputSize(::Type{<:Map}) = SizeStable()
 isexpansive(::Map) = false
 @inline next(rf::R_{Map}, result, input) = next(inner(rf), result, xform(rf).f(input))
 
+Adapt.adapt_structure(to, xf::Map) = Map(Adapt.adapt(to, xf.f))
+
 """
     MapSplat(f)
 
@@ -80,6 +82,8 @@ OutputSize(::Type{<:MapSplat}) = SizeStable()
 isexpansive(::MapSplat) = false
 @inline next(rf::R_{MapSplat}, result, input) =
     next(inner(rf), result, xform(rf).f(input...))
+
+Adapt.adapt_structure(to, xf::MapSplat) = MapSplat(Adapt.adapt(to, xf.f))
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/replace
 # https://clojuredocs.org/clojure.core/replace
@@ -285,6 +289,8 @@ end
 
 @inline next(rf::R_{Filter}, result, input) =
     xform(rf).pred(input) ? next(inner(rf), result, input) : result
+
+Adapt.adapt_structure(to, xf::Filter) = Filter(Adapt.adapt(to, xf.pred))
 
 """
     NotA(T)
@@ -1551,6 +1557,9 @@ Base.:(==)(xf1::GetIndex{inbounds,A},
            xf2::GetIndex{inbounds,A}) where {inbounds,A} =
     xf1.array == xf2.array
 
+Adapt.adapt_structure(to, xf::GetIndex{inbounds}) where {inbounds} =
+    GetIndex{inbounds}(Adapt.adapt(to, xf.array))
+
 """
     SetIndex(array)
     SetIndex{inbounds}(array)
@@ -1596,6 +1605,8 @@ Base.:(==)(xf1::SetIndex{inbounds,A},
            xf2::SetIndex{inbounds,A}) where {inbounds,A} =
     xf1.array == xf2.array
 
+Adapt.adapt_structure(to, xf::SetIndex{inbounds}) where {inbounds} =
+    SetIndex{inbounds}(Adapt.adapt(to, xf.array))
 
 """
     Inject(iterator)
