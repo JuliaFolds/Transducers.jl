@@ -34,6 +34,11 @@ version = "0.3.29"
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
+[[Baselet]]
+git-tree-sha1 = "aebf55e6d7795e02ca500a689d326ac979aaf89e"
+uuid = "9718e550-a3fa-408a-8086-8db961cd8217"
+version = "0.1.1"
+
 [[BlockArrays]]
 deps = ["LinearAlgebra"]
 git-tree-sha1 = "54a8bc44883dc33002bd954ba6d336ee86ec62d1"
@@ -432,7 +437,7 @@ deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[Transducers]]
-deps = ["Adapt", "ArgCheck", "BangBang", "CompositionsBase", "DefineSingletons", "Distributed", "InitialValues", "Logging", "Markdown", "MicroCollections", "Requires", "Setfield", "SplittablesBase", "Tables"]
+deps = ["Adapt", "ArgCheck", "BangBang", "Baselet", "CompositionsBase", "DefineSingletons", "Distributed", "InitialValues", "Logging", "Markdown", "MicroCollections", "Requires", "Setfield", "SplittablesBase", "Tables"]
 path = "../../.."
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 version = "0.4.64-DEV"
