@@ -76,7 +76,7 @@ function start(rf::R_{NondeterministicThreading}, init)
     err_promise = Promise()
     ichan = Channel(0; taskref = taskref) do ichan
         async_foreach(1:ntasks) do _
-            spawn_foreach(ichan) do (lbridge, buffer, rbridge)
+            sync_spawn_foreach(ichan) do (lbridge, buffer, rbridge)
                 try
                     acc = foldl_nocomplete(irf, start(irf, init), buffer)
                     while true
