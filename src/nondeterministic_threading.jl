@@ -175,7 +175,7 @@ function complete(
                 while lbridge isa Promise
                     local x = tryput!(lbridge, Err(err))
                     x isa Some{<:Ok} || break
-                    _, lbridge = x.value
+                    _, lbridge = something(x).value
                 end
                 Err(err)
             end
