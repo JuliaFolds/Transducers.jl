@@ -222,11 +222,11 @@ See also [`adjoint`](@ref) for `xf'(rf)`.
 julia> using Transducers
 
 julia> xs = Map(inv)(2:2:4)
-2-element StepRange{Int64,Int64} |>
+2-element StepRange{Int64, Int64} |>
     Map(inv)
 
 julia> collect(xs)
-2-element Array{Float64,1}:
+2-element Vector{Float64}:
  0.5
  0.25
 
@@ -337,6 +337,9 @@ Transducer(rf::Reduction) =
 # Making this less non-ideal requires to replace all call/overloads of
 # `Reduction` to `AbstractReduction`.
 Reduction(::IdentityTransducer, inner) = ensurerf(inner)
+
+Adapt.adapt_structure(to, rf::R) where {R <: Reduction} =
+    Reduction(Adapt.adapt(to, xform(rf)), Adapt.adapt(to, inner(rf)))
 
 """
     Transducers.R_{X}
@@ -565,6 +568,13 @@ combine(rf::Reduction, a, b) =
         combine(inner(rf), a, b)
     end
 
+"""
+    is_prelude(::T)
+
+Return `true` if it is better to tail-call when the accumulator or the
+private state changes its type from `T`.
+"""
+is_prelude
 is_prelude(_) = false
 is_prelude(::InitialValues.InitialValue) = true
 is_prelude(xs::Tuple) = any(map(is_prelude, xs))
@@ -703,8 +713,17 @@ next(rf::R_{MyTransducer}, result, input) =
 See [`wrap`](@ref), [`unwrap`](@ref), and [`next`](@ref).
 """
 @inline function wrapping(f, rf, result)
+    #=
     state0, iresult0 = unwrap(rf, result)
     state1, iresult1 = f(state0, iresult0)
+    =#
+    # `first`/`last` behaves nicer with type inference for `Union` of `Tuple`s:
+    a = unwrap(rf, result)
+    state0 = first(a)
+    iresult0 = last(a)
+    b = f(state0, iresult0)
+    state1 = first(b)
+    iresult1 = last(b)
     return wrap(rf, state1, iresult1)
 end
 
@@ -724,6 +743,25 @@ iscontractive(::Any) = false
 iscontractive(::AbstractFilter) = true
 iscontractive(rf::Reduction) = iscontractive(xform(rf)) && iscontractive(inner(rf))
 =#
+
+# TODO: merge `isexpansive` and `OutputSize`
+abstract type OutputSize end
+struct SizeStable <: OutputSize end
+# struct SizeExpansive <: OutputSize end
+struct SizeChanging <: OutputSize end
+OutputSize(::Type{<:Transducer}) = SizeChanging()
+OutputSize(::Type{Composition{XO,XI}}) where {XO, XI} =
+    combine_outputsize(OutputSize(XO), OutputSize(XI))
+
+combine_outputsize(::SizeStable, ::SizeStable) = SizeStable()
+combine_outputsize(::OutputSize, ::OutputSize) = SizeChanging()
+
+# outputsize(::XF) where {XF <: Transducers} = OutputSize(XF)
+
+# For `Eduction` (which stores `Reduction` rather than `Transducer`):
+outputsize(::Type{Reduction{X,I}}) where {X, I <: Reduction} =
+    combine_outputsize(OutputSize(X), outputsize(I))
+outputsize(::Type{Reduction{X,I}}) where {X, I} = OutputSize(X)
 
 struct NoComplete <: Transducer end
 next(rf::R_{NoComplete}, result, input) = next(inner(rf), result, input)
@@ -904,7 +942,7 @@ julia> xf1 = Scan(push!, [])
 Scan(push!, Any[])
 
 julia> foldl(right, xf1, 1:3)
-3-element Array{Any,1}:
+3-element Vector{Any}:
  1
  2
  3
@@ -919,7 +957,7 @@ run:
 
 ```jldoctest OnInit
 julia> foldl(right, xf1, 10:11)
-5-element Array{Any,1}:
+5-element Vector{Any}:
   1
   2
   3
@@ -935,13 +973,13 @@ julia> xf2 = Scan(push!, OnInit(() -> []))
 Scan(push!, OnInit(##9#10()))
 
 julia> foldl(right, xf2, 1:3)
-3-element Array{Any,1}:
+3-element Vector{Any}:
  1
  2
  3
 
 julia> foldl(right, xf2, [10.0, 11.0])
-2-element Array{Any,1}:
+2-element Vector{Any}:
  10.0
  11.0
 ```
@@ -951,10 +989,10 @@ Keyword argument `init` for transducible processes also accept an
 
 ```jldoctest OnInit
 julia> foldl(push!, Map(identity), "abc"; init=OnInit(() -> []))
-3-element Array{Any,1}:
- 'a'
- 'b'
- 'c'
+3-element Vector{Any}:
+ 'a': ASCII/Unicode U+0061 (category Ll: Letter, lowercase)
+ 'b': ASCII/Unicode U+0062 (category Ll: Letter, lowercase)
+ 'c': ASCII/Unicode U+0063 (category Ll: Letter, lowercase)
 ```
 
 To create a copy of a mutable object, [`CopyInit`](@ref) is easier to
@@ -968,10 +1006,10 @@ automatically finds the minimal element type.
 julia> using BangBang
 
 julia> foldl(push!!, Map(identity), "abc"; init=Union{}[])
-3-element Array{Char,1}:
- 'a'
- 'b'
- 'c'
+3-element Vector{Char}:
+ 'a': ASCII/Unicode U+0061 (category Ll: Letter, lowercase)
+ 'b': ASCII/Unicode U+0062 (category Ll: Letter, lowercase)
+ 'c': ASCII/Unicode U+0063 (category Ll: Letter, lowercase)
 ```
 """
 struct OnInit{F} <: AbstractInitializer
@@ -998,13 +1036,13 @@ julia> using Transducers
 julia> init = CopyInit([]);
 
 julia> foldl(push!, Map(identity), 1:3; init=init)
-3-element Array{Any,1}:
+3-element Vector{Any}:
  1
  2
  3
 
 julia> foldl(push!, Map(identity), 1:3; init=init)  # `init` can be reused
-3-element Array{Any,1}:
+3-element Vector{Any}:
  1
  2
  3
@@ -1023,6 +1061,8 @@ Base.show(io::IO, init::CopyInit) = _default_show(io, init)
     foldlargs(op,
               @next(op, x1, x2),
               xs...)
+
+@inline mapfoldlargs(f, op, xs...) = foldlargs(Map(f)'(op), xs...)
 
 """
     @default_finaltype(xf::Transducer, coll)

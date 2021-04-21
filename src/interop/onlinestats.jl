@@ -15,7 +15,7 @@ julia> using Transducers
        using OnlineStats: Mean
 
 julia> collect(Transducer(Mean()), 1:4)
-4-element Array{Float64,1}:
+4-element Vector{Float64}:
  1.0
  1.5
  2.0

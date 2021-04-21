@@ -29,7 +29,7 @@ next(rf::AbstractMultiCastingRF, accs, x) = error(
 
 @inline function complete(rf::AbstractMultiCastingRF, accs)
     results = map((f, a) -> complete(f, a), rf.fs, accs)
-    if any(r -> r isa DefaultInitOf, results)  # is `any` too strict?
+    if Baselet.Specialized.any(r -> r isa DefaultInitOf, results)  # is `any` too strict?
         return DefaultInitOf{typeof(rf)}()
     end
     return results
@@ -210,7 +210,7 @@ julia> using Transducers
 julia> rf = AdHocRF(push!, combine = append!);
 
 julia> foldxt(rf, Map(identity), 1:4; basesize = 1, init = OnInit(() -> []))
-4-element Array{Any,1}:
+4-element Vector{Any}:
  1
  2
  3
@@ -329,7 +329,7 @@ julia> using Transducers
 julia> collector! = push! |> whencombine(append!) |> wheninit(() -> []);
 
 julia> foldxt(collector!, Filter(isodd), 1:5; basesize = 1)
-3-element Array{Any,1}:
+3-element Vector{Any}:
  1
  3
  5
@@ -341,7 +341,7 @@ More "tightly" typed vector can returned by using BangBang.jl interface:
 julia> collector!! = push!! |> whencombine(append!!) |> wheninit(Vector{Union{}});
 
 julia> foldxt(collector!!, Filter(isodd), 1:5; basesize = 1)
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  1
  3
  5

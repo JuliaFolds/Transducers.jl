@@ -56,7 +56,7 @@ not empty anymore:
 
 ```jldoctest reducingfunction
 julia> scan_state
-3-element Array{Any,1}:
+3-element Vector{Any}:
  1
  2
  3
@@ -198,7 +198,7 @@ end
     @simd_if rf for i in i0:_lastindex(arr)
         acc = @next(rf, acc, @inbounds arr[i])
     end
-    return complete(rf, acc)
+    return restack(complete(rf, acc))
 end
 
 @inline function _foldl_linear_rec(rf::RF, acc::T, arr, i0, counter) where {RF,T}
@@ -574,7 +574,18 @@ Transducer(ed::Eduction) = Transducer(ed.rf)
 transduce(xform::Transducer, f, init, ed::Eduction) =
     transduce(opcompose(Transducer(ed), xform), f, init, ed.coll)
 
-Base.IteratorSize(::Type{<:Eduction}) = Base.SizeUnknown()
+Base.IteratorSize(::Type{Eduction{F,C}}) where{F,C} =
+    outputsize(F) isa SizeStable ? Base.IteratorSize(C) : Base.SizeUnknown()
+
+function Base.length(ed::Eduction)
+    @argcheck Base.IteratorSize(ed) isa Union{Base.HasLength,Base.HasShape}
+    return length(ed.coll)
+end
+
+function Base.size(ed::Eduction)
+    @argcheck Base.IteratorSize(ed) isa Base.HasShape
+    return size(ed.coll)
+end
 
 function Base.iterate(ts::Eduction, state = nothing)
     if state === nothing
@@ -710,7 +721,7 @@ This API is modeled after $(_cljref("into")).
 julia> using Transducers
 
 julia> append!(Drop(2), [-1, -2], 1:5)
-5-element Array{Int64,1}:
+5-element Vector{Int64}:
  -1
  -2
   3
@@ -741,7 +752,7 @@ Mutate-or-widen version of [`append!`](@ref).
 julia> using Transducers, BangBang
 
 julia> append!!(opcompose(Drop(2), Map(x -> x + 0.0)), [-1, -2], 1:5)
-5-element Array{Float64,1}:
+5-element Vector{Float64}:
  -1.0
  -2.0
   3.0
@@ -780,7 +791,7 @@ For parallel versions, see [`tcollect`](@ref) and [`dcollect`](@ref).
 julia> using Transducers
 
 julia> collect(Interpose(missing), 1:3)
-5-element Array{Union{Missing, Int64},1}:
+5-element Vector{Union{Missing, Int64}}:
  1
   missing
  2
@@ -833,7 +844,7 @@ julia> using Transducers
        using BangBang: Empty
 
 julia> copy(Map(x -> x => x^2), Dict, 2:2)
-Dict{Int64,Int64} with 1 entry:
+Dict{Int64, Int64} with 1 entry:
   2 => 4
 
 julia> @assert copy(Filter(_ -> false), Set, 1:1) === Empty(Set)
@@ -889,7 +900,7 @@ julia> using Transducers
 julia> xs = collect(1:5)
        ys = zero(xs)
        map!(Filter(isodd), ys, xs)
-5-element Array{Int64,1}:
+5-element Vector{Int64}:
  1
  0
  3
@@ -945,7 +956,7 @@ See also [`map!`](@ref).
 julia> using Transducers
 
 julia> copy!(opcompose(PartitionBy(x -> x ÷ 3), Map(sum)), Int[], 1:10)
-4-element Array{Int64,1}:
+4-element Vector{Int64}:
   3
  12
  21
@@ -1235,7 +1246,7 @@ julia> A = reshape(1:6, (3, 2))
  3  6
 
 julia> collect(Map(identity), uppertriangle(A))
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  1
  4
  5
@@ -1264,7 +1275,7 @@ julia> function circularwindows(xs::AbstractVector, h::Integer)
        end;
 
 julia> collect(Map(collect), circularwindows(1:9, 2))
-9-element Array{Array{Int64,1},1}:
+9-element Vector{Vector{Int64}}:
  [8, 9, 1, 2, 3]
  [9, 1, 2, 3, 4]
  [1, 2, 3, 4, 5]
@@ -1293,7 +1304,7 @@ julia> collect(Map(identity), expressions(\"\"\"
        x = 1
        y = 2
        \"\"\"))
-2-element Array{Expr,1}:
+2-element Vector{Expr}:
  :(x = 1)
  :(y = 2)
 

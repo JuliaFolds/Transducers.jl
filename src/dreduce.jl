@@ -58,17 +58,33 @@ foldxd(step::F, foldable; kwargs...) where {F} =
 See [`foldxd`](@ref) and [`transduce`](@ref).
 """
 function dtransduce(
-    xform::Transducer, step, init, coll;
+    xform::Transducer,
+    step,
+    init,
+    coll0;
     simd::SIMDFlag = Val(false),
-    basesize::Integer = max(1, amount(coll) ÷ Distributed.nworkers()),
-    threads_basesize::Integer = max(1, basesize ÷ Threads.nthreads()),
+    basesize::Union{Integer,Nothing} = nothing,
+    threads_basesize::Union{Integer,Nothing} = nothing,
     pool::Distributed.AbstractWorkerPool = Distributed.default_worker_pool(),
     _remote_reduce = _transduce_assoc_nocomplete,
 )
-    @argcheck basesize > 0
+    rf0 = _reducingfunction(xform, step; init = init)
+    rf1, coll = retransform(rf0, coll0)
+    rf = maybe_usesimd(rf1, simd)
     isempty(coll) && return init
     load_me_everywhere()
-    rf = _reducingfunction(xform, step; init = init, simd = simd)
+    basesize = if basesize === nothing
+        max(1, amount(coll) ÷ Distributed.nworkers())
+    else
+        Int(basesize)
+    end
+    threads_basesize = if threads_basesize === nothing
+        max(1, basesize ÷ Threads.nthreads())
+    else
+        Int(threads_basesize)
+    end
+    @argcheck basesize > 0
+    @argcheck threads_basesize > 0
     futures = map(firstindex(coll):basesize:lastindex(coll)) do start
         Distributed.remotecall(
             _remote_reduce,
@@ -80,9 +96,18 @@ function dtransduce(
         )
     end
     # TODO: Cancel remote computation when there is a Reduced.
-    results = map(fetch, futures)
-    return complete(rf, combine_all(rf, results))
+    return Distributed.remotecall_fetch(pool, futures) do futures
+        results = map(fetch, futures)
+        return complete(rf, combine_all(rf, results))
+        # TODO: call combine asynchronously
+    end
 end
+# Note: Calling combine on remote is useful not only for computation
+# off-loading but also for making it actually work. If `rf` contains any
+# stateful transducers that use any anonymous functions defined in `Main`,
+# `unwrap` will detect that the private states as incompatible. So, we need to
+# use `rf` that is deserialized by Distributed, when combining and completing
+# the stateful reductions.
 
 function load_me_everywhere()
     pkgid = Base.PkgId(@__MODULE__)

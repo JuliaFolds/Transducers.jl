@@ -15,8 +15,10 @@ if isdefined(Iterators, :Zip1)  # VERSION < v"1.1-"
     arguments(xs::Iterators.Zip1) = (xs.a,)
     arguments(xs::Iterators.Zip2) = (xs.a, xs.b)
     arguments(xs::Iterators.Zip) = (xs.a, arguments(xs.z)...)
+    const _Zip = Iterators.AbstractZipIterator
 else
     arguments(xs::Iterators.Zip) = xs.is
+    const _Zip = Iterators.Zip
 end
 
 if VERSION < v"1.3"
@@ -28,6 +30,8 @@ end
 
 _typeof(::Type{T}) where {T} = Type{T}
 _typeof(::T) where {T} = T
+
+const ValBool = Union{Val{false}, Val{true}}
 
 function _materializer(xs)
     T = Tables.materializer(xs)
@@ -178,8 +182,8 @@ function async_foreach(f, xs)
     end
 end
 
-function spawn_foreach(f, xs)
-    @sync for x in xs
-        @spawn f(x)
+function sync_spawn_foreach(f, xs)
+    for x in xs
+        wait(@spawn f(x))
     end
 end

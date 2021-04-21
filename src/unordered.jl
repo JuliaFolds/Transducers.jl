@@ -161,7 +161,7 @@ julia> task = @async try
        end;
 
 julia> sort!(collect(output))
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  2
  3
  4
@@ -177,7 +177,7 @@ julia> task = @async try
        end;
 
 julia> sort!(collect(output))
-4-element Array{Int64,1}:
+4-element Vector{Int64}:
  1
  1
  2
@@ -255,13 +255,13 @@ $_experimental_warning
 julia> using Transducers: Map, channel_unordered
 
 julia> sort!(collect(channel_unordered(Map(x -> x + 1), 1:3)))
-3-element Array{Any,1}:
+3-element Vector{Any}:
  2
  3
  4
 
 julia> sort!(collect(channel_unordered(x + 1 for x in 1:3 if isodd(x))))
-2-element Array{Any,1}:
+2-element Vector{Any}:
  2
  4
 ```

@@ -23,6 +23,21 @@ throw_if_nothing(x) = x === nothing ? error("GOT NOTHING!") : x
     end
 end
 
+@testset "Reduced" begin
+    y =
+        1:100 |>
+        NondeterministicThreading(basesize = 1, ntasks = 10) |>
+        Map() do i
+            sleep(i * 1e-6)
+            return i
+        end |>
+        ReduceIf() do i
+            i == 1
+        end |>
+        foldxl(right)
+    @test y == 1
+end
+
 @testset "error" begin
     @testset for seed in 1:100
         rng = MersenneTwister(seed)

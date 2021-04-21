@@ -49,12 +49,12 @@ particular, the data collection does not have to implement
 julia> using Transducers
 
 julia> collect(1:4 |> Filter(isodd))
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  3
 
 julia> collect(1:4 |> NondeterministicThreading() |> Filter(isodd))
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  3
 ```
@@ -76,32 +76,32 @@ function start(rf::R_{NondeterministicThreading}, init)
     err_promise = Promise()
     ichan = Channel(0; taskref = taskref) do ichan
         async_foreach(1:ntasks) do _
-            spawn_foreach(ichan) do (lbridge, buffer, rbridge)
+            sync_spawn_foreach(ichan) do (lbridge, buffer, rbridge)
                 try
                     acc = foldl_nocomplete(irf, start(irf, init), buffer)
                     while true
                         x = tryfetch(lbridge::Union{Nothing,Promise})
                         x isa Some{<:Ok} || break
                         lacc, lbridge = something(x).value
-                        acc = combine(irf, lacc, acc)
+                        acc = combine_reduced(irf, lacc, acc)
                     end
                     while true
                         x = tryfetch(rbridge::Promise)
                         x isa Some{<:Ok} || break
                         racc, rbridge = something(x).value
-                        acc = combine(irf, acc, racc)
+                        acc = combine_reduced(irf, acc, racc)
                     end
                     while true
                         if lbridge isa Promise && isodd(time_ns())
                             x = tryput!(lbridge::Promise, Ok((acc, rbridge)))
                             x isa Some{<:Ok} || break
                             lacc, lbridge = something(x).value
-                            acc = combine(irf, lacc, acc)
+                            acc = combine_reduced(irf, lacc, acc)
                         else
                             x = tryput!(rbridge::Promise, Ok((acc, lbridge)))
                             x isa Some{<:Ok} || break
                             racc, rbridge = something(x).value
-                            acc = combine(irf, acc, racc)
+                            acc = combine_reduced(irf, acc, racc)
                         end
                     end
                 catch err
@@ -175,7 +175,7 @@ function complete(
                 while lbridge isa Promise
                     local x = tryput!(lbridge, Err(err))
                     x isa Some{<:Ok} || break
-                    _, lbridge = x.value
+                    _, lbridge = something(x).value
                 end
                 Err(err)
             end
@@ -189,7 +189,7 @@ function complete(
                     x = fetch(lbridge)
                     x isa Ok || return
                     lacc, lbridge = x.value
-                    acc = combine(inner(rf), lacc, acc)
+                    acc = combine_reduced(inner(rf), lacc, acc)
                 end
                 tryput!(err_promise, nothing)  # cancel `errtask`
                 return acc

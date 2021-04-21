@@ -79,17 +79,19 @@ unreduced
 ifunreduced
 ```
 
-## Executors
+## [Executors](@id man-executor)
 
 ```@docs
 SequentialEx
 ThreadedEx
 DistributedEx
+PreferParallel
 ```
 
 ## Miscellaneous
 
 ```@docs
+SplitBy
 Transducer(::Transducers.Comprehension)
 Transducer(::OnlineStats.OnlineStat)
 reducingfunction

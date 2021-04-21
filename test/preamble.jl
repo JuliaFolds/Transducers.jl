@@ -1,3 +1,4 @@
+using BangBang: BangBang, append!!, collector, finish!
 using Test
 using Random
 using SparseArrays: issparse, sparse
@@ -5,7 +6,7 @@ using Statistics: mean
 using Transducers
 using Transducers: Transducer, simple_transduce, Reduced, isexpansive,
     ZipSource, GetIndex, SetIndex, Inject, @~, IdentityTransducer,
-    EmptyResultError, IdentityNotDefinedError, AbortIf, @next
+    EmptyResultError, IdentityNotDefinedError, AbortIf, wheninit, @next
 using Logging: NullLogger, with_logger
 using SplittablesBase: SplittablesBase
 
@@ -147,6 +148,16 @@ function slow_test(f, title, limit)
     return
 end
 
+fcollect(ex::Transducers.Executor) = itr -> fcollect(itr, ex)
+fcollect(itr, ex = PreferParallel()) =
+    finish!(unreduced(transduce(
+        Map(BangBang.SingletonVector),
+        wheninit(collector, append!!),
+        collector(),
+        itr,
+        ex,
+    )))
+
 foldxt_bs1(args...; kw...) = foldxt(args...; basesize = 1, kw...)
 foldxd_bs1(args...; kw...) = foldxd(args...; basesize = 1, kw...)
 
@@ -183,7 +194,15 @@ simple_reduce(rf, xf, itr; kwargs...) = simple_reduce(
     kwargs...,
 )
 
-random_basesize(itr) = rand(3:SplittablesBase.amount(itr))
+function random_basesize(itr)
+    n = SplittablesBase.amount(itr)
+    if n >= 3
+        return rand(3:n)
+    else
+        # return rand(1:2)  # TODO: this should work
+        return 2
+    end
+end
 
 # For reducing functions with _exactly_ associative inner-most
 # semigroup, this should yield same result always
@@ -192,5 +211,22 @@ random_reduce(rf, xf, itr; kwargs...) =
 
 random_reduce(rf, itr; kwargs...) =
     simple_reduce(rf, itr; kwargs..., basesize = random_basesize(itr))
+
+inprocess_folds() = [
+    foldl,
+    foldxl,
+    simple_reduce,
+    random_reduce,
+    # Folds using `ThreadedEx`:
+    foldxt_bs1,
+    foldxt,
+]
+
+all_folds() = [
+    inprocess_folds()...,
+    # Folds using `DistributedEx`:
+    foldxd_bs1,
+    foldxd,
+]
 
 @specialize

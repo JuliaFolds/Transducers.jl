@@ -17,58 +17,22 @@ jobs:
           ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
           # https://github.com/peter-evans/create-pull-request/blob/master/docs/concepts-guidelines.md#push-using-ssh-deploy-keys
 
-      - name: 'Merge master to create-pull-request/pkg-update'
-        run: |
-          base="master"
-          target="create-pull-request/pkg-update"
-
-          git_fetch_origin() {
-              git fetch --unshallow origin "$1" || git fetch origin "$1"
-          }
-
-          set -ex
-
-          if [ -n "$GITHUB_ACTOR" ]
-          then
-              git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
-              git config --global user.name "$GITHUB_ACTOR"
-          fi
-
-          git_fetch_origin "refs/heads/$base:refs/remotes/origin/$base"
-          git checkout -B "$base" "origin/$base"
-
-          git_fetch_origin "refs/heads/$target:refs/remotes/origin/$target" || exit 0
-          git checkout -B "$target" "origin/$target"
-          git merge --strategy=ours --no-commit "$base"
-          find . -type d -name .git -prune -o -type f -print0 | xargs --null rm -rf
-          git checkout "$base" -- .
-          git ls-tree -r --name-only "origin/$target" | grep -F Manifest.toml \
-              | xargs git checkout "origin/$target" --
-          git ls-tree -r --name-only "origin/$target" | grep -F Manifest.toml \
-              | xargs git add -f --
-          git add .
-          git commit -m "Merge branch '$base'" || true
-
-          # Since create-pull-request does not like when the current
-          # branch is the target branch, checkout master.
-          # https://github.com/JuliaFolds/Transducers.jl/pull/167
-          if [ "$(git rev-parse --abbrev-ref HEAD)" != "$base" ]
-          then
-              git checkout "$base"
-              git merge --ff-only "$target"
-          fi
-
-          git ls-tree -r --name-only "origin/$base" | grep -F Manifest.toml \
-              | xargs git checkout "origin/$base" --
-          git ls-tree -r --name-only "origin/$base" | grep -F Manifest.toml \
-              | xargs git add -f --
+      # https://github.com/tkf/julia-merge-except-manifests
+      - uses: tkf/julia-merge-except-manifests@v1
+        with:
+          target: create-pull-request/pkg-update
 
       # https://github.com/tkf/julia-update-manifests
-      - name: Update */Manifest.toml
+      - name: Update */Manifest.toml (1.6)
+        uses: tkf/julia-update-manifests@v1
+        with:
+          version: '1.6'
+          projects: docs
+      - name: Update */Manifest.toml (1.4)
         uses: tkf/julia-update-manifests@v1
         with:
           version: '1.4'
-          projects: test/environments/main docs benchmark
+          projects: test/environments/main benchmark
       - name: Update test/environments/jl10/Manifest.toml
         uses: tkf/julia-update-manifests@v1
         with:
@@ -78,7 +42,7 @@ jobs:
       # https://github.com/peter-evans/create-pull-request
       # https://github.com/marketplace/actions/create-pull-request
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v2
+        uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: Update */Manifest.toml

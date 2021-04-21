@@ -37,7 +37,7 @@ $(_thx_clj("map"))
 julia> using Transducers
 
 julia> collect(Map(x -> 2x), 1:3)
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  2
  4
  6
@@ -49,8 +49,11 @@ end
 
 Map(::Type{T}) where T = Map{Type{T}}(T)  # specialization workaround
 
+OutputSize(::Type{<:Map}) = SizeStable()
 isexpansive(::Map) = false
 @inline next(rf::R_{Map}, result, input) = next(inner(rf), result, xform(rf).f(input))
+
+Adapt.adapt_structure(to, xf::Map) = Map(Adapt.adapt(to, xf.f))
 
 """
     MapSplat(f)
@@ -63,7 +66,7 @@ the result to the inner reducing step.
 julia> using Transducers
 
 julia> collect(MapSplat(*), zip(1:3, 10:10:30))
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  10
  40
  90
@@ -75,9 +78,12 @@ end
 
 MapSplat(::Type{T}) where T = MapSplat{Type{T}}(T)  # specialization workaround
 
+OutputSize(::Type{<:MapSplat}) = SizeStable()
 isexpansive(::MapSplat) = false
 @inline next(rf::R_{MapSplat}, result, input) =
     next(inner(rf), result, xform(rf).f(input...))
+
+Adapt.adapt_structure(to, xf::MapSplat) = MapSplat(Adapt.adapt(to, xf.f))
 
 # https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/replace
 # https://clojuredocs.org/clojure.core/replace
@@ -95,13 +101,13 @@ $(_thx_clj("replace"))
 julia> using Transducers
 
 julia> collect(Replace(Dict('a' => 'A')), "abc")
-3-element Array{Char,1}:
- 'A'
- 'b'
- 'c'
+3-element Vector{Char}:
+ 'A': ASCII/Unicode U+0041 (category Lu: Letter, uppercase)
+ 'b': ASCII/Unicode U+0062 (category Ll: Letter, lowercase)
+ 'c': ASCII/Unicode U+0063 (category Ll: Letter, lowercase)
 
 julia> collect(Replace([:a, :b, :c]), 0:4)
-5-element Array{Any,1}:
+5-element Vector{Any}:
  0
   :a
   :b
@@ -109,11 +115,11 @@ julia> collect(Replace([:a, :b, :c]), 0:4)
  4
 
 julia> collect(Replace("abc"), 0:4)
-5-element Array{Any,1}:
+5-element Vector{Any}:
  0
-  'a'
-  'b'
-  'c'
+  'a': ASCII/Unicode U+0061 (category Ll: Letter, lowercase)
+  'b': ASCII/Unicode U+0062 (category Ll: Letter, lowercase)
+  'c': ASCII/Unicode U+0063 (category Ll: Letter, lowercase)
  4
 ```
 """
@@ -121,6 +127,7 @@ struct Replace{D} <: Transducer
     d::D  # dictionary-like object
 end
 
+OutputSize(::Type{<:Replace}) = SizeStable()
 isexpansive(::Replace) = false
 @inline next(rf::R_{Replace}, result, input) =
     next(inner(rf), result, get(xform(rf).d, input, input))
@@ -164,7 +171,7 @@ $(_thx_clj("mapcat"))
 julia> using Transducers
 
 julia> collect(MapCat(x -> 1:x), 1:3)
-6-element Array{Int64,1}:
+6-element Vector{Int64}:
  1
  1
  2
@@ -196,7 +203,7 @@ long as it is called with non-parallel reduction such as
 julia> using Transducers
 
 julia> 1:3 |> Map(x -> 1:x) |> TCat(1) |> tcollect
-6-element Array{Int64,1}:
+6-element Vector{Int64}:
  1
  1
  2
@@ -205,7 +212,7 @@ julia> 1:3 |> Map(x -> 1:x) |> TCat(1) |> tcollect
  3
 
 julia> 1:3 |> Scan(+) |> Map(x -> 1:x) |> TCat(1) |> collect
-10-element Array{Int64,1}:
+10-element Vector{Int64}:
  1
  1
  2
@@ -272,7 +279,7 @@ $(_thx_clj("filter"))
 julia> using Transducers
 
 julia> 1:3 |> Filter(iseven) |> collect
-1-element Array{Int64,1}:
+1-element Vector{Int64}:
  2
 ```
 """
@@ -282,6 +289,8 @@ end
 
 @inline next(rf::R_{Filter}, result, input) =
     xform(rf).pred(input) ? next(inner(rf), result, input) : result
+
+Adapt.adapt_structure(to, xf::Filter) = Filter(Adapt.adapt(to, xf.pred))
 
 """
     NotA(T)
@@ -296,7 +305,7 @@ See also: [`OfType`](@ref)
 julia> using Transducers
 
 julia> [1, missing, 2] |> NotA(Missing) |> collect
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  2
 ```
@@ -325,7 +334,7 @@ See also: [`NotA`](@ref)
 julia> using Transducers
 
 julia> [1, missing, 2] |> OfType(Int) |> collect
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  2
 ```
@@ -402,12 +411,12 @@ $(_thx_clj("take"))
 julia> using Transducers
 
 julia> 1:10 |> Take(2) |> collect
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  2
 
 julia> 1:2 |> Take(5) |> collect
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  2
 ```
@@ -417,7 +426,7 @@ truncated or not:
 
 ```jldoctest; setup = :(using Transducers), filter = r"\\b(BangBang\\.)?push!!"
 julia> transduce(Take(3), Completing(push!!), Init, 1:2)
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  2
 
@@ -465,12 +474,12 @@ Take last `n` items from the input sequence.
 julia> using Transducers
 
 julia> 1:10 |> TakeLast(2) |> collect
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
   9
  10
 
 julia> 1:2 |> TakeLast(5) |> collect
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  2
 ```
@@ -535,7 +544,7 @@ $(_thx_clj("take-while"))
 julia> using Transducers
 
 julia> [1, 2, 3, 1, 2] |> TakeWhile(x -> x < 3) |> collect
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  2
 ```
@@ -565,7 +574,7 @@ $(_thx_clj("take-nth"))
 julia> using Transducers
 
 julia> 1:9 |> TakeNth(3) |> collect
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  1
  4
  7
@@ -608,7 +617,7 @@ $(_thx_clj("drop"))
 julia> using Transducers
 
 julia> 1:5 |> Drop(3) |> collect
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  4
  5
 ```
@@ -649,7 +658,7 @@ $(_thx_clj("drop-last"))
 julia> using Transducers
 
 julia> 1:5 |> DropLast(2) |> collect
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  1
  2
  3
@@ -713,7 +722,7 @@ $(_thx_clj("drop-while"))
 julia> using Transducers
 
 julia> collect(DropWhile(x -> x < 3), [1:5; 1:2])
-5-element Array{Int64,1}:
+5-element Vector{Int64}:
  3
  4
  5
@@ -752,7 +761,7 @@ See also:
 julia> using Transducers
 
 julia> collect(FlagFirst(), 1:3)
-3-element Array{Tuple{Bool,Int64},1}:
+3-element Vector{Tuple{Bool, Int64}}:
  ($_true_str, 1)
  ($_false_str, 2)
  ($_false_str, 3)
@@ -760,6 +769,7 @@ julia> collect(FlagFirst(), 1:3)
 """
 struct FlagFirst <: Transducer end
 
+OutputSize(::Type{<:FlagFirst}) = SizeStable()
 isexpansive(::FlagFirst) = false
 
 start(rf::R_{FlagFirst}, result) = wrap(rf, true, start(inner(rf), result))
@@ -777,10 +787,13 @@ complete(rf::R_{FlagFirst}, result) = complete(inner(rf), unwrap(rf, result)[2])
     Partition(size, step = size, flush = false)
     Partition(size; step = size, flush = false)
 
-Sliding window of width `size` and interval `step`.
+Sliding window of width `size` and interval `step`. Yield vectors.
 
 Note: `step` = `size` is the default.  Hence, the default behavior is
 non-overlapping windows.
+
+For small `size`, see [`Consecutive`](@ref) for a similar transducer that
+yields tuples instead.
 
 $_shared_vector_warning
 
@@ -791,18 +804,18 @@ $(_thx_clj("partition-all"))
 julia> using Transducers
 
 julia> 1:8 |> Partition(3) |> Map(copy) |> collect
-2-element Array{Array{Int64,1},1}:
+2-element Vector{Vector{Int64}}:
  [1, 2, 3]
  [4, 5, 6]
 
 julia> 1:8 |> Partition(3; flush=true) |> Map(copy) |> collect
-3-element Array{Array{Int64,1},1}:
+3-element Vector{Vector{Int64}}:
  [1, 2, 3]
  [4, 5, 6]
  [7, 8]
 
 julia> 1:8 |> Partition(3; step=1) |> Map(copy) |> collect
-6-element Array{Array{Int64,1},1}:
+6-element Vector{Vector{Int64}}:
  [1, 2, 3]
  [2, 3, 4]
  [3, 4, 5]
@@ -918,11 +931,11 @@ $(_thx_clj("partition-by"))
 julia> using Transducers
 
 julia> 1:9 |> PartitionBy(x -> (x + 1) ÷ 3) |> Map(copy) |> collect
-4-element Array{Array{Int64,1},1}:
- [1]
- [2, 3, 4]
- [5, 6, 7]
- [8, 9]
+4-element Vector{UnitRange{Int64}}:
+ 1:1
+ 2:4
+ 5:7
+ 8:9
 ```
 """
 struct PartitionBy{F} <: Transducer
@@ -986,7 +999,7 @@ julia> xf = KeepSomething() do x
        end;
 
 julia> collect(xf, 0:3)
-3-element Array{Union{Nothing, Symbol},1}:
+3-element Vector{Union{Nothing, Symbol}}:
  :zero
  :one
  nothing
@@ -997,12 +1010,12 @@ unwrapping `Some`:
 
 ```jldoctest KeepSomething
 julia> [Some(1), 2, nothing] |> KeepSomething() |> collect
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  2
 
 julia> [Some(1), 2, nothing] |> NotA(Nothing) |> collect
-2-element Array{Any,1}:
+2-element Vector{Any}:
   Some(1)
  2
 ```
@@ -1040,14 +1053,14 @@ $(_thx_clj("distinct"))
 julia> using Transducers
 
 julia> [1, 1, 2, -1, 3, 3, 2] |> Unique() |> collect
-4-element Array{Int64,1}:
+4-element Vector{Int64}:
   1
   2
  -1
   3
 
 julia> [1, 1, 2, -1, 3, 3, 2] |> Unique(x -> x^2) |> collect
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  1
  2
  3
@@ -1092,7 +1105,7 @@ $(_thx_clj("interpose"))
 julia> using Transducers
 
 julia> collect(Interpose(missing), 1:3)
-5-element Array{Union{Missing, Int64},1}:
+5-element Vector{Union{Missing, Int64}}:
  1
   missing
  2
@@ -1129,7 +1142,7 @@ $(_thx_clj("dedupe"))
 julia> using Transducers
 
 julia> collect(Dedupe(), [1, 1, 2, 1, 3, 3, 2])
-5-element Array{Int64,1}:
+5-element Vector{Int64}:
  1
  2
  1
@@ -1187,19 +1200,19 @@ See also: [`ScanEmit`](@ref), [`Iterated`](@ref).
 julia> using Transducers
 
 julia> collect(Scan(*), 1:3)
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  1
  2
  6
 
 julia> 1:3 |> Map(x -> x + im) |> Scan(*) |> collect
-3-element Array{Complex{Int64},1}:
+3-element Vector{Complex{Int64}}:
  1 + 1im
  1 + 3im
  0 + 10im
 
 julia> collect(Scan(*, 10), 1:3)
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  10
  20
  60
@@ -1261,7 +1274,7 @@ See also: [`Scan`](@ref), [`Iterated`](@ref).
 julia> using Transducers
 
 julia> collect(ScanEmit(tuple, 0), 1:3)
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  0
  1
  2
@@ -1342,7 +1355,7 @@ julia> collect(xf, split(\"\"\"
        name: Cat |> Filter
        type: chaotic
        \"\"\", "\\n"; keepempty=false))
-4-element Array{NamedTuple{(:name, :lines),Tuple{SubString{String},Array{String,1}}},1}:
+4-element Vector{NamedTuple{(:name, :lines), Tuple{SubString{String}, Vector{String}}}}:
  (name = "Map", lines = ["name: Map", "type: onetoone"])
  (name = "Cat", lines = ["name: Cat", "type: expansive"])
  (name = "Filter", lines = ["name: Filter", "type: contractive"])
@@ -1421,7 +1434,7 @@ The idea is taken from
 julia> using Transducers
 
 julia> collect(Iterated(x -> 2x, 1), 1:5)
-5-element Array{Int64,1}:
+5-element Vector{Int64}:
   1
   2
   4
@@ -1429,7 +1442,7 @@ julia> collect(Iterated(x -> 2x, 1), 1:5)
  16
 
 julia> collect(Zip(Map(identity), Iterated(x -> 2x, 1)), 1:5)
-5-element Array{Tuple{Int64,Int64},1}:
+5-element Vector{Tuple{Int64, Int64}}:
  (1, 1)
  (2, 2)
  (3, 4)
@@ -1442,6 +1455,7 @@ struct Iterated{F, T} <: Transducer
     init::T
 end
 
+OutputSize(::Type{<:Iterated}) = SizeStable()
 isexpansive(::Iterated) = false
 start(rf::R_{Iterated}, result) =
     wrap(rf, _initvalue(rf), start(inner(rf), result))
@@ -1470,7 +1484,7 @@ See also:
 julia> using Transducers
 
 julia> collect(Zip(Map(identity), Count()), -3:-1)
-3-element Array{Tuple{Int64,Int64},1}:
+3-element Vector{Tuple{Int64, Int64}}:
  (-3, 1)
  (-2, 2)
  (-1, 3)
@@ -1489,6 +1503,7 @@ end
 
 Count(start = 1) = Count(start, oneunit(start))
 
+OutputSize(::Type{<:Count}) = SizeStable()
 isexpansive(::Count) = false
 start(rf::R_{Count}, result) = wrap(rf, xform(rf).start, start(inner(rf), result))
 complete(rf::R_{Count}, result) = complete(inner(rf), unwrap(rf, result)[2])
@@ -1511,13 +1526,13 @@ julia> using Transducers
        using Transducers: GetIndex
 
 julia> collect(GetIndex(1:10), [2, 3, 4])
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  2
  3
  4
 
 julia> collect(GetIndex{true}(1:10), [2, 3, 4])
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  2
  3
  4
@@ -1530,6 +1545,7 @@ end
 GetIndex{inbounds}(array::A) where {inbounds, A} = GetIndex{inbounds, A}(array)
 GetIndex(array) = GetIndex{false}(array)
 
+OutputSize(::Type{<:GetIndex}) = SizeStable()
 isexpansive(::GetIndex) = false
 
 @inline next(rf::R_{GetIndex{true}}, result, input) =
@@ -1540,6 +1556,9 @@ isexpansive(::GetIndex) = false
 Base.:(==)(xf1::GetIndex{inbounds,A},
            xf2::GetIndex{inbounds,A}) where {inbounds,A} =
     xf1.array == xf2.array
+
+Adapt.adapt_structure(to, xf::GetIndex{inbounds}) where {inbounds} =
+    GetIndex{inbounds}(Adapt.adapt(to, xf.array))
 
 """
     SetIndex(array)
@@ -1559,7 +1578,7 @@ julia> ys = zeros(3);
 julia> foldl(first ∘ tuple, SetIndex(ys), [(1, 11.1), (3, 33.3)], init=nothing)
 
 julia> ys
-3-element Array{Float64,1}:
+3-element Vector{Float64}:
  11.1
   0.0
  33.3
@@ -1572,6 +1591,7 @@ end
 SetIndex{inbounds}(array::A) where {inbounds, A} = SetIndex{inbounds, A}(array)
 SetIndex(array) = SetIndex{false}(array)
 
+OutputSize(::Type{<:SetIndex}) = SizeStable()
 isexpansive(::SetIndex) = false
 
 @inline next(rf::R_{SetIndex{true}}, result, input::NTuple{2, Any}) =
@@ -1585,6 +1605,8 @@ Base.:(==)(xf1::SetIndex{inbounds,A},
            xf2::SetIndex{inbounds,A}) where {inbounds,A} =
     xf1.array == xf2.array
 
+Adapt.adapt_structure(to, xf::SetIndex{inbounds}) where {inbounds} =
+    SetIndex{inbounds}(Adapt.adapt(to, xf.array))
 
 """
     Inject(iterator)
@@ -1600,7 +1622,7 @@ julia> using Transducers
        using Transducers: Inject
 
 julia> collect(Inject(Iterators.cycle("hello")), 1:8)
-8-element Array{Tuple{Int64,Char},1}:
+8-element Vector{Tuple{Int64, Char}}:
  (1, 'h')
  (2, 'e')
  (3, 'l')
@@ -1611,14 +1633,14 @@ julia> collect(Inject(Iterators.cycle("hello")), 1:8)
  (8, 'l')
 
 julia> collect(Inject(Iterators.repeated([1 2])), 1:4)
-4-element Array{Tuple{Int64,Array{Int64,2}},1}:
+4-element Vector{Tuple{Int64, Matrix{Int64}}}:
  (1, [1 2])
  (2, [1 2])
  (3, [1 2])
  (4, [1 2])
 
 julia> collect(Inject(Iterators.product(1:2, 3:5)), 1:100)
-6-element Array{Tuple{Int64,Tuple{Int64,Int64}},1}:
+6-element Vector{Tuple{Int64, Tuple{Int64, Int64}}}:
  (1, (1, 3))
  (2, (2, 3))
  (3, (1, 4))
@@ -1655,7 +1677,7 @@ are optional and have the same meaning as in [`Count`](@ref).
 julia> using Transducers
 
 julia> collect(Enumerate(), ["A", "B", "C"])
-3-element Array{Tuple{Int64,String},1}:
+3-element Vector{Tuple{Int64, String}}:
  (1, "A")
  (2, "B")
  (3, "C")
@@ -1663,7 +1685,7 @@ julia> collect(Enumerate(), ["A", "B", "C"])
 julia> start=2; step=3;
 
 julia> collect(Enumerate(start, step), ["A", "B", "C"])
-3-element Array{Tuple{Int64,String},1}:
+3-element Vector{Tuple{Int64, String}}:
  (2, "A")
  (5, "B")
  (8, "C")
@@ -1677,6 +1699,7 @@ end
 
 Enumerate(start = 1) = Enumerate(start, oneunit(start))
 
+OutputSize(::Type{<:Enumerate}) = SizeStable()
 isexpansive(::Enumerate) = false
 start(rf::R_{Enumerate}, result) =
     wrap(rf, xform(rf).start, start(inner(rf), result))

@@ -4,6 +4,7 @@ export AdHocFoldable,
     Broadcasting,
     Cat,
     Completing,
+    Consecutive,
     CopyInit,
     Count,
     Dedupe,
@@ -29,13 +30,16 @@ export AdHocFoldable,
     OnInit,
     Partition,
     PartitionBy,
+    PreferParallel,
     ProductRF,
     ReduceIf,
+    ReducePartitionBy,
     Reduced,
     Replace,
     Scan,
     ScanEmit,
     SequentialEx,
+    SplitBy,
     TCat,
     Take,
     TakeLast,
@@ -75,7 +79,9 @@ export AdHocFoldable,
     withprogress
 
 using Base.Broadcast: Broadcasted
+using Base: tail
 
+import Adapt
 import Setfield
 import Tables
 using ArgCheck
@@ -83,6 +89,7 @@ using BangBang.Experimental: modify!!, mergewith!!
 using BangBang.NoBang: SingletonVector
 using BangBang:
     @!, BangBang, Empty, append!!, collector, empty!!, finish!, push!!, setindex!!, union!!
+using Baselet
 using CompositionsBase: compose, opcompose
 using DefineSingletons: @def_singleton
 using Distributed: @everywhere, Distributed
@@ -142,10 +149,14 @@ include("library.jl")
 include("teezip.jl")
 include("groupby.jl")
 include("broadcasting.jl")
+include("consecutive.jl")
+include("partitionby.jl")
+include("splitby.jl")
 include("combinators.jl")
 include("simd.jl")
 include("executors.jl")
 include("processes.jl")
+include("threading_utils.jl")
 include("reduce.jl")
 include("nondeterministic_threading.jl")
 include("dreduce.jl")
@@ -176,6 +187,9 @@ function __init__()
     end
     @require DataFrames="a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
         include("interop/dataframes.jl")
+    end
+    @require Referenceables="42d2dcc6-99eb-4e98-b66c-637b7d73030e" begin
+        include("interop/referenceables.jl")
     end
 end
 
