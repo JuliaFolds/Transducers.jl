@@ -89,6 +89,7 @@ using BangBang.Experimental: modify!!, mergewith!!
 using BangBang.NoBang: SingletonVector
 using BangBang:
     @!, BangBang, Empty, append!!, collector, empty!!, finish!, push!!, setindex!!, union!!
+using Baselet
 using CompositionsBase: compose, opcompose
 using DefineSingletons: @def_singleton
 using Distributed: @everywhere, Distributed
