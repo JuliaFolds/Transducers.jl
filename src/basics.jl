@@ -182,8 +182,8 @@ function async_foreach(f, xs)
     end
 end
 
-function spawn_foreach(f, xs)
-    @sync for x in xs
-        @spawn f(x)
+function sync_spawn_foreach(f, xs)
+    for x in xs
+        wait(@spawn f(x))
     end
 end
