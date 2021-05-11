@@ -273,9 +273,9 @@ uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
 version = "1.4.4"
 
 [[OrderedCollections]]
-git-tree-sha1 = "4fa2ba51070ec13fcc7517db714445b4ab986bdf"
+git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
-version = "1.4.0"
+version = "1.4.1"
 
 [[Parsers]]
 deps = ["Dates"]
