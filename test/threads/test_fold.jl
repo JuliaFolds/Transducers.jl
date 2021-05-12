@@ -16,6 +16,7 @@ const parseint = Base.Fix1(parse, Int)
         @test fold(add, Map(identity), 1:4) == 10
         @test fold(+, Map(parseint), "1234") == 10
         @test fold(add, Map(parseint), "1234") == 10
+        @test_throws EmptyResultError fold(+, Map(identity), 1:0)
     end
     @testset "INIT" begin
         @test fold(add, Map(identity), 1:4; init = INIT) == 10
