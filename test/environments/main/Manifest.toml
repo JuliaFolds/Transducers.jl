@@ -243,9 +243,9 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[Maybe]]
 deps = ["Compat", "ExprTools"]
-git-tree-sha1 = "c82125bae11348db0e35a6da664655e14955d7f6"
+git-tree-sha1 = "af8881b2b677f81e45a64c50e43c6bb3a6dfb54e"
 uuid = "334f122f-1118-46cc-837f-bff747ee6f78"
-version = "0.1.4"
+version = "0.1.5"
 
 [[MicroCollections]]
 deps = ["BangBang", "Setfield"]
