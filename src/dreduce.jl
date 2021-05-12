@@ -71,7 +71,7 @@ function dtransduce(
     rf0 = _reducingfunction(xform, step; init = init)
     rf1, coll = retransform(rf0, coll0)
     rf = maybe_usesimd(rf1, simd)
-    isempty(coll) && return init
+    isempty(coll) && return check_empty(rf, complete(rf, start(rf, init)))
     load_me_everywhere()
     basesize = if basesize === nothing
         max(1, amount(coll) ÷ Distributed.nworkers())
@@ -96,11 +96,12 @@ function dtransduce(
         )
     end
     # TODO: Cancel remote computation when there is a Reduced.
-    return Distributed.remotecall_fetch(pool, futures) do futures
+    result = Distributed.remotecall_fetch(pool, futures) do futures
         results = map(fetch, futures)
         return complete(rf, combine_all(rf, results))
         # TODO: call combine asynchronously
     end
+    return check_empty(rf, result)
 end
 # Note: Calling combine on remote is useful not only for computation
 # off-loading but also for making it actually work. If `rf` contains any
