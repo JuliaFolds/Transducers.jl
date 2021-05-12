@@ -1223,13 +1223,6 @@ _realbottomrf(op) = op
 _realbottomrf(rf::AbstractReduction) = _realbottomrf(as(rf, BottomRF).inner)
 _realbottomrf(rf::Completing) = rf.f
 
-check_empty(rf, result) =
-    if unreduced(result) isa DefaultInitOf
-        throw(EmptyResultError(rf))
-    else
-        result
-    end
-
 struct IdentityNotDefinedError <: Exception
     op
     idfactory
