@@ -246,7 +246,7 @@ AdHocRF(oninit, start, op, complete, combine) =
 AdHocRF(op; oninit = nothing, start = identity, complete = identity, combine = nothing) =
     AdHocRF(oninit, start, op, complete, combine)
 
-AdHocRF(op::AdHocRF; kwargs...) = setproperties(op, kwargs.data)
+AdHocRF(op::AdHocRF; kwargs...) = setproperties(op, values(kwargs))
 
 @inline (rf::AdHocRF)(acc, x) = rf.next(acc, x)
 
