@@ -43,7 +43,7 @@ PreferParallel
 maybe_set_simd(exc::Executor, simd) =
     isdefined(exc.kwargs, :simd) ? exc : @set exc.kwargs = merge(exc.kwargs, (simd = simd,))
 
-(::Type{Ex})(; kwargs...) where {Ex<:Executor} = Ex(kwargs.data)
+(::Type{Ex})(; kwargs...) where {Ex<:Executor} = Ex(values(kwargs))
 
 transduce(xf, rf::RF, init, coll, exc::SequentialEx) where {RF} =
     transduce(xf, rf, init, coll; exc.kwargs...)
