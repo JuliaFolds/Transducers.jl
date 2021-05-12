@@ -182,6 +182,7 @@ heterogeneous_objects = [
 # this to a regular table quite easily:
 
 using Maybe
+using Maybe: @something
 
 ans = begin
     heterogeneous_objects |>
