@@ -33,6 +33,10 @@ _typeof(::T) where {T} = T
 
 const ValBool = Union{Val{false}, Val{true}}
 
+@generated function default_constructorof(::Type{T}) where T
+    getfield(parentmodule(T), nameof(T))
+end
+
 function _materializer(xs)
     T = Tables.materializer(xs)
     return T isa Type ? T : _materializer(typeof(xs))

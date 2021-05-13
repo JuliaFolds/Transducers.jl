@@ -46,15 +46,15 @@ end
 
 # Adjoining init has to happen at "leafs":
 _asmonoid(rf::AbstractMultiCastingRF) =
-    ConstructionBase.constructorof(typeof(rf))(map(_asmonoid, rf.fs)::Tuple)
+    default_constructorof(typeof(rf))(map(_asmonoid, rf.fs)::Tuple)
 
 # See: [[./core.jl::TODOs for `Completing` and `skipcomplete`]]
 Completing(rf::AbstractMultiCastingRF) =
-    ConstructionBase.constructorof(typeof(rf))(map(Completing, rf.fs)::Tuple)
+    default_constructorof(typeof(rf))(map(Completing, rf.fs)::Tuple)
 
 function Base.show(io::IO, rf::AbstractMultiCastingRF)
     @nospecialize
-    T = ConstructionBase.constructorof(typeof(rf))
+    T = default_constructorof(typeof(rf))
     if rf === T(rf.fs)
         print(io, T, rf.fs)
     else
@@ -246,7 +246,7 @@ AdHocRF(oninit, start, op, complete, combine) =
 AdHocRF(op; oninit = nothing, start = identity, complete = identity, combine = nothing) =
     AdHocRF(oninit, start, op, complete, combine)
 
-AdHocRF(op::AdHocRF; kwargs...) = setproperties(op, kwargs.data)
+AdHocRF(op::AdHocRF; kwargs...) = setproperties(op, values(kwargs))
 
 @inline (rf::AdHocRF)(acc, x) = rf.next(acc, x)
 
