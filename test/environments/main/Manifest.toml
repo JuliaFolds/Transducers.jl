@@ -429,9 +429,9 @@ version = "1.0.1"
 
 [[Tables]]
 deps = ["DataAPI", "DataValueInterfaces", "IteratorInterfaceExtensions", "LinearAlgebra", "TableTraits", "Test"]
-git-tree-sha1 = "aa30f8bb63f9ff3f8303a06c604c8500a69aa791"
+git-tree-sha1 = "8ed4a3ea724dac32670b062be3ef1c1de6773ae8"
 uuid = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
-version = "1.4.3"
+version = "1.4.4"
 
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
@@ -445,9 +445,9 @@ version = "0.4.66-DEV"
 
 [[TypedTables]]
 deps = ["Adapt", "SplitApplyCombine", "Tables", "Unicode"]
-git-tree-sha1 = "4be59166b709f448938bde983b84836bc2913776"
+git-tree-sha1 = "856c3ffa18aac6de7cd44532c06c7a8a3551fc7e"
 uuid = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
-version = "1.2.4"
+version = "1.3.0"
 
 [[UUIDs]]
 deps = ["Random", "SHA"]
