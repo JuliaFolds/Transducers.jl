@@ -84,6 +84,7 @@ collect(vov)
 # Up to now our vector of vector is not parallelizable. For instance if we try `tcollect(vov)` we get an error.
 # To add support, we need to overload two methods from [SplittablesBase.jl](https://github.com/JuliaFolds/SplittablesBase.jl):
 
+import Transducers: SplittablesBase # hide
 import SplittablesBase
 function SplittablesBase.amount(vov::VecOfVec)
     # return the rough length of a collection
