@@ -369,9 +369,9 @@ version = "0.1.14-DEV"
 
 [[StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "896d55218776ab8f23fb7b222a5a4a946d4aafc2"
+git-tree-sha1 = "a43a7b58a6e7dc933b2fa2e0ca653ccf8bb8fd0e"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "1.2.5"
+version = "1.2.6"
 
 [[StaticNumbers]]
 deps = ["Requires"]
