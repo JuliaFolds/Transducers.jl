@@ -45,9 +45,9 @@ uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
 version = "3.31.0"
 
 [[CompositionsBase]]
-git-tree-sha1 = "f3955eb38944e5dd0fabf8ca1e267d94941d34a5"
+git-tree-sha1 = "455419f7e328a1a2493cabc6428d79e951349769"
 uuid = "a33af91c-f02d-484b-be07-31d278c5ca2b"
-version = "0.1.0"
+version = "0.1.1"
 
 [[ConstructionBase]]
 deps = ["LinearAlgebra"]
@@ -80,9 +80,9 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[Dictionaries]]
 deps = ["Indexing", "Random"]
-git-tree-sha1 = "a170de2413818603ec9dd0aac30a13cb26afbd13"
+git-tree-sha1 = "011d10589449681ad631c0f866a2ce72771648c6"
 uuid = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
-version = "0.3.9"
+version = "0.3.10"
 
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
