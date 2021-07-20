@@ -1,5 +1,10 @@
 # This file is machine-generated - editing it directly is not advised
 
+[[ANSIColoredPrinters]]
+git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
+uuid = "a4c015fc-c6ff-483c-b24f-f7ea428134e9"
+version = "0.0.1"
+
 [[AbstractTrees]]
 git-tree-sha1 = "03e0550477d86222521d254b741d470ba17ea0b5"
 uuid = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
@@ -122,10 +127,10 @@ uuid = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 version = "0.8.5"
 
 [[Documenter]]
-deps = ["Base64", "Dates", "DocStringExtensions", "IOCapture", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Test", "Unicode"]
-git-tree-sha1 = "47f13b6305ab195edb73c86815962d84e31b0f48"
+deps = ["ANSIColoredPrinters", "Base64", "Dates", "DocStringExtensions", "IOCapture", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Test", "Unicode"]
+git-tree-sha1 = "95265abf7d7bf06dfdb8d58525a23ea5fb0bdeee"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-version = "0.27.3"
+version = "0.27.4"
 
 [[Downloads]]
 deps = ["ArgTools", "LibCURL", "NetworkOptions"]
