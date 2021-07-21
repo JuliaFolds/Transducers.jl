@@ -14,10 +14,16 @@ using MicroCollections: vec0, vec1
     count_partitionby(f, xs) = xs |> ReducePartitionBy(f, Completing(inc1)) |> fcollect(ex)
     collect_partitionby(f, xs) =
         xs |> ReducePartitionBy(f, Map(vec1)'(Completing(append!!)), vec0()) |> fcollect(ex)
+    collect_filter_partitionby(p, f, xs) =
+        xs |>
+        Filter(p) |>
+        ReducePartitionBy(f, Map(vec1)'(Completing(append!!)), vec0()) |>
+        fcollect(ex)
     view_partitionby(f, xs::AbstractArray) = xs |> PartitionBy(f) |> fcollect(ex)
 
     @test count_partitionby(x -> x ÷ 3, 1:6) == [2, 3, 1]
     @test collect_partitionby(x -> x ÷ 3, 1:6) == [1:2, 3:5, 6:6]
+    @test collect_filter_partitionby(isodd, x -> x ÷ 3, 1:6) == [[1], [3, 5]]
     @test view_partitionby(x -> x ÷ 3, 1:6) == [1:2, 3:5, 6:6]
 end
 
