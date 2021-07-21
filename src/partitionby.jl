@@ -114,6 +114,8 @@ end
 function combine(rf::R_{ReducePartitionBy}, a, b)
     a1, a2 = unwrap(rf, a)
     b1, b2 = unwrap(rf, b)
+    a1 isa Unseen && return wrap(rf, b1, b2)
+    b1 isa Unseen && return wrap(rf, a1, a2)
     # @show a1 b1
     if a1 isa PartitionChunk
         if b1 isa PartitionChunk
