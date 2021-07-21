@@ -21,6 +21,14 @@ using MicroCollections: vec0, vec1
     @test view_partitionby(x -> x ÷ 3, 1:6) == [1:2, 3:5, 6:6]
 end
 
+partitionby_div3_last2() =
+    ReducePartitionBy(x -> x ÷ 3, TakeLast(2)'(Completing(push!!)), vec0())
+
+@testset "complete" begin
+    @test 1:6 |> partitionby_div3_last2() |> collect == [[1, 2], [4, 5], [6]]
+    @test 2:7 |> partitionby_div3_last2() |> collect == [[2], [4, 5], [6, 7]]
+end
+
 @testset "array_partitionby" begin
     @test PartitionBy(identity)(1:3) === Transducers.array_partitionby(identity, 1:3)
     # Test for Julia < 1.3:

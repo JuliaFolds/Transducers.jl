@@ -102,7 +102,7 @@ function complete(rf::R_{ReducePartitionBy}, acc)
     yr = complete(xform(rf).rf, state.right)
     iacc2 = next(inner(rf), iacc1, yr)
     if state isa PartitionVacant
-        yl = complete(inner(rf), state.left)
+        yl = complete(xform(rf).rf, state.left)
         iacc0 = next(inner(rf), start(inner(rf), DefaultInit), yl)
         iacc3 = combine(inner(rf), iacc0, iacc2)
     else
