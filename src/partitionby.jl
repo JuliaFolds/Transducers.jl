@@ -102,7 +102,7 @@ function complete(rf::R_{ReducePartitionBy}, acc)
     yr = complete(xform(rf).rf, state.right)
     iacc2 = next(inner(rf), iacc1, yr)
     if state isa PartitionVacant
-        yl = complete(inner(rf), state.left)
+        yl = complete(xform(rf).rf, state.left)
         iacc0 = next(inner(rf), start(inner(rf), DefaultInit), yl)
         iacc3 = combine(inner(rf), iacc0, iacc2)
     else
@@ -114,6 +114,8 @@ end
 function combine(rf::R_{ReducePartitionBy}, a, b)
     a1, a2 = unwrap(rf, a)
     b1, b2 = unwrap(rf, b)
+    a1 isa Unseen && return wrap(rf, b1, b2)
+    b1 isa Unseen && return wrap(rf, a1, a2)
     # @show a1 b1
     if a1 isa PartitionChunk
         if b1 isa PartitionChunk
