@@ -237,9 +237,9 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Literate]]
 deps = ["Base64", "IOCapture", "JSON", "REPL"]
-git-tree-sha1 = "2a5b07cb13c9988cd7ee737df9f45eabbfab151c"
+git-tree-sha1 = "04a71882b041c0d896e4b379bb333a2e2d04054e"
 uuid = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
-version = "2.9.0"
+version = "2.9.1"
 
 [[LiterateTest]]
 deps = ["Test"]
@@ -322,9 +322,9 @@ version = "1.4.1"
 
 [[Parsers]]
 deps = ["Dates"]
-git-tree-sha1 = "c8abc88faa3f7a3950832ac5d6e690881590d6dc"
+git-tree-sha1 = "94bf17e83a0e4b20c8d77f6af8ffe8cc3b386c0a"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "1.1.0"
+version = "1.1.1"
 
 [[Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
