@@ -258,9 +258,9 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
 [[MacroTools]]
 deps = ["Markdown", "Random"]
-git-tree-sha1 = "6a8a2a625ab0dea913aba95c11370589e0239ff0"
+git-tree-sha1 = "0fb723cd8c45858c22169b2e42269e53271a6df7"
 uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
-version = "0.5.6"
+version = "0.5.7"
 
 [[Markdown]]
 deps = ["Base64"]
@@ -322,9 +322,9 @@ version = "1.4.1"
 
 [[Parsers]]
 deps = ["Dates"]
-git-tree-sha1 = "94bf17e83a0e4b20c8d77f6af8ffe8cc3b386c0a"
+git-tree-sha1 = "bfd7d8c7fd87f04543810d9cbd3995972236ba1b"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "1.1.1"
+version = "1.1.2"
 
 [[Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
