@@ -195,10 +195,10 @@ uuid = "82899510-4779-5014-852e-03e436cf321d"
 version = "1.0.0"
 
 [[JSON]]
-deps = ["Dates", "Mmap", "Unicode"]
-git-tree-sha1 = "565947e5338efe62a7db0aa8e5de782c623b04cd"
+deps = ["Dates", "Mmap", "Parsers", "Unicode"]
+git-tree-sha1 = "8076680b162ada2a031f707ac7b4953e30667a37"
 uuid = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
-version = "0.20.1"
+version = "0.21.2"
 
 [[LazyArrays]]
 deps = ["LinearAlgebra", "Test"]
@@ -281,6 +281,12 @@ version = "1.4.5"
 git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
 version = "1.4.1"
+
+[[Parsers]]
+deps = ["Dates"]
+git-tree-sha1 = "477bf42b4d1496b454c10cce46645bb5b8a0cf2c"
+uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
+version = "2.0.2"
 
 [[PerformanceTestTools]]
 deps = ["Test"]
