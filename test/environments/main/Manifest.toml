@@ -267,9 +267,9 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[OnlineStats]]
 deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OnlineStatsBase", "OrderedCollections", "Random", "RecipesBase", "Statistics", "StatsBase", "SweepOperator"]
-git-tree-sha1 = "e8ac92503ddcbe9ea586bfbb4c8e8c6e2c14d5cc"
+git-tree-sha1 = "d7fa4a08d83946335b1a004c695a2f161a20ad56"
 uuid = "a15396b6-48d5-5d58-9928-6d29437db91e"
-version = "1.5.11"
+version = "1.5.12"
 
 [[OnlineStatsBase]]
 deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
@@ -328,9 +328,9 @@ uuid = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 version = "1.1.2"
 
 [[Reexport]]
-git-tree-sha1 = "adcd36e8ba9665c88eb0bd156d4e2a19f9b0d889"
+git-tree-sha1 = "45e428421666073eab6f2da5c9d310d99bb12f9b"
 uuid = "189a3867-3050-52da-a836-e630ba90ab69"
-version = "1.2.0"
+version = "1.2.2"
 
 [[Referenceables]]
 deps = ["Adapt"]
