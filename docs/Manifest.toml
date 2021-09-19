@@ -29,9 +29,9 @@ uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "e239020994123f08905052b9603b4ca14f8c5807"
+git-tree-sha1 = "0ad226aa72d8671f20d0316e03028f0ba1624307"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
-version = "0.3.31"
+version = "0.3.32"
 
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
@@ -283,9 +283,9 @@ uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
 
 [[MicroCollections]]
 deps = ["BangBang", "Setfield"]
-git-tree-sha1 = "e991b6a9d38091c4a0d7cd051fcb57c05f98ac03"
+git-tree-sha1 = "4f65bdbbe93475f6ff9ea6969b21532f88d359be"
 uuid = "128add7d-3638-4c79-886c-908ea0c25c34"
-version = "0.1.0"
+version = "0.1.1"
 
 [[Missings]]
 deps = ["DataAPI"]
@@ -406,9 +406,9 @@ version = "1.1.4"
 
 [[SplittablesBase]]
 deps = ["Setfield", "Test"]
-git-tree-sha1 = "edef25a158db82f4940720ebada14a60ef6c4232"
+git-tree-sha1 = "39c9f91521de844bad65049efd4f9223e7ed43f9"
 uuid = "171d559e-b47b-412a-8079-5efa626c420e"
-version = "0.1.13"
+version = "0.1.14"
 
 [[StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
@@ -483,7 +483,7 @@ version = "0.9.6"
 deps = ["Adapt", "ArgCheck", "BangBang", "Baselet", "CompositionsBase", "DefineSingletons", "Distributed", "InitialValues", "Logging", "Markdown", "MicroCollections", "Requires", "Setfield", "SplittablesBase", "Tables"]
 path = ".."
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
-version = "0.4.66-DEV"
+version = "0.4.67-DEV"
 
 [[TypedTables]]
 deps = ["Adapt", "Dictionaries", "Indexing", "SplitApplyCombine", "Tables", "Unicode"]
