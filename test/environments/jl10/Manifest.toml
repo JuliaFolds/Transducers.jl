@@ -159,11 +159,11 @@ uuid = "313cdc1a-70c2-5d6a-ae34-0150d3930a38"
 version = "1.1.1"
 
 [[InitialValues]]
-git-tree-sha1 = "2e706a57b36b8ab55281f3604622e45fe989c100"
+git-tree-sha1 = "bbd6a7bbc12736f28a92c5b75b15432827143282"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/InitialValues.jl.git"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
-version = "0.2.11-DEV"
+version = "0.2.12-DEV"
 
 [[InteractiveUtils]]
 deps = ["LinearAlgebra", "Markdown"]
