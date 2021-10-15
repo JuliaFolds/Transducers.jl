@@ -134,9 +134,9 @@ version = "0.8.5"
 
 [[Documenter]]
 deps = ["ANSIColoredPrinters", "Base64", "Dates", "DocStringExtensions", "IOCapture", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Test", "Unicode"]
-git-tree-sha1 = "8b43e37cfb4f4edc2b6180409acc0cebce7fede8"
+git-tree-sha1 = "d8bd21fdac4152955040b47a72aa273880662f26"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-version = "0.27.7"
+version = "0.27.8"
 
 [[Downloads]]
 deps = ["ArgTools", "LibCURL", "NetworkOptions"]
@@ -327,9 +327,9 @@ version = "1.5.13"
 
 [[OnlineStatsBase]]
 deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "9295682b1f22ceefee5502db63948d00e92b6aca"
+git-tree-sha1 = "e80d7c35fb08b9e8e96c30daf4daa598d154c5b0"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.4.7"
+version = "1.4.8"
 
 [[OrderedCollections]]
 git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
@@ -338,9 +338,9 @@ version = "1.4.1"
 
 [[Parsers]]
 deps = ["Dates"]
-git-tree-sha1 = "a8709b968a1ea6abc2dc1967cb1db6ac9a00dfb6"
+git-tree-sha1 = "98f59ff3639b3d9485a03a72f3ab35bab9465720"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "2.0.5"
+version = "2.0.6"
 
 [[Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
