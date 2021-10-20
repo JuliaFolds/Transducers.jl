@@ -19,6 +19,12 @@ end
 
 Base.getproperty(::CustomizedProperties, n::Symbol) = n
 
+struct IncompleteInitialization{A,B}
+    a::A
+    b::B
+    IncompleteInitialization{A,B}(a::A) where {A,B}= new{A,B}(a)
+end
+
 function testlabel(x)
     n = 50
     s = repr(x)
@@ -56,6 +62,7 @@ end
     ),
     CustomizedProperties(1, 2, 3),
     CustomizedProperties(1, 2, ABC(1, 2, CustomizedProperties(1, 2, 3))),
+    IncompleteInitialization{Int,String}(2)
 ]
     @test restack(x) === x
 end
