@@ -28,13 +28,16 @@ _getnames(::Type{<:NamedTuple{names}}) where names = names
         # https://github.com/JuliaLang/julia/issues/30210
         ex = :x
     elseif isstructtype(x)
-        new = Expr(
-            :new,
-            x,
-            map(n -> :(restack(getfield(x, $(QuoteNode(n))))), fieldnames(x))...,
-        )
+        fn = fieldnames(x)
+        lastfield = QuoteNode(fn[end])
+        new = Expr(:new, x, map(n -> :(restack(getfield(x, $(QuoteNode(n))))), fn)...)
+
         ex = quote
-            isimmutable(x) ? $new : x
+            if isimmutable(x) && isdefined(x, $lastfield)
+                $new
+            else
+                x
+            end
         end
     else
         ex = :x
