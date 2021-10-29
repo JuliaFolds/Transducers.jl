@@ -18,9 +18,9 @@ version = "3.3.1"
 
 [[Aqua]]
 deps = ["Compat", "Pkg", "Test"]
-git-tree-sha1 = "a6025af01eb605dc0ec02923fb8f3ba62b34b66e"
+git-tree-sha1 = "c7ecb1aec380580a3fc3e179416ffc0bef897214"
 uuid = "4c88cf16-eb10-579e-8560-4a9242c79595"
-version = "0.5.1"
+version = "0.5.2"
 
 [[ArgCheck]]
 git-tree-sha1 = "dedbbb2ddb876f899585c4ec4433265e3017215a"
@@ -258,9 +258,9 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
 [[MacroTools]]
 deps = ["Markdown", "Random"]
-git-tree-sha1 = "5a5bc6bf062f0f95e62d0fe0a2d99699fed82dd9"
+git-tree-sha1 = "3d3e902b31198a27340d0bf00d6ac452866021cf"
 uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
-version = "0.5.8"
+version = "0.5.9"
 
 [[Markdown]]
 deps = ["Base64"]
