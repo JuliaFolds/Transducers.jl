@@ -271,9 +271,9 @@ version = "1.6.0"
 
 [[TerminalLoggers]]
 deps = ["LeftChildRightSiblingTrees", "Logging", "Markdown", "Printf", "ProgressLogging", "UUIDs"]
-git-tree-sha1 = "d620a061cb2a56930b52bdf5cf908a5c4fa8e76a"
+git-tree-sha1 = "62846a48a6cd70e63aa29944b8c4ef704360d72f"
 uuid = "5d786b92-1e48-4d6f-9151-6b4477ca9bed"
-version = "0.1.4"
+version = "0.1.5"
 
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
