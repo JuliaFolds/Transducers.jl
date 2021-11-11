@@ -241,9 +241,9 @@ uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[SplitApplyCombine]]
 deps = ["Dictionaries", "Indexing"]
-git-tree-sha1 = "3cdd86a92737fa0c8af19aecb1141e71057dc2db"
+git-tree-sha1 = "dec0812af1547a54105b4a6615f341377da92de6"
 uuid = "03a91e81-4c3e-53e1-a0a4-9c0c8f19dd66"
-version = "1.1.4"
+version = "1.2.0"
 
 [[SplittablesBase]]
 deps = ["Setfield", "Test"]
