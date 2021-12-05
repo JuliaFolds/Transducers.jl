@@ -224,9 +224,9 @@ uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 
 [[Setfield]]
 deps = ["ConstructionBase", "Future", "MacroTools", "Requires"]
-git-tree-sha1 = "def0718ddbabeb5476e51e5a43609bee889f285d"
+git-tree-sha1 = "0afd9e6c623e379f593da01f20590bacc26d1d14"
 uuid = "efcf1570-3423-57d1-acb7-fd33fddbac46"
-version = "0.8.0"
+version = "0.8.1"
 
 [[SharedArrays]]
 deps = ["Distributed", "Mmap", "Random", "Serialization"]
