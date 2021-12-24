@@ -13,7 +13,6 @@ if get(ENV, "CI", "false") == "true"
     # at the same time.  This can happen when the tests are run via
     # `Pkg.test`.  Doing this after `addprocs` to workaround a quirk
     # in Distributed.jl.
-    VERSION < v"1.8-" && # workaround the hang in CI
     LoadAllPackages.loadall()
 end
 @info "Testing with:" nworkers()
