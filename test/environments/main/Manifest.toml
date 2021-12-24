@@ -7,10 +7,10 @@ uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
 version = "3.2.0"
 
 [[Aqua]]
-deps = ["Pkg", "Test"]
-git-tree-sha1 = "b28b1f08e814090ef35eec6ab974264b3a93c862"
+deps = ["Compat", "Pkg", "Test"]
+git-tree-sha1 = "c7ecb1aec380580a3fc3e179416ffc0bef897214"
 uuid = "4c88cf16-eb10-579e-8560-4a9242c79595"
-version = "0.5.0"
+version = "0.5.2"
 
 [[ArgCheck]]
 git-tree-sha1 = "59c256cf71c3982484ae4486ee86a3d7da891dea"
