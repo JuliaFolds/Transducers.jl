@@ -31,8 +31,8 @@ version = "0.1.5"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "58d0409419029ab9537c1408082b54e206dfd250"
-repo-rev = "initialvalues-03"
+git-tree-sha1 = "f20c083e105f6b59bdae0f6768b0e01f881fd361"
+repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
 version = "0.3.33-DEV"
@@ -94,7 +94,7 @@ version = "0.17.10"
 [[DataTools]]
 deps = ["Accessors", "InitialValues", "StaticNumbers", "Statistics", "Tables", "Transducers"]
 git-tree-sha1 = "ddd3279d1a222836d9e7672dde0e788fa04eff97"
-repo-rev = "initialvalues-03"
+repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/DataTools.jl.git"
 uuid = "96c8136d-373b-4a4f-9482-8552faa6eb26"
 version = "0.1.4-DEV"
