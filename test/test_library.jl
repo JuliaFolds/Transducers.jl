@@ -57,6 +57,22 @@ end
     end
 end
 
+@testset "Scanx" begin
+    @testset for xs in iterator_variants(1:10)
+        xs isa Base.Generator && continue
+        @test collect(Scanx(+), xs) == [0;cumsum(xs)]
+        @test collect(Scanx(*), xs) == [1;cumsum(xs)]
+        @test collect(Scanx((a, b) -> a + b), xs) == [0;cumsum(xs)]
+    end
+
+    xs0 = [0, -1, 3, -2, 1]
+    @testset for xs in [xs0, collect(xs0)]
+        # TODO: confirm that -Inf/Inf are the right monoidal identities here
+        @test collect(Scanx(max), xs) == [-Inf,0, 0, 3, 3, 3]
+        @test collect(Scanx(min), xs) == [Inf,0, -1, -1, -2, -2]
+    end
+end
+
 @testset "ScanEmit" begin
     @testset for xs in iterator_variants(1:3)
         @test collect(ScanEmit(tuple, 0), xs) == 0:2
