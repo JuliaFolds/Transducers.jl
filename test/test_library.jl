@@ -61,7 +61,7 @@ end
     @testset for xs in iterator_variants(1:10)
         xs isa Base.Generator && continue
         @test collect(Scanx(+), xs) == [0;cumsum(xs)]
-        @test collect(Scanx(*), xs) == [1;cumsum(xs)]
+        @test collect(Scanx(*), xs) == [1;cumprod(xs)]
         @test collect(Scanx((a, b) -> a + b), xs) == [0;cumsum(xs)]
     end
 
