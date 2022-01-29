@@ -6,6 +6,7 @@ using Distributed: addprocs, nworkers
 using Test
 
 if get(ENV, "CI", "false") == "true"
+    VERSION < v"1.8-" && # workaround the hang in CI
     addprocs(3)
 
     # Tests in `PerformanceTestTools.@include_foreach` might cause
