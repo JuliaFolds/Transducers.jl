@@ -32,12 +32,12 @@ jobs:
         uses: tkf/julia-update-manifests@v1
         with:
           version: '1.4'
-          projects: test/environments/main benchmark
-      - name: Update test/environments/jl10/Manifest.toml
+          projects: test/environments/main
+      - name: Update */Manifest.toml (1.7)
         uses: tkf/julia-update-manifests@v1
         with:
-          version: '1.0'
-          projects: test/environments/jl10
+          version: '1.7'
+          projects: benchmark
 
       # https://github.com/peter-evans/create-pull-request
       # https://github.com/marketplace/actions/create-pull-request
