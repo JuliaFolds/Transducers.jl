@@ -12,10 +12,12 @@ restack
 _getlength(::Type{<:NTuple{N,Any}}) where N = N
 _getnames(::Type{<:NamedTuple{names}}) where names = names
 
-# Not using dispatch, to check `issingletontype` first.
+# Not using dispatch, to check `datatype_pointerfree` first.
 @generated function restack(x)
-    if Base.issingletontype(x)
-        ex = x.instance :: x
+    if isconcretetype(x) && Base.datatype_pointerfree(x)
+        # With FoldsCUDA, we need to inline everything. So, let's try minimizing
+        # inline cost by avoiding unnecessary recursions:
+        ex = :x
     elseif x <: Tuple
         N = _getlength(x)
         ex = :(($(map(i -> :(restack(x[$i])), 1:N)...),))
