@@ -5,7 +5,7 @@
 [![Travis Status][travis-img]][travis-url]
 [![codecov.io][codecov-img]][codecov-url]
 [![Coverage Status][coveralls-img]][coveralls-url]
-[![Aqua QA](https://img.shields.io/badge/Aqua.jl-%F0%9F%8C%A2-aqua.svg)](https://github.com/tkf/Aqua.jl)
+[![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
 Transducers.jl provides composable algorithms on "sequence" of inputs.
 They are called _[transducers]_, first introduced in Clojure language
@@ -30,6 +30,9 @@ automatically re-used both in sequential (`foldl` etc.) and parallel
 
 See more in the [documentation](https://juliafolds.github.io/Transducers.jl/dev).
 
+If you are interested in parallel programming in general, see also:
+[A quick introduction to data parallelism in Julia](https://juliafolds.github.io/data-parallelism/tutorials/quick-introduction/)
+
 ## Installation
 
 ```julia
@@ -39,14 +42,15 @@ Pkg.add("Transducers")
 
 ## Related packages
 
-* [ThreadsX.jl](https://github.com/tkf/ThreadsX.jl) implements
-  `Base`-like API based on Transducers.jl.  It is highly recommended
-  for using threaded computation without fully switching to
-  transducers.
-* [LazyGroupBy.jl](https://github.com/JuliaFolds/LazyGroupBy.jl) wraps
-  `Transducers.Groupby` in an easy-to-use syntax.
-* [DataTools.jl](https://github.com/JuliaFolds/DataTools.jl) is a set
-  of tools for data analysis built on top of Transducers.jl.
+Following packages are supported by Transducers.jl.  In particular, they rely on
+the Transducers.jl protocol to support multi-threading, multi-processing, and
+GPU-based parallelism.
+
+* [Folds.jl](https://github.com/JuliaFolds/Folds.jl) implements parallelized
+  `Base`-like API based on Transducers.jl.  This package can be used without
+  knowing anything about transducers.
+* [FLoops.jl](https://github.com/JuliaFolds/FLoops.jl) provides `for`-loop
+  syntax for using the loop executed by the Transducers.jl protocol.
 * [BangBang.jl](https://github.com/JuliaFolds/BangBang.jl) implements
   mutate-or-widen API.  This is the foundation of
   [typocalypse](https://discourse.julialang.org/search?q=typocalypse)-free
