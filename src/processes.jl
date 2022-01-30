@@ -349,12 +349,14 @@ function simple_transduce(xform, f, init, coll)
 end
 
 """
-    foldl_nocomplete(rf, init, coll)
+    foldl_basecase(rf, init, coll)
 
 Call [`__foldl__`](@ref) without calling [`complete`](@ref).
 """
-@inline foldl_nocomplete(rf::RF, init, coll) where {RF} =
-    __foldl__(skipcomplete(rf), init, coll)
+@inline foldl_basecase(rf::RF, init, coll) where {RF} =
+    completebasecase(rf, __foldl__(skipcomplete(rf), init, coll))
+
+const foldl_nocomplete = foldl_basecase
 
 """
     foldxl(step, xf::Transducer, reducible; init, simd) :: T
