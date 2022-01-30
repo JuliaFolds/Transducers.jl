@@ -2,8 +2,17 @@ module TestAdHocRF
 
 using Test
 using Transducers
-using Transducers: wheninit, whencomplete, whencombine, complete, whenstart
+using Transducers:
+    complete,
+    foldl_basecase,
+    start,
+    whencombine,
+    whencomplete,
+    whencompletebasecase,
+    wheninit,
+    whenstart
 using MicroCollections: EmptyVector
+using StaticArrays: MVector, SVector
 
 @testset "setters" begin
     rf = nothing |> wheninit(1) |> whenstart(2) |> whencomplete(3) |> whencombine(4)
@@ -25,6 +34,27 @@ end
     @test foldl(collector!!, Filter(isodd), 1:5) == 1:2:5
     @test foldxl(collector!!, Filter(isodd), 1:5) == 1:2:5
     @test foldxt(collector!!, Filter(isodd), 1:5; basesize = 1) == 1:2:5
+end
+
+counter(n::Integer) = counter(Val(Int(n)))
+function counter(::Val{n}) where {n}
+    init() = zero(MVector{n,Int})
+    function inc!(b, i)
+        @inbounds b[max(begin, min(i, end))] += 1
+        b
+    end
+    completebasecase(b) = SVector(b)
+    combine(h, b) = h .+ b
+    return inc! |>
+           wheninit(init) |>
+           whencompletebasecase(completebasecase) |>
+           whencombine(combine)
+end
+
+@testset "counter" begin
+    @test foldxl(counter(10), 1:10)::MVector == ones(10)
+    rf = counter(10)
+    @test foldl_basecase(rf, start(rf, Init)::MVector, 1:10)::SVector == ones(10)
 end
 
 getoninit(rf) = rf.oninit
