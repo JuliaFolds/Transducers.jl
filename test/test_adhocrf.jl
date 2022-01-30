@@ -40,7 +40,7 @@ counter(n::Integer) = counter(Val(Int(n)))
 function counter(::Val{n}) where {n}
     init() = zero(MVector{n,Int})
     function inc!(b, i)
-        @inbounds b[max(begin, min(i, end))] += 1
+        @inbounds b[max(1, min(i, n))] += 1
         b
     end
     completebasecase(b) = SVector(b)
