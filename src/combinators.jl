@@ -417,3 +417,35 @@ julia> foldxt(averaging2, Filter(isodd), 1:50; basesize = 1)
 ```
 """
 (wheninit, whenstart, whencomplete, whencombine)
+
+"""
+    whencompletebasecase(completebasecase, rf) -> rf′
+    whencompletebasecase(completebasecase) -> rf -> rf′
+
+Add [`completebasecase`](@ref) protocol to arbitrary reducing function.
+
+The function `completebasecase` is used as follows in the basecase
+implementation of `reduce` as follows:
+
+```julia
+init′ = oninit()
+acc = start(init′)
+for x in collection
+    acc += rf(acc, x)
+end
+result = completebasecase(acc)
+return result
+```
+
+The `result₁` from basecase 1 and `result₂` from basecase 2 are combined
+using [`combine`](@ref) protcol:
+
+```julia
+combine(result₁, result₂)
+```
+
+!!! note
+
+    This function is an internal experimental interface for FoldsCUDA.
+"""
+whencompletebasecase

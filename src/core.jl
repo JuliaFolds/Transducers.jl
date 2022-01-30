@@ -496,6 +496,19 @@ real-world examples.
 
 # done(rf, result)
 
+"""
+    Transducers.completebasecase(rf, state)
+
+Process basecase result `state` before merged by [`combine`](@ref).
+
+For example, on GPU, this function can be used to translate mutable states to
+immutable values for exchanging them through (un-GC-managed) memory.  See
+[`whencompletebasecase`](@ref).
+
+!!! note
+
+    This function is an internal experimental interface for FoldsCUDA.
+"""
 completebasecase(_, result) = result
 completebasecase(rf::RF, result) where {RF <: AbstractReduction} =
     completebasecase(inner(rf), result)
