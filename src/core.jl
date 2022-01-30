@@ -287,6 +287,7 @@ ensurerf(f) = BottomRF(f)
 # `Completing` etc.
 start(rf::BottomRF, result) = start(inner(rf), result)
 @inline next(rf::BottomRF, result, input) = next(inner(rf), result, input)
+@inline completebasecase(rf::BottomRF, result) = completebasecase(inner(rf), result)
 complete(rf::BottomRF, result) = complete(inner(rf), result)
 combine(rf::BottomRF, a, b) = combine(inner(rf), a, b)
 
@@ -494,6 +495,10 @@ real-world examples.
 @inline next(f, result, input) = f(result, input)
 
 # done(rf, result)
+
+completebasecase(_, result) = result
+completebasecase(rf::RF, result) where {RF <: AbstractReduction} =
+    completebasecase(inner(rf), result)
 
 """
     Transducers.complete(rf::R_{X}, state)

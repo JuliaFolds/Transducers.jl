@@ -217,34 +217,60 @@ julia> foldxt(rf, Map(identity), 1:4; basesize = 1, init = OnInit(() -> []))
  4
 ```
 """
-struct AdHocRF{OnInit,Start,Next,Complete,Combine} <: _Function
+struct AdHocRF{OnInit,Start,Next,CompleteBasecase,Complete,Combine} <: _Function
     oninit::OnInit
     start::Start
     next::Next
+    completebasecase::CompleteBasecase
     complete::Complete
     combine::Combine
 
-    AdHocRF{OnInit,Start,Next,Complete,Combine}(
+    function AdHocRF{OnInit,Start,Next,CompleteBasecase,Complete,Combine}(
         oninit,
         start,
         next,
+        completebasecase,
         complete,
         combine,
-    ) where {OnInit,Start,Next,Complete,Combine} =
-        new{OnInit,Start,Next,Complete,Combine}(oninit, start, next, complete, combine)
+    ) where {OnInit,Start,Next,CompleteBasecase,Complete,Combine}
+        return new{OnInit,Start,Next,CompleteBasecase,Complete,Combine}(
+            oninit,
+            start,
+            next,
+            completebasecase,
+            complete,
+            combine,
+        )
+    end
 end
 
-AdHocRF(oninit, start, op, complete, combine) =
-    AdHocRF{_typeof(oninit),_typeof(start),_typeof(op),_typeof(complete),_typeof(combine)}(
+# Capture T::Type as Type{T}
+function AdHocRF(oninit, start, op, completebasecase, complete, combine)
+    return AdHocRF{
+        _typeof(oninit),
+        _typeof(start),
+        _typeof(op),
+        _typeof(completebasecase),
+        _typeof(complete),
+        _typeof(combine),
+    }(
         oninit,
         start,
         op,
+        completebasecase,
         complete,
         combine,
     )
+end
 
-AdHocRF(op; oninit = nothing, start = identity, complete = identity, combine = nothing) =
-    AdHocRF(oninit, start, op, complete, combine)
+AdHocRF(
+    op;
+    oninit = nothing,
+    start = identity,
+    completebasecase = identity,
+    complete = identity,
+    combine = nothing,
+) = AdHocRF(oninit, start, op, completebasecase, complete, combine)
 
 AdHocRF(op::AdHocRF; kwargs...) = setproperties(op, values(kwargs))
 
@@ -260,6 +286,7 @@ AdHocRF(op::AdHocRF; kwargs...) = setproperties(op, values(kwargs))
 @inline start(rf::AdHocRF, init) = rf.start(initialize(init, rf.next))
 @inline next(rf::AdHocRF, acc, x) = rf.next(acc, x)
 @inline complete(rf::AdHocRF, acc) = rf.complete(acc)
+@inline completebasecase(rf::AdHocRF, acc) = rf.completebasecase(acc)
 @inline combine(rf::AdHocRF, a, b) = something(rf.combine, rf.next)(a, b)
 
 _asmonoid(rf::AdHocRF) = @set rf.next = _asmonoid(rf.next)
@@ -267,11 +294,14 @@ Completing(rf::AdHocRF) = rf
 
 wheninit(oninit, op) = AdHocRF(op; oninit = oninit)
 whenstart(start, op) = AdHocRF(op; start = start)
+whencompletebasecase(completebasecase, op) =
+    AdHocRF(op; completebasecase = completebasecase)
 whencomplete(complete, op) = AdHocRF(op; complete = complete)
 whencombine(combine, op) = AdHocRF(op; combine = combine)
 
 wheninit(oninit) = op -> wheninit(oninit, op)
 whenstart(start) = op -> whenstart(start, op)
+whencompletebasecase(completebasecase) = op -> whencompletebasecase(completebasecase, op)
 whencomplete(complete) = op -> whencomplete(complete, op)
 whencombine(combine) = op -> whencombine(combine, op)
 
