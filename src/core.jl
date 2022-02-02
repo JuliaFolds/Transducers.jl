@@ -928,7 +928,7 @@ julia> initialize(123, +)
 julia> unknown_op(x, y) = x + 2y;
 
 julia> initialize(Init, unknown_op)
-ERROR: IdentityNotDefinedError: `init = Transducers.Init` is specified but the identity element `InitialValue(op)` is not defined for
+ERROR: IdentityNotDefinedError: `init = Init` is specified but the identity element `InitialValue(op)` is not defined for
     op = unknown_op
 [...]
 ```
@@ -1158,7 +1158,7 @@ InitialValues.jl:
 julia> unknown_op(a, b) = a + b;
 
 julia> foldl(unknown_op, 2:2:4 |> Filter(isodd); init = Init)
-ERROR: IdentityNotDefinedError: `init = Transducers.Init` is specified but the identity element `InitialValue(op)` is not defined for
+ERROR: IdentityNotDefinedError: `init = Init` is specified but the identity element `InitialValue(op)` is not defined for
     op = unknown_op
 [...]
 ```
