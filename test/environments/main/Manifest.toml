@@ -150,6 +150,12 @@ git-tree-sha1 = "85c6b57e2680fa28d5c8adc798967377646fbf66"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
 version = "0.8.5"
 
+[[Folds]]
+deps = ["Transducers"]
+git-tree-sha1 = "d4d3f62acad2ca07eacc7ca56bc80800434c9ecf"
+uuid = "41a02a25-b8f0-4f67-bc48-60067656b558"
+version = "0.1.0"
+
 [[Future]]
 deps = ["Random"]
 uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"

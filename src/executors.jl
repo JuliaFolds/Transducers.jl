@@ -12,18 +12,120 @@ struct PreferParallel{K} <: Executor
     kwargs::K
 end
 
+const _SIMD_OPT_DOCS = """
+- `simd`: If `true` or `:ivdep`, enable SIMD using `Base.@simd`.  If
+  `:ivdep`, use `@simd ivdep for ... end` variant.  Read Julia manual
+  of `Base.@simd` to understand when it is appropriate to use this
+  option.  For example, `simd = :ivdep` _must not_ be used with stateful
+  transducer like [`Scan`](@ref).  If `false` (default), `Base.@simd` is not
+  used.
 """
-    SequentialEx(; kwargs...)
-    ThreadedEx(; kwargs...)
-    DistributedEx(; kwargs...)
 
-Sequential, threaded, and distributed executor.  An executor specifies
-execution strategy and its parameters.
-
-See [`foldxl`](@ref), [`foldxt`](@ref) and [`foldxd`](@ref) for usable
-keyword arguments.
 """
-(SequentialEx, ThreadedEx, DistributedEx)
+    SequentialEx(; simd)
+
+Sequential fold executor.  It can be passed to APIs from packages such as
+Folds.jl and FLoops.jl to run the algorithm sequentially.
+
+See also: [`foldxl`](@ref), [`ThreadedEx`](@ref) and [`DistributedEx`](@ref).
+
+# Keyword Arguments
+$_SIMD_OPT_DOCS
+
+# Examples
+```jldoctest
+julia> using Folds
+
+julia> Folds.sum(1:3, SequentialEx())
+6
+```
+"""
+SequentialEx
+
+const _THREADED_EX_OPTS_DOCS = """
+- `basesize::Integer = amount(reducible) ÷ nthreads()`: A size of
+  chunk in `reducible` that is processed by each worker.  A smaller
+  size may be required when:
+    * computation time for processing each item fluctuates a lot
+    * computation can be terminated by [`reduced`](@ref) or
+      transducers using it, such as [`ReduceIf`](@ref)
+- `stoppable::Bool`: [This option usually does not have to be set
+  manually.]  The threaded fold executed in the "stoppable"
+  mode used for optimizing reduction with [`reduced`](@ref) has a
+  slight overhead if `reduced` is not used.  This mode can be disabled
+  by passing `stoppable = false`.  It is usually automatically
+  detected and set appropriately.  Note that this option is purely for
+  optimization and does not affect the result value.
+- `nestlevel::Union{Integer,Val}`: Specify how many inner `Cat`
+  (flatten) transducers to be multi-threaded (using [`TCat`](@ref)).
+  It must be a positive integer, `Val` of positive integer, or
+  `Val(:inf)`.  `Val(:inf)` means to use multi-threading for all `Cat`
+  transducers.  Note that `Cat` transducer should be statically known.
+  That is to say, the fold implementation sees two `Cat`s in `... |> Map(f) |>
+  Cat() |> Cat()` but only one `Cat` in `... |> Map(x -> f(x) |> Cat()) |>
+  Cat()` even though they are semantically identical.
+"""
+
+"""
+    ThreadedEx(; basesize, stoppable, nestlevel, simd)
+
+Multi-threaded fold executor.  This is the default [^1] parallel executor used
+by Folds.jl and FLoops.jl.
+
+See also: [`foldxt`](@ref), [`SequentialEx`](@ref) and [`DistributedEx`](@ref).
+
+[^1]: More specifically, Folds.jl and FLoops.jl uses [`PreferParallel`](@ref)
+      which in turn defaults to `ThreadedEx`.
+
+# Keyword Arguments
+$_THREADED_EX_OPTS_DOCS
+$_SIMD_OPT_DOCS
+
+# Examples
+```jldoctest
+julia> using Folds
+
+julia> Folds.sum(1:3, ThreadedEx(basesize = 1))
+6
+```
+"""
+ThreadedEx
+
+const _DISTRIBUTED_EX_OPTS_DOCS = """
+- `pool::AbstractWorkerPool`: Passed to `Distributed.remotecall`.
+- `basesize::Integer = amount(array) ÷ nworkers()`: A size of chunk in
+  `array` that is processed by each worker.  A smaller size may be
+  required when computation time for processing each item can
+  fluctuate a lot.
+- `threads_basesize::Integer = basesize ÷ nthreads()`: A size of chunk
+  in `array` that is processed by each task in each worker process.
+  The default setting assumes that the number of threads used in all
+  workers are the same.  For heterogeneous setup where each worker
+  process has different number of threads, it may be required to use
+  smaller `threads_basesize` _and_ `basesize` to get a good performance.
+"""
+
+"""
+    DistributedEx(; pool, basesize, threads_basesize, simd)
+
+Distributed fold executor.  It can be pass to APIs from packages such as
+Folds.jl and FLoops.jl to run the algorithm sequentially.
+
+See also: [`foldxd`](@ref), [`SequentialEx`](@ref) and [`ThreadedEx`](@ref).
+
+# Keyword Arguments
+$_DISTRIBUTED_EX_OPTS_DOCS
+$_SIMD_OPT_DOCS
+
+# Examples
+```jldoctest
+julia> using Folds
+
+julia> Folds.sum(1:3, DistributedEx())
+6
+```
+"""
+DistributedEx
 
 """
     PreferParallel(; simd, basesize)
