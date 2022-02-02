@@ -108,7 +108,7 @@ const _DISTRIBUTED_EX_OPTS_DOCS = """
 """
     DistributedEx(; pool, basesize, threads_basesize, simd)
 
-Distributed fold executor.  It can be pass to APIs from packages such as
+Distributed fold executor.  It can be passed to APIs from packages such as
 Folds.jl and FLoops.jl to run the algorithm sequentially.
 
 See also: [`foldxd`](@ref), [`SequentialEx`](@ref) and [`ThreadedEx`](@ref).
