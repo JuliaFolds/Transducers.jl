@@ -15,8 +15,6 @@ jobs:
         julia-version:
           - '1.7'
           - '1.6'
-          - '1.5'
-          - '1.4'
           - 'nightly'
         envname: ["main"]
         include:
@@ -39,3 +37,14 @@ jobs:
           file: ./lcov.info
           flags: Run.test
           name: codecov-umbrella
+
+  # A job that succeeds if and only if all jobs in `test` succeed.
+  all-success:
+    if: always() && github.event.pull_request
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      # https://github.com/tkf/merge-conclusions-action
+      - uses: tkf/merge-conclusions-action@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
