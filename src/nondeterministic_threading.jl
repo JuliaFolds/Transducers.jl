@@ -78,7 +78,7 @@ function start(rf::R_{NondeterministicThreading}, init)
         async_foreach(1:ntasks) do _
             sync_spawn_foreach(ichan) do (lbridge, buffer, rbridge)
                 try
-                    acc = foldl_nocomplete(irf, start(irf, init), buffer)
+                    acc = foldl_basecase(irf, start(irf, init), buffer)
                     while true
                         x = tryfetch(lbridge::Union{Nothing,Promise})
                         x isa Some{<:Ok} || break
