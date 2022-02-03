@@ -349,14 +349,21 @@ function simple_transduce(xform, f, init, coll)
 end
 
 """
-    foldl_basecase(rf, init, coll)
+    foldl_nocomplete(rf, init, coll)
 
 Call [`__foldl__`](@ref) without calling [`complete`](@ref).
 """
+@inline foldl_nocomplete(rf::RF, init, coll) where {RF} =
+    __foldl__(skipcomplete(rf), init, coll)
+
+"""
+    foldl_basecase(rf, init, coll)
+
+`foldl` for basecase of parallel reduction.  Call [`__foldl__`](@ref) without
+calling [`complete`](@ref) and then call `completebasecase`.
+"""
 @inline foldl_basecase(rf::RF, init, coll) where {RF} =
     completebasecase(rf, __foldl__(skipcomplete(rf), init, coll))
-
-const foldl_nocomplete = foldl_basecase
 
 """
     foldxl(step, xf::Transducer, reducible; init, simd) :: T
@@ -395,12 +402,7 @@ See also: [Empty result handling](@ref).
   as `Init(step)` (where `step` is appropriately unwrapped if `step` is
   a `Completing`).  See [Empty result handling](@ref) in the manual
   for more information.
-- `simd`: If `true` or `:ivdep`, enable SIMD using `Base.@simd`.  If
-  `:ivdep`, use `@simd ivdep for ... end` variant.  Read Julia manual
-  of `Base.@simd` to understand when it is appropriate to use this
-  option.  For example, `simd = :ivdep` _must not_ be used with stateful
-  transducer like [`Scan`](@ref).  This option has no effect if
-  `false` (default).
+$_SIMD_OPT_DOCS
 
 # Examples
 ```jldoctest

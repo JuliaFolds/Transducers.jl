@@ -19,27 +19,7 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
 [`foldxl`](@ref), [`foldxd`](@ref).
 
 # Keyword Arguments
-- `basesize::Integer = amount(reducible) ÷ nthreads()`: A size of
-  chunk in `reducible` that is processed by each worker.  A smaller
-  size may be required when:
-    * computation time for processing each item fluctuates a lot
-    * computation can be terminated by [`reduced`](@ref) or
-      transducers using it, such as [`ReduceIf`](@ref)
-- `stoppable::Bool`: [This option usually does not have to be set
-  manually.]  Transducers.jl's `foldxt` executed in the "stoppable"
-  mode used for optimizing reduction with [`reduced`](@ref) has a
-  slight overhead if `reduced` is not used.  This mode can be disabled
-  by passing `stoppable = false`.  It is usually automatically
-  detected and set appropriately.  Note that this option is purely for
-  optimization and does not affect the result value.
-- `nestlevel::Union{Integer,Val}`: Specify how many inner `Cat`
-  (flatten) transducers to be multi-threaded (using [`TCat`](@ref)).
-  It must be a positive integer, `Val` of positive integer, or
-  `Val(:inf)`.  `Val(:inf)` means to use multi-threading for all `Cat`
-  transducers.  Note that `Cat` transducer should be statically known.
-  That is to say, `foldxt` sees two `Cat`s in `... |> Map(f) |> Cat()
-  |> Cat()` but only one `Cat` in `... |> Map(x -> f(x) |> Cat()) |>
-  Cat()` even though they are semantically identical.
+$_THREADED_EX_OPTS_DOCS
 - For other keyword arguments, see [`foldl`](@ref).
 
 !!! compat "Transducers.jl 0.4.23"

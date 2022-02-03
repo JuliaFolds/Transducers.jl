@@ -18,17 +18,7 @@ See also: [Parallel processing tutorial](@ref tutorial-parallel),
     New in version 0.4.3.
 
 # Keyword Arguments
-- `pool::AbstractWorkerPool`: Passed to `Distributed.remotecall`.
-- `basesize::Integer = amount(array) ÷ nworkers()`: A size of chunk in
-  `array` that is processed by each worker.  A smaller size may be
-  required when computation time for processing each item can
-  fluctuate a lot.
-- `threads_basesize::Integer = basesize ÷ nthreads()`: A size of chunk
-  in `array` that is processed by each task in each worker process.
-  The default setting assumes that the number of threads used in all
-  workers are the same.  For heterogeneous setup where each worker
-  process has different number of threads, it may be required to use
-  smaller `threads_basesize` _and_ `basesize` to get a good performance.
+$_DISTRIBUTED_EX_OPTS_DOCS
 - For other keyword arguments, see [`foldl`](@ref).
 
 # Examples

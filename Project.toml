@@ -1,7 +1,7 @@
 name = "Transducers"
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 authors = ["Takafumi Arakaki <aka.tkf@gmail.com>"]
-version = "0.4.70-DEV"
+version = "0.4.71-DEV"
 
 [deps]
 Adapt = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
@@ -44,6 +44,7 @@ DataTools = "96c8136d-373b-4a4f-9482-8552faa6eb26"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+Folds = "41a02a25-b8f0-4f67-bc48-60067656b558"
 InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 LazyArrays = "5078a376-72f3-5289-bfd5-ec5146d43c02"
 LiterateTest = "d77d25b0-90d3-4a16-b10a-412a9d48f625"
@@ -62,4 +63,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 TypedTables = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
 
 [targets]
-test = ["Aqua", "BlockArrays", "Compat", "DataFrames", "DataTools", "Dates", "Distributed", "Documenter", "InteractiveUtils", "LazyArrays", "LiterateTest", "LoadAllPackages", "Maybe", "OnlineStats", "PerformanceTestTools", "Pkg", "Random", "Referenceables", "SparseArrays", "StaticArrays", "Statistics", "StructArrays", "Test", "TypedTables"]
+test = ["Aqua", "BlockArrays", "Compat", "DataFrames", "DataTools", "Dates", "Distributed", "Documenter", "Folds", "InteractiveUtils", "LazyArrays", "LiterateTest", "LoadAllPackages", "Maybe", "OnlineStats", "PerformanceTestTools", "Pkg", "Random", "Referenceables", "SparseArrays", "StaticArrays", "Statistics", "StructArrays", "Test", "TypedTables"]

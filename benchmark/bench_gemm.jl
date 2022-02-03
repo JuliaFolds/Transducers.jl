@@ -14,8 +14,7 @@ _size(x, i) = size(axes(x)[i], 1)
     @argcheck _size(C) === (_size(A, 1), _size(B, 2))
     @argcheck _size(A, 2) === _size(B, 1)
     @argcheck !any(Base.has_offset_axes, (A, B, C))
-    return AdHocFoldable() do rf, acc, _
-        Base.@_inline_meta
+    @inline function fold(rf, acc, _)
         for j in 1:size(C, 2), k in 1:size(A, 2)
             b = @inbounds B[k, j]
             @simd_if rf for i in 1:size(A, 1)
@@ -26,6 +25,7 @@ _size(x, i) = size(axes(x)[i], 1)
         end
         return complete(rf, acc)
     end
+    return AdHocFoldable(fold)
 end
 
 function xfmul!(C, A, B, simd=Val(false))
