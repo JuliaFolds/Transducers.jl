@@ -57,7 +57,7 @@ end
     @test foldl_basecase(rf, start(rf, Init)::MVector, 1:10)::SVector == ones(10)
     @test foldxl(rf, 1:10)::MVector == ones(10)
     @test foldxt(rf, 1:10)::SVector == ones(10)
-    @test foldxd(rf, 1:10)::SVector == ones(10)
+    # @test foldxd(rf, 1:10)::SVector == ones(10)  # TODO: test this
 end
 
 getoninit(rf) = rf.oninit
