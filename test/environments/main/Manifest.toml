@@ -41,11 +41,11 @@ version = "0.4.12"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
-git-tree-sha1 = "62898beba11bd3f0e05cdb5def442f99a75bbdd1"
+git-tree-sha1 = "5a630bd3786cfd380cd460d832314e915975ef17"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/BangBang.jl.git"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
-version = "0.3.35-DEV"
+version = "0.3.36-DEV"
 
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
@@ -114,11 +114,11 @@ version = "0.18.11"
 
 [[DataTools]]
 deps = ["Accessors", "InitialValues", "StaticNumbers", "Statistics", "Tables", "Transducers"]
-git-tree-sha1 = "a8a99a67650d5cd77065b38c940c7e1f82e017f2"
+git-tree-sha1 = "0812a9aa26bd2b929605754baf571d3c613f23b5"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaFolds/DataTools.jl.git"
 uuid = "96c8136d-373b-4a4f-9482-8552faa6eb26"
-version = "0.1.5-DEV"
+version = "0.1.6-DEV"
 
 [[DataValueInterfaces]]
 git-tree-sha1 = "bfc1187b79289637fa0ef6d4436ebdfe6905cbd6"
@@ -170,6 +170,12 @@ deps = ["LinearAlgebra", "Random", "SparseArrays"]
 git-tree-sha1 = "ff537e5a3cba92fb48f30fec46723510450f2c0e"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
 version = "0.10.2"
+
+[[Folds]]
+deps = ["Accessors", "BangBang", "Baselet", "DefineSingletons", "Distributed", "InitialValues", "MicroCollections", "Referenceables", "Requires", "Test", "Transducers"]
+git-tree-sha1 = "de11bd37ad3a74989078f4a0c55ca79f47ea6a96"
+uuid = "41a02a25-b8f0-4f67-bc48-60067656b558"
+version = "0.2.6"
 
 [[Formatting]]
 deps = ["Printf"]
@@ -423,9 +429,9 @@ version = "0.1.15-DEV"
 
 [[StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "2884859916598f974858ff01df7dfc6c708dd895"
+git-tree-sha1 = "a635a9333989a094bddc9f940c04c549cd66afcf"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "1.3.3"
+version = "1.3.4"
 
 [[StaticNumbers]]
 deps = ["Requires"]
@@ -474,7 +480,7 @@ uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 deps = ["Adapt", "ArgCheck", "BangBang", "Baselet", "CompositionsBase", "DefineSingletons", "Distributed", "InitialValues", "Logging", "Markdown", "MicroCollections", "Requires", "Setfield", "SplittablesBase", "Tables"]
 path = "../../.."
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
-version = "0.4.70-DEV"
+version = "0.4.71-DEV"
 
 [[TypedTables]]
 deps = ["Adapt", "Dictionaries", "Indexing", "SplitApplyCombine", "Tables", "Unicode"]
