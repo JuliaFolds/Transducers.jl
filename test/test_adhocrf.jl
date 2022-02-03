@@ -57,7 +57,12 @@ end
     @test foldl_basecase(rf, start(rf, Init)::MVector, 1:10)::SVector == ones(10)
     @test foldxl(rf, 1:10)::MVector == ones(10)
     @test foldxt(rf, 1:10)::SVector == ones(10)
+    @test foldxt(rf, 1:10; basesize = 1)::SVector == ones(10)
     # @test foldxd(rf, 1:10)::SVector == ones(10)  # TODO: test this
+
+    @test foldxt(TeeRF(rf, rf), 1:10)::NTuple{2,SVector} == (ones(10), ones(10))
+    @test foldxt(TeeRF(rf, rf), 1:10; basesize = 1)::NTuple{2,SVector} ==
+          (ones(10), ones(10))
 end
 
 getoninit(rf) = rf.oninit

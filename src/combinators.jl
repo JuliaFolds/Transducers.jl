@@ -35,6 +35,9 @@ next(rf::AbstractMultiCastingRF, accs, x) = error(
     return results
 end
 
+@inline completebasecase(rf::AbstractMultiCastingRF, accs) =
+    map((f, a) -> completebasecase(f, a), rf.fs, accs)
+
 @inline combine(rf::AbstractMultiCastingRF, lefts, rights) =
     map((f, l, r) -> combine(f, l, r), rf.fs, lefts, rights)
 
