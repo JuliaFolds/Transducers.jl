@@ -183,7 +183,7 @@ function _reduce_threads_for(rf, init, reducible::SizedReducible{<:AbstractArray
         basesize <= 1 ? length(arr) : length(arr) ÷ basesize
     )
     if nthreads == 1
-        return foldl_nocomplete(rf, start(rf, init), arr)
+        return foldl_basecase(rf, start(rf, init), arr)
     else
         w = length(arr) ÷ nthreads
         results = Vector{Any}(undef, nthreads)
@@ -193,7 +193,7 @@ function _reduce_threads_for(rf, init, reducible::SizedReducible{<:AbstractArray
             else
                 chunk = @view arr[(i - 1) * w + 1:i * w]
             end
-            results[i] = foldl_nocomplete(rf, start(rf, init), chunk)
+            results[i] = foldl_basecase(rf, start(rf, init), chunk)
         end
         # It can be done in `log2(n)` for loops but it's not clear if
         # `combine` is compute-intensive enough so that launching
