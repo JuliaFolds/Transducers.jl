@@ -54,7 +54,7 @@ function cancel!(ctx::CancellableDACContext)
 end
 
 @noinline _reduce_basecase(rf::F, init::I, reducible) where {F,I} =
-    restack(foldl_nocomplete(rf, start(rf, init), foldable(reducible)))
+    restack(foldl_basecase(rf, start(rf, init), foldable(reducible)))
 # `restack` here is crucial when using heap-allocated accumulator.
 # See `ThreadsX.unique` and the MWE extracted from it:
 # https://github.com/tkf/Restacker.jl/blob/master/benchmark/bench_unique.jl
