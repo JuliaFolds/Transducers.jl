@@ -271,9 +271,9 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Literate]]
 deps = ["Base64", "IOCapture", "JSON", "REPL"]
-git-tree-sha1 = "32b914d8654e945e1076bab58b02dad479ceffcd"
+git-tree-sha1 = "b856be4fe3dfa4146e5c890f1d9865f4e2e4779d"
 uuid = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
-version = "2.12.1"
+version = "2.13.0"
 
 [[LiterateTest]]
 deps = ["Test"]
@@ -424,9 +424,9 @@ uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 
 [[Setfield]]
 deps = ["ConstructionBase", "Future", "MacroTools", "Requires"]
-git-tree-sha1 = "0afd9e6c623e379f593da01f20590bacc26d1d14"
+git-tree-sha1 = "38d88503f695eb0301479bc9b0d4320b378bafe5"
 uuid = "efcf1570-3423-57d1-acb7-fd33fddbac46"
-version = "0.8.1"
+version = "0.8.2"
 
 [[SharedArrays]]
 deps = ["Distributed", "Mmap", "Random", "Serialization"]

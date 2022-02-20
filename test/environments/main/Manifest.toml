@@ -63,9 +63,9 @@ version = "0.1.1"
 
 [[BlockArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "c4672a35316689ed3f331c42055ca741a5f5f571"
+git-tree-sha1 = "21490270d1fcf2efa9ddb2126d6958e9b72a4db0"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.16.10"
+version = "0.16.11"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
@@ -430,9 +430,9 @@ uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 
 [[Setfield]]
 deps = ["ConstructionBase", "Future", "MacroTools", "Requires"]
-git-tree-sha1 = "0afd9e6c623e379f593da01f20590bacc26d1d14"
+git-tree-sha1 = "38d88503f695eb0301479bc9b0d4320b378bafe5"
 uuid = "efcf1570-3423-57d1-acb7-fd33fddbac46"
-version = "0.8.1"
+version = "0.8.2"
 
 [[SharedArrays]]
 deps = ["Distributed", "Mmap", "Random", "Serialization"]
