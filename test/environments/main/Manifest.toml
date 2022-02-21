@@ -177,9 +177,9 @@ version = "0.1.8"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays", "Statistics"]
-git-tree-sha1 = "deed294cde3de20ae0b2e0355a6c4e1c6a5ceffc"
+git-tree-sha1 = "4c7d3757f3ecbcb9055870351078552b7d1dbd2d"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.12.8"
+version = "0.13.0"
 
 [[Folds]]
 deps = ["Accessors", "BangBang", "Baselet", "DefineSingletons", "Distributed", "InitialValues", "MicroCollections", "Referenceables", "Requires", "Test", "ThreadedScans", "Transducers"]
@@ -246,9 +246,9 @@ version = "0.21.3"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "MatrixFactorizations", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "6dfb5dc9426e0cb7e237a71aa78c6b8c3e78a7fc"
+git-tree-sha1 = "e20371e416fd9e7cac1963b024b2243d3d36c03a"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.22.4"
+version = "0.22.5"
 
 [[LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
@@ -495,9 +495,9 @@ version = "0.33.16"
 
 [[StructArrays]]
 deps = ["Adapt", "DataAPI", "StaticArrays", "Tables"]
-git-tree-sha1 = "d21f2c564b21a202f4677c0fba5b5ee431058544"
+git-tree-sha1 = "57617b34fa34f91d536eb265df67c2d4519b8b98"
 uuid = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
-version = "0.6.4"
+version = "0.6.5"
 
 [[TOML]]
 deps = ["Dates"]
