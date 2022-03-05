@@ -354,14 +354,12 @@ end
     end
 
     @testset for xs in iterator_variants([
-            (;counter=1, value=:foo), 
-            (;counter=2, value=:foo), 
-            (;counter=3 , value=:bar)
-        ])
-        @test xs |> Dedupe((x,y) -> x.value==y.value) |> collect == [
-            (;counter=1, value=:foo), 
-            (;counter=3 , value=:bar)
-        ]
+        (; counter = 1, value = :foo),
+        (; counter = 2, value = :foo),
+        (; counter = 3, value = :bar),
+    ])
+        @test xs |> Dedupe((x, y) -> x.value == y.value) |> collect ==
+              [(; counter = 1, value = :foo), (; counter = 3, value = :bar)]
     end
 end
 

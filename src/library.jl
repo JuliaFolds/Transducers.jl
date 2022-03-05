@@ -1163,7 +1163,7 @@ complete(rf::R_{Dedupe}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 @inline next(rf::R_{Dedupe}, result, input) =
     wrapping(rf, result) do prev, iresult
-        if prev isa Unseen || !xform(rf).eq(prev,input)
+        if prev isa Unseen || !xform(rf).eq(prev, input)
             return input, next(inner(rf), iresult, input)
         else
             return input, iresult
