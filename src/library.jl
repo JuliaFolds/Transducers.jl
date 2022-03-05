@@ -1134,8 +1134,8 @@ complete(rf::R_{Interpose}, result) = complete(inner(rf), unwrap(rf, result)[2])
     Dedupe()
     Dedupe(eq)
 
-De-duplicate _consecutive_ items. Comparison operator which identifies duplicates
-can be specified by the  `eq` parameter, which defaults to `==` (equal).
+De-duplicate _consecutive_ items.  Comparison operator which identifies duplicates can be
+specified by the `eq` parameter, which defaults to `==` (equal).
 
 
 $(_thx_clj("dedupe"))
@@ -1156,7 +1156,7 @@ julia> collect(Dedupe(), [1, 1, 2, 1, 3, 3, 2])
 struct Dedupe{F} <: AbstractFilter
     eq::F
 end
-Dedupe() = Dedupe(==)
+Dedupe() = Dedupe(==)  # TODO: use `isequal`
 
 start(rf::R_{Dedupe}, result) = wrap(rf, Unseen(), start(inner(rf), result))
 complete(rf::R_{Dedupe}, result) = complete(inner(rf), unwrap(rf, result)[2])
