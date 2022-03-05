@@ -1132,8 +1132,11 @@ complete(rf::R_{Interpose}, result) = complete(inner(rf), unwrap(rf, result)[2])
 # https://clojuredocs.org/clojure.core/dedupe
 """
     Dedupe()
+    Dedupe(eq)
 
-De-duplicate _consecutive_ items.
+De-duplicate _consecutive_ items.  Comparison operator which identifies duplicates can be
+specified by the `eq` parameter, which defaults to `==` (equal).
+
 
 $(_thx_clj("dedupe"))
 
@@ -1150,15 +1153,17 @@ julia> collect(Dedupe(), [1, 1, 2, 1, 3, 3, 2])
  2
 ```
 """
-struct Dedupe <: AbstractFilter
+struct Dedupe{F} <: AbstractFilter
+    eq::F
 end
+Dedupe() = Dedupe(==)  # TODO: use `isequal`
 
 start(rf::R_{Dedupe}, result) = wrap(rf, Unseen(), start(inner(rf), result))
 complete(rf::R_{Dedupe}, result) = complete(inner(rf), unwrap(rf, result)[2])
 
 @inline next(rf::R_{Dedupe}, result, input) =
     wrapping(rf, result) do prev, iresult
-        if prev isa Unseen || prev != input
+        if prev isa Unseen || !xform(rf).eq(prev, input)
             return input, next(inner(rf), iresult, input)
         else
             return input, iresult

@@ -352,6 +352,15 @@ end
     @testset for xs in iterator_variants([1, 1, 1, 2, 3, 3, 1])
         @test xs |> Dedupe() |> collect == [1:3; 1]
     end
+
+    @testset for xs in iterator_variants([
+        (; counter = 1, value = :foo),
+        (; counter = 2, value = :foo),
+        (; counter = 3, value = :bar),
+    ])
+        @test xs |> Dedupe((x, y) -> x.value == y.value) |> collect ==
+              [(; counter = 1, value = :foo), (; counter = 3, value = :bar)]
+    end
 end
 
 # https://clojuredocs.org/clojure.core/partition-all
