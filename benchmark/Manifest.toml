@@ -90,9 +90,9 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[Dictionaries]]
 deps = ["Indexing", "Random"]
-git-tree-sha1 = "63004a55faf43a5f7be7f5eca36ce355e9a75b2c"
+git-tree-sha1 = "7e73a524c6c282e341de2b046e481abedbabd073"
 uuid = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
-version = "0.3.18"
+version = "0.3.19"
 
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
