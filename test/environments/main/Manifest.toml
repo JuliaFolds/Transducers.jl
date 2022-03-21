@@ -38,9 +38,9 @@ uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
 
 [[ArrayLayouts]]
 deps = ["FillArrays", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "56c347caf09ad8acb3e261fe75f8e09652b7b05b"
+git-tree-sha1 = "03a480efb1b386c0d81ce7a94a099b408e4e098d"
 uuid = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
-version = "0.7.10"
+version = "0.8.1"
 
 [[Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -63,9 +63,9 @@ version = "0.1.1"
 
 [[BlockArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "21490270d1fcf2efa9ddb2126d6958e9b72a4db0"
+git-tree-sha1 = "34536355434c8419029d9546b7966e6b652ed520"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.16.11"
+version = "0.16.12"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
@@ -177,9 +177,9 @@ version = "0.1.8"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays", "Statistics"]
-git-tree-sha1 = "0dbc5b9683245f905993b51d2814202d75b34f1a"
+git-tree-sha1 = "246621d23d1f43e3b9c368bf3b72b2331a27c286"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.13.1"
+version = "0.13.2"
 
 [[Folds]]
 deps = ["Accessors", "BangBang", "Baselet", "DefineSingletons", "Distributed", "InitialValues", "MicroCollections", "Referenceables", "Requires", "Test", "ThreadedScans", "Transducers"]
@@ -246,9 +246,9 @@ version = "0.21.3"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "MatrixFactorizations", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "e20371e416fd9e7cac1963b024b2243d3d36c03a"
+git-tree-sha1 = "baa0f9627dc683080327dc60aef5a491f8ea753c"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.22.5"
+version = "0.22.7"
 
 [[LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
@@ -308,9 +308,9 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[MatrixFactorizations]]
 deps = ["ArrayLayouts", "LinearAlgebra", "Printf", "Random"]
-git-tree-sha1 = "1a0358d0283b84c3ccf9537843e3583c3b896c59"
+git-tree-sha1 = "40db622468d2efed5e06643476edf2df169678f6"
 uuid = "a3b82374-2e81-5b9e-98ce-41277c0e4c87"
-version = "0.8.5"
+version = "0.8.6"
 
 [[Maybe]]
 deps = ["Compat", "ExprTools"]
