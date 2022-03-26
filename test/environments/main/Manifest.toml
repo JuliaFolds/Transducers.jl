@@ -24,9 +24,9 @@ version = "3.3.3"
 
 [[Aqua]]
 deps = ["Compat", "Pkg", "Test"]
-git-tree-sha1 = "0fcb8b5493a0c00c334ca4c9c7f8c4bb43b58323"
+git-tree-sha1 = "ad36b54d55c1f8494baae1cea53f08fa387a7b58"
 uuid = "4c88cf16-eb10-579e-8560-4a9242c79595"
-version = "0.5.3"
+version = "0.5.4"
 
 [[ArgCheck]]
 git-tree-sha1 = "a3a402a35a2f7e0b87828ccabbd5ebfbebe356b4"
@@ -467,9 +467,9 @@ version = "0.1.15-DEV"
 
 [[StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "6976fab022fea2ffea3d945159317556e5dad87c"
+git-tree-sha1 = "4f6ec5d99a28e1a749559ef7dd518663c5eca3d5"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "1.4.2"
+version = "1.4.3"
 
 [[StaticNumbers]]
 deps = ["Requires"]
