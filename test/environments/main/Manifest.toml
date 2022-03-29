@@ -38,9 +38,9 @@ uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
 
 [[ArrayLayouts]]
 deps = ["FillArrays", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "f7030f2b2fa0c59c9efdc6f6e7e351f7fc8635fe"
+git-tree-sha1 = "8b921542ad44cba67f1487e2226446597e0a90af"
 uuid = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
-version = "0.8.4"
+version = "0.8.5"
 
 [[Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -246,9 +246,9 @@ version = "0.21.3"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "MatrixFactorizations", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "baa0f9627dc683080327dc60aef5a491f8ea753c"
+git-tree-sha1 = "72bf82ffddff45d00f5646da3f47e08b3c29e5fd"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.22.7"
+version = "0.22.8"
 
 [[LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
@@ -308,9 +308,9 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[MatrixFactorizations]]
 deps = ["ArrayLayouts", "LinearAlgebra", "Printf", "Random"]
-git-tree-sha1 = "97a22108aee420254cec1c6d063243add81ca002"
+git-tree-sha1 = "6500ad46c6614f7b3de1ab1f7ff426623fb7b39a"
 uuid = "a3b82374-2e81-5b9e-98ce-41277c0e4c87"
-version = "0.8.7"
+version = "0.9.0"
 
 [[Maybe]]
 deps = ["Compat", "ExprTools"]
