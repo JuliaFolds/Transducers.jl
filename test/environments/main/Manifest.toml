@@ -246,9 +246,9 @@ version = "0.21.3"
 
 [[LazyArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "MacroTools", "MatrixFactorizations", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "72bf82ffddff45d00f5646da3f47e08b3c29e5fd"
+git-tree-sha1 = "3a26b464576880e43f29c5dc466b89fa9324ed5f"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.22.8"
+version = "0.22.9"
 
 [[LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
