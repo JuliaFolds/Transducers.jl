@@ -311,10 +311,10 @@ deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[Maybe]]
-deps = ["Compat", "ExprTools"]
-git-tree-sha1 = "af8881b2b677f81e45a64c50e43c6bb3a6dfb54e"
+deps = ["Compat", "ExprTools", "ExternalDocstrings", "Try"]
+git-tree-sha1 = "bd291b4dd5e6cdb065862a5b1a853ab5a17f45b3"
 uuid = "334f122f-1118-46cc-837f-bff747ee6f78"
-version = "0.1.5"
+version = "0.1.6"
 
 [[MbedTLS]]
 deps = ["Dates", "MbedTLS_jll", "Random", "Sockets"]
@@ -536,6 +536,11 @@ deps = ["Adapt", "ArgCheck", "BangBang", "Baselet", "CompositionsBase", "DefineS
 path = ".."
 uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 version = "0.4.74-DEV"
+
+[[Try]]
+git-tree-sha1 = "c2b968d6286af6390aa877c073defc05ed99b279"
+uuid = "bf1d0ff0-c4a9-496b-85f0-2b0d71c4f32a"
+version = "0.1.0"
 
 [[TypedTables]]
 deps = ["Adapt", "Dictionaries", "Indexing", "SplitApplyCombine", "Tables", "Unicode"]
