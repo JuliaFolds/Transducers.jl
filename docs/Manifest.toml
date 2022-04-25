@@ -88,9 +88,9 @@ uuid = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
 version = "4.1.1"
 
 [[DataAPI]]
-git-tree-sha1 = "cc70b17275652eb47bc9e5f81635981f13cea5c8"
+git-tree-sha1 = "fb5f5316dd3fd4c5e7c30a24d50643b73e37cd40"
 uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
-version = "1.9.0"
+version = "1.10.0"
 
 [[DataFrames]]
 deps = ["Compat", "DataAPI", "Future", "InvertedIndices", "IteratorInterfaceExtensions", "LinearAlgebra", "Markdown", "Missings", "PooledArrays", "PrettyTables", "Printf", "REPL", "Reexport", "SortingAlgorithms", "Statistics", "TableTraits", "Tables", "Unicode"]
@@ -538,9 +538,9 @@ uuid = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 version = "0.4.74-DEV"
 
 [[Try]]
-git-tree-sha1 = "c2b968d6286af6390aa877c073defc05ed99b279"
+git-tree-sha1 = "56e72d45a7d77e23f6e943d28183eb509119843a"
 uuid = "bf1d0ff0-c4a9-496b-85f0-2b0d71c4f32a"
-version = "0.1.0"
+version = "0.1.1"
 
 [[TypedTables]]
 deps = ["Adapt", "Dictionaries", "Indexing", "SplitApplyCombine", "Tables", "Unicode"]
