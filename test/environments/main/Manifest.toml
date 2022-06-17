@@ -38,9 +38,9 @@ uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
 
 [[ArrayLayouts]]
 deps = ["FillArrays", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "c23473c60476e62579c077534b9643ec400f792b"
+git-tree-sha1 = "ce5666a4081cfb66035a1a46e45a34ce889bac26"
 uuid = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
-version = "0.8.6"
+version = "0.8.7"
 
 [[Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -63,9 +63,9 @@ version = "0.1.1"
 
 [[BlockArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "ef9b5e561eb814962541c0021eef2e30238d65ba"
+git-tree-sha1 = "6bf9cdd29d7f0fb7a1a342026d5cefbdb61e25fb"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.16.17"
+version = "0.16.18"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
