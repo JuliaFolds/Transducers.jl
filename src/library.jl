@@ -904,8 +904,12 @@ end
 function complete(rf::R_{Partition}, result)
     (i, s, buf), iresult = unwrap(rf, result)
     if xform(rf).flush && s != xform(rf).step
-        iinput = @view buf[i:i + xform(rf).size - 1] # unsafe_view? @inbounds?
-        iinput = @view iinput[s + 1:end]
+        if s != 0
+            iinput = @view buf[i:i + xform(rf).size - 1] # unsafe_view? @inbounds?
+            iinput = @view iinput[s + 1:end]
+        else
+            iinput = @view buf[1:end]
+        end
         iinput :: DenseSubVector
         iresult = @next(inner(rf), iresult, iinput)
     end
