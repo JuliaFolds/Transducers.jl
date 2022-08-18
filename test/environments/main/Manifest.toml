@@ -145,10 +145,10 @@ deps = ["Mmap"]
 uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[Dictionaries]]
-deps = ["Indexing", "Random"]
-git-tree-sha1 = "aeae0d703e62b18aca622e972500077c64bc04e2"
+deps = ["Indexing", "Random", "Serialization"]
+git-tree-sha1 = "96dc5c5c8994be519ee3420953c931c55657a3f2"
 uuid = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
-version = "0.3.23"
+version = "0.3.24"
 
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
