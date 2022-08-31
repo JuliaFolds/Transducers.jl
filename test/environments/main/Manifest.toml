@@ -182,9 +182,9 @@ version = "0.1.1"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays", "Statistics"]
-git-tree-sha1 = "246621d23d1f43e3b9c368bf3b72b2331a27c286"
+git-tree-sha1 = "3399bbad4c9e9a2fd372a54d7b67b3c7121b6402"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.13.2"
+version = "0.13.3"
 
 [[Folds]]
 deps = ["Accessors", "BangBang", "Baselet", "DefineSingletons", "Distributed", "ExternalDocstrings", "InitialValues", "MicroCollections", "Referenceables", "Requires", "Test", "ThreadedScans", "Transducers"]
@@ -552,9 +552,9 @@ version = "0.1.1"
 
 [[TypedTables]]
 deps = ["Adapt", "Dictionaries", "Indexing", "SplitApplyCombine", "Tables", "Unicode"]
-git-tree-sha1 = "f91a10d0132310a31bc4f8d0d29ce052536bd7d7"
+git-tree-sha1 = "ec72e7a68a6ffdc507b751714ff3e84e09135d9e"
 uuid = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
-version = "1.4.0"
+version = "1.4.1"
 
 [[UUIDs]]
 deps = ["Random", "SHA"]

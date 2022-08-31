@@ -560,9 +560,9 @@ version = "0.1.1"
 
 [[TypedTables]]
 deps = ["Adapt", "Dictionaries", "Indexing", "SplitApplyCombine", "Tables", "Unicode"]
-git-tree-sha1 = "f91a10d0132310a31bc4f8d0d29ce052536bd7d7"
+git-tree-sha1 = "ec72e7a68a6ffdc507b751714ff3e84e09135d9e"
 uuid = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
-version = "1.4.0"
+version = "1.4.1"
 
 [[URIs]]
 git-tree-sha1 = "e59ecc5a41b000fa94423a578d29290c7266fc10"
