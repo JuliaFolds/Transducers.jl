@@ -1,9 +1,9 @@
 # This file is machine-generated - editing it directly is not advised
 
 [[AbstractTrees]]
-git-tree-sha1 = "03e0550477d86222521d254b741d470ba17ea0b5"
+git-tree-sha1 = "5c0b629df8a5566a06f5fef5100b53ea56e465a0"
 uuid = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
-version = "0.3.4"
+version = "0.4.2"
 
 [[Adapt]]
 deps = ["LinearAlgebra"]
@@ -136,9 +136,9 @@ version = "0.21.3"
 
 [[LeftChildRightSiblingTrees]]
 deps = ["AbstractTrees"]
-git-tree-sha1 = "b864cb409e8e445688bc478ef87c0afe4f6d1f8d"
+git-tree-sha1 = "fb6803dafae4a5d62ea5cab204b1e657d9737e7f"
 uuid = "1d6d02ad-be62-4b6b-8a6d-2f90e265016e"
-version = "0.1.3"
+version = "0.2.0"
 
 [[LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
@@ -327,9 +327,9 @@ uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
 
 [[TerminalLoggers]]
 deps = ["LeftChildRightSiblingTrees", "Logging", "Markdown", "Printf", "ProgressLogging", "UUIDs"]
-git-tree-sha1 = "62846a48a6cd70e63aa29944b8c4ef704360d72f"
+git-tree-sha1 = "f53e34e784ae771eb9ccde4d72e578aa453d0554"
 uuid = "5d786b92-1e48-4d6f-9151-6b4477ca9bed"
-version = "0.1.5"
+version = "0.1.6"
 
 [[Test]]
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
