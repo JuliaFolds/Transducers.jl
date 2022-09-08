@@ -219,7 +219,7 @@ end
     return complete(rf, acc)
 end
 
-@inline function _foldl_array(rf0::RF, init, arr, ::IndexStyle) where {RF,T}
+@inline function _foldl_array(rf0::RF, init, arr, ::IndexStyle) where {RF}
     @inline getvalue(I) = @inbounds arr[I]
     rf = Map(getvalue)'(rf0)
     return __foldl__(rf, init, _CartesianIndices(arr))
