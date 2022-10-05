@@ -221,8 +221,8 @@ combine_step(rf) =
 _might_return_reduced(rf, init, coll) =
     Base.typeintersect(
         Core.Compiler.return_type(
-            _reduce_dummy,  # simulate the output type of `_reduce`
-            typeof((rf, init, coll)),
+            __reduce_dummy,  # simulate the output type of `_reduce`
+            typeof((rf, init, SizedReducible(coll, 1))),
         ),
         Reduced,
     ) !== Union{}
@@ -232,11 +232,11 @@ _reduce_dummy(rf, init, coll) =
 
 function __reduce_dummy(rf, init, reducible)
     if issmall(reducible)
-        return _reduce_basecase(rf, init, reducible)
+        return _reduce_basecase(rf, init, reducible.reducible)
     else
-        left, right = halve(reducible)
-        a = _reduce_dummy(rf, init, left)
-        b = _reduce_dummy(rf, init, right)
+        left, right = _halve(reducible)
+        a = __reduce_dummy(rf, init, left)
+        b = __reduce_dummy(rf, init, right)
         a isa Reduced && return a
         b isa Reduced && return combine_right_reduced(rf, a, b)
         return combine(rf, a, b)

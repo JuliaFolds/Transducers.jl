@@ -4,6 +4,7 @@ struct SizedReducible{T,S<:Integer} <: Reducible
 end
 
 foldable(reducible::SizedReducible) = reducible.reducible
+foldable(reducible) = reducible
 
 issmall(reducible, basesize) = amount(reducible) <= basesize
 
