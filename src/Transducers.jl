@@ -131,6 +131,12 @@ else
     nonsticky!(task) = task
 end
 
+@static if isdefined(Base, :Splat)
+    splat(f) = Base.Splat(f)
+else
+    splat(f) = Base.splat(f)
+end
+
 # `AbstractArrayOrBroadcasted` is an internal detail of `Base`.  But
 # we need this exact type for disambiguation...
 if isdefined(Base, :AbstractArrayOrBroadcasted)
