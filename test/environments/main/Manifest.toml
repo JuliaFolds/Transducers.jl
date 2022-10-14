@@ -63,9 +63,9 @@ version = "0.1.1"
 
 [[BlockArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "0c0dd27be59bc76a3da6243d8172aeedd6420037"
+git-tree-sha1 = "f9f6d3f5e6ac9d78e461c183bfe0945db679f514"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.16.20"
+version = "0.16.21"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
@@ -309,9 +309,9 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[MatrixFactorizations]]
 deps = ["ArrayLayouts", "LinearAlgebra", "Printf", "Random"]
-git-tree-sha1 = "2320f1e1d87c98693df7fd30c2adcfca923f42da"
+git-tree-sha1 = "4a02641a5b58e09bd04123ecb6eda64bbaee15b0"
 uuid = "a3b82374-2e81-5b9e-98ce-41277c0e4c87"
-version = "0.9.2"
+version = "0.9.3"
 
 [[Maybe]]
 deps = ["Compat", "ExprTools", "ExternalDocstrings", "Try"]
