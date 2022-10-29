@@ -12,9 +12,9 @@ version = "0.4.3"
 
 [[Accessors]]
 deps = ["Compat", "CompositionsBase", "ConstructionBase", "Dates", "InverseFunctions", "LinearAlgebra", "MacroTools", "Requires", "Test"]
-git-tree-sha1 = "ce67f55da3a937bb001a8d00559bdfa4dba6e4f5"
+git-tree-sha1 = "ff77abdacacad13fbdd2d0863fab1af5af819693"
 uuid = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
-version = "0.1.20"
+version = "0.1.21"
 
 [[Adapt]]
 deps = ["LinearAlgebra"]
