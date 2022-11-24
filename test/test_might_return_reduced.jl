@@ -28,7 +28,7 @@ using Transducers: _might_return_reduced
     # It doesn't matter if it's going to throw:
     @test _might_return_reduced(reducingfunction(Map(throw), +), 0, 1:1) isa Bool
     @test _might_return_reduced(reducingfunction(Map(_ -> _uninferable_), +), 0, 1:1)
-    @test Transducers.__reduce_dummy(+, 0, Transducers.SizedReducible([1,2,3,4,5], 2))
+    @test Transducers.__reduce_dummy(+, 0, Transducers.SizedReducible([1,2,3,4,5], 2)) == 15
 end
 
 end  # module
