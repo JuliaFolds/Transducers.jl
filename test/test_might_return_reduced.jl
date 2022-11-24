@@ -11,14 +11,14 @@ using Transducers: _might_return_reduced
     @test _might_return_reduced(reducingfunction(ReduceIf(ismissing), +), 0, [0, missing])
     @test _might_return_reduced(reducingfunction(ReduceIf(ismissing), +), 0, Any[])
     @test !_might_return_reduced(reducingfunction(ReduceIf(ismissing), +), 0, 1:1)
-    @test _might_return_reduced(reducingfunction(ReduceIf(ismissing), +), 0, (0, missing))
-    @test _might_return_reduced(reducingfunction(ReduceIf(ismissing), +), 0, (missing, 0))
+    @test_broken _might_return_reduced(reducingfunction(ReduceIf(ismissing), +), 0, (0, missing))
+    @test_broken _might_return_reduced(reducingfunction(ReduceIf(ismissing), +), 0, (missing, 0))
     @test !_might_return_reduced(
         reducingfunction(ReduceIf(ismissing), +),
         0,
         ntuple(identity, 20),
     )
-    @test _might_return_reduced(
+    @test_broken _might_return_reduced(
         reducingfunction(ReduceIf(ismissing), +),
         0,
         (ntuple(identity, 20)..., missing),
