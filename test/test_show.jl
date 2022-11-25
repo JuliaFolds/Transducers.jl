@@ -157,8 +157,8 @@ end
 end
 
 @testset "Init" begin
-    @test sprint(show, OnInit(+)) == "OnInit(+)"
-    @test sprint(show, CopyInit([])) == "CopyInit(Any[])"
+    @test occursin(sprint(show, OnInit(+)), "OnInit(+)")
+    @test occursin(sprint(show, CopyInit([])), "CopyInit(Any[])")
 end
 
 end  # module
