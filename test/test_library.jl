@@ -6,40 +6,6 @@ using Transducers: isexpansive, AdHocXF
 using Transducers: AdHocXF, @next
 using Setfield: @set!
 
-@testset "AdHocXF" begin
-    flushlast(rf, result) = rf(@next(rf, result, result.state));
-    xf = AdHocXF(nothing, flushlast) do rf, result, input
-        m = match(r"^name:(.*)", input)
-        if m === nothing
-            push!(result.state.lines, input)
-            return result
-        else
-            chunk = result.state
-            @set! result.state = (name=strip(m.captures[1]), lines=String[])
-            push!(result.state.lines, input)
-            if chunk === nothing
-                return result
-            else
-                return rf(result, chunk)
-            end
-        end
-    end;
-    @test collect(xf, split("""
-name: Map
-type: onetoone
-name: Cat
-type: expansive
-name: Filter
-type: contractive
-name: Cat |> Filter
-type: chaotic
-""", "\n"; keepempty=false)) == [(name = "Map", lines = ["name: Map", "type: onetoone"])
-                                 (name = "Cat", lines = ["name: Cat", "type: expansive"])
-                                 (name = "Filter", lines = ["name: Filter", "type: contractive"])
-                                 (name = "Cat |> Filter", lines = ["name: Cat |> Filter", "type: chaotic"])]
-end
-
-
 @testset "Cat" begin
     # Inner transducer is stateful:
     @testset for xs in iterator_variants([1:5, 1:2])
