@@ -234,6 +234,7 @@ function __reduce_dummy(rf, init, reducible)
     if issmall(reducible)
         return _reduce_basecase(rf, init, reducible.reducible)
     else
+        println("Is the testset on github actions not picking up source changes?")
         left, right = _halve(reducible)
         a = __reduce_dummy(rf, init, left)
         b = __reduce_dummy(rf, init, right)
