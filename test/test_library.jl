@@ -397,6 +397,16 @@ end
                 [[1:4;], [5:8;], [9:i;]]
         end
     end
+    for w in 1:4
+        for s in [w,1]
+            @testset "w=$w, 1:$i" for i in 1:w
+                @testset for xs in iterator_variants(1:i)
+                    @test xs |> Partition(w, s, flush=false) |> Map(copy) |> collect == (w == i ? [[1:i;]] : [])
+                    @test xs |> Partition(w, s, flush=true) |> Map(copy) |> collect == [[1:i;]]
+                end
+            end
+        end
+    end
     @testset "Combination with stateful transducers" begin
         @testset for xs in iterator_variants(1:6)
             @test xs |> Take(5) |> Partition(3, 1) |> Map(copy) |> collect ==
