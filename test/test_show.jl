@@ -32,8 +32,7 @@ xforms = [
     end,
     # opcompose(Zip(Map(sin), Map(cos), Map(tan)), Map(prod)),
     NotA(Missing),
-    OfType(Int),
-    Compositon()
+    OfType(Int)
 ]
 
 @testset "smoke test summary(xf)" begin
