@@ -602,9 +602,9 @@ uuid = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
 version = "1.4.1"
 
 [[URIs]]
-git-tree-sha1 = "e59ecc5a41b000fa94423a578d29290c7266fc10"
+git-tree-sha1 = "ac00576f90d8a259f2c9d823e91d1de3fd44d348"
 uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
-version = "1.4.0"
+version = "1.4.1"
 
 [[UUIDs]]
 deps = ["Random", "SHA"]
