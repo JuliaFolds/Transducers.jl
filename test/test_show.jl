@@ -151,8 +151,8 @@ end
 end
 
 @testset "Eduction" begin
-    ed = [1, 2, 3] |> Map(identity)
-    @test sprint(show, "text/plain", ed) == "3-element Vector{Int64} |>\n    Map(identity)"
+    spshow_txt_plain_ed = sprint(show, "text/plain", ed)
+    @test occursin("3-element", spshow_txt_plain_ed) && occursin("Map(identity)", spshow_txt_plain_ed)
     @test sprint(show, ed) == "[1, 2, 3] |> Map(identity)"
 end
 

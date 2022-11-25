@@ -12,12 +12,13 @@ issmall(reducible::SizedReducible) =
     issmall(reducible.reducible, max(reducible.basesize, 1))
 
 function _halve(reducible::SizedReducible)
-    left, right = halve(reducible.reducible)
+    left, right = _halve(reducible.reducible)
     return (
         SizedReducible(left, reducible.basesize),
         SizedReducible(right, reducible.basesize),
     )
 end
+_halve(x) = halve(x)
 
 abstract type DACContext end
 
