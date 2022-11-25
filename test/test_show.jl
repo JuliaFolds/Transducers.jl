@@ -156,4 +156,9 @@ end
     @test sprint(show, ed) == "[1, 2, 3] |> Map(identity)"
 end
 
+@testset "Init" begin
+    @test sprint(show, OnInit(+)) == "OnInit(+)"
+    @test sprint(show, CopyInit([])) == "CopyInit(Any[])"
+end
+
 end  # module

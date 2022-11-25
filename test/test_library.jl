@@ -2,6 +2,7 @@ module TestLibrary
 include("preamble.jl")
 using Dates
 using BangBang: push!!
+using Transducers: isexpansive
 
 @testset "Cat" begin
     # Inner transducer is stateful:
@@ -40,6 +41,7 @@ end
             @test xs |> xf |> Take(3) |> collect == [[1, 2], [3], [4, 5]]
         end
     end
+    @test isexpansive(PartitionBy(isequal(3))) == false
 end
 
 @testset "Scan" begin
@@ -161,6 +163,7 @@ end
     @testset for xs in iterator_variants(1:3)
         @test collect(Replace(Dict(1 => 10, 2 => 20)), xs) == [10, 20, 3]
     end
+    @test isexpansive(Replace(Dict(1 => 10, 2 => 20))) == false
 end
 
 @testset "Take" begin
@@ -300,6 +303,7 @@ end
             @test xs |> Take(2) |> FlagFirst() |> collect == one2three[1:2]
         end
     end
+    @test isexpansive(FlagFirst()) == false
 end
 
 # https://clojuredocs.org/clojure.core/keep
@@ -327,6 +331,7 @@ end
     end
 
     @test collect(xf, 0:3) == [:zero, :one]
+    @test isexpansive(KeepSomething()) == false
 end
 
 # https://clojuredocs.org/clojure.core/distinct
@@ -406,6 +411,7 @@ end
             end
         end
     end
+    @test Transducers.isexpansive(Partition(4)) == false
 end
 
 @testset "Iterated" begin
@@ -420,6 +426,7 @@ end
             @test xs |> Drop(1) |> Iterated(x -> x + 1, 1) |> collect == 1:2
         end
     end
+    @test isexpansive(Iterated(x -> x + 1, 1)) == false
 end
 
 @testset "Count" begin
@@ -447,6 +454,7 @@ end
         @test T{true}([0]) != T([0])
         @test T([0]) != T{true}([0])
         @test T([0]) != T([0im])  # should it?
+        @test isexpansive(T([1])) == false
     end
 end
 
@@ -466,6 +474,7 @@ end
             @test xs |> TakeLast(2) |> Inject(1:1) |> collect == collect(zip(2:2, 1:1))
         end
     end
+    @test isexpansive(Inject(1:1)) == false
 end
 
 @testset "Enumerate" begin
@@ -479,6 +488,7 @@ end
             @test xs |> Drop(2) |> Enumerate() |> collect == [(1, 6)]
         end
     end
+    @test isexpansive(Enumerate()) == false
 end
 
 @testset "OfType" begin
@@ -535,6 +545,11 @@ end
     @test_throws ArgumentError Partition(0, 1)
     @test_throws ArgumentError Partition(1, 0)
     @test_throws ArgumentError TCat(0)
+end
+
+@testset "MapSplat" begin
+    @test collect(MapSplat(*), zip(1:3, 10:10:30)) == [10, 40, 90]
+    @test isexpansive(MapSplat(*)) == false
 end
 
 end  # module
