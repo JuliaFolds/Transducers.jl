@@ -97,6 +97,7 @@ end
         @test tcopy(Map(_ -> 'a'), Set, 1:n) == Set(['a'])
         @testset for basesize in 1:3
             @test tcopy(Map(_ -> 'a'), Set, 1:n, basesize = basesize) == Set(['a'])
+            @test tcopy(Map(identity), Set, 1:n, basesize = basesize) == Set(1:n)
         end
     end
     @testset "empty" begin
@@ -239,5 +240,10 @@ end
     @test foldxt(+, xs; basesize = 1, nestlevel = Val(2)) == sum(xs)
     @test foldxt(+, xs; basesize = 1, nestlevel = Val(:inf)) == sum(xs)
 end
+
+@testset "_reduce_threads_for" begin
+    @test Transducers._reduce_threads_for(+, 0, Transducers.SizedReducible([1,2,3,4,5,6], 2)) == 21
+end
+
 
 end  # module

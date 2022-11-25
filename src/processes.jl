@@ -288,7 +288,7 @@ end
     ) = __foldl__(
         Reduction(Map(_make_zop_getvalues(zs.is)), rf),
         init,
-        Iterators.product(map(Base.splat(zip), _unzip(map(unproduct, zs.is)))...),
+        Iterators.product(map(splat(zip), _unzip(map(unproduct, zs.is)))...),
     )
 end
 
