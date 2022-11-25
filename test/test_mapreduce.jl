@@ -22,6 +22,8 @@ using Transducers: air
 
     ans = @test_deprecated mapreduce(xf, +, 1, init = 0)
     DEPWARN_ERROR || @test ans == 2
+
+    @test_throws ErrorException air(1)
 end
 
 end  # module

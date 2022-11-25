@@ -31,6 +31,9 @@ xforms = [
         opcompose(xf, ZipSource(xf), xf)
     end,
     # opcompose(Zip(Map(sin), Map(cos), Map(tan)), Map(prod)),
+    NotA(Missing),
+    OfType(Int),
+    Compositon()
 ]
 
 @testset "smoke test summary(xf)" begin
@@ -51,6 +54,7 @@ end
         xf2 = include_string(@__MODULE__, code)
         @test xf == xf2
     end
+    @test occursin("λ❓", sprint(show, Map(x -> x + 1)))
 end
 @testset "eval(show(text/plain, xf))" begin
     @testset "$(summary(xf))" for xf in xforms
@@ -62,6 +66,27 @@ end
         VERSION < v"1.5-beta" && occursin("⨟", code) && continue
         xf2 = include_string(@__MODULE__, code)
         @test xf == xf2
+    end
+end
+
+@testset "eval(show(text/plain, ::Reduction))" begin
+    @testset "Reduction($(summary(xf)), +)" for xf in xforms
+        rf = Transducers.Reduction(xf, +)
+        code = sprint(show, "text/plain", rf)
+        @debug """
+        show("text/plain", rf) =
+        $code
+        """
+        VERSION < v"1.5-beta" && occursin("⨟", code) && continue
+        xf isa GetIndex && continue
+        rf2 = include_string(@__MODULE__, code)
+        if xf isa GetIndex
+            # This is casued by Base.:(==)(::AbstractReduction, ::AbstractReduction) falling back on ===
+            # https://github.com/JuliaFolds/Transducers.jl/issues/540
+            @test_broken rf == rf2
+        else
+            @test rf == rf2
+        end 
     end
 end
 
@@ -124,6 +149,12 @@ end
     @test sprint(show, rf; kw...) ==ᵣ "Transducers.ProductRF{2,Tuple{Any,Any}}((min, max))"
     @test sprint(show, "text/plain", rf; kw...) ==ᵣ
           "Transducers.ProductRF{2,Tuple{Any,Any}}((min, max))"
+end
+
+@testset "Eduction" begin
+    ed = [1, 2, 3] |> Map(identity)
+    @test sprint(show, "text/plain", ed) == "3-element Vector{Int64} |>\n    Map(identity)"
+    @test sprint(show, ed) == "[1, 2, 3] |> Map(identity)"
 end
 
 end  # module
