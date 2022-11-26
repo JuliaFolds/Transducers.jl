@@ -2,6 +2,9 @@ module TestLibrary
 include("preamble.jl")
 using Dates
 using BangBang: push!!
+using Transducers: isexpansive, AdHocXF
+using Transducers: AdHocXF, @next
+using Setfield: @set!
 
 @testset "Cat" begin
     # Inner transducer is stateful:
@@ -40,6 +43,7 @@ end
             @test xs |> xf |> Take(3) |> collect == [[1, 2], [3], [4, 5]]
         end
     end
+    @test isexpansive(PartitionBy(isequal(3))) == false
 end
 
 @testset "Scan" begin
@@ -161,6 +165,7 @@ end
     @testset for xs in iterator_variants(1:3)
         @test collect(Replace(Dict(1 => 10, 2 => 20)), xs) == [10, 20, 3]
     end
+    @test isexpansive(Replace(Dict(1 => 10, 2 => 20))) == false
 end
 
 @testset "Take" begin
@@ -300,6 +305,7 @@ end
             @test xs |> Take(2) |> FlagFirst() |> collect == one2three[1:2]
         end
     end
+    @test isexpansive(FlagFirst()) == false
 end
 
 # https://clojuredocs.org/clojure.core/keep
@@ -327,6 +333,7 @@ end
     end
 
     @test collect(xf, 0:3) == [:zero, :one]
+    @test isexpansive(KeepSomething()) == false
 end
 
 # https://clojuredocs.org/clojure.core/distinct
@@ -390,6 +397,16 @@ end
                 [[1:4;], [5:8;], [9:i;]]
         end
     end
+    for w in 1:4
+        for s in [w,1]
+            @testset "w=$w, 1:$i" for i in 1:w
+                @testset for xs in iterator_variants(1:i)
+                    @test xs |> Partition(w, s, flush=false) |> Map(copy) |> collect == (w == i ? [[1:i;]] : [])
+                    @test xs |> Partition(w, s, flush=true) |> Map(copy) |> collect == [[1:i;]]
+                end
+            end
+        end
+    end
     @testset "Combination with stateful transducers" begin
         @testset for xs in iterator_variants(1:6)
             @test xs |> Take(5) |> Partition(3, 1) |> Map(copy) |> collect ==
@@ -406,6 +423,7 @@ end
             end
         end
     end
+    @test Transducers.isexpansive(Partition(4)) == false
 end
 
 @testset "Iterated" begin
@@ -420,6 +438,7 @@ end
             @test xs |> Drop(1) |> Iterated(x -> x + 1, 1) |> collect == 1:2
         end
     end
+    @test isexpansive(Iterated(x -> x + 1, 1)) == false
 end
 
 @testset "Count" begin
@@ -447,6 +466,7 @@ end
         @test T{true}([0]) != T([0])
         @test T([0]) != T{true}([0])
         @test T([0]) != T([0im])  # should it?
+        @test isexpansive(T([1])) == false
     end
 end
 
@@ -466,6 +486,7 @@ end
             @test xs |> TakeLast(2) |> Inject(1:1) |> collect == collect(zip(2:2, 1:1))
         end
     end
+    @test isexpansive(Inject(1:1)) == false
 end
 
 @testset "Enumerate" begin
@@ -479,6 +500,7 @@ end
             @test xs |> Drop(2) |> Enumerate() |> collect == [(1, 6)]
         end
     end
+    @test isexpansive(Enumerate()) == false
 end
 
 @testset "OfType" begin
@@ -535,6 +557,45 @@ end
     @test_throws ArgumentError Partition(0, 1)
     @test_throws ArgumentError Partition(1, 0)
     @test_throws ArgumentError TCat(0)
+end
+
+@testset "MapSplat" begin
+    @test collect(MapSplat(*), zip(1:3, 10:10:30)) == [10, 40, 90]
+    @test isexpansive(MapSplat(*)) == false
+end
+
+
+@testset "AdHocXF" begin
+    flushlast(rf, result) = rf(@next(rf, result, result.state));
+    xf = AdHocXF(nothing, flushlast) do rf, result, input
+        m = match(r"^name:(.*)", input)
+        if m === nothing
+            push!(result.state.lines, input)
+            return result
+        else
+            chunk = result.state
+            @set! result.state = (name=strip(m.captures[1]), lines=String[])
+            push!(result.state.lines, input)
+            if chunk === nothing
+                return result
+            else
+                return rf(result, chunk)
+            end
+        end
+    end;
+    @test collect(xf, split("""
+name: Map
+type: onetoone
+name: Cat
+type: expansive
+name: Filter
+type: contractive
+name: Cat |> Filter
+type: chaotic
+""", "\n"; keepempty=false)) == [(name = "Map", lines = ["name: Map", "type: onetoone"])
+                                 (name = "Cat", lines = ["name: Cat", "type: expansive"])
+                                 (name = "Filter", lines = ["name: Filter", "type: contractive"])
+                                 (name = "Cat |> Filter", lines = ["name: Cat |> Filter", "type: chaotic"])]
 end
 
 end  # module

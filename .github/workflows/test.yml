@@ -15,11 +15,14 @@ jobs:
         julia-version:
           - '1.7'
           - '1.6'
-          - 'nightly'
         envname: ["main"]
         include:
           - julia-version: '1.0'
             envname: "jl10"
+          - julia-version: '1.8'
+            envname: "main_v2"
+          - julia-version: 'nightly'
+            envname: "main_v2"
       fail-fast: false
     name: Test Julia ${{ matrix.julia-version }}
     steps:

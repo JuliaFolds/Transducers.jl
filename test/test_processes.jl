@@ -91,7 +91,7 @@ include("preamble.jl")
                 n in 1:length(iterators)
             xs = Iterators.product(iterators[1:n]...)
             @test collect(Map(identity), xs) == collect(xs)[:]
-            @test foldl(+, MapSplat(*), xs) == sum(Base.splat(*), xs)
+            @test foldl(+, MapSplat(*), xs) == sum(Transducers.splat(*), xs)
         end
     end
 
