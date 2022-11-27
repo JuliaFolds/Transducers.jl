@@ -77,15 +77,8 @@ end
         $code
         """
         VERSION < v"1.5-beta" && occursin("⨟", code) && continue
-        xf isa GetIndex && continue
         rf2 = include_string(@__MODULE__, code)
-        if xf isa GetIndex
-            # This is casued by Base.:(==)(::AbstractReduction, ::AbstractReduction) falling back on ===
-            # https://github.com/JuliaFolds/Transducers.jl/issues/540
-            @test_broken rf == rf2
-        else
-            @test rf == rf2
-        end 
+        @test rf == rf2
     end
 end
 
