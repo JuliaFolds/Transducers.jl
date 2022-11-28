@@ -1534,17 +1534,17 @@ $_experimental_warning
 julia> using Transducers
        using Transducers: GetIndex
 
-julia> collect(GetIndex(1:10), [2, 3, 4])
-3-element Vector{Int64}:
- 2
- 3
- 4
+julia> collect(GetIndex('a':'z'), [2, 3, 4])
+3-element Vector{Char}:
+ 'b': ASCII/Unicode U+0062 (category Ll: Letter, lowercase)
+ 'c': ASCII/Unicode U+0063 (category Ll: Letter, lowercase)
+ 'd': ASCII/Unicode U+0064 (category Ll: Letter, lowercase)
 
-julia> collect(GetIndex{true}(1:10), [2, 3, 4])
-3-element Vector{Int64}:
- 2
- 3
- 4
+julia> collect(GetIndex{true}('a':'z'), [2, 3, 4]) # Inbounds
+3-element Vector{Char}:
+ 'b': ASCII/Unicode U+0062 (category Ll: Letter, lowercase)
+ 'c': ASCII/Unicode U+0063 (category Ll: Letter, lowercase)
+ 'd': ASCII/Unicode U+0064 (category Ll: Letter, lowercase)
 ```
 """
 struct GetIndex{inbounds, A} <: Transducer
