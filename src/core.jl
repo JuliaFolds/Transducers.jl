@@ -319,6 +319,8 @@ struct Reduction{X <: Transducer, I} <: AbstractReduction{I}
         end
 end
 
+Base.:(==)(r1::Reduction, r2::Reduction) = (r1.xform == r2.xform) && (r1.inner == r2.inner)
+
 if VERSION < v"1.3"  # pre https://github.com/JuliaLang/julia/pull/31916
     @inline (rf::Reduction)(state, input) = next(rf, state, input)
 end
