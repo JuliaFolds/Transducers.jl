@@ -24,9 +24,9 @@ version = "3.4.0"
 
 [[Aqua]]
 deps = ["Compat", "Pkg", "Test"]
-git-tree-sha1 = "81ba3aaf28af90fcd3e6ead8450747e418e45a7b"
+git-tree-sha1 = "cee4fc289106df4d2d7f25f3918211b271e38bb0"
 uuid = "4c88cf16-eb10-579e-8560-4a9242c79595"
-version = "0.5.5"
+version = "0.5.6"
 
 [[ArgCheck]]
 git-tree-sha1 = "a3a402a35a2f7e0b87828ccabbd5ebfbebe356b4"
