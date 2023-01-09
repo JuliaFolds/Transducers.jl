@@ -320,9 +320,9 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[MatrixFactorizations]]
 deps = ["ArrayLayouts", "LinearAlgebra", "Printf", "Random"]
-git-tree-sha1 = "4a02641a5b58e09bd04123ecb6eda64bbaee15b0"
+git-tree-sha1 = "2391020282750b4fb0ddbffa734439f4d52c30db"
 uuid = "a3b82374-2e81-5b9e-98ce-41277c0e4c87"
-version = "0.9.3"
+version = "0.9.4"
 
 [[Maybe]]
 deps = ["Compat", "ExprTools", "ExternalDocstrings", "Try"]
