@@ -195,9 +195,9 @@ version = "0.1.2"
 
 [[HTTP]]
 deps = ["Base64", "CodecZlib", "Dates", "IniFile", "Logging", "LoggingExtras", "MbedTLS", "NetworkOptions", "OpenSSL", "Random", "SimpleBufferStream", "Sockets", "URIs", "UUIDs"]
-git-tree-sha1 = "a1fd86ba1fae7c73fd98c7e60f8adf036c31d441"
+git-tree-sha1 = "eb5aa5e3b500e191763d35198f859e4b40fff4a6"
 uuid = "cd3eb016-35fb-5094-929b-558a96fad6f3"
-version = "1.7.2"
+version = "1.7.3"
 
 [[IOCapture]]
 deps = ["Logging", "Random"]
