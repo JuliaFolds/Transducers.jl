@@ -374,9 +374,9 @@ uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
 version = "1.5.0"
 
 [[OrderedCollections]]
-git-tree-sha1 = "d78db6df34313deaca15c5c0b9ff562c704fe1ab"
+git-tree-sha1 = "d321bf2de576bf25ec4d3e4360faca399afca282"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
-version = "1.5.0"
+version = "1.6.0"
 
 [[Parsers]]
 deps = ["Dates", "SnoopPrecompile"]
