@@ -887,6 +887,8 @@ identityof(::typeof(right), ::Any) = nothing
 abstract type Reducible end
 abstract type Foldable <: Reducible end
 
+Base.IteratorSize(::Type{<:Reducible}) = Base.SizeUnknown()
+
 """
    Transducers.asfoldable(x) -> foldable
    
