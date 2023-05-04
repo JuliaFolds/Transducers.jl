@@ -354,7 +354,10 @@ julia> @assert foldxt(
 tcopy(xf::XF, T, reducible::R; kwargs...) where {XF, R} = _tcopy(xf, T, reducible, OutputSize(XF), Base.IteratorSize(R); kwargs...)
 _tcopy(xf, T, reducible, ::Any, ::Any; kwargs...) = foldxt(append!!, Map(SingletonVector) ∘ xf, reducible; init = Empty(T), kwargs...)
 function _tcopy(xf, ::Type{T}, reducible, ::SizeStable, ::Union{Base.HasLength, Base.HasShape};
-                basesize=amount(reducible) ÷ Threads.nthreads(), kwargs...) where {T <: Array}
+                basesize=max(amount(reducible) ÷ Threads.nthreads(), 1), kwargs...) where {T <: Array}
+    if amount(reducible) == 0
+        return Empty(T)
+    end
     chunks = collect(Iterators.partition(reducible, basesize))
     foldxt(append!!, Map(x -> copy(xf, T, x)), chunks; init = Empty(T), kwargs...)
 end
