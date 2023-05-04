@@ -14,7 +14,7 @@ push!(to_exclude, mapreduce)
 if isdefined(Core, :kwcall)
     push!(to_exclude, Core.kwcall)
 else
-    push!(to_exclude, getproperty(Base, Symbol("#mapreduce##kw")))
+    push!(to_exclude, getproperty(Base, Symbol("#mapreduce##kw")).instance)
 end
 
 Aqua.test_all(
