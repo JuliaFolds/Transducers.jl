@@ -803,10 +803,10 @@ julia> collect(Interpose(missing), 1:3)
  3
 ```
 """
-Base.collect(xf::XF, coll) where {XF <: Transducer} = _collect(xf, coll, OutputSize(XF))
+Base.collect(xf::XF, coll) where {XF <: Transducer} = _collect(xf, coll, OutputSize(XF), Base.IteratorSize(coll))
 Base.collect(foldable::Foldable) = collect(extract_transducer(foldable)...)
 
-function _collect(xf, coll, ::Any)
+function _collect(xf, coll, ::Any, ::Any)
     result = finish!(unreduced(transduce(
         Map(SingletonVector) ∘ xf,
         wheninit(collector, append!!),
@@ -820,7 +820,16 @@ function _collect(xf, coll, ::Any)
     return result
 end
 
-_collect(xf, coll, ::SizeStable) = copy(xf, Vector, coll)
+function _collect(xf, arr::Array, ::SizeStable, ::Union{Base.HasLength, Base.HasShape})
+    rf(coll, (i, val)) = @inbounds setindex!!(coll, val, i)
+    dest = UndefArray(size(arr)...)
+    unreduced(transduce(
+        Enumerate() ∘ xf,
+        wheninit(() -> dest, rf),
+        dest,
+        arr
+    ))
+end
 
 """
     copy(xf::Transducer, T, foldable) :: Union{T, Empty{T}}
