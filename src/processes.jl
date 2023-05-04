@@ -923,7 +923,6 @@ function _copy(xf, ::Type{Array{<:Any, N}}, arr, ::SizeStable, ::Base.HasShape) 
     else
         sz = sz_arr
     end
-    sz = (length(arr),)
     rf(coll, (i, val)) = @inbounds setindex!!(coll, val, i)
     dest = UndefArray(sz)
     unreduced(transduce(
