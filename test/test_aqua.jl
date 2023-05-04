@@ -13,6 +13,8 @@ to_exclude = [Base.get, Setfield.set, Setfield.modify, map!]
 push!(to_exclude, mapreduce)
 if isdefined(Core, :kwcall)
     push!(to_exclude, Core.kwcall)
+else
+    push!(to_exclude, geproperty(Base, Symbol("#mapreduce##kw")))
 end
 
 Aqua.test_all(
