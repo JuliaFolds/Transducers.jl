@@ -803,7 +803,9 @@ julia> collect(Interpose(missing), 1:3)
  3
 ```
 """
-function Base.collect(xf::Transducer, coll)
+Base.collect(xf::XF, coll) where {XF <: Transducer} = _collect(xf, coll, OutputSize(XF))
+
+function _collect(xf, coll, ::Any)
     result = finish!(unreduced(transduce(
         Map(SingletonVector) ∘ xf,
         wheninit(collector, append!!),
@@ -816,6 +818,19 @@ function Base.collect(xf::Transducer, coll)
     end
     return result
 end
+
+function _collect(xf, arr::Array, ::SizeStable)
+    rf(coll, (i, val)) = @inbounds setindex!!(coll, val, i)
+    dest = UndefArray(size(arr)...)
+    unreduced(transduce(
+        Enumerate() ∘ xf,
+        wheninit(() -> dest, rf),
+        dest,
+        arr
+    ))
+end
+#Base.collect(xf::Transducer, arr::Array)
+
 # Base.collect(xf, coll) = append!([], xf, coll)
 
 Base.collect(foldable::Foldable) = collect(extract_transducer(foldable)...)
@@ -869,7 +884,9 @@ julia> @assert copy(
        ) == DataFrame(A = [2], B = [3])
 ```
 """
-Base.copy(xf::Transducer, ::Type{T}, foldable) where {T} = append!!(xf, Empty(T), foldable)
+function Base.copy(xf::XF, T, foldable::F) where {XF <: Transducer, F}
+    _copy(xf, T, foldable, OutputSize(XF), Base.IteratorSize(F))
+end
 Base.copy(xf::Transducer, foldable) = copy(xf, _materializer(foldable), foldable)
 
 function Base.copy(::Type{T}, ed::Foldable) where {T}
@@ -880,6 +897,41 @@ end
 function Base.copy(ed::Foldable)
     xf, foldable = extract_transducer(ed)
     return copy(xf, foldable)
+end
+
+_copy(xf, ::Type{T}, foldable, ::Any, ::Any) where {T} = append!!(xf, Empty(T), foldable)
+
+function _copy(xf, ::Type{Vector{<:Any}}, arr, ::SizeStable, ::Base.HasLength)
+    rf(coll, (i, val)) = @inbounds setindex!!(coll, val, i)
+    dest = UndefVector(length(arr))
+    unreduced(transduce(
+        Enumerate() ∘ xf,
+        wheninit(() -> dest, rf),
+        dest,
+        arr
+    ))
+end
+
+function _copy(xf, ::Type{Array{<:Any, N}}, arr, ::SizeStable, ::Base.HasShape) where {N}
+    M = ndims(arr)
+    sz_arr = size(arr)
+    if N > M
+        sz = (sz_arr..., ntuple(_ -> 1, N - ndims(arr))...)
+    elseif N < M
+        l, r = sz_arr[1:end-(N-1)], sz_arr[N:end]
+        sz = (l..., prod(r))
+    else
+        sz = sz_arr
+    end
+    sz = (length(arr),)
+    rf(coll, (i, val)) = @inbounds setindex!!(coll, val, i)
+    dest = UndefArray(sz)
+    unreduced(transduce(
+        Enumerate() ∘ xf,
+        wheninit(() -> dest, rf),
+        dest,
+        arr
+    ))
 end
 
 Base.Set(foldable::Foldable) = copy(Set, foldable)

@@ -351,8 +351,14 @@ julia> @assert foldxt(
        ) == Table(a = [1, 2])
 ```
 """
-tcopy(xf, T, reducible; kwargs...) =
-    foldxt(append!!, Map(SingletonVector) ∘ xf, reducible; init = Empty(T), kwargs...)
+tcopy(xf::XF, T, reducible::R; kwargs...) where {XF, R} = _tcopy(xf, T, reducible, OutputSize(XF), Base.IteratorSize(R); kwargs...)
+_tcopy(xf, T, reducible, ::Any, ::Any; kwargs...) = foldxt(append!!, Map(SingletonVector) ∘ xf, reducible; init = Empty(T), kwargs...)
+function _tcopy(xf, ::Type{T}, reducible, ::SizeStable, ::Union{Base.HasLength, Base.HasShape};
+                basesize=amount(reducible) ÷ Threads.nthreads(), kwargs...) where {T <: Array}
+    chunks = collect(Iterators.partition(reducible, basesize))
+    foldxt(append!!, Map(x -> copy(xf, T, x)), chunks; init = Empty(T), kwargs...)
+end
+
 tcopy(xf, reducible; kwargs...) = tcopy(xf, _materializer(reducible), reducible; kwargs...)
 
 function tcopy(::Type{T}, itr; kwargs...) where {T}
