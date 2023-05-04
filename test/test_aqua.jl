@@ -5,13 +5,19 @@ using Setfield
 using Test
 using Transducers
 
+# https://github.com/JuliaCollections/DataStructures.jl/pull/511
+to_exclude = [Base.get, Setfield.set, Setfield.modify, map!]
+
+# These are needed because of a potential ambiguity with ChainRulesCore's mapfoldl on a Thunk.
+# mapreduce is deprecated, so if we remove it, then that would solve this
+push!(to_exclude, mapreduce)
+if isdefined(Core, :kwcall)
+    push!(to_exclude, Core.kwcall)
+end
+
 Aqua.test_all(
     Transducers;
-    # https://github.com/JuliaCollections/DataStructures.jl/pull/511
-    ambiguities = (; exclude = [Base.get, Setfield.set, Setfield.modify, map!,
-                                # These are needed because of a potential ambiguity with ChainRulesCore's mapfoldl on a Thunk.
-                                # mapreduce is deprecated, so if we remove it, then that would solve this
-                                mapreduce, Core.kwcall]),
+    ambiguities = (; exclude = to_exclude),
     unbound_args = false,  # TODO: make it work
 )
 
