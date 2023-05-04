@@ -804,6 +804,7 @@ julia> collect(Interpose(missing), 1:3)
 ```
 """
 Base.collect(xf::XF, coll) where {XF <: Transducer} = _collect(xf, coll, OutputSize(XF))
+Base.collect(foldable::Foldable) = collect(extract_transducer(foldable)...)
 
 function _collect(xf, coll, ::Any)
     result = finish!(unreduced(transduce(
@@ -819,21 +820,7 @@ function _collect(xf, coll, ::Any)
     return result
 end
 
-function _collect(xf, arr::Array, ::SizeStable)
-    rf(coll, (i, val)) = @inbounds setindex!!(coll, val, i)
-    dest = UndefArray(size(arr)...)
-    unreduced(transduce(
-        Enumerate() ∘ xf,
-        wheninit(() -> dest, rf),
-        dest,
-        arr
-    ))
-end
-#Base.collect(xf::Transducer, arr::Array)
-
-# Base.collect(xf, coll) = append!([], xf, coll)
-
-Base.collect(foldable::Foldable) = collect(extract_transducer(foldable)...)
+_collect(xf, coll, ::SizeStable) = copy(xf, Vector, coll)
 
 """
     copy(xf::Transducer, T, foldable) :: Union{T, Empty{T}}
@@ -918,7 +905,7 @@ function _copy(xf, ::Type{Array{<:Any, N}}, arr, ::SizeStable, ::Base.HasShape) 
     if N > M
         sz = (sz_arr..., ntuple(_ -> 1, N - ndims(arr))...)
     elseif N < M
-        l, r = sz_arr[1:end-(N-1)], sz_arr[N:end]
+        l, r = sz_arr[1:(N-1)], sz_arr[N:end]
         sz = (l..., prod(r))
     else
         sz = sz_arr
