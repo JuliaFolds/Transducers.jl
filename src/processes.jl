@@ -900,8 +900,8 @@ function _copy(xf, ::Type{Vector{<:Any}}, arr, ::SizeStable, ::Base.HasLength)
 end
 
 function _copy(xf, ::Type{Array{<:Any, N}}, arr, ::SizeStable, ::Base.HasShape) where {N}
-    M = ndims(arr)
     sz_arr = size(arr)
+    M = length(sz_arr)
     if N > M
         sz = (sz_arr..., ntuple(_ -> 1, N - ndims(arr))...)
     elseif N < M
