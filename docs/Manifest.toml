@@ -487,9 +487,9 @@ version = "1.4.2"
 
 [[PrecompileTools]]
 deps = ["Preferences"]
-git-tree-sha1 = "0c265aa64283740b9b885348ee52463084de0748"
+git-tree-sha1 = "d0984cc886c48e5a165705ce65236dc2ec467b91"
 uuid = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
-version = "1.0.3"
+version = "1.1.0"
 
 [[Preferences]]
 deps = ["TOML"]
