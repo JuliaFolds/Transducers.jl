@@ -75,13 +75,14 @@ function dtransduce(
     end
     @argcheck basesize > 0
     @argcheck threads_basesize > 0
-    futures = map(firstindex(coll):basesize:lastindex(coll)) do start
+    chunks = split_into_chunks(coll, basesize)
+    futures = map(chunks) do chunk
         Distributed.remotecall(
             _remote_reduce,
             pool,
             rf,
             init,
-            coll[start:min(end, start - 1 + basesize)],
+            chunk,
             threads_basesize,
         )
     end

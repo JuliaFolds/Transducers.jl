@@ -101,7 +101,7 @@ using InitialValues:
     asmonoid,
     hasinitialvalue
 using Logging: @logmsg, LogLevel
-using MicroCollections: UndefVector
+using MicroCollections: UndefVector, UndefArray
 using Requires
 using Setfield: @lens, @set, set, setproperties
 using SplittablesBase: SplittablesBase, amount, halve
