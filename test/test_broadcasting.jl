@@ -56,16 +56,16 @@ sample_foldl_allocations(repeat::Integer, args...) =
     The test `repeat10x < 2 * baseline` does not work in Julia $(VERSION).
     Skipping this test.
     """
-    if VERSION >= v"1.6-"
-        if repeat10x < 2 * baseline
-            @info success_msg baseline repeat10x repeat10x / baseline
-        else
-            @info skip_msg baseline repeat10x repeat10x / baseline
-        end
-        @test_skip repeat10x < 2 * baseline
-    else
+    # if VERSION >= v"1.6-"
+    #     if repeat10x < 2 * baseline
+    #         @info success_msg baseline repeat10x repeat10x / baseline
+    #     else
+    #         @info skip_msg baseline repeat10x repeat10x / baseline
+    #     end
+    #     @test_skip repeat10x < 2 * baseline
+    # else
         @test repeat10x < 2 * baseline
-    end
+    # end
 end
 
 end  # module

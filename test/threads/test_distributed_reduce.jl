@@ -34,6 +34,8 @@ const ProgressLevel = LogLevel(-1)
         @test first.(ys) == xs0
         @test Set(last.(ys)) == Set(pids)
     end
+    # https://github.com/JuliaFolds/Transducers.jl/issues/552
+    @test foldxd(+, Transducers.Map(sum), Iterators.product(1:10, 1:10)) == 1100
 end
 
 @testset "retransform" begin

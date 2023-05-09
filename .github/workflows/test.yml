@@ -22,7 +22,7 @@ jobs:
           - julia-version: '1.8'
             envname: "main_v2"
           - julia-version: 'nightly'
-            envname: "main_v2"
+            envname: "main_v3"
       fail-fast: false
     name: Test Julia ${{ matrix.julia-version }}
     steps:

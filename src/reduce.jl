@@ -351,8 +351,19 @@ julia> @assert foldxt(
        ) == Table(a = [1, 2])
 ```
 """
-tcopy(xf, T, reducible; kwargs...) =
-    foldxt(append!!, Map(SingletonVector) ∘ xf, reducible; init = Empty(T), kwargs...)
+tcopy(xf::XF, T, reducible::R; kwargs...) where {XF, R} = _tcopy(xf, T, reducible, OutputSize(XF), Base.IteratorSize(R); kwargs...)
+_tcopy(xf, T, reducible, ::Any, ::Any; kwargs...) = foldxt(append!!, Map(SingletonVector) ∘ xf, reducible; init = Empty(T), kwargs...)
+function _tcopy(xf, ::Type{T}, reducible, ::SizeStable, ::Union{Base.HasLength, Base.HasShape};
+                basesize=max(amount(reducible) ÷ Threads.nthreads(), 1), kwargs...) where {T <: Array}
+    chunks = split_into_chunks(reducible, basesize)
+    foldxt(append!!, Map(x -> copy(xf, T, x)), chunks; init = Empty(T), kwargs...)
+end
+
+# This can't be collect(Partition(sz), col) because of https://github.com/JuliaFolds/Transducers.jl/issues/554
+function split_into_chunks(coll, sz)
+    collect(Iterators.partition(coll, sz))
+end
+
 tcopy(xf, reducible; kwargs...) = tcopy(xf, _materializer(reducible), reducible; kwargs...)
 
 function tcopy(::Type{T}, itr; kwargs...) where {T}
