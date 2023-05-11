@@ -1236,8 +1236,10 @@ Scan(f) = Scan(_asmonoid(f), Init)  # TODO: DefaultInit?
 
 isexpansive(::Scan) = false
 
-start(rf::R_{Scan}, result) =
+function start(rf::R_{Scan}, result)
+
     wrap(rf, start(xform(rf).f, xform(rf).init), start(inner(rf), result))
+end
 # For now, using `start` on `rf.f` is only for invoking `initialize`
 # on `rf.init`.  But maybe it's better to support `reducingfunction`?
 # For example, use `unwrap_all` before feeding the accumulator to the
@@ -1250,10 +1252,47 @@ function next(rf::R_{Scan}, result, input)
         acc = xform(rf).f(acc, input)
         # TODO: Don't call inner when `acc` is an `InitialValue`?
         #       What about when `Reduced`?
-        return acc, next(inner(rf), iresult, acc)
+        n = next(inner(rf), iresult, acc)
+        return acc, n
     end
 end
 
+
+struct Scanx{F, T} <: Transducer
+    f::F
+    init::T
+end
+
+Scanx(f) = Scanx(_asmonoid(f), Init)  # TODO: DefaultInit?
+
+isexpansive(::Scanx) = false
+
+function start(rf::R_{Scanx}, result)
+    return wrap(rf, start(xform(rf).f, Unseen()), start(inner(rf), result))
+# For now, using `start` on `rf.f` is only for invoking `initialize`
+# on `rf.init`.  But maybe it's better to support `reducingfunction`?
+# For example, use `unwrap_all` before feeding the accumulator to the
+# inner reducing function?
+end
+
+complete(rf::R_{Scanx}, result) = complete(inner(rf), unwrap(rf, result)[2])
+
+function next(rf::R_{Scanx}, result, input)
+    wrapping(rf, result) do acc, iresult
+        if acc isa Unseen
+            ival =  start(xform(rf).f, xform(rf).init)
+            acc = xform(rf).f(ival, input)
+            cur, n = acc, next(inner(rf), push!!(iresult,convert(typeof(input),ival)),input)
+        else
+            acc = xform(rf).f(acc, input)
+
+            cur, n = acc, next(inner(rf), iresult, acc)
+        end
+        # TODO: Don't call inner when `acc` is an `InitialValue`?
+        #       What about when `Reduced`?
+        return cur, n
+    end
+end
 """
     ScanEmit(f, init[, onlast])
 
