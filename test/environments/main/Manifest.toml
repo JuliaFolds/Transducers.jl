@@ -63,9 +63,9 @@ version = "0.1.1"
 
 [[BlockArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "c7d7789c2c6ec98ec78ea5e017485549a95b051e"
+git-tree-sha1 = "14d688a2254ca2242d834176a385cc9b3bceeb02"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.16.27"
+version = "0.16.28"
 
 [[Calculus]]
 deps = ["LinearAlgebra"]
@@ -168,9 +168,9 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[Distributions]]
 deps = ["ChainRulesCore", "DensityInterface", "FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SparseArrays", "SpecialFunctions", "Statistics", "StatsAPI", "StatsBase", "StatsFuns", "Test"]
-git-tree-sha1 = "5eeb2bd01e5065090ad591a205d8cad432ae6cb6"
+git-tree-sha1 = "aa8ae1e8e8d4b5ef38a8fbc028fc75f3c5cad73d"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.25.93"
+version = "0.25.94"
 
 [[DocStringExtensions]]
 deps = ["LibGit2"]
@@ -206,9 +206,9 @@ version = "0.1.1"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays", "Statistics"]
-git-tree-sha1 = "3cce72ec679a5e8e6a84ff09dd03b721de420cfe"
+git-tree-sha1 = "fa10570aee20250d446c9951b459c63529b1107c"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "1.0.1"
+version = "1.0.2"
 
 [[Folds]]
 deps = ["Accessors", "BangBang", "Baselet", "DefineSingletons", "Distributed", "ExternalDocstrings", "InitialValues", "MicroCollections", "Referenceables", "Requires", "Test", "ThreadedScans", "Transducers"]
@@ -228,9 +228,9 @@ uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
 
 [[GPUArraysCore]]
 deps = ["Adapt"]
-git-tree-sha1 = "1cd7f0af1aa58abc02ea1d872953a97359cb87fa"
+git-tree-sha1 = "2d6ca471a6c7b536127afccfa7564b5b39227fe0"
 uuid = "46192b85-c4d5-4398-a991-12ede77f4527"
-version = "0.1.4"
+version = "0.1.5"
 
 [[HypergeometricFunctions]]
 deps = ["DualNumbers", "LinearAlgebra", "OpenLibm_jll", "SpecialFunctions"]
