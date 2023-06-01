@@ -448,9 +448,9 @@ version = "1.4.1"
 
 [[OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "6cc6366a14dbe47e5fc8f3cbe2816b1185ef5fc4"
+git-tree-sha1 = "cae3153c7f6cf3f069a853883fd1919a6e5bab5b"
 uuid = "458c3c95-2e84-50aa-8efc-19380b2a3a95"
-version = "3.0.8+0"
+version = "3.0.9+0"
 
 [[OpenSpecFun_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "Pkg"]
