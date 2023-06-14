@@ -63,9 +63,9 @@ version = "0.1.1"
 
 [[BlockArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "14d688a2254ca2242d834176a385cc9b3bceeb02"
+git-tree-sha1 = "84da33cc8cd01fedaa71a9268e80ddb4dd01a224"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.16.28"
+version = "0.16.29"
 
 [[Calculus]]
 deps = ["LinearAlgebra"]
@@ -442,9 +442,9 @@ version = "0.11.17"
 
 [[Parsers]]
 deps = ["Dates", "PrecompileTools", "UUIDs"]
-git-tree-sha1 = "b32107a634205cdcc64e2a3070c3eb0d56d54181"
+git-tree-sha1 = "5a6ab2f64388fd1175effdf73fe5933ef1e0bac0"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "2.6.0"
+version = "2.7.0"
 
 [[PerformanceTestTools]]
 deps = ["Test"]
