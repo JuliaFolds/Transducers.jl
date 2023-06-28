@@ -185,14 +185,12 @@ function _reduce_threads_for(rf, init, reducible::SizedReducible{<:AbstractArray
     if nthreads == 1
         return foldl_basecase(rf, start(rf, init), arr)
     else
-        w = length(arr) ÷ nthreads
+        mylen = length(arr)
         results = Vector{Any}(undef, nthreads)
         Threads.@threads for i in 1:nthreads
-            if i == nthreads
-                chunk = @view arr[(i - 1) * w + 1:end]
-            else
-                chunk = @view arr[(i - 1) * w + 1:i * w]
-            end
+            rangeini = ((i - 1) * mylen) ÷ nthreads + 1
+            rangeend = (i * mylen) ÷ nthreads
+            chunk = @view arr[rangeini, rangeend]
             results[i] = foldl_basecase(rf, start(rf, init), chunk)
         end
         # It can be done in `log2(n)` for loops but it's not clear if
