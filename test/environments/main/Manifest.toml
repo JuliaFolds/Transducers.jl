@@ -38,9 +38,9 @@ uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
 
 [[ArrayLayouts]]
 deps = ["FillArrays", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "c93c8e24e5fecd6590152050ac50a516c648e06c"
+git-tree-sha1 = "9e5ad0f651c1be8a355e4d327e9cb3bc135d1b73"
 uuid = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
-version = "1.0.7"
+version = "1.0.8"
 
 [[Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -63,9 +63,9 @@ version = "0.1.1"
 
 [[BlockArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "bed8cfec0c348753a79d915cc82999c395299297"
+git-tree-sha1 = "e612855ffa9b06cd46322a4d140c08401dae326c"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.16.33"
+version = "0.16.34"
 
 [[Calculus]]
 deps = ["LinearAlgebra"]
