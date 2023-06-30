@@ -121,9 +121,9 @@ version = "1.5.0"
 
 [[DataStructures]]
 deps = ["Compat", "InteractiveUtils", "OrderedCollections"]
-git-tree-sha1 = "d1fff3a548102f48987a52a2e0d114fa97d730f0"
+git-tree-sha1 = "cf25ccb972fec4e4817764d01c82386ae94f77b4"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.18.13"
+version = "0.18.14"
 
 [[DataTools]]
 deps = ["Accessors", "InitialValues", "StaticNumbers", "Statistics", "Tables", "Transducers"]
@@ -241,9 +241,9 @@ version = "0.1.5"
 
 [[HTTP]]
 deps = ["Base64", "CodecZlib", "ConcurrentUtilities", "Dates", "ExceptionUnwrapping", "Logging", "LoggingExtras", "MbedTLS", "NetworkOptions", "OpenSSL", "Random", "SimpleBufferStream", "Sockets", "URIs", "UUIDs"]
-git-tree-sha1 = "2613d054b0e18a3dea99ca1594e9a3960e025da4"
+git-tree-sha1 = "7f5ef966a02a8fdf3df2ca03108a88447cb3c6f0"
 uuid = "cd3eb016-35fb-5094-929b-558a96fad6f3"
-version = "1.9.7"
+version = "1.9.8"
 
 [[HypergeometricFunctions]]
 deps = ["DualNumbers", "LinearAlgebra", "OpenLibm_jll", "SpecialFunctions"]
