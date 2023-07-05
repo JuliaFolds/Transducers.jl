@@ -1194,7 +1194,7 @@ This is a generalized version of the
 _cumulative sum_, _inclusive scan_, or _scan_.
 
 Note that the associativity of `f` is not required when the transducer
-is used in a process that gurantee an order, such as [`foldl`](@ref).
+is used in a process that guarantee an order, such as [`foldl`](@ref).
 
 Unless `f` is a function with known identity element such as `+`, `*`,
 `min`, `max`, and `append!`, the initial state `init` must be

@@ -175,7 +175,7 @@ _seq_ex_kwargs(; simd = Val(false), _...) = (simd = simd,)
 executor_for(xs::Any, exc) = executor_from(executor_type(xs), exc)
 # * `ThreadedEx` part sould be determined by the property of transducers (and,
 #   ideally, reducing function).
-# * We can extend the API of `executor_type` that returns a list of comptaible
+# * We can extend the API of `executor_type` that returns a list of compatible
 #   executors rather than only one executor.
 
 # `executor_type(::CustomContainer)` is the main (still hidden) API.

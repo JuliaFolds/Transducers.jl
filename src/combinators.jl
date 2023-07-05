@@ -96,7 +96,7 @@ julia> extrema′([5, 2, 6, 8, 3])
 
 Note that the input is considered empty unless _all_ reducing
 functions call their bottom reducing functions.  Specify `init` to
-obain results even when the input collection is empty or all filtered
+obtain results even when the input collection is empty or all filtered
 out.
 
 ```jldoctest; setup = :(using Transducers), filter = r"EmptyResultError: .*"
@@ -130,7 +130,7 @@ TeeRF(f, fs...) = TeeRF((f, fs...))
     ProductRF(reducing_functions...)
 
 Combine `N` reducing functions into a new reducing function that work
-on `N`-tuple.  The `i`-th reducing function recieves the `i`-th
+on `N`-tuple.  The `i`-th reducing function receives the `i`-th
 element of the input tuple.
 
 Roughly speaking, `ProductRF(op₁, op₂, ..., opₙ)` is equivalent to
@@ -441,7 +441,7 @@ return result
 ```
 
 The `result₁` from basecase 1 and `result₂` from basecase 2 are combined
-using [`combine`](@ref) protcol:
+using [`combine`](@ref) protocol:
 
 ```julia
 combine(result₁, result₂)

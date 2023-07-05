@@ -16,7 +16,7 @@ collections; i.e., `Consecutive(size, 1)'(op)` is associative if
     used with reducing functions that can produce a `Reduced`.
 
 If `step > 1`, this transducer can, in principle, support parallel reduction
-if the input colection allows random access (e.g., arrays). However, this
+if the input collection allows random access (e.g., arrays). However, this
 feature is not implemented yet.
 
 # Examples

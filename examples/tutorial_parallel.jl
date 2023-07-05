@@ -203,7 +203,7 @@ y2 = foldxt(append!!, xs |> xf_compute |> Map(singleton_vector))
 # 1. Put a result from the transducer in a "singleton solution".
 #    Here, it is `[x]`.
 #
-# 2. Then "merge" the (singleton) solution into the exsiting one.
+# 2. Then "merge" the (singleton) solution into the existing one.
 #    This is done by `append!!` in the above example.
 
 # To illustrate how `foldxt(append!!, xs |> ... |>

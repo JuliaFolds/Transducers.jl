@@ -108,7 +108,7 @@ struct LogProgressOnCombine{C} <: Transducer
     progress_interval::Float64
 end
 
-# Recrod started time:
+# Record started time:
 start(rf::R_{LogProgressOnCombine}, result) =
     wrap(rf, (time(), 0), start(inner(rf), result))
 
