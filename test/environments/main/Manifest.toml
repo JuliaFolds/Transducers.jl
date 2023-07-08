@@ -38,9 +38,9 @@ uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
 
 [[ArrayLayouts]]
 deps = ["FillArrays", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "9e5ad0f651c1be8a355e4d327e9cb3bc135d1b73"
+git-tree-sha1 = "057a264e4b2d61d35cabb6984b89082f05549725"
 uuid = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
-version = "1.0.8"
+version = "1.0.9"
 
 [[Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -234,9 +234,9 @@ version = "0.1.5"
 
 [[HypergeometricFunctions]]
 deps = ["DualNumbers", "LinearAlgebra", "OpenLibm_jll", "SpecialFunctions"]
-git-tree-sha1 = "0ec02c648befc2f94156eaef13b0f38106212f3f"
+git-tree-sha1 = "ce7ea9cc5db29563b1fe20196b6d23ab3b111384"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
-version = "0.3.17"
+version = "0.3.18"
 
 [[IOCapture]]
 deps = ["Logging", "Random"]
