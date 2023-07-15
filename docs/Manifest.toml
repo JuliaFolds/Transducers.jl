@@ -247,9 +247,9 @@ version = "1.9.14"
 
 [[HypergeometricFunctions]]
 deps = ["DualNumbers", "LinearAlgebra", "OpenLibm_jll", "SpecialFunctions"]
-git-tree-sha1 = "8125b8d5bd6ea3d23b217ccf60f5d57dcb019e8e"
+git-tree-sha1 = "83e95aaab9dc184a6dcd9c4c52aa0dc26cd14a1d"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
-version = "0.3.20"
+version = "0.3.21"
 
 [[IOCapture]]
 deps = ["Logging", "Random"]

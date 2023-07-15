@@ -63,9 +63,9 @@ version = "0.1.1"
 
 [[BlockArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "ffb0191c5d1872a8c91a6181e94a365b7d08d5f2"
+git-tree-sha1 = "174b4970af15a500a29e76151f5c53195784b9d4"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.16.35"
+version = "0.16.36"
 
 [[Calculus]]
 deps = ["LinearAlgebra"]
@@ -234,9 +234,9 @@ version = "0.1.5"
 
 [[HypergeometricFunctions]]
 deps = ["DualNumbers", "LinearAlgebra", "OpenLibm_jll", "SpecialFunctions"]
-git-tree-sha1 = "8125b8d5bd6ea3d23b217ccf60f5d57dcb019e8e"
+git-tree-sha1 = "83e95aaab9dc184a6dcd9c4c52aa0dc26cd14a1d"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
-version = "0.3.20"
+version = "0.3.21"
 
 [[IOCapture]]
 deps = ["Logging", "Random"]
