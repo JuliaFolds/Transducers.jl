@@ -465,9 +465,9 @@ uuid = "efe28fd5-8261-553b-a9e1-b2916fc3738e"
 version = "0.5.5+0"
 
 [[OrderedCollections]]
-git-tree-sha1 = "d321bf2de576bf25ec4d3e4360faca399afca282"
+git-tree-sha1 = "1791b503101162477bf11e951caf6983e57cd8c2"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
-version = "1.6.0"
+version = "1.6.1"
 
 [[PDMats]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
@@ -505,9 +505,9 @@ version = "1.4.0"
 
 [[PrettyTables]]
 deps = ["Crayons", "Formatting", "LaTeXStrings", "Markdown", "Reexport", "StringManipulation", "Tables"]
-git-tree-sha1 = "331cc8048cba270591eab381e7aa3e2e3fef7f5e"
+git-tree-sha1 = "542b1bd03329c1d235110f96f1bb0eeffc48a87d"
 uuid = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
-version = "2.2.5"
+version = "2.2.6"
 
 [[Printf]]
 deps = ["Unicode"]

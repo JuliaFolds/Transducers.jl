@@ -210,9 +210,9 @@ deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
 
 [[OrderedCollections]]
-git-tree-sha1 = "d321bf2de576bf25ec4d3e4360faca399afca282"
+git-tree-sha1 = "1791b503101162477bf11e951caf6983e57cd8c2"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
-version = "1.6.0"
+version = "1.6.1"
 
 [[Parsers]]
 deps = ["Dates", "PrecompileTools", "UUIDs"]
