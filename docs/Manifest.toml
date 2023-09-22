@@ -459,9 +459,9 @@ version = "1.4.1"
 
 [[OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "e78db7bd5c26fc5a6911b50a47ee302219157ea8"
+git-tree-sha1 = "ceeda72c9fd6bbebc4f4f598560789145a8b6c4c"
 uuid = "458c3c95-2e84-50aa-8efc-19380b2a3a95"
-version = "3.0.10+0"
+version = "3.0.11+0"
 
 [[OpenSpecFun_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "Pkg"]
@@ -476,9 +476,9 @@ version = "1.6.2"
 
 [[PDMats]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
-git-tree-sha1 = "67eae2738d63117a196f497d7db789821bce61d1"
+git-tree-sha1 = "3129380a93388e5062e946974246fe3f2e7c73e2"
 uuid = "90014a1f-27ba-587c-ab20-58faa44d9150"
-version = "0.11.17"
+version = "0.11.18"
 
 [[Parsers]]
 deps = ["Dates", "PrecompileTools", "UUIDs"]
