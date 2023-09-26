@@ -78,9 +78,9 @@ version = "0.7.2"
 
 [[Compat]]
 deps = ["Dates", "LinearAlgebra", "UUIDs"]
-git-tree-sha1 = "e460f044ca8b99be31d35fe54fc33a5c33dd8ed7"
+git-tree-sha1 = "8a62af3e248a8c4bad6b32cbbe663ae02275e32c"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "4.9.0"
+version = "4.10.0"
 
 [[CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -476,9 +476,9 @@ version = "1.6.2"
 
 [[PDMats]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
-git-tree-sha1 = "3129380a93388e5062e946974246fe3f2e7c73e2"
+git-tree-sha1 = "bf6085e8bd7735e68c210c6e5d81f9a6fe192060"
 uuid = "90014a1f-27ba-587c-ab20-58faa44d9150"
-version = "0.11.18"
+version = "0.11.19"
 
 [[Parsers]]
 deps = ["Dates", "PrecompileTools", "UUIDs"]
@@ -656,9 +656,9 @@ version = "1.7.0"
 
 [[StatsBase]]
 deps = ["DataAPI", "DataStructures", "LinearAlgebra", "LogExpFunctions", "Missings", "Printf", "Random", "SortingAlgorithms", "SparseArrays", "Statistics", "StatsAPI"]
-git-tree-sha1 = "75ebe04c5bed70b91614d684259b661c9e6274a4"
+git-tree-sha1 = "1d77abd07f617c4868c33d4f5b9e1dbb2643c9cf"
 uuid = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
-version = "0.34.0"
+version = "0.34.2"
 
 [[StatsFuns]]
 deps = ["ChainRulesCore", "HypergeometricFunctions", "InverseFunctions", "IrrationalConstants", "LogExpFunctions", "Reexport", "Rmath", "SpecialFunctions"]
