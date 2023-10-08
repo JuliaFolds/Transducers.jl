@@ -388,9 +388,9 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[MarkdownAST]]
 deps = ["AbstractTrees", "Markdown"]
-git-tree-sha1 = "e8513266815200c0c8f522d6d44ffb5e9b366ae4"
+git-tree-sha1 = "465a70f0fc7d443a00dcdc3267a497397b8a3899"
 uuid = "d0879d2d-cac2-40c8-9cee-1863dc0c7391"
-version = "0.1.1"
+version = "0.1.2"
 
 [[Maybe]]
 deps = ["Compat", "ExprTools", "ExternalDocstrings", "Try"]
