@@ -93,9 +93,9 @@ version = "0.1.2"
 
 [[ConcurrentUtilities]]
 deps = ["Serialization", "Sockets"]
-git-tree-sha1 = "5372dbbf8f0bdb8c700db5367132925c0771ef7e"
+git-tree-sha1 = "8cfa272e8bdedfa88b6aefbbca7c19f1befac519"
 uuid = "f0e56b4a-5159-44fe-b623-3e5288b988bb"
-version = "2.2.1"
+version = "2.3.0"
 
 [[ConstructionBase]]
 deps = ["LinearAlgebra"]
@@ -311,9 +311,9 @@ uuid = "b3565e16-c1f2-4fe9-b4ab-221c88942068"
 version = "0.2.0"
 
 [[LaTeXStrings]]
-git-tree-sha1 = "f2355693d6778a178ade15952b7ac47a4ff97996"
+git-tree-sha1 = "50901ebc375ed41dbf8058da26f9de442febbbec"
 uuid = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
-version = "1.3.0"
+version = "1.3.1"
 
 [[LazilyInitializedFields]]
 git-tree-sha1 = "410fe4739a4b092f2ffe36fcb0dcc3ab12648ce1"
