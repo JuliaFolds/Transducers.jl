@@ -345,9 +345,9 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Literate]]
 deps = ["Base64", "IOCapture", "JSON", "REPL"]
-git-tree-sha1 = "400a09e5def4c552b0e75c3b327090a84d3c1efc"
+git-tree-sha1 = "7cf4b8ca67b6a86a2ad7526bfe514ecd00d944f9"
 uuid = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
-version = "2.15.1"
+version = "2.16.0"
 
 [[LiterateTest]]
 deps = ["Test"]
@@ -399,10 +399,10 @@ uuid = "334f122f-1118-46cc-837f-bff747ee6f78"
 version = "0.1.7"
 
 [[MbedTLS]]
-deps = ["Dates", "MbedTLS_jll", "MozillaCACerts_jll", "Random", "Sockets"]
-git-tree-sha1 = "03a9b9718f5682ecb107ac9f7308991db4ce395b"
+deps = ["Dates", "MbedTLS_jll", "MozillaCACerts_jll", "NetworkOptions", "Random", "Sockets"]
+git-tree-sha1 = "f512dc13e64e96f703fd92ce617755ee6b5adf0f"
 uuid = "739be429-bea8-5141-9913-cc70e7f3736d"
-version = "1.1.7"
+version = "1.1.8"
 
 [[MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
