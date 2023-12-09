@@ -18,9 +18,9 @@ version = "0.1.33"
 
 [[Adapt]]
 deps = ["LinearAlgebra", "Requires"]
-git-tree-sha1 = "02f731463748db57cc2ebfbd9fbc9ce8280d3433"
+git-tree-sha1 = "cde29ddf7e5726c9fb511f340244ea3481267608"
 uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
-version = "3.7.1"
+version = "3.7.2"
 
 [[Aqua]]
 deps = ["Compat", "Pkg", "Test"]
@@ -168,9 +168,9 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[Distributions]]
 deps = ["ChainRulesCore", "DensityInterface", "FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SpecialFunctions", "Statistics", "StatsAPI", "StatsBase", "StatsFuns", "Test"]
-git-tree-sha1 = "a6c00f894f24460379cb7136633cef54ac9f6f4a"
+git-tree-sha1 = "9242eec9b7e2e14f9952e8ea1c7e31a50501d587"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.25.103"
+version = "0.25.104"
 
 [[DocStringExtensions]]
 deps = ["LibGit2"]
@@ -475,9 +475,9 @@ uuid = "efcefdf7-47ab-520b-bdef-62a2eaa19f15"
 
 [[PDMats]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
-git-tree-sha1 = "4e5be6bb265d33669f98eb55d2a57addd1eeb72c"
+git-tree-sha1 = "949347156c25054de2db3b166c52ac4728cbad65"
 uuid = "90014a1f-27ba-587c-ab20-58faa44d9150"
-version = "0.11.30"
+version = "0.11.31"
 
 [[Parsers]]
 deps = ["Dates", "PrecompileTools", "UUIDs"]

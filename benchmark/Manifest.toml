@@ -7,9 +7,9 @@ version = "0.4.4"
 
 [[Adapt]]
 deps = ["LinearAlgebra", "Requires"]
-git-tree-sha1 = "02f731463748db57cc2ebfbd9fbc9ce8280d3433"
+git-tree-sha1 = "cde29ddf7e5726c9fb511f340244ea3481267608"
 uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
-version = "3.7.1"
+version = "3.7.2"
 
 [[ArgCheck]]
 git-tree-sha1 = "a3a402a35a2f7e0b87828ccabbd5ebfbebe356b4"
