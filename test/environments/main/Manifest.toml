@@ -218,9 +218,9 @@ version = "1.9.3"
 
 [[Folds]]
 deps = ["Accessors", "BangBang", "Baselet", "DefineSingletons", "Distributed", "ExternalDocstrings", "InitialValues", "MicroCollections", "Referenceables", "Requires", "Test", "ThreadedScans", "Transducers"]
-git-tree-sha1 = "638109532de382a1f99b1aae1ca8b5d08515d85a"
+git-tree-sha1 = "7348c72fac6daca489379b9307e0233e1a65b0e0"
 uuid = "41a02a25-b8f0-4f67-bc48-60067656b558"
-version = "0.2.8"
+version = "0.2.9"
 
 [[Future]]
 deps = ["Random"]
@@ -444,9 +444,9 @@ version = "1.6.3"
 
 [[OnlineStatsBase]]
 deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "790f151a4650b77850ec2313eae034e99823dafe"
+git-tree-sha1 = "47522be41435222ada35dac4cf4e58a9cc6faded"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.6.1"
+version = "1.6.2"
 
 [[OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -727,9 +727,9 @@ version = "0.1.1"
 
 [[TypedTables]]
 deps = ["Adapt", "Dictionaries", "Indexing", "SplitApplyCombine", "Tables", "Unicode"]
-git-tree-sha1 = "d911ae4e642cf7d56b1165d29ef0a96ba3444ca9"
+git-tree-sha1 = "3ba40ce4a0f52e654aca9e3a86603768cea9cbfb"
 uuid = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
-version = "1.4.3"
+version = "1.4.4"
 
 [[UUIDs]]
 deps = ["Random", "SHA"]
