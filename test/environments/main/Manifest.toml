@@ -218,9 +218,9 @@ version = "1.9.3"
 
 [[Folds]]
 deps = ["Accessors", "BangBang", "Baselet", "DefineSingletons", "Distributed", "ExternalDocstrings", "InitialValues", "MicroCollections", "Referenceables", "Requires", "Test", "ThreadedScans", "Transducers"]
-git-tree-sha1 = "7348c72fac6daca489379b9307e0233e1a65b0e0"
+git-tree-sha1 = "7eb4bc88d8295e387a667fd43d67c157ddee76cf"
 uuid = "41a02a25-b8f0-4f67-bc48-60067656b558"
-version = "0.2.9"
+version = "0.2.10"
 
 [[Future]]
 deps = ["Random"]
