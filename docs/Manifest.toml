@@ -72,9 +72,9 @@ version = "0.1.8"
 
 [[CodecZlib]]
 deps = ["TranscodingStreams", "Zlib_jll"]
-git-tree-sha1 = "cd67fc487743b2f0fd4380d4cbd3a24660d0eec8"
+git-tree-sha1 = "59939d8a997469ee05c4b4944560a820f9ba0d73"
 uuid = "944b1d66-785c-5afd-91f1-9de20f533193"
-version = "0.7.3"
+version = "0.7.4"
 
 [[Compat]]
 deps = ["Dates", "LinearAlgebra", "TOML", "UUIDs"]
@@ -153,9 +153,9 @@ version = "0.4.0"
 
 [[Dictionaries]]
 deps = ["Indexing", "Random", "Serialization"]
-git-tree-sha1 = "079b1f4b4f53e75c47d450afaca8c9424adce199"
+git-tree-sha1 = "bd57fc07ff32179367a230b22c539e4776e452e2"
 uuid = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
-version = "0.3.27"
+version = "0.3.28"
 
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
