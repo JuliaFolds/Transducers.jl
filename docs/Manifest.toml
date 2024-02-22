@@ -467,9 +467,9 @@ version = "1.6.3"
 
 [[OnlineStatsBase]]
 deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "47522be41435222ada35dac4cf4e58a9cc6faded"
+git-tree-sha1 = "6aa22dda15d3387639210d382fafc4f2a84b4fb9"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.6.2"
+version = "1.6.3"
 
 [[OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -657,9 +657,9 @@ version = "0.1.15"
 
 [[StaticArrays]]
 deps = ["LinearAlgebra", "PrecompileTools", "Random", "StaticArraysCore", "Statistics"]
-git-tree-sha1 = "7b0e9c14c624e435076d19aea1e5cbdec2b9ca37"
+git-tree-sha1 = "bf074c045d3d5ffd956fa0a461da38a44685d6b2"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "1.9.2"
+version = "1.9.3"
 
 [[StaticArraysCore]]
 git-tree-sha1 = "36b3d696ce6366023a0ea192b4cd442268995a0d"
