@@ -247,9 +247,9 @@ version = "1.3.1"
 
 [[Git_jll]]
 deps = ["Artifacts", "Expat_jll", "JLLWrappers", "LibCURL_jll", "Libdl", "Libiconv_jll", "OpenSSL_jll", "PCRE2_jll", "Zlib_jll"]
-git-tree-sha1 = "99f27817475017260f1ff24c771a5efef5765e34"
+git-tree-sha1 = "12945451c5d0e2d0dca0724c3a8d6448b46bbdf9"
 uuid = "f8c6e375-362e-5223-8a59-34ff63f689eb"
-version = "2.44.0+0"
+version = "2.44.0+1"
 
 [[HTTP]]
 deps = ["Base64", "CodecZlib", "ConcurrentUtilities", "Dates", "ExceptionUnwrapping", "Logging", "LoggingExtras", "MbedTLS", "NetworkOptions", "OpenSSL", "Random", "SimpleBufferStream", "Sockets", "URIs", "UUIDs"]
