@@ -38,9 +38,9 @@ uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
 
 [[ArrayLayouts]]
 deps = ["FillArrays", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "e46675dbc095ddfdf2b5fba247d5a25f34e1f8a2"
+git-tree-sha1 = "2aeaeaff72cdedaa0b5f30dfb8c1f16aefdac65d"
 uuid = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
-version = "1.6.1"
+version = "1.7.0"
 
 [[Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
