@@ -63,9 +63,9 @@ version = "0.1.1"
 
 [[BlockArrays]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "fc69cbdb4277042f72c6e59cbc7024fbe3034b89"
+git-tree-sha1 = "3c62e3006c23082d2ae524b468298d27788a8502"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.16.39"
+version = "0.16.40"
 
 [[Calculus]]
 deps = ["LinearAlgebra"]
