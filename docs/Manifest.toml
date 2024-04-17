@@ -153,9 +153,9 @@ version = "0.4.0"
 
 [[Dictionaries]]
 deps = ["Indexing", "Random", "Serialization"]
-git-tree-sha1 = "573c92ef22ee0783bfaa4007c732b044c791bc6d"
+git-tree-sha1 = "35b66b6744b2d92c778afd3a88d2571875664a2a"
 uuid = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
-version = "0.4.1"
+version = "0.4.2"
 
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
@@ -369,9 +369,9 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Literate]]
 deps = ["Base64", "IOCapture", "JSON", "REPL"]
-git-tree-sha1 = "03a3fef2d7d26198423366510706defebd8f1f16"
+git-tree-sha1 = "596df2daea9c27da81eee63ef2cf101baf10c24c"
 uuid = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
-version = "2.17.0"
+version = "2.18.0"
 
 [[LiterateTest]]
 deps = ["Test"]
