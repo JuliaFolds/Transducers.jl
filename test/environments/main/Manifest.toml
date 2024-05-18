@@ -51,6 +51,12 @@ version = "1.9.2"
 [[Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 
+[[BandedMatrices]]
+deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "PrecompileTools", "SparseArrays"]
+git-tree-sha1 = "30b7ea34abc4fe816eb1a5f434a43da804836163"
+uuid = "aae01518-5342-5314-be14-df237901396f"
+version = "1.7.0"
+
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
 git-tree-sha1 = "739391d91684b6a73173d6a6cda21ba5f649c776"
@@ -68,10 +74,10 @@ uuid = "9718e550-a3fa-408a-8086-8db961cd8217"
 version = "0.1.1"
 
 [[BlockArrays]]
-deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "9a9610fbe5779636f75229e423e367124034af41"
+deps = ["ArrayLayouts", "BandedMatrices", "FillArrays", "LinearAlgebra"]
+git-tree-sha1 = "7cc5d3c43c2f6d93b59742cb3af84461a45ae883"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.16.43"
+version = "1.0.0"
 
 [[Calculus]]
 deps = ["LinearAlgebra"]
