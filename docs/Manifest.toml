@@ -467,15 +467,15 @@ uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 
 [[OnlineStats]]
 deps = ["AbstractTrees", "Dates", "Distributions", "LinearAlgebra", "OnlineStatsBase", "OrderedCollections", "Random", "RecipesBase", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns"]
-git-tree-sha1 = "d3f41f18b9abaa2c64e8e0c43921df9b61ec8d02"
+git-tree-sha1 = "29f0e2b369c22190f2500b4fe5af49052c3f0c3b"
 uuid = "a15396b6-48d5-5d58-9928-6d29437db91e"
-version = "1.6.3"
+version = "1.7.0"
 
 [[OnlineStatsBase]]
 deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "6aa22dda15d3387639210d382fafc4f2a84b4fb9"
+git-tree-sha1 = "9a067a4ea67d1ebab4554b73792dd429f098387c"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.6.3"
+version = "1.7.0"
 
 [[OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -617,9 +617,9 @@ uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 
 [[SentinelArrays]]
 deps = ["Dates", "Random"]
-git-tree-sha1 = "363c4e82b66be7b9f7c7c7da7478fdae07de44b9"
+git-tree-sha1 = "90b4f68892337554d31cdcdbe19e48989f26c7e6"
 uuid = "91c51154-3ec4-41a3-a24f-3f23e20d615c"
-version = "1.4.2"
+version = "1.4.3"
 
 [[Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
