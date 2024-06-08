@@ -673,9 +673,9 @@ uuid = "90137ffa-7385-5640-81b9-e52037218182"
 version = "1.9.5"
 
 [[StaticArraysCore]]
-git-tree-sha1 = "36b3d696ce6366023a0ea192b4cd442268995a0d"
+git-tree-sha1 = "192954ef1208c7019899fbf8049e717f92959682"
 uuid = "1e83bf80-4336-4d27-bf5d-d5a4f845583c"
-version = "1.4.2"
+version = "1.4.3"
 
 [[StaticNumbers]]
 deps = ["Requires"]
