@@ -1,3 +1,10 @@
+# Deprecated
+
+> [!WARNING]
+> This package repository is no longer active. Please see https://github.com/JuliaFolds2/Transducers.jl for the currently active version of the package, and https://github.com/JuliaFolds2/ for the rest of the Transducers related ecosystem.
+
+_______________
+
 # Transducers.jl: Efficient transducers for Julia
 
 [![Stable documentation][docs-stable-img]][docs-stable-url]
