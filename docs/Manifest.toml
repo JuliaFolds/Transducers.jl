@@ -99,9 +99,9 @@ version = "2.4.2"
 
 [[ConstructionBase]]
 deps = ["LinearAlgebra"]
-git-tree-sha1 = "a33b7ced222c6165f624a3f2b55945fac5a598d9"
+git-tree-sha1 = "76219f1ed5771adbb096743bff43fb5fdd4c1157"
 uuid = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
-version = "1.5.7"
+version = "1.5.8"
 
 [[Crayons]]
 git-tree-sha1 = "249fe38abf76d48563e2f4556bebd215aa317e15"
@@ -175,9 +175,9 @@ version = "0.9.3"
 
 [[Documenter]]
 deps = ["ANSIColoredPrinters", "AbstractTrees", "Base64", "CodecZlib", "Dates", "DocStringExtensions", "Downloads", "Git", "IOCapture", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "MarkdownAST", "Pkg", "PrecompileTools", "REPL", "RegistryInstances", "SHA", "TOML", "Test", "Unicode"]
-git-tree-sha1 = "9d29b99b6b2b6bc2382a4c8dbec6eb694f389853"
+git-tree-sha1 = "5a1ee886566f2fa9318df1273d8b778b9d42712d"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-version = "1.6.0"
+version = "1.7.0"
 
 [[Downloads]]
 deps = ["ArgTools", "LibCURL", "NetworkOptions"]
