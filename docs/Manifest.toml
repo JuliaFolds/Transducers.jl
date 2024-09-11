@@ -449,9 +449,9 @@ uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 
 [[OnlineStats]]
 deps = ["AbstractTrees", "Dates", "Distributions", "LinearAlgebra", "OnlineStatsBase", "OrderedCollections", "Random", "RecipesBase", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns"]
-git-tree-sha1 = "29f0e2b369c22190f2500b4fe5af49052c3f0c3b"
+git-tree-sha1 = "8437102a36046b73a50af12430ec3e8e98768d80"
 uuid = "a15396b6-48d5-5d58-9928-6d29437db91e"
-version = "1.7.0"
+version = "1.7.1"
 
 [[OnlineStatsBase]]
 deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
