@@ -75,9 +75,9 @@ version = "0.1.1"
 
 [[BlockArrays]]
 deps = ["ArrayLayouts", "BandedMatrices", "FillArrays", "LinearAlgebra"]
-git-tree-sha1 = "5c0ffe1dff8cb7112de075f1b1cb32191675fcba"
+git-tree-sha1 = "d434647f798823bcae510aee0bc0401927f64391"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "1.1.0"
+version = "1.1.1"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
