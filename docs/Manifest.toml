@@ -12,9 +12,9 @@ version = "0.4.5"
 
 [[Accessors]]
 deps = ["CompositionsBase", "ConstructionBase", "Dates", "InverseFunctions", "LinearAlgebra", "MacroTools", "Markdown", "Requires", "Test"]
-git-tree-sha1 = "f61b15be1d76846c0ce31d3fcfac5380ae53db6a"
+git-tree-sha1 = "b392ede862e506d451fc1616e79aa6f4c673dab8"
 uuid = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
-version = "0.1.37"
+version = "0.1.38"
 
 [[Adapt]]
 deps = ["LinearAlgebra", "Requires"]
@@ -363,9 +363,9 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Literate]]
 deps = ["Base64", "IOCapture", "JSON", "REPL"]
-git-tree-sha1 = "eef2e1fc1dc38af90a18eb16e519e06d1fd10c2a"
+git-tree-sha1 = "b9b38448af801760a608b7a7f895f7dcf166f4a5"
 uuid = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
-version = "2.19.0"
+version = "2.19.1"
 
 [[LiterateTest]]
 deps = ["Test"]
