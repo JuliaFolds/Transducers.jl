@@ -163,9 +163,9 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[Distributions]]
 deps = ["AliasTables", "ChainRulesCore", "DensityInterface", "FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SpecialFunctions", "Statistics", "StatsAPI", "StatsBase", "StatsFuns", "Test"]
-git-tree-sha1 = "e6c693a0e4394f8fda0e51a5bdf5aef26f8235e9"
+git-tree-sha1 = "d7477ecdafb813ddee2ae727afa94e9dcb5f3fb0"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.25.111"
+version = "0.25.112"
 
 [[DocStringExtensions]]
 deps = ["LibGit2"]
@@ -455,9 +455,9 @@ version = "1.7.1"
 
 [[OnlineStatsBase]]
 deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "9a067a4ea67d1ebab4554b73792dd429f098387c"
+git-tree-sha1 = "a5a5a68d079ce531b0220e99789e0c1c8c5ed215"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.7.0"
+version = "1.7.1"
 
 [[OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
