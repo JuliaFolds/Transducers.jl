@@ -465,9 +465,9 @@ uuid = "efe28fd5-8261-553b-a9e1-b2916fc3738e"
 version = "0.5.5+0"
 
 [[OrderedCollections]]
-git-tree-sha1 = "dfdf5519f235516220579f949664f1bf44e741c5"
+git-tree-sha1 = "12f1439c4f986bb868acda6ea33ebc78e19b95ad"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
-version = "1.6.3"
+version = "1.7.0"
 
 [[PCRE2_jll]]
 deps = ["Artifacts", "Libdl"]
