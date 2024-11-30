@@ -53,9 +53,9 @@ uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 
 [[BandedMatrices]]
 deps = ["ArrayLayouts", "FillArrays", "LinearAlgebra", "PrecompileTools", "SparseArrays"]
-git-tree-sha1 = "a2c85f53ddcb15b4099da59867868bd40f005579"
+git-tree-sha1 = "3023a8cada3b08233252ee9b04edc3f3c39b1f04"
 uuid = "aae01518-5342-5314-be14-df237901396f"
-version = "1.7.5"
+version = "1.7.6"
 
 [[BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
