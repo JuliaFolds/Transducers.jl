@@ -7,18 +7,18 @@ end
 ```
 
 [Transducers](https://clojure.org/reference/transducers) are
-transformations of "sequence" of input that can be composed very
-efficiently.  The interface used by transducers naturally describes a
-wide range of processes that is expressible as a succession of steps.
+transformations of a "sequence" of inputs that can be composed very
+efficiently.  The interface transducers use naturally describes a
+wide range of expressible processes as a succession of steps.
 Furthermore, transducers can be defined without specifying the details
 of the input and output (collections, streams, channels, etc.)  and
-therefore achieves a full reusability.  Transducers are introduced by
+therefore achieve full reusability.  Transducers are introduced by
 Rich Hickey, the creator of the Clojure language.
 [His Strange Loop talk](https://www.youtube.com/watch?v=6mTbuzafcII)
 is a great introduction to the idea of transducers.
 
 Transducers.jl is an implementation of the transducers in Julia.
-Aiming to satisfy high-performance needs of Julia users,
+Aiming to satisfy the high-performance needs of Julia users,
 Transducers.jl uses a formulation that is _pure_ [^pure] and aiding
 type-stability.
 
@@ -38,7 +38,7 @@ type-stability.
   integration.
 * Robust
   [typocalypse](https://discourse.julialang.org/search?q=typocalypse)-free
-  implementation of `map`, `collect`, and alike based on
+  implementation of `map`, `collect`, and like based on a
   mutate-or-widen strategy implemented in
   [BangBang.jl](https://github.com/JuliaFolds/BangBang.jl).
 * User interface-agnostic progress bar support based on
