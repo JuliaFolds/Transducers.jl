@@ -60,9 +60,9 @@ version = "0.1.9"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "3e4b134270b372f2ed4d4d0e936aabaefc1802bc"
+git-tree-sha1 = "1713c74e00545bfe14605d2a2be1712de8fbcb58"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-version = "1.25.0"
+version = "1.25.1"
 
 [[ChangesOfVariables]]
 deps = ["InverseFunctions", "LinearAlgebra", "Test"]
