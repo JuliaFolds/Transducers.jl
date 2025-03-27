@@ -225,9 +225,9 @@ uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[PkgBenchmark]]
 deps = ["BenchmarkTools", "Dates", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Pkg", "Printf", "TerminalLoggers", "UUIDs"]
-git-tree-sha1 = "e4a10b7cdb7ec836850e43a4cee196f4e7b02756"
+git-tree-sha1 = "dc06838e215d9c072fbdb9e9e5497d7f476ccaf5"
 uuid = "32113eaa-f34f-5b0d-bd6c-c81e245fc73d"
-version = "0.2.12"
+version = "0.2.13"
 
 [[PrecompileTools]]
 deps = ["Preferences"]
