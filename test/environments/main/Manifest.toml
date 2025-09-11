@@ -217,9 +217,9 @@ version = "0.1.1"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "PDMats", "SparseArrays", "Statistics"]
-git-tree-sha1 = "6a70198746448456524cb442b8af316927ff3e1a"
+git-tree-sha1 = "173e4d8f14230a7523ae11b9a3fa9edb3e0efd78"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "1.13.0"
+version = "1.14.0"
 
 [[Folds]]
 deps = ["Accessors", "BangBang", "Baselet", "DefineSingletons", "Distributed", "ExternalDocstrings", "InitialValues", "MicroCollections", "Referenceables", "Requires", "Test", "ThreadedScans", "Transducers"]
