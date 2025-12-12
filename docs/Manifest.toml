@@ -153,9 +153,9 @@ version = "0.4.0"
 
 [[Dictionaries]]
 deps = ["Indexing", "Random", "Serialization"]
-git-tree-sha1 = "a86af9c4c4f33e16a2b2ff43c2113b2f390081fa"
+git-tree-sha1 = "a55766a9c8f66cf19ffcdbdb1444e249bb4ace33"
 uuid = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
-version = "0.4.5"
+version = "0.4.6"
 
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
