@@ -448,9 +448,9 @@ version = "1.7.3"
 
 [[OnlineStatsBase]]
 deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "a5a5a68d079ce531b0220e99789e0c1c8c5ed215"
+git-tree-sha1 = "17f1430ba308db10af8a921c27edc791dede0558"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.7.1"
+version = "1.7.2"
 
 [[OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
