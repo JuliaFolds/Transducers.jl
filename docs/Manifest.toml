@@ -323,9 +323,9 @@ version = "0.21.4"
 
 [[Kroki]]
 deps = ["Base64", "CodecZlib", "DocStringExtensions", "HTTP", "JSON", "Markdown", "Reexport"]
-git-tree-sha1 = "c2eeb52dd957eb8b9c2c2c3a8ea2a1f084062548"
+git-tree-sha1 = "640c6ddf37bccbee1eb3afcc215f180adfd8f86f"
 uuid = "b3565e16-c1f2-4fe9-b4ab-221c88942068"
-version = "1.0.1"
+version = "1.0.2"
 
 [[LaTeXStrings]]
 git-tree-sha1 = "f88f3ccef05a6a72a0cf0ed417c8fd68530f4ab2"
