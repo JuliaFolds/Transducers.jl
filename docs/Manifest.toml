@@ -422,9 +422,9 @@ version = "0.1.7"
 
 [[MbedTLS]]
 deps = ["Dates", "MbedTLS_jll", "MozillaCACerts_jll", "NetworkOptions", "Random", "Sockets"]
-git-tree-sha1 = "76efaf3f893d6766ff3b3d3bd0a748b4e84f9620"
+git-tree-sha1 = "0e4b139a1f0f0b8c054fcdfd3be5f610cfb8c787"
 uuid = "739be429-bea8-5141-9913-cc70e7f3736d"
-version = "1.1.11"
+version = "1.2.0"
 
 [[MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
