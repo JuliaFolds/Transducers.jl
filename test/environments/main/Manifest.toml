@@ -201,9 +201,9 @@ uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 
 [[Expat_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "f2659a735f9360fedfa29925812380f322679e93"
+git-tree-sha1 = "30fbbf8fb9d4e5d3264b4eb10c04f8a9ebaf9381"
 uuid = "2e619515-83b5-522b-bb60-26c02a35a201"
-version = "2.10.0+0"
+version = "2.11.0+0"
 
 [[ExprTools]]
 git-tree-sha1 = "d2e49e7efd29719d6f28b891b0e0e159daa9d2b4"
@@ -454,9 +454,9 @@ version = "1.7.4"
 
 [[OnlineStatsBase]]
 deps = ["AbstractTrees", "Dates", "LinearAlgebra", "OrderedCollections", "Statistics", "StatsBase"]
-git-tree-sha1 = "2a76d9c156615c9bfcbd2d1d617c1193daec7b71"
+git-tree-sha1 = "c38a596918e594b84c50b5823396955a74bdde22"
 uuid = "925886fa-5bf2-5e8e-b522-a9147a512338"
-version = "1.8.0"
+version = "1.8.1"
 
 [[OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
